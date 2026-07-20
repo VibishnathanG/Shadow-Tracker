@@ -1,0 +1,1027 @@
+'use client';
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable react-hooks/purity */
+// Force turbopack cache invalidation
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Lucide } from '@/components/icons';
+import { fireConfetti } from '@/lib/confetti';
+import { useShadowTrackerStore } from '@/store';
+import { getTodayDateString, formatDateString } from '@/lib/dateUtils';
+import EmptyState from '@/components/EmptyState';
+import Modal from '@/components/Modal';
+import { format } from 'date-fns';
+import { getMascotStatus, getShadowRank, getContextualCoaching, ALL_BADGES, BadgeDefinition } from '@/lib/quotes';
+
+
+
+
+// --- Tile Hologram GIF-Art ---
+const TileArtCompanion = () => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.15]">
+    <motion.svg className="absolute w-[200%] h-[200%] -top-1/2 -left-1/2 text-primary" viewBox="0 0 100 100" animate={{ rotate: [0, 90, 0] }} transition={{ duration: 30, repeat: Infinity, ease: 'linear' as const }}>
+      <rect x="25" y="25" width="50" height="50" fill="none" stroke="currentColor" strokeWidth="0.5" />
+      <motion.rect x="35" y="35" width="30" height="30" fill="none" stroke="currentColor" strokeWidth="1" animate={{ rotate: [0, -180, 0] }} transition={{ duration: 15, repeat: Infinity }} style={{ transformOrigin: 'center' }} />
+    </motion.svg>
+  </div>
+);
+
+
+const TileArtBadges = () => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
+    <motion.div className="absolute w-[200%] h-[200%] -top-1/2 -left-1/2 bg-[radial-gradient(circle_at_center,var(--primary)_0%,transparent_60%)] mix-blend-screen" animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }} transition={{ duration: 8, repeat: Infinity }} />
+  </div>
+);
+
+const TileArtMission = () => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.15]">
+    <motion.svg className="w-full h-full text-primary" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <path d="M0 50 Q 25 10 50 50 T 100 50" fill="none" stroke="currentColor" strokeWidth="0.5" />
+      <motion.path d="M0 50 Q 25 10 50 50 T 100 50" fill="none" stroke="currentColor" strokeWidth="1" animate={{ pathLength: [0, 1, 0] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' as const }} />
+    </motion.svg>
+  </div>
+);
+
+const TileArtTimeline = () => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.05]">
+    <div className="w-full h-full bg-[linear-gradient(currentColor_1px,transparent_1px),linear-gradient(90deg,currentColor_1px,transparent_1px)] bg-[size:20px_20px] text-primary" />
+    <motion.div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/50 to-transparent h-1/2 w-full" animate={{ y: ['-100%', '200%'] }} transition={{ duration: 5, repeat: Infinity, ease: 'linear' as const }} />
+  </div>
+);
+
+const TileArtAnalytics = () => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
+    <motion.svg className="w-full h-full text-emerald-400" viewBox="0 0 100 100" preserveAspectRatio="none">
+      {[...Array(5)].map((_, i) => (
+        <motion.circle key={i} cx="50" cy="100" r={20 + i * 15} fill="none" stroke="currentColor" strokeWidth="0.5" animate={{ r: [20 + i * 15, 30 + i * 15], opacity: [1, 0] }} transition={{ duration: 4, repeat: Infinity, delay: i * 0.5 }} />
+      ))}
+    </motion.svg>
+  </div>
+);
+
+const TileArtHabits = () => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
+    <motion.div className="absolute w-[150%] h-[150%] -top-1/4 -left-1/4 bg-gradient-to-tr from-purple-500/30 to-transparent" animate={{ rotate: [0, 360] }} transition={{ duration: 20, repeat: Infinity, ease: 'linear' as const }} style={{ transformOrigin: 'center' }} />
+  </div>
+);
+// ----------------------------
+
+interface DashboardProps {
+  onNavigate: (tab: string) => void;
+  setSelectedDate?: (date: string) => void;
+}
+
+export const Dashboard: React.FC<DashboardProps> = ({
+  onNavigate,
+}) => {
+  const {
+    tasks,
+    habits,
+    dailyLogs,
+    categories,
+    addTask,
+    toggleTaskCompletion,
+    toggleHabitCompletion,
+    xp,
+    level,
+    unlockedBadges,
+    settings,
+  } = useShadowTrackerStore();
+
+  const [inlineTaskTitle, setInlineTaskTitle] = useState('');
+  const [inlineTaskPriority, setInlineTaskPriority] = useState<'low' | 'medium' | 'high'>('medium');
+  const [showQuickAddModal, setShowQuickAddModal] = useState(false);
+  const [quickAddType, setQuickAddType] = useState<'task' | 'habit'>('task');
+  const [showLevelUpModal, setShowLevelUpModal] = useState(false);
+  const [celebratingBadge, setCelebratingBadge] = useState<BadgeDefinition | null>(null);
+
+  useEffect(() => {
+    const handleBadgeUnlockedEvent = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      const badgeId = customEvent.detail;
+      const foundBadge = ALL_BADGES.find(b => b.id === badgeId);
+      if (foundBadge) {
+        fireConfetti();
+        setCelebratingBadge(foundBadge);
+      }
+    };
+    window.addEventListener('badgeUnlocked', handleBadgeUnlockedEvent);
+    return () => window.removeEventListener('badgeUnlocked', handleBadgeUnlockedEvent);
+  }, []);
+  
+  // Data processing
+  const todayStr = useMemo(() => getTodayDateString(), []);
+  
+  const todayTasks = useMemo(() => tasks.filter(t => t.dueDate === todayStr && !t.isSoftDeleted), [tasks, todayStr]);
+  const pendingTasks = useMemo(() => todayTasks.filter(t => !t.isCompleted), [todayTasks]);
+  const completedTasksCount = useMemo(() => todayTasks.filter(t => t.isCompleted).length, [todayTasks]);
+
+  const activeHabitsCount = habits.length;
+  const completedHabitsToday = useMemo(() => habits.filter(h => h.completedDates.includes(todayStr)).length, [habits, todayStr]);
+
+  const totalStreaks = useMemo(() => habits.reduce((acc, h) => acc + h.streakCount, 0), [habits]);
+  const highestStreak = useMemo(() => habits.reduce((max, h) => h.streakCount > max ? h.streakCount : max, 0), [habits]);
+
+  const todayLog = useMemo(() => dailyLogs.find(l => l.date === todayStr), [dailyLogs, todayStr]);
+  const focusScore = todayLog?.focusScore ?? 0;
+
+  const shadowRank = useMemo(() => getShadowRank(level), [level]);
+
+  const getGreeting = useCallback(() => {
+    const alias = settings.alias || 'Shadow';
+    const hrs = new Date().getHours();
+    const highlight = <span className="text-primary font-bold">{alias}</span>;
+    if (hrs < 12) return <>Good morning, {highlight}</>;
+    if (hrs < 17) return <>Good afternoon, {highlight}</>;
+    return <>Good evening, {highlight}</>;
+  }, [settings.alias]);
+
+  const daysSinceLastActive = useMemo(() => {
+    let days = 0;
+    const allCompletedDates = habits.flatMap(h => h.completedDates).sort();
+    if (allCompletedDates.length > 0) {
+      const lastActiveDateStr = allCompletedDates[allCompletedDates.length - 1];
+      const todayTime = new Date(todayStr).getTime();
+      const lastTime = new Date(lastActiveDateStr).getTime();
+      days = Math.max(0, Math.floor((todayTime - lastTime) / (1000 * 3600 * 24)));
+    }
+    return days;
+  }, [habits, todayStr]);
+
+  const mascot = useMemo(() => getMascotStatus(
+    settings,
+    {
+      pendingTasks: pendingTasks.length,
+      completedTasks: completedTasksCount,
+      highestStreak,
+      focusScore,
+      daysSinceLastActive,
+    }
+  ), [settings, pendingTasks.length, completedTasksCount, highestStreak, focusScore, daysSinceLastActive]);
+
+  const coachingText = useMemo(() => {
+    return getContextualCoaching({
+      pendingTasks: pendingTasks.length,
+      completedTasks: completedTasksCount,
+      activeHabits: activeHabitsCount,
+      completedHabits: completedHabitsToday,
+      highestStreak,
+      daysSinceLastActive,
+      alias: settings.alias || 'Shadow',
+    });
+  }, [pendingTasks.length, completedTasksCount, activeHabitsCount, completedHabitsToday, highestStreak, daysSinceLastActive, settings.alias]);
+  const [showBadgesInfo, setShowBadgesInfo] = useState(false);
+
+  const renderWithAliasHighlight = useCallback((text: string) => {
+    const alias = settings.alias || 'Shadow';
+    if (!text.includes(alias)) return text;
+    const parts = text.split(alias);
+    return (
+      <>
+        {parts.map((part, i) => (
+          <React.Fragment key={i}>
+            {part}
+            {i !== parts.length - 1 && <span className="text-primary font-bold">{alias}</span>}
+          </React.Fragment>
+        ))}
+      </>
+    );
+  }, [settings.alias]);
+
+  const confettiParticles = useMemo(() => [...Array(30)].map((_, i) => ({
+    id: i,
+    backgroundColor: i % 3 === 0 ? '#8b5cf6' : i % 3 === 1 ? '#3b82f6' : '#eab308',
+    left: `${Math.random() * 100}%`,
+    top: `${Math.random() * 100}%`,
+    xTarget1: (Math.random() - 0.5) * 100,
+    xTarget2: (Math.random() - 0.5) * 200,
+    duration: 3 + Math.random() * 2
+  })), []);
+
+  const { completedPercent } = useMemo(() => {
+    const total = todayTasks.length + activeHabitsCount;
+    const completed = completedTasksCount + completedHabitsToday;
+    return {
+      totalItems: total,
+      completedItems: completed,
+      completedPercent: total > 0 ? Math.round((completed / total) * 100) : 0
+    };
+  }, [todayTasks.length, activeHabitsCount, completedTasksCount, completedHabitsToday]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedLevel = localStorage.getItem('shadow_tracker_seen_level');
+      if (storedLevel) {
+        const parsed = parseInt(storedLevel, 10);
+        if (level > parsed) {
+          setTimeout(() => setShowLevelUpModal(true), 0);
+        }
+      }
+      localStorage.setItem('shadow_tracker_seen_level', level.toString());
+    }
+  }, [level]);
+
+  const handleQuickAddSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inlineTaskTitle.trim()) return;
+
+    try {
+      if (quickAddType === 'task') {
+        await addTask({
+          title: inlineTaskTitle.trim(),
+          dueDate: todayStr,
+          priority: inlineTaskPriority,
+          isRecurring: false,
+          recurrencePattern: null,
+        });
+      }
+    } catch (err) {
+      console.error('Quick add failed:', err);
+    } finally {
+      setInlineTaskTitle('');
+      setShowQuickAddModal(false);
+    }
+  };
+
+  const getCategoryColor = useCallback((catId?: string) => {
+    if (!catId) return '#71717a';
+    const cat = categories.find(c => c.id === catId);
+    return cat ? cat.color : '#71717a';
+  }, [categories]);
+
+  const getCategoryName = useCallback((catId?: string) => {
+    if (!catId) return 'General';
+    const cat = categories.find(c => c.id === catId);
+    return cat ? cat.name : 'General';
+  }, [categories]);
+
+  return (
+    <div className="space-y-8 select-none font-sans relative">
+      {/* 1. Refined Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border pb-6">
+        <div className="space-y-1.5">
+          <motion.span 
+            initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }}
+            className="text-sm font-medium tracking-wide text-muted-foreground flex items-center gap-2"
+          >
+            <Lucide.Calendar size={14} />
+            {format(new Date(), 'EEEE, MMMM do')}
+          </motion.span>
+          <motion.h2 
+            initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}
+            className="text-4xl md:text-4xl font-semibold tracking-tight text-foreground"
+          >
+            {getGreeting()}!
+          </motion.h2>
+        </div>
+
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}
+          className="flex items-center gap-3"
+        >
+          <div className="flex items-center gap-4 px-4 py-1.5 rounded-full bg-secondary/30 border border-border/80 backdrop-blur-sm shadow-sm">
+            <div className="flex items-center gap-2" title="Tasks Completed / Total Today">
+              <Lucide.CheckSquare size={14} className="text-blue-400" />
+              <span className="text-sm font-bold text-foreground">{completedTasksCount}/{todayTasks.length}</span>
+            </div>
+            <div className="w-[1px] h-4 bg-border" />
+            <div className="flex items-center gap-2" title="Habits Completed / Total Active">
+              <Lucide.Repeat size={14} className="text-emerald-400" />
+              <span className="text-sm font-bold text-foreground">{completedHabitsToday}/{activeHabitsCount}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 px-3.5 py-1.5 bg-secondary/40 border border-border rounded-full text-base font-medium shadow-sm backdrop-blur-sm">
+            <Lucide.Flame className="text-orange-400" size={16} />
+            <span className="text-foreground">{highestStreak} day streak</span>
+          </div>
+        </motion.div>
+      </div>
+
+            {/* 1. TOP ROW: Achievement Nexus */}
+      <div className="mb-8">
+        {/* Badges Drawer */}
+          <motion.div 
+            initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }}
+            className="tile p-5 space-y-4"
+          >
+            <TileArtBadges />
+            <div className="relative z-10 flex items-center justify-between">
+              <span className="text-sm uppercase font-bold text-muted-foreground tracking-widest block">Achievement Nexus</span>
+              <button 
+                onClick={() => setShowBadgesInfo(true)}
+                className="text-xs text-muted-foreground bg-foreground/5 hover:bg-primary/20 hover:text-primary transition-colors px-2.5 py-1 rounded-full border border-border/80 shadow-sm cursor-pointer"
+              >
+                View Badges Info
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-5 sm:grid-cols-10 gap-2 py-3 px-1 relative z-10">
+              {ALL_BADGES.map((b, i) => {
+                const isUnlocked = unlockedBadges.includes(b.id);
+                const IconComponent = (Lucide[b.icon as keyof typeof Lucide] || Lucide.Award) as React.ElementType;
+
+                return (
+                  <motion.div
+                    key={b.id + "_card"}
+                    initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: i * 0.03 }}
+                    className={`w-full ${isUnlocked ? b.color : 'text-muted-foreground opacity-60 grayscale'}`}
+                  >
+                    <div
+                      onClick={() => {
+                        if (isUnlocked) {
+                          fireConfetti();
+                          setCelebratingBadge(b);
+                        }
+                      }}
+                      className={`w-full aspect-square relative p-1.5 sm:p-2 rounded-xl border flex flex-col items-center justify-center text-center gap-1 transition-all duration-300 group ${
+                        isUnlocked 
+                          ? 'border-current/30 shadow-md shadow-current/15 bg-surface cursor-pointer hover:-translate-y-1 hover:scale-105 hover:shadow-lg hover:shadow-current/25' 
+                          : 'bg-surface/50 border-border/70 shadow-sm hover:scale-[1.02] hover:opacity-80'
+                      }`}
+                    >
+                      {isUnlocked && (
+                        <motion.div
+                          className="absolute inset-0 rounded-xl pointer-events-none"
+                          animate={{
+                            boxShadow: [
+                              "0px 0px 6px currentColor, inset 0px 0px 2px currentColor",
+                              "0px 0px 20px currentColor, inset 0px 0px 8px currentColor",
+                              "0px 0px 6px currentColor, inset 0px 0px 2px currentColor"
+                            ]
+                          }}
+                          transition={{
+                            repeat: Infinity,
+                            duration: 3 + (i % 3) * 0.5,
+                            ease: "easeInOut",
+                            delay: (i * 0.05) + 0.3
+                          }}
+                        />
+                      )}
+
+                      <div className={`p-1 sm:p-1.5 rounded-lg bg-current/10 shrink-0 relative z-10 ${isUnlocked ? "drop-shadow-lg scale-105" : ""}`}>
+                        <IconComponent className={`w-4 h-4 sm:w-4.5 sm:h-4.5 transition-transform duration-700 ${isUnlocked ? 'group-hover:rotate-[360deg]' : ''}`} />
+                      </div>
+                      
+                      <div className="w-full min-w-0 flex flex-col items-center justify-center gap-0.5 select-none relative z-10 px-0.5">
+                        <strong className="block text-[10px] sm:text-[11px] text-foreground font-bold tracking-tight line-clamp-2 whitespace-normal break-words leading-[1.15] text-center antialiased [text-rendering:optimizeLegibility]">
+                          {b.name}
+                        </strong>
+                        <span className="block text-[8.5px] sm:text-[9.5px] text-foreground/80 font-semibold tracking-tight line-clamp-2 whitespace-normal break-words leading-[1.15] mt-0.5 text-center lowercase antialiased [text-rendering:optimizeLegibility]">
+                          {b.subtitle}
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </motion.div>
+      </div>
+
+      {/* 2. SECOND ROW: 4 Columns */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-stretch mb-4">
+        <div className="flex flex-col h-full">
+          {/* Animated Mascot widget */}
+          <motion.div 
+            initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}
+            className="tile p-3 flex flex-col h-full"
+          >
+            <TileArtCompanion />
+            
+            <div className="relative z-10 flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-secondary/50 border border-border p-1.5 flex items-center justify-center relative shadow-inner backdrop-blur-sm group">
+                <div 
+                  className="w-full h-full transition-transform duration-500 group-hover:scale-110" 
+                  dangerouslySetInnerHTML={{ __html: mascot.avatarSvg }} 
+                />
+              </div>
+              
+              <div>
+                <span className="text-sm font-medium text-primary tracking-wide uppercase">Companion</span>
+                <h4 className="text-base font-semibold text-foreground">{mascot.name}</h4>
+                <p className="text-sm text-muted-foreground mt-0.5">Focus synergy: {highestStreak}d</p>
+              </div>
+            </div>
+
+            <div className="relative z-10 mt-2.5 p-2 bg-foreground/5 border border-border rounded-xl text-xs font-medium leading-relaxed text-foreground shadow-sm backdrop-blur-md">
+              <div className="absolute -top-1.5 left-8 w-2 h-2 bg-surface border-t border-l border-border transform rotate-45"></div>
+              <p className="relative z-10">&quot;{renderWithAliasHighlight(mascot.speech)}&quot;</p>
+            </div>
+          </motion.div>
+        </div>
+        <div className="flex flex-col h-full">
+          {/* Analytics Snapshot Mini */}
+          <motion.div 
+            initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 }}
+            className="tile p-3 space-y-2 flex flex-col justify-center shrink-0 h-full"
+          >
+            <TileArtAnalytics />
+            <div className="relative z-10 flex items-center justify-between">
+              <span className="text-sm uppercase font-bold text-muted-foreground tracking-wide block">Analytics Snapshot</span>
+              <Lucide.BarChart2 size={16} className="text-emerald-400/80" />
+            </div>
+            
+            <div className="relative z-10 space-y-2">
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-bold text-foreground">{focusScore}</span>
+                <span className="text-xs text-muted-foreground">Focus Score</span>
+              </div>
+              
+              {/* Mini Sparkline Chart representation */}
+              <div className="h-8 flex items-end gap-1.5 w-full">
+                {Array.from({ length: 7 }).map((_, i) => {
+                  const pastLog = dailyLogs[dailyLogs.length - 7 + i];
+                  const score = pastLog ? pastLog.focusScore : Math.floor(Math.random() * 40) + 20; // fallback aesthetic data if missing
+                  const height = Math.max(10, Math.min(100, score));
+                  const isToday = i === 6;
+                  
+                  return (
+                    <div key={i} className="flex-1 flex flex-col justify-end items-center gap-1 group relative">
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity text-xs font-mono text-muted-foreground absolute -top-4">{score}</div>
+                      <motion.div 
+                        initial={{ height: 0 }}
+                        animate={{ height: `${height}%` }}
+                        transition={{ delay: 0.7 + (i * 0.05), type: 'spring' as const }}
+                        className={`w-full rounded-t-sm ${isToday ? 'bg-primary' : 'bg-foreground/10 group-hover:bg-foreground/20'}`}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="flex justify-between text-xs text-muted-foreground px-0.5 font-medium">
+                <span>Past 7d</span>
+                <span>Today</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+        <div className="flex flex-col h-full">
+          {/* Today's Mission Progress HUD - Layered Glassmorphism */}
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+            className="tile p-3.5 h-full flex flex-col justify-center"
+          >
+            <TileArtMission />
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-50 pointer-events-none" />
+
+            <div className="relative z-10 space-y-2.5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-base font-medium">
+                <span className="flex items-center gap-2 text-foreground uppercase text-sm tracking-wide font-semibold">
+                  <Lucide.Target size={16} className="text-primary" /> Today&apos;s Objective
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-foreground bg-foreground/5 border border-border px-2 py-1 rounded-md shadow-inner text-sm font-mono">
+                    {completedPercent}% completed
+                  </span>
+                </div>
+              </div>
+
+              <div className="h-1.5 w-full bg-black/40 rounded-full overflow-hidden border border-border shadow-inner">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-primary relative"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${completedPercent}%` }}
+                  transition={{ type: 'spring' as const, stiffness: 60, damping: 15 }}
+                >
+                  <div className="absolute top-0 right-0 bottom-0 w-10 bg-gradient-to-r from-transparent to-white/30" />
+                </motion.div>
+              </div>
+
+              <motion.div whileHover={{ scale: 1.02, transition: { type: "spring" as const, stiffness: 300 } }} className="flex items-start gap-2.5 bg-foreground/5 border border-border p-2.5 rounded-xl text-xs font-medium text-foreground leading-relaxed shadow-sm backdrop-blur-sm relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <Lucide.Lightbulb size={16} className="text-yellow-400 shrink-0 mt-0.5" />
+                <p className="relative z-10">{renderWithAliasHighlight(coachingText)}</p>
+              </motion.div>
+            </div>
+          </motion.div>
+        </div>
+        <div className="flex flex-col h-full">
+          {/* Floating Quick Actions HUD (Moved here) */}
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+            className="tile p-3 space-y-2.5 flex flex-col justify-center h-full"
+          >
+            <div className="grid grid-cols-2 gap-2 relative z-10">
+              <motion.button 
+                whileHover={{ scale: 1.05, y: -4, boxShadow: "0 15px 35px -10px rgba(var(--primary-rgb), 0.4)", transition: { type: "spring" as const, stiffness: 400, damping: 20 } }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => { setQuickAddType('task'); setShowQuickAddModal(true); }}
+                className="group flex flex-col items-center justify-center gap-1.5 p-2.5 bg-foreground/5 hover:bg-surface-elevated border border-border hover:border-primary/50 rounded-xl text-sm font-semibold transition-all text-foreground hover:text-foreground shadow-sm"
+              >
+                <div className="p-1.5 rounded-lg bg-primary/10 text-primary group-hover:scale-110 transition-transform shadow-inner">
+                  <Lucide.PlusSquare size={16} />
+                </div>
+                <span>New Task</span>
+              </motion.button>
+              <motion.button 
+                whileHover={{ scale: 1.05, y: -4, boxShadow: "0 15px 35px -10px rgba(168, 85, 247, 0.4)", transition: { type: "spring" as const, stiffness: 400, damping: 20 } }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => onNavigate('habits')}
+                className="group flex flex-col items-center justify-center gap-2 p-3 bg-foreground/5 hover:bg-surface-elevated border border-border hover:border-purple-400/50 rounded-xl text-sm font-semibold transition-all text-foreground hover:text-foreground shadow-sm"
+              >
+                <div className="p-2 rounded-lg bg-purple-400/10 text-purple-400 group-hover:scale-110 transition-transform shadow-inner">
+                  <Lucide.Repeat size={18} />
+                </div>
+                <span>Habit</span>
+              </motion.button>
+              <motion.button 
+                whileHover={{ scale: 1.05, y: -4, boxShadow: "0 15px 35px -10px rgba(251, 113, 133, 0.4)", transition: { type: "spring" as const, stiffness: 400, damping: 20 } }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => onNavigate('notes')}
+                className="group flex flex-col items-center justify-center gap-2 p-3 bg-foreground/5 hover:bg-surface-elevated border border-border hover:border-rose-400/50 rounded-xl text-sm font-semibold transition-all text-foreground hover:text-foreground shadow-sm"
+              >
+                <div className="p-2 rounded-lg bg-rose-400/10 text-rose-400 group-hover:scale-110 transition-transform shadow-inner">
+                  <Lucide.BookOpen size={18} />
+                </div>
+                <span>Journal</span>
+              </motion.button>
+              <motion.button 
+                whileHover={{ scale: 1.05, y: -4, boxShadow: "0 15px 35px -10px rgba(52, 211, 153, 0.4)", transition: { type: "spring" as const, stiffness: 400, damping: 20 } }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => onNavigate('analytics')}
+                className="group flex flex-col items-center justify-center gap-2 p-3 bg-foreground/5 hover:bg-surface-elevated border border-border hover:border-emerald-400/50 rounded-xl text-sm font-semibold transition-all text-foreground hover:text-foreground shadow-sm"
+              >
+                <div className="p-2 rounded-lg bg-emerald-400/10 text-emerald-400 group-hover:scale-110 transition-transform shadow-inner">
+                  <Lucide.LineChart size={18} />
+                </div>
+                <span>Stats</span>
+              </motion.button>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      {/* 3. THIRD ROW: 2 Columns */}
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch mb-8">
+        <div className="md:col-span-5 lg:col-span-4 flex flex-col h-full">
+          {/* Active Habits Mini-List */}
+          <motion.div 
+            initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.7 }}
+            className="tile p-5 flex-1 flex flex-col space-y-4 min-h-[220px]"
+          >
+            <TileArtHabits />
+            <div className="relative z-10 flex items-center justify-between">
+              <span className="text-sm uppercase font-bold text-muted-foreground tracking-wide block">Active Routines</span>
+              <Lucide.Activity size={16} className="text-purple-400" />
+            </div>
+
+            <div className="relative z-10 flex-1 space-y-3 overflow-y-auto custom-scrollbar pr-1 pb-2 min-h-0">
+              {habits.length > 0 ? (
+                habits.map((habit, idx) => {
+                  const isCompletedToday = habit.completedDates.includes(todayStr);
+
+                  return (
+                    <motion.div
+                      key={habit.id}
+                      initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 * idx }}
+                      whileHover={{ scale: 1.02, transition: { type: "spring" as const, stiffness: 300 } }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => toggleHabitCompletion(habit.id, todayStr)}
+                      className={`flex flex-col justify-center p-3 rounded-xl border cursor-pointer transition-all duration-300 ${
+                        isCompletedToday
+                          ? 'bg-foreground/5 border-border opacity-70'
+                          : 'bg-foreground/[0.03] border-border hover:border-border hover:bg-foreground/[0.05] shadow-sm'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <div className={`w-5 h-5 rounded-md flex items-center justify-center transition-all duration-300 relative border shrink-0 ${
+                            isCompletedToday
+                              ? 'bg-gradient-to-br from-purple-600 via-fuchsia-500 to-pink-500 border-fuchsia-400 text-white shadow-[0_0_12px_rgba(217,70,239,0.5)] scale-105'
+                              : 'bg-foreground/5 border-border text-muted-foreground hover:border-purple-400'
+                          }`}>
+                            {isCompletedToday && (
+                              <motion.span
+                                key={habit.id + "_routine_pulse"}
+                                initial={{ scale: 0.6, opacity: 0.9 }}
+                                animate={{ scale: 2.2, opacity: 0 }}
+                                transition={{ duration: 0.45, ease: "easeOut" }}
+                                className="absolute inset-0 rounded-md border-2 border-fuchsia-400 pointer-events-none"
+                              />
+                            )}
+                            <motion.div
+                              initial={false}
+                              animate={isCompletedToday ? { scale: [0, 1], rotate: [-20, 0] } : { scale: 1, rotate: 0 }}
+                              transition={{ type: "spring", stiffness: 400, damping: 18 }}
+                            >
+                              <Lucide.Check size={11} className={isCompletedToday ? 'stroke-[3.5px]' : 'opacity-30'} />
+                            </motion.div>
+                          </div>
+                          <p className={`text-sm font-semibold truncate max-w-[110px] ${isCompletedToday ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                            {habit.name}
+                          </p>
+                        </div>
+                        <span className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                          <Lucide.Flame size={12} className={isCompletedToday ? "text-orange-400" : "text-orange-400/50"} /> {habit.streakCount}
+                        </span>
+                      </div>
+                    </motion.div>
+                  );
+                })
+              ) : (
+                <div className="py-4 text-center text-sm text-muted-foreground">
+                  No active routines.
+                </div>
+              )}
+            </div>
+          </motion.div>
+        </div>
+        <div className="md:col-span-7 lg:col-span-8 flex flex-col h-full">
+          {/* Git-Commit Style Timeline View */}
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+            className="tile p-6 flex-1 flex flex-col min-h-[220px]"
+          >
+            <TileArtTimeline />
+            <div className="absolute top-0 right-0 bg-gradient-to-bl from-primary/5 to-transparent w-64 h-64 pointer-events-none" />
+            
+            <div className="relative z-10 flex-1 flex flex-col min-h-0">
+              <div className="flex items-center justify-between border-b border-border pb-3 mb-5">
+                <span className="text-sm uppercase tracking-wide font-bold text-foreground flex items-center gap-2">
+                  <Lucide.GitCommit size={16} className="text-primary" /> Timeline
+                </span>
+                <span className="text-sm font-medium text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full">
+                  {completedTasksCount} / {todayTasks.length} nodes resolved
+                </span>
+              </div>
+
+              {/* Commit tree nodes list - flex layout to avoid overflow clipping */}
+              <div className="space-y-0 flex-1 overflow-y-auto pr-2 custom-scrollbar pb-4 min-h-0">
+                {todayTasks.length > 0 ? (
+                  todayTasks.map((task, idx) => (
+                    <motion.div
+                      key={task.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.1 * idx }}
+                      className="flex gap-3 group"
+                    >
+                      {/* Left column: node circle + vertical connector */}
+                      <div className="flex flex-col items-center shrink-0 pt-1">
+                        <motion.button
+                          whileHover={{ scale: 1.15 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => {
+                            if (!task.isCompleted) fireConfetti();
+                            toggleTaskCompletion(task.id);
+                          }}
+                          className={`flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center transition-all duration-300 relative z-10 shrink-0 ${
+                            task.isCompleted
+                              ? 'bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 border border-emerald-400 text-white shadow-[0_0_12px_rgba(16,185,129,0.5)]'
+                              : 'bg-surface-elevated border-border hover:border-emerald-500 text-transparent group-hover:scale-110'
+                          }`}
+                        >
+                          {task.isCompleted && (
+                            <motion.span
+                              key={task.id + "_dashboard_pulse"}
+                              initial={{ scale: 0.6, opacity: 0.9 }}
+                              animate={{ scale: 2.2, opacity: 0 }}
+                              transition={{ duration: 0.45, ease: "easeOut" }}
+                              className="absolute inset-0 rounded-lg border-2 border-emerald-400 pointer-events-none"
+                            />
+                          )}
+                          <motion.div
+                            initial={false}
+                            animate={
+                              task.isCompleted 
+                                ? { scale: [0, 1], rotate: [-45, 0] } 
+                                : { scale: 0, rotate: 0 }
+                            }
+                            transition={{ type: 'spring', stiffness: 400, damping: 18 }}
+                          >
+                            <Lucide.Check size={12} className="stroke-[3.5px]" />
+                          </motion.div>
+                        </motion.button>
+                        {idx < todayTasks.length - 1 && (
+                          <div className="w-px flex-1 bg-border mt-1 min-h-[16px]" />
+                        )}
+                      </div>
+
+                      {/* Right column: task card */}
+                      <div className="flex-1 pb-4">
+                        <motion.div
+                          whileHover={{ scale: 1.01, transition: { type: "spring" as const, stiffness: 300 } }}
+                          className={`p-3.5 rounded-xl border transition-all duration-300 relative overflow-hidden ${
+                            task.isCompleted
+                              ? 'bg-foreground/5 border-border opacity-60'
+                              : 'bg-foreground/[0.03] border-border hover:border-primary/30 hover:bg-foreground/[0.05] shadow-sm'
+                          }`}
+                        >
+                          {task.isCompleted && <div className="absolute inset-0 bg-primary/5 pointer-events-none" />}
+                          <div className="flex justify-between items-start gap-2">
+                            <p className={`text-base font-medium leading-relaxed ${task.isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                              {task.title}
+                            </p>
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-md shrink-0 ${
+                              task.priority === 'high'
+                                ? 'text-red-400 bg-red-400/10'
+                                : task.priority === 'medium'
+                                ? 'text-yellow-400 bg-yellow-400/10'
+                                : 'text-zinc-400 bg-zinc-400/10'
+                            }`}>
+                              {task.priority}
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center gap-2 mt-2">
+                            <span className="text-xs font-medium text-muted-foreground flex items-center gap-1.5 bg-foreground/5 px-2 py-0.5 rounded border border-border">
+                              <span 
+                                className="w-2 h-2 rounded-full" 
+                                style={{ backgroundColor: getCategoryColor(task.categoryId) }}
+                              />
+                              {getCategoryName(task.categoryId)}
+                            </span>
+                          </div>
+                        </motion.div>
+                      </div>
+                    </motion.div>
+                  ))
+                ) : (
+                  <div className="py-8 text-center">
+                    <EmptyState
+                      icon="GitBranch"
+                      title="Timeline clear"
+                      description="No nodes scheduled for today's iteration. Add a task to begin."
+                    />
+                  </div>
+                )}
+              </div>
+              
+              <div className="border-t border-border pt-4 mt-4 flex justify-between items-center text-sm font-medium text-muted-foreground">
+                <span className="flex items-center gap-1.5"><Lucide.Zap size={14} className="text-amber-400/80" /> Flow State: {completedPercent || 0}%</span>
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => onNavigate('tasks')} 
+                  className="text-primary hover:text-primary transition-colors inline-flex items-center gap-1"
+                >
+                  Full board <Lucide.ArrowRight size={14} />
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+
+      </div>
+
+      <Modal
+        isOpen={showBadgesInfo}
+        onClose={() => setShowBadgesInfo(false)}
+        title="Achievement Nexus"
+      >
+        <div className="space-y-4 py-2">
+          <p className="text-sm text-muted-foreground mb-4">
+            Unlock these badges by maintaining your daily consistency. The longer your streaks, the more legendary your rank becomes.
+          </p>
+          <div className="grid grid-cols-1 gap-3 max-h-[60vh] overflow-y-auto pr-2">
+            {ALL_BADGES.map((b) => {
+              const isUnlocked = unlockedBadges.includes(b.id);
+              const IconComponent = (Lucide[b.icon as keyof typeof Lucide] || Lucide.Award) as React.ElementType;
+              return (
+                <div key={b.id} className={`flex items-start gap-4 p-4 rounded-xl border transition-all ${isUnlocked ? b.color + ' border-current/20' : 'bg-surface border-border text-muted-foreground grayscale opacity-60'}`}>
+                  <div className={`p-2 rounded-xl bg-current/10 ${isUnlocked ? 'drop-shadow-lg' : ''}`}>
+                    <IconComponent size={24} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-foreground text-sm flex items-center gap-2">
+                      {b.name}
+                      {isUnlocked && <Lucide.CheckCircle2 size={14} className="text-current" />}
+                    </h4>
+                    <p className="text-xs font-semibold text-primary/80 mt-1 uppercase tracking-wider">{b.requirement}</p>
+                    <p className="text-xs mt-1">{b.description}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </Modal>
+
+      {/* 4. Quick Add Floating Modal */}
+      <AnimatePresence>
+        {showQuickAddModal && (
+          <motion.div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-6 select-none cursor-pointer"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowQuickAddModal(false)}
+          >
+            <motion.div 
+              className="w-full max-w-sm bg-surface-elevated border border-border rounded-2xl p-6 shadow-2xl space-y-5 ring-1 ring-white/5 relative overflow-hidden cursor-default"
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-primary to-purple-500" />
+              
+              <div className="flex justify-between items-center pb-2 relative z-10">
+                <span className="text-base font-semibold text-foreground">Add new {quickAddType}</span>
+                <motion.button onClick={() => setShowQuickAddModal(false)} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-foreground/5">
+                  <Lucide.X size={18} />
+                </motion.button>
+              </div>
+
+              <form onSubmit={handleQuickAddSubmit} className="space-y-5">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-muted-foreground">Title</label>
+                  <input
+                    type="text"
+                    required
+                    autoFocus
+                    placeholder="E.g., Read documentation..."
+                    value={inlineTaskTitle}
+                    onChange={(e) => setInlineTaskTitle(e.target.value)}
+                    className="w-full text-base px-4 py-2.5 bg-black/50 border border-border focus:border-primary/50 rounded-xl text-foreground placeholder-muted-foreground focus:ring-1 focus:ring-primary/50 focus:outline-none transition-all shadow-inner"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-muted-foreground">Priority</label>
+                  <select
+                    value={inlineTaskPriority}
+                    onChange={(e) => setInlineTaskPriority(e.target.value as 'low' | 'medium' | 'high')}
+                    className="w-full text-base px-3 py-2.5 bg-black/50 border border-border focus:border-primary/50 rounded-xl text-foreground focus:outline-none cursor-pointer transition-all shadow-inner appearance-none"
+                  >
+                    <option value="low">Low</option>
+                    <option value="medium">Medium</option>
+                    <option value="high">High</option>
+                  </select>
+                </div>
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.95 }}
+                  type="submit"
+                  className="w-full py-3 mt-2 bg-primary hover:bg-primary/90 text-white font-semibold text-base rounded-xl transition-all shadow-[0_4px_14px_rgba(139,92,246,0.3)] hover:shadow-[0_6px_20px_rgba(139,92,246,0.4)]"
+                >
+                  Create
+                </motion.button>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 5. Level Up / Rank Up Overlay Modal */}
+      <AnimatePresence>
+        {showLevelUpModal && (
+          <motion.div 
+            className="fixed inset-0 bg-[#04040a]/90 backdrop-blur-xl flex items-center justify-center z-50 p-6 select-none cursor-pointer"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowLevelUpModal(false)}
+          >
+            {/* Ambient Confetti */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-60">
+              {confettiParticles.map((p) => (
+                <motion.div
+                  key={p.id}
+                  className="absolute w-1.5 h-1.5 rounded-full"
+                  style={{
+                    backgroundColor: p.backgroundColor,
+                    left: p.left,
+                    top: p.top
+                  }}
+                  animate={{
+                    y: [0, 200, 400],
+                    x: [0, p.xTarget1, p.xTarget2],
+                    rotate: [0, 360],
+                    scale: [1, 1.5, 0.5]
+                  }}
+                  transition={{
+                    duration: p.duration,
+                    repeat: Infinity,
+                    ease: 'easeOut' as const
+                  }}
+                />
+              ))}
+            </div>
+
+            <motion.div 
+              className="w-full max-w-sm bg-surface-elevated border border-primary/30 rounded-3xl p-8 shadow-[0_0_50px_rgba(139,92,246,0.15)] relative overflow-hidden text-center space-y-6 cursor-default"
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              transition={{ type: 'spring' as const, damping: 20 }}
+            >
+              <div className="absolute -top-16 -right-16 w-40 h-40 bg-primary/20 rounded-full blur-[40px] pointer-events-none" />
+              <div className="absolute -bottom-16 -left-16 w-40 h-40 bg-blue-500/10 rounded-full blur-[40px] pointer-events-none" />
+              
+              <div className="flex flex-col items-center space-y-3 relative z-10">
+                <div className="p-4 bg-primary/10 border border-primary/20 rounded-full text-primary shadow-inner">
+                  <Lucide.Sparkles size={40} className="animate-pulse" />
+                </div>
+                <span className="text-sm font-semibold text-primary tracking-widest uppercase">Ascension</span>
+                <h2 className="text-4xl font-bold text-foreground">Level Up</h2>
+                <p className="text-base text-muted-foreground">You have reached a new rank: <br/><span className="font-semibold text-foreground text-base mt-1 block">{shadowRank.name}</span></p>
+              </div>
+
+              {/* Companion notice */}
+              <div className="p-4 bg-foreground/5 border border-border rounded-2xl flex items-center gap-4 relative z-10">
+                <div className="w-14 h-14 bg-black/40 rounded-xl border border-border p-2 flex items-center justify-center shadow-inner">
+                  <div className="w-full h-full" dangerouslySetInnerHTML={{ __html: mascot.avatarSvg }} />
+                </div>
+                <div className="text-left">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide block">Companion Evolved</span>
+                  <h4 className="text-base font-semibold text-foreground">{mascot.name}</h4>
+                  <p className="text-sm text-muted-foreground mt-0.5">Growing stronger.</p>
+                </div>
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setShowLevelUpModal(false)}
+                className="w-full py-3.5 bg-primary hover:bg-primary/90 text-white font-semibold text-base rounded-xl transition-all shadow-[0_4px_14px_rgba(139,92,246,0.3)] hover:shadow-[0_6px_20px_rgba(139,92,246,0.4)] relative z-10"
+              >
+                Claim Ascension
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 6. Custom Badge Unlock Celebration Modal */}
+      <AnimatePresence>
+        {celebratingBadge && (
+          <motion.div 
+            className="fixed inset-0 bg-[#04040a]/90 backdrop-blur-xl flex items-center justify-center z-50 p-6 select-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setCelebratingBadge(null)}
+          >
+            <motion.div 
+              className={`w-full max-w-md bg-surface-elevated border border-border rounded-3xl p-8 shadow-2xl relative overflow-hidden text-center space-y-6 ${celebratingBadge.color}`}
+              initial={{ scale: 0.8, y: 30 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.8, y: 30 }}
+              transition={{ type: 'spring' as const, damping: 20, stiffness: 300 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="absolute top-0 inset-x-0 h-1.5 bg-current opacity-80" />
+              
+              {/* Glow Aura Background */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-current opacity-15 rounded-full blur-3xl pointer-events-none" />
+
+              {/* Big Animated Badge Icon */}
+              <div className="relative z-10 flex flex-col items-center justify-center pt-2">
+                <motion.div
+                  initial={{ scale: 0, rotate: -30 }}
+                  animate={{ scale: [0, 1.5, 1.1, 1], rotate: [0, -15, 15, 0] }}
+                  transition={{ duration: 0.7, ease: "backOut" }}
+                  className="p-6 rounded-3xl bg-current/15 border-2 border-current/30 text-current shadow-2xl relative"
+                >
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                    className="absolute inset-[-10px] rounded-3xl border border-current/20 pointer-events-none stroke-dasharray"
+                  />
+                  {React.createElement((Lucide[celebratingBadge.icon as keyof typeof Lucide] || Lucide.Award) as React.ElementType, { size: 56, className: "drop-shadow-lg" })}
+                </motion.div>
+              </div>
+
+              {/* Badge Metadata */}
+              <div className="relative z-10 space-y-2">
+                <span className="inline-block text-xs font-black uppercase tracking-widest px-3.5 py-1 rounded-full bg-current/15 text-foreground border border-current/30">
+                  {celebratingBadge.subtitle}
+                </span>
+                <h2 className="text-3xl font-extrabold text-foreground tracking-tight pt-1">
+                  {celebratingBadge.name}
+                </h2>
+                <p className="text-sm text-foreground/80 font-medium leading-relaxed max-w-xs mx-auto">
+                  {celebratingBadge.description}
+                </p>
+              </div>
+
+              {/* Unlock Requirement Badge */}
+              <div className="relative z-10 p-3 bg-background/60 border border-border/80 rounded-2xl text-xs font-bold text-muted-foreground flex items-center justify-center gap-2">
+                <Lucide.ShieldCheck size={16} className="text-emerald-400 shrink-0" />
+                <span>{celebratingBadge.requirement}</span>
+              </div>
+
+              <motion.button
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setCelebratingBadge(null)}
+                className="relative z-10 w-full py-3.5 bg-primary text-primary-foreground font-extrabold text-sm rounded-2xl shadow-lg transition-all"
+              >
+                Claim Badge
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+export default Dashboard;

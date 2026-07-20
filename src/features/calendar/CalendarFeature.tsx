@@ -1,0 +1,547 @@
+'use client';
+/* eslint-disable react-hooks/set-state-in-effect */
+
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Lucide } from '@/components/icons';
+import { useShadowTrackerStore } from '@/store';
+import { getTodayDateString, formatDateString, getMonthGridDates, getWeekDates } from '@/lib/dateUtils';
+import { format, addMonths, subMonths, addWeeks, subWeeks, isSameMonth } from 'date-fns';
+
+interface CalendarFeatureProps {
+  selectedDate: string;
+  setSelectedDate: (date: string) => void;
+}
+
+const dayOfWeekNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+const moodEmojis = {
+  great: { icon: 'Smile', color: 'text-emerald-500 bg-emerald-500/15 border-emerald-500/30', label: 'Great' },
+  good: { icon: 'SmilePlus', color: 'text-blue-500 bg-blue-500/15 border-blue-500/30', label: 'Good' },
+  neutral: { icon: 'Meh', color: 'text-yellow-500 bg-yellow-500/15 border-yellow-500/30', label: 'Neutral' },
+  bad: { icon: 'Frown', color: 'text-orange-500 bg-orange-500/15 border-orange-500/30', label: 'Bad' },
+  terrible: { icon: 'Angry', color: 'text-red-500 bg-red-500/15 border-red-500/30', label: 'Terrible' },
+} as const;
+
+export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
+  selectedDate,
+  setSelectedDate,
+}) => {
+  const {
+    tasks,
+    habits,
+    dailyLogs,
+    notes,
+    updateDailyLog,
+    saveNote,
+    toggleTaskCompletion,
+  } = useShadowTrackerStore();
+
+  const [currentViewDate, setCurrentViewDate] = useState<Date>(new Date(selectedDate));
+  const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
+  const [direction, setDirection] = useState(0);
+
+  const [journalContent, setJournalContent] = useState('');
+  const [journalTitle, setJournalTitle] = useState('');
+  const [selectedMood, setSelectedMood] = useState<string>('');
+  const [isSavedIndicator, setIsSavedIndicator] = useState(false);
+
+  const todayStr = useMemo(() => getTodayDateString(), []);
+
+  useEffect(() => {
+    const note = notes.find(n => n.id === selectedDate);
+    setJournalContent(note?.content || '');
+    setJournalTitle(note?.title || '');
+
+    const log = dailyLogs.find(l => l.date === selectedDate);
+    setSelectedMood(log?.mood || '');
+  }, [selectedDate, notes, dailyLogs]);
+
+  const handleSaveJournal = useCallback(async () => {
+    await saveNote(selectedDate, journalContent.trim(), journalTitle.trim() || undefined);
+    setIsSavedIndicator(true);
+    setTimeout(() => setIsSavedIndicator(false), 2000);
+  }, [saveNote, selectedDate, journalContent, journalTitle]);
+
+  const handleMoodSelect = useCallback(async (mood: string) => {
+    const nextMood = selectedMood === mood ? undefined : (mood as 'great' | 'good' | 'neutral' | 'bad' | 'terrible');
+    setSelectedMood(nextMood || '');
+    await updateDailyLog(selectedDate, { mood: nextMood });
+  }, [selectedMood, selectedDate, updateDailyLog]);
+
+  const handlePrev = useCallback(() => {
+    setDirection(-1);
+    setCurrentViewDate(prev => viewMode === 'month' ? subMonths(prev, 1) : subWeeks(prev, 1));
+  }, [viewMode]);
+
+  const handleNext = useCallback(() => {
+    setDirection(1);
+    setCurrentViewDate(prev => viewMode === 'month' ? addMonths(prev, 1) : addWeeks(prev, 1));
+  }, [viewMode]);
+
+  const handleToday = useCallback(() => {
+    const today = new Date();
+    setDirection(today > currentViewDate ? 1 : -1);
+    setCurrentViewDate(today);
+    setSelectedDate(todayStr);
+  }, [currentViewDate, setSelectedDate, todayStr]);
+
+  const monthGrid = useMemo(() => getMonthGridDates(currentViewDate), [currentViewDate]);
+  const weekRow = useMemo(() => getWeekDates(currentViewDate), [currentViewDate]);
+
+  const selectedDateTasks = useMemo(() => tasks.filter(t => t.dueDate === selectedDate), [tasks, selectedDate]);
+  const selectedDateLog = useMemo(() => dailyLogs.find(l => l.date === selectedDate), [dailyLogs, selectedDate]);
+  const selectedDateScore = selectedDateLog?.focusScore ?? 0;
+
+
+  const habitCompletionMap = useMemo(() => {
+    const map = new Map<string, number>();
+    habits.forEach(h => {
+      h.completedDates.forEach(d => {
+        map.set(d, (map.get(d) || 0) + 1);
+      });
+    });
+    return map;
+  }, [habits]);
+
+  const notesMap = useMemo(() => {
+    const map = new Map<string, boolean>();
+    notes.forEach(n => {
+      if (n.content.trim().length > 0) map.set(n.id, true);
+    });
+    return map;
+  }, [notes]);
+  
+  const dailyLogsMap = useMemo(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const map = new Map<string, any>();
+    dailyLogs.forEach(l => {
+      map.set(l.date, l);
+    });
+    return map;
+  }, [dailyLogs]);
+  
+  const tasksByDate = useMemo(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const map = new Map<string, any[]>();
+    tasks.forEach(t => {
+      if (!t.dueDate) return;
+      const arr = map.get(t.dueDate) || [];
+      arr.push(t);
+      map.set(t.dueDate, arr);
+    });
+    return map;
+  }, [tasks]);
+
+  return (
+    <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-start overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none -z-10 overflow-hidden opacity-[0.05]">
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 300, repeat: Infinity, ease: 'linear' }}
+          className="absolute -top-[40%] -left-[40%] w-[180%] h-[180%] origin-center text-primary"
+        >
+          <svg viewBox="0 0 1000 1000" className="w-full h-full text-current">
+            <defs>
+              <radialGradient id="calBgGlow" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="currentColor" stopOpacity="0.5" />
+                <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+              </radialGradient>
+            </defs>
+            <circle cx="500" cy="500" r="420" fill="none" stroke="currentColor" strokeWidth="0.8" strokeDasharray="4 12" opacity="0.8" />
+            <circle cx="500" cy="500" r="280" fill="none" stroke="currentColor" strokeWidth="0.6" strokeDasharray="6 15" opacity="0.6" />
+            <circle cx="500" cy="500" r="160" fill="url(#calBgGlow)" opacity="0.4" />
+          </svg>
+        </motion.div>
+      </div>
+
+      <div className="md:col-span-2 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-1 bg-secondary/80 border border-border/80 p-1.5 rounded-xl backdrop-blur-md">
+            <motion.button
+              whileHover={{ scale: 1.05, transition: { type: 'spring', stiffness: 400, damping: 10 } }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setViewMode('month')}
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                viewMode === 'month' ? 'bg-card text-foreground shadow-md' : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Month
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05, transition: { type: 'spring', stiffness: 400, damping: 10 } }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setViewMode('week')}
+              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
+                viewMode === 'week' ? 'bg-card text-foreground shadow-md' : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Week
+            </motion.button>
+          </div>
+
+          <div className="flex items-center justify-between sm:justify-end gap-3 flex-1 sm:flex-initial">
+            <h2 className="text-xl font-black tracking-tight min-w-[140px] text-center text-foreground">
+              {format(currentViewDate, viewMode === 'month' ? 'MMMM yyyy' : 'MMM yyyy')}
+            </h2>
+            <div className="flex items-center gap-1 bg-secondary/80 rounded-xl p-1.5 border border-border/60 backdrop-blur-md">
+              <motion.button whileHover={{ scale: 1.1, backgroundColor: 'var(--card)', transition: { type: 'spring', stiffness: 400, damping: 10 } }} whileTap={{ scale: 0.95 }} onClick={handlePrev} className="p-2 text-muted-foreground hover:text-foreground rounded-lg transition-colors">
+                <Lucide.ChevronLeft size={18} />
+              </motion.button>
+              <motion.button whileHover={{ scale: 1.05, backgroundColor: 'var(--card)', transition: { type: 'spring', stiffness: 400, damping: 10 } }} whileTap={{ scale: 0.95 }} onClick={handleToday} className="px-3 py-2 text-sm font-extrabold text-muted-foreground hover:text-foreground rounded-lg transition-colors uppercase tracking-widest">
+                Today
+              </motion.button>
+              <motion.button whileHover={{ scale: 1.1, backgroundColor: 'var(--card)', transition: { type: 'spring', stiffness: 400, damping: 10 } }} whileTap={{ scale: 0.95 }} onClick={handleNext} className="p-2 text-muted-foreground hover:text-foreground rounded-lg transition-colors">
+                <Lucide.ChevronRight size={18} />
+              </motion.button>
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex flex-wrap items-center justify-end gap-4 px-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground pb-2">
+          <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" /> Tasks</div>
+          <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" /> Habits</div>
+          <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]" /> Notes</div>
+          <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]" /> Mood</div>
+        </div>
+
+        <div className="tile p-5 md:p-7 relative overflow-hidden">
+          <AnimatePresence mode="wait" initial={false} custom={direction}>
+            <motion.div
+              key={currentViewDate.toISOString() + viewMode}
+              custom={direction}
+              variants={{
+                enter: (dir: number) => ({ opacity: 0, x: dir * 30, scale: 0.98, filter: 'blur(4px)' }),
+                center: { opacity: 1, x: 0, scale: 1, filter: 'blur(0px)' },
+                exit: (dir: number) => ({ opacity: 0, x: dir * -30, scale: 1.02, filter: 'blur(4px)' })
+              }}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ type: 'spring', stiffness: 400, damping: 35 }}
+            >
+              {viewMode === 'month' ? (
+                <div className="space-y-3 select-none">
+                  <div className="grid grid-cols-7 text-center border-b border-border/60 pb-3 text-xs font-black uppercase tracking-widest text-muted-foreground">
+                    {dayOfWeekNames.map(d => (
+                      <div key={d}>{d}</div>
+                    ))}
+                  </div>
+                  
+                  <div className="grid grid-cols-7 gap-2 md:gap-3">
+                    {monthGrid.map((date) => {
+                      const dateStr = formatDateString(date);
+                      const isCurrentMonth = isSameMonth(date, currentViewDate);
+                      const isSelected = dateStr === selectedDate;
+                      const isTodayDate = dateStr === todayStr;
+                      
+                      const dayLog = dailyLogsMap.get(dateStr);
+                      const dayScore = dayLog?.focusScore ?? 0;
+                      const dayHabitsCompleted = habitCompletionMap.get(dateStr) || 0;
+                      const hasNote = notesMap.get(dateStr) || false;
+                      const dayTasks = tasksByDate.get(dateStr) || [];
+                      const hasTasks = dayTasks.length > 0;
+                      const dayMood = dayLog?.mood;
+
+                      return (
+                        <motion.div
+                          key={dateStr}
+                          onClick={() => {
+                            setSelectedDate(dateStr);
+                            if (!isCurrentMonth) setCurrentViewDate(date);
+                          }}
+                          whileHover={{ 
+                            scale: 1.08, 
+                            y: -2, 
+                            boxShadow: '0 8px 20px -4px rgba(var(--primary-rgb), 0.3)',
+                            transition: { type: 'spring', stiffness: 500, damping: 20 }
+                          }}
+                          whileTap={{ scale: 0.95 }}
+                          className={`relative aspect-square flex flex-col justify-between p-2 rounded-2xl cursor-pointer border transition-colors ${
+                            isSelected
+                              ? 'text-primary-foreground border-transparent z-10'
+                              : isTodayDate
+                              ? 'bg-secondary/40 border-primary/50 text-foreground shadow-[0_0_12px_rgba(var(--primary-rgb),0.15)]'
+                              : isCurrentMonth
+                              ? 'bg-secondary/20 border-transparent text-foreground hover:bg-secondary/60'
+                              : 'bg-transparent border-transparent text-muted-foreground/60 hover:bg-secondary/40'
+                          }`}
+                        >
+                          {isSelected && (
+                            <motion.div
+                              layoutId="selectedDay"
+                              className="absolute inset-0 bg-primary rounded-2xl -z-10 shadow-lg shadow-primary/30"
+                              transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                            />
+                          )}
+                          <span className={`text-sm font-bold leading-none ${isTodayDate && !isSelected ? 'text-primary' : ''}`}>
+                            {format(date, 'd')}
+                          </span>
+                          
+                          <div className="flex flex-col items-end gap-1 w-full">
+                            <div className="flex flex-wrap gap-1 justify-end w-full mt-1">
+                              {hasTasks && (
+                                <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isSelected ? 'bg-primary-foreground' : 'bg-blue-500'} opacity-90`} title={`${dayTasks.length} Task(s)`} />
+                              )}
+                              {dayHabitsCompleted > 0 && (
+                                <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isSelected ? 'bg-primary-foreground' : 'bg-emerald-500'} opacity-90`} title={`${dayHabitsCompleted} Habit(s)`} />
+                              )}
+                              {hasNote && (
+                                <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isSelected ? 'bg-primary-foreground' : 'bg-purple-500'} opacity-90`} title="Journal Note" />
+                              )}
+                              {dayMood && (
+                                <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isSelected ? 'bg-primary-foreground' : 'bg-orange-500'} opacity-90`} title={`Mood: ${dayMood}`} />
+                              )}
+                            </div>
+                            
+                            {dayScore > 0 && (
+                              <div className={`w-full h-1.5 rounded-full ${isSelected ? 'bg-primary-foreground/30' : 'bg-secondary'} overflow-hidden`}>
+                                <div className={`h-full rounded-full ${isSelected ? 'bg-primary-foreground' : 'bg-primary'}`} style={{ width: `${dayScore}%` }} />
+                              </div>
+                            )}
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {weekRow.map((date) => {
+                    const dateStr = formatDateString(date);
+                    const isSelected = dateStr === selectedDate;
+                    const isTodayDate = dateStr === todayStr;
+                    
+                    const dayLog = dailyLogsMap.get(dateStr);
+                    const dayScore = dayLog?.focusScore ?? 0;
+                    
+                    const dayTasks = tasksByDate.get(dateStr) || [];
+                    const dayCompletedTasks = dayTasks.filter(t => t.isCompleted);
+                    const dayHabitsCompleted = habitCompletionMap.get(dateStr) || 0;
+                    const hasNote = notesMap.get(dateStr) || false;
+
+                    return (
+                      <motion.div
+                        key={dateStr}
+                        onClick={() => setSelectedDate(dateStr)}
+                        whileHover={{ 
+                          scale: 1.01,
+                          x: 5,
+                          boxShadow: '0 8px 20px -4px rgba(var(--primary-rgb), 0.2)',
+                          transition: { type: 'spring', stiffness: 500, damping: 25 }
+                        }}
+                        whileTap={{ scale: 0.98 }}
+                        className={`relative flex items-center justify-between p-5 border rounded-2xl cursor-pointer transition-colors overflow-hidden ${
+                          isSelected
+                            ? 'text-primary-foreground border-transparent shadow-lg shadow-primary/25'
+                            : isTodayDate
+                            ? 'bg-secondary/40 border-primary/60 text-foreground'
+                            : 'bg-secondary/20 border-border/60 text-foreground hover:bg-secondary/60 hover:border-border'
+                        }`}
+                      >
+                        {isSelected && (
+                          <motion.div
+                            layoutId="selectedWeekDay"
+                            className="absolute inset-0 bg-primary -z-10"
+                            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+                          />
+                        )}
+                        <div className="flex items-center gap-4 z-10">
+                          <div className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center font-bold shadow-sm ${
+                            isTodayDate && !isSelected ? 'bg-primary text-primary-foreground' : isSelected ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-card text-foreground border border-border/80'
+                          }`}>
+                            <span className="text-xs uppercase text-muted-foreground font-black">{format(date, 'eee')}</span>
+                            <span className="text-lg text-foreground leading-none mt-0.5">{format(date, 'd')}</span>
+                          </div>
+                          <div>
+                            <h4 className={`text-base font-black ${isSelected ? 'text-primary-foreground' : 'text-foreground'}`}>
+                              {dayTasks.length > 0 ? `${dayTasks.length} Tasks Scheduled` : 'No Tasks'}
+                            </h4>
+                            <div className={`text-sm font-semibold flex items-center gap-3 mt-1 ${isSelected ? 'text-primary-foreground/90' : 'text-muted-foreground'}`}>
+                              {dayTasks.length > 0 && <span>{dayCompletedTasks.length}/{dayTasks.length} Done</span>}
+                              {dayHabitsCompleted > 0 && <span className="flex items-center gap-1"><Lucide.CheckCircle2 size={14} className={isSelected ? '' : 'text-emerald-500'} /> {dayHabitsCompleted} Habits</span>}
+                              {hasNote && <span className="flex items-center gap-1"><Lucide.BookOpen size={14} className={isSelected ? '' : 'text-purple-500'} /> Note</span>}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col items-end gap-1.5 z-10">
+                          <span className={`text-sm font-extrabold px-3 py-1 rounded-lg backdrop-blur-md shadow-sm ${
+                            isSelected ? 'bg-primary-foreground/25 text-primary-foreground' : 'bg-card/90 border border-border/80 text-foreground'
+                          }`}>
+                            Score: {dayScore}%
+                          </span>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </div>
+
+      <div className="md:col-span-1 space-y-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 15 }} 
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+          className="tile p-6 relative overflow-hidden group"
+        >
+          <div className="absolute inset-0 bg-gradient-to-b from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+          
+          <div className="border-b border-border/60 pb-5">
+            <h3 className="text-lg font-black tracking-tight text-foreground">
+              {format(new Date(selectedDate), 'EEEE, MMM dd, yyyy')}
+            </h3>
+            <div className="flex items-center justify-between mt-3 text-sm font-bold text-muted-foreground">
+              <span>Focus Level:</span>
+              <span className="text-primary text-foreground text-base bg-primary/10 px-2 py-0.5 rounded-md">{selectedDateScore}%</span>
+            </div>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            <label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+              <Lucide.Smile size={14} className="text-primary" /> Daily Mood
+            </label>
+            <div className="flex justify-between gap-2">
+              {Object.entries(moodEmojis).map(([key, config]) => {
+                const isSelected = selectedMood === key;
+                const MoodIcon = (Lucide[config.icon as keyof typeof Lucide] || Lucide.Smile) as React.ElementType;
+
+                return (
+                  <motion.button
+                    whileHover={{ scale: 1.1, y: -2, transition: { type: 'spring', stiffness: 400, damping: 10 } }}
+                    whileTap={{ scale: 0.95 }}
+                    key={key}
+                    onClick={() => handleMoodSelect(key)}
+                    className={`flex-1 aspect-square rounded-2xl flex items-center justify-center border-2 transition-all ${
+                      isSelected 
+                        ? config.color + ' border-current scale-[1.05] shadow-md shadow-current/20'
+                        : 'bg-secondary/50 border-border/60 hover:bg-secondary text-muted-foreground hover:text-foreground'
+                    }`}
+                    title={config.label}
+                  >
+                    <MoodIcon size={20} strokeWidth={isSelected ? 2.5 : 2} />
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            <label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+              <Lucide.CheckSquare size={14} className="text-blue-500" /> Focus Tasks ({selectedDateTasks.length})
+            </label>
+            
+            <div className="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+              {selectedDateTasks.length > 0 ? (
+                selectedDateTasks.map(t => (
+                  <motion.div 
+                    key={t.id} 
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    whileHover={{ scale: 1.02, x: 2, backgroundColor: 'var(--secondary)' }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => toggleTaskCompletion(t.id)}
+                    className="flex items-center gap-3 text-sm font-bold text-foreground bg-secondary/40 p-3 border border-border/60 rounded-xl transition-all cursor-pointer shadow-sm hover:shadow-md"
+                  >
+                    <motion.div
+                      whileTap={{ scale: 0.9 }}
+                      className={`w-5 h-5 rounded-md flex items-center justify-center transition-all border relative shrink-0 ${
+                        t.isCompleted
+                          ? 'bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 border-emerald-400 text-white shadow-[0_0_10px_rgba(16,185,129,0.5)]'
+                          : 'border-muted-foreground/60 hover:border-emerald-500'
+                      }`}
+                    >
+                      {t.isCompleted && (
+                        <motion.span
+                          key={t.id + "_cal_pulse"}
+                          initial={{ scale: 0.6, opacity: 0.9 }}
+                          animate={{ scale: 2.2, opacity: 0 }}
+                          transition={{ duration: 0.45, ease: "easeOut" }}
+                          className="absolute inset-0 rounded-md border-2 border-emerald-400 pointer-events-none"
+                        />
+                      )}
+                      <motion.div
+                        initial={false}
+                        animate={
+                          t.isCompleted 
+                            ? { scale: [0, 1], rotate: [-45, 0] } 
+                            : { scale: 0, rotate: 0 }
+                        }
+                        transition={{ type: 'spring', stiffness: 400, damping: 18 }}
+                      >
+                        <Lucide.Check size={11} className="stroke-[3.5px]" />
+                      </motion.div>
+                    </motion.div>
+                    <span className={`truncate flex-1 transition-all ${t.isCompleted ? 'line-through text-muted-foreground' : ''}`}>{t.title}</span>
+                  </motion.div>
+                ))
+              ) : (
+                <div className="flex flex-col items-center justify-center py-6 text-center bg-secondary/30 rounded-2xl border-2 border-dashed border-border/60">
+                  <Lucide.Sparkles size={24} className="text-primary/40 mb-2" />
+                  <p className="text-sm font-bold text-foreground">A clear day</p>
+                  <p className="text-xs font-medium text-muted-foreground mt-1 max-w-[180px]">No tasks are scheduled for this date.</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-3 border-t border-border/60 pt-5">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+                <Lucide.BookOpen size={14} className="text-purple-500" /> Reflection Notes
+              </label>
+              
+              <AnimatePresence mode="wait">
+                {isSavedIndicator ? (
+                  <motion.span 
+                    key="saved"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    className="text-xs font-bold text-emerald-500 flex items-center gap-1 bg-emerald-500/10 px-2 py-1 rounded-md"
+                  >
+                    <Lucide.Check size={12} strokeWidth={3} /> Saved
+                  </motion.span>
+                ) : (
+                  <motion.button
+                    key="save"
+                    whileHover={{ scale: 1.05, transition: { type: 'spring', stiffness: 400, damping: 10 } }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleSaveJournal}
+                    className="text-xs font-black text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    Save Entry
+                  </motion.button>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <motion.input
+              whileFocus={{ scale: 1.01, transition: { type: 'spring', stiffness: 400, damping: 10 } }}
+              type="text"
+              placeholder="Entry Title (Optional)..."
+              value={journalTitle}
+              onChange={(e) => setJournalTitle(e.target.value)}
+              className="w-full text-sm font-black px-4 py-3 bg-secondary/40 rounded-xl border border-border/60 outline-none text-foreground placeholder:text-muted-foreground focus:bg-secondary/60 focus:border-primary/60 focus:ring-4 focus:ring-primary/20 transition-all shadow-sm"
+            />
+            
+            <motion.textarea
+              whileFocus={{ scale: 1.01, transition: { type: 'spring', stiffness: 400, damping: 10 } }}
+              placeholder="Write down any notes, thoughts, and blocks encountered today..."
+              value={journalContent}
+              onChange={(e) => setJournalContent(e.target.value)}
+              rows={5}
+              className="w-full text-sm font-medium p-4 bg-secondary/40 rounded-xl border border-border/60 outline-none resize-none text-foreground placeholder:text-muted-foreground focus:bg-secondary/60 focus:border-primary/60 focus:ring-4 focus:ring-primary/20 transition-all leading-relaxed shadow-sm custom-scrollbar"
+            />
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+};
+
+export default CalendarFeature;

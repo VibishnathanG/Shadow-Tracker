@@ -1,36 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# shadow-tracker
 
-## Getting Started
+A premium, privacy-first, local-first productivity tracker for daily tasks, streaks, analytics, and mindful journaling.
 
-First, run the development server:
+---
 
+## 🌌 Product Vision
+
+`shadow-tracker` is a consumer-grade personal dashboard designed to foster daily discipline. The interface features a glowing, cyberpunk-inspired layout built on core web performance rules. 
+
+### Core Principles
+1. **Privacy-First**: No tracking cookies, logins, or server syncs by default. Your data is strictly yours.
+2. **Local-First**: All tasks, logs, and reflections are saved locally in your browser's sandboxed IndexedDB database.
+3. **Gamified Consistency**: Earn progress milestones and track your peak output through a dynamic Focus Score.
+
+---
+
+## 🛠️ Feature Directory
+
+* **Today Portal (Dashboard)**: Visual focus score gauges, today's routines checklist, upcoming reminders, and weekly consistency rings.
+* **Tasks Workspace**: Tabbed categories (Pending, Completed, All), custom priority indicators, snooze actions (+1 day to due date), and recurring routines.
+* **Atomic Habits**: Completion heatmaps, active streak counters (`🔥`), historical records, and customizable schedules (daily, weekly, or specific custom weekdays).
+* **Calendar Agenda**: Intersected monthly calendar grids. Clicking a day loads historical check-offs, focus scores, mood logs, and your journal reflection notes.
+* **Reflections Journal**: Full Markdown text editor with search and browse logs.
+* **Analytics Room**: Consistency scorecard alongside an custom-crafted SVG focus timeline chart.
+* **Command Bar**: Global keyboard-driven search overlay (`Cmd+K` / `Ctrl+K`) for rapid task creation, theme toggling, and page navigation.
+* **Control Console (Settings)**: Layout switches, custom category color-badge editors, database resets, and local database backup exports/imports (JSON).
+
+---
+
+## 🚀 Getting Started
+
+### Local Setup
+1. Clone the project.
+2. Install npm dependencies:
+   ```bash
+   npm install --legacy-peer-deps
+   ```
+3. Run the development hot-reloaded server:
+   ```bash
+   npm run dev
+   ```
+4. Access the portal at [http://localhost:3000](http://localhost:3000).
+
+### Unit Testing
+We use `Vitest` to test our streak logic, calendar grids, and date utility rules:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run test
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Production Build
+To test compilation performance:
+```bash
+npm run build
+npm run start
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🐳 Docker Deployment
 
-## Learn More
+The application is containerized with multi-stage Dockerfiles, optimizing image size (using Next.js standalone outputs) and disabling analytics collection.
 
-To learn more about Next.js, take a look at the following resources:
+### Development Container (Hot Reloading)
+```bash
+docker compose up dev
+```
+*Your local directory is volume-mounted. Edits will hot-reload dynamically.*
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Production Build & Serve
+```bash
+docker compose up prod --build
+```
+*Binds port `8080` on your host machine to port `3000` inside the container. Accessible at `http://localhost:8080`.*
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## ⌨️ Command Bar Keyboard Shortcuts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Shortcut | Command / Action |
+| :--- | :--- |
+| `Cmd+K` or `Ctrl+K` | Open / Close Quick Command Bar |
+| `↑` / `↓` | Navigate Command list |
+| `Enter` | Select and execute Command |
+| `Esc` | Dismiss / Close modal |
+| *Type text + Enter* | Quick Add Task / Habit |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 📱 Mobile Roadmap
+
+`shadow-tracker` is designed to be easily exported to an Android `.apk` or iOS app using **React Native & Expo**. You can reuse 100% of the Zustand stores, business calculations, and types schemas. Check out the migration path in [MOBILE_STRATEGY.md](./MOBILE_STRATEGY.md).

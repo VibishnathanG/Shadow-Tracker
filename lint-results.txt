@@ -1,0 +1,811 @@
+
+> shadow-tracker@0.1.0 lint
+> eslint
+
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/bumpFonts.js
+  1:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/download_images.js
+  1:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:15  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:14  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/download_lorem.js
+  1:12  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  2:15  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+  3:14  error  A `require()` style import is forbidden  @typescript-eslint/no-require-imports
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/app/page.tsx
+   13:11  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/app/page.tsx:13:11
+  11 |   const cyberpunkNodes = useMemo(() => [...Array(20)].map((_, i) => ({
+  12 |     id: i,
+> 13 |     left: Math.random() * 100 + '%',
+     |           ^^^^^^^^^^^^^ Cannot call impure function
+  14 |     top: Math.random() * 100 + '%',
+  15 |     yTarget: Math.random() * 100 - 50,
+  16 |     xTarget: Math.random() * 100 - 50,              react-hooks/purity
+   14:10  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/app/page.tsx:14:10
+  12 |     id: i,
+  13 |     left: Math.random() * 100 + '%',
+> 14 |     top: Math.random() * 100 + '%',
+     |          ^^^^^^^^^^^^^ Cannot call impure function
+  15 |     yTarget: Math.random() * 100 - 50,
+  16 |     xTarget: Math.random() * 100 - 50,
+  17 |     duration: Math.random() * 8 + 5                                                  react-hooks/purity
+   15:14  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/app/page.tsx:15:14
+  13 |     left: Math.random() * 100 + '%',
+  14 |     top: Math.random() * 100 + '%',
+> 15 |     yTarget: Math.random() * 100 - 50,
+     |              ^^^^^^^^^^^^^ Cannot call impure function
+  16 |     xTarget: Math.random() * 100 - 50,
+  17 |     duration: Math.random() * 8 + 5
+  18 |   })), []);                                             react-hooks/purity
+   16:14  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/app/page.tsx:16:14
+  14 |     top: Math.random() * 100 + '%',
+  15 |     yTarget: Math.random() * 100 - 50,
+> 16 |     xTarget: Math.random() * 100 - 50,
+     |              ^^^^^^^^^^^^^ Cannot call impure function
+  17 |     duration: Math.random() * 8 + 5
+  18 |   })), []);
+  19 |                                                                                  react-hooks/purity
+   17:15  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/app/page.tsx:17:15
+  15 |     yTarget: Math.random() * 100 - 50,
+  16 |     xTarget: Math.random() * 100 - 50,
+> 17 |     duration: Math.random() * 8 + 5
+     |               ^^^^^^^^^^^^^ Cannot call impure function
+  18 |   })), []);
+  19 |
+  20 |   const onedarkEmbers = useMemo(() => [...Array(30)].map((_, i) => ({                                               react-hooks/purity
+   22:11  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/app/page.tsx:22:11
+  20 |   const onedarkEmbers = useMemo(() => [...Array(30)].map((_, i) => ({
+  21 |     id: i,
+> 22 |     size: Math.random() * 5 + 2 + 'px',
+     |           ^^^^^^^^^^^^^ Cannot call impure function
+  23 |     left: Math.random() * 100 + '%',
+  24 |     xTarget: Math.random() * 200 - 100,
+  25 |     duration: Math.random() * 6 + 4,            react-hooks/purity
+   23:11  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/app/page.tsx:23:11
+  21 |     id: i,
+  22 |     size: Math.random() * 5 + 2 + 'px',
+> 23 |     left: Math.random() * 100 + '%',
+     |           ^^^^^^^^^^^^^ Cannot call impure function
+  24 |     xTarget: Math.random() * 200 - 100,
+  25 |     duration: Math.random() * 6 + 4,
+  26 |     delay: Math.random() * 5                                                     react-hooks/purity
+   24:14  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/app/page.tsx:24:14
+  22 |     size: Math.random() * 5 + 2 + 'px',
+  23 |     left: Math.random() * 100 + '%',
+> 24 |     xTarget: Math.random() * 200 - 100,
+     |              ^^^^^^^^^^^^^ Cannot call impure function
+  25 |     duration: Math.random() * 6 + 4,
+  26 |     delay: Math.random() * 5
+  27 |   })), []);                                                 react-hooks/purity
+   25:15  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/app/page.tsx:25:15
+  23 |     left: Math.random() * 100 + '%',
+  24 |     xTarget: Math.random() * 200 - 100,
+> 25 |     duration: Math.random() * 6 + 4,
+     |               ^^^^^^^^^^^^^ Cannot call impure function
+  26 |     delay: Math.random() * 5
+  27 |   })), []);
+  28 |                                                                                        react-hooks/purity
+   26:12  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/app/page.tsx:26:12
+  24 |     xTarget: Math.random() * 200 - 100,
+  25 |     duration: Math.random() * 6 + 4,
+> 26 |     delay: Math.random() * 5
+     |            ^^^^^^^^^^^^^ Cannot call impure function
+  27 |   })), []);
+  28 |
+  29 |   const defaultDust = useMemo(() => [...Array(40)].map((_, i) => ({                                                            react-hooks/purity
+   31:11  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/app/page.tsx:31:11
+  29 |   const defaultDust = useMemo(() => [...Array(40)].map((_, i) => ({
+  30 |     id: i,
+> 31 |     size: Math.random() * 3 + 1 + 'px',
+     |           ^^^^^^^^^^^^^ Cannot call impure function
+  32 |     left: Math.random() * 100 + '%',
+  33 |     xTarget: Math.random() * 100 - 50,
+  34 |     xTarget2: Math.random() * 200 - 100,           react-hooks/purity
+   32:11  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/app/page.tsx:32:11
+  30 |     id: i,
+  31 |     size: Math.random() * 3 + 1 + 'px',
+> 32 |     left: Math.random() * 100 + '%',
+     |           ^^^^^^^^^^^^^ Cannot call impure function
+  33 |     xTarget: Math.random() * 100 - 50,
+  34 |     xTarget2: Math.random() * 200 - 100,
+  35 |     opacityTarget: Math.random() * 0.5 + 0.2,                                 react-hooks/purity
+   33:14  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/app/page.tsx:33:14
+  31 |     size: Math.random() * 3 + 1 + 'px',
+  32 |     left: Math.random() * 100 + '%',
+> 33 |     xTarget: Math.random() * 100 - 50,
+     |              ^^^^^^^^^^^^^ Cannot call impure function
+  34 |     xTarget2: Math.random() * 200 - 100,
+  35 |     opacityTarget: Math.random() * 0.5 + 0.2,
+  36 |     duration: Math.random() * 10 + 10,  react-hooks/purity
+   34:15  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/app/page.tsx:34:15
+  32 |     left: Math.random() * 100 + '%',
+  33 |     xTarget: Math.random() * 100 - 50,
+> 34 |     xTarget2: Math.random() * 200 - 100,
+     |               ^^^^^^^^^^^^^ Cannot call impure function
+  35 |     opacityTarget: Math.random() * 0.5 + 0.2,
+  36 |     duration: Math.random() * 10 + 10,
+  37 |     delay: Math.random() * 10           react-hooks/purity
+   35:20  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/app/page.tsx:35:20
+  33 |     xTarget: Math.random() * 100 - 50,
+  34 |     xTarget2: Math.random() * 200 - 100,
+> 35 |     opacityTarget: Math.random() * 0.5 + 0.2,
+     |                    ^^^^^^^^^^^^^ Cannot call impure function
+  36 |     duration: Math.random() * 10 + 10,
+  37 |     delay: Math.random() * 10
+  38 |   })), []);                               react-hooks/purity
+   36:15  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/app/page.tsx:36:15
+  34 |     xTarget2: Math.random() * 200 - 100,
+  35 |     opacityTarget: Math.random() * 0.5 + 0.2,
+> 36 |     duration: Math.random() * 10 + 10,
+     |               ^^^^^^^^^^^^^ Cannot call impure function
+  37 |     delay: Math.random() * 10
+  38 |   })), []);
+  39 |                                                                           react-hooks/purity
+   37:12  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/app/page.tsx:37:12
+  35 |     opacityTarget: Math.random() * 0.5 + 0.2,
+  36 |     duration: Math.random() * 10 + 10,
+> 37 |     delay: Math.random() * 10
+     |            ^^^^^^^^^^^^^ Cannot call impure function
+  38 |   })), []);
+  39 |
+  40 |   if (theme === 'cyberpunk') {                                                                                        react-hooks/purity
+  214:5   warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/set-state-in-effect')
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/components/AnimeGreeting.tsx
+  197:11  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/components/AnimeGreeting.tsx:197:11
+  195 |   const wisdomNodes = useMemo(() => [...Array(20)].map((_, i) => ({
+  196 |     id: i,
+> 197 |     size: Math.random() * 100 + 20,
+      |           ^^^^^^^^^^^^^ Cannot call impure function
+  198 |     left: `${Math.random() * 100}%`,
+  199 |     top: `${Math.random() * 100}%`,
+  200 |     duration: Math.random() * 3 + 3                                                                                                                                                                                                                                                                                                                              react-hooks/purity
+  198:14  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/components/AnimeGreeting.tsx:198:14
+  196 |     id: i,
+  197 |     size: Math.random() * 100 + 20,
+> 198 |     left: `${Math.random() * 100}%`,
+      |              ^^^^^^^^^^^^^ Cannot call impure function
+  199 |     top: `${Math.random() * 100}%`,
+  200 |     duration: Math.random() * 3 + 3
+  201 |   })), []);                                                                                                                                                                                                                                                                                                                                                                                   react-hooks/purity
+  199:13  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/components/AnimeGreeting.tsx:199:13
+  197 |     size: Math.random() * 100 + 20,
+  198 |     left: `${Math.random() * 100}%`,
+> 199 |     top: `${Math.random() * 100}%`,
+      |             ^^^^^^^^^^^^^ Cannot call impure function
+  200 |     duration: Math.random() * 3 + 3
+  201 |   })), []);
+  202 |                                                                                                                                                                                                                                                                                                                                                                                               react-hooks/purity
+  200:15  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/components/AnimeGreeting.tsx:200:15
+  198 |     left: `${Math.random() * 100}%`,
+  199 |     top: `${Math.random() * 100}%`,
+> 200 |     duration: Math.random() * 3 + 3
+      |               ^^^^^^^^^^^^^ Cannot call impure function
+  201 |   })), []);
+  202 |
+  203 |   const wealthBars = useMemo(() => [...Array(10)].map((_, i) => ({                                                                                                                                                                                                                                                                                                                                                              react-hooks/purity
+  206:12  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/components/AnimeGreeting.tsx:206:12
+  204 |     id: i,
+  205 |     left: `${i * 10}%`,
+> 206 |     h0: `${Math.random() * 60 + 20}%`,
+      |            ^^^^^^^^^^^^^ Cannot call impure function
+  207 |     h1: `${Math.random() * 80 + 20}%`,
+  208 |     h2: `${Math.random() * 60 + 20}%`,
+  209 |     duration: Math.random() * 2 + 2                                                                                                                                                                                                                                                                                                                                                                 react-hooks/purity
+  207:12  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/components/AnimeGreeting.tsx:207:12
+  205 |     left: `${i * 10}%`,
+  206 |     h0: `${Math.random() * 60 + 20}%`,
+> 207 |     h1: `${Math.random() * 80 + 20}%`,
+      |            ^^^^^^^^^^^^^ Cannot call impure function
+  208 |     h2: `${Math.random() * 60 + 20}%`,
+  209 |     duration: Math.random() * 2 + 2
+  210 |   })), []);                                                                                                                                                                                                                                                                                                                                                                react-hooks/purity
+  208:12  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/components/AnimeGreeting.tsx:208:12
+  206 |     h0: `${Math.random() * 60 + 20}%`,
+  207 |     h1: `${Math.random() * 80 + 20}%`,
+> 208 |     h2: `${Math.random() * 60 + 20}%`,
+      |            ^^^^^^^^^^^^^ Cannot call impure function
+  209 |     duration: Math.random() * 2 + 2
+  210 |   })), []);
+  211 |                                                                                                                                                                                                                                                                                                                                                                                        react-hooks/purity
+  209:15  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/components/AnimeGreeting.tsx:209:15
+  207 |     h1: `${Math.random() * 80 + 20}%`,
+  208 |     h2: `${Math.random() * 60 + 20}%`,
+> 209 |     duration: Math.random() * 2 + 2
+      |               ^^^^^^^^^^^^^ Cannot call impure function
+  210 |   })), []);
+  211 |
+  212 |   const particles = useMemo(() => [...Array(40)].map((_, i) => ({                                                                                                                                                                                                                                                                                                                                                          react-hooks/purity
+  214:14  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/components/AnimeGreeting.tsx:214:14
+  212 |   const particles = useMemo(() => [...Array(40)].map((_, i) => ({
+  213 |     id: i,
+> 214 |     left: `${Math.random() * 100}%`,
+      |              ^^^^^^^^^^^^^ Cannot call impure function
+  215 |     top: `${Math.random() * 100}%`,
+  216 |     xTarget: Math.random() * 100 - 50,
+  217 |     yTarget: Math.random() * 100 - 50,                                                                                                                                                                                                                                                                                                                       react-hooks/purity
+  215:13  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/components/AnimeGreeting.tsx:215:13
+  213 |     id: i,
+  214 |     left: `${Math.random() * 100}%`,
+> 215 |     top: `${Math.random() * 100}%`,
+      |             ^^^^^^^^^^^^^ Cannot call impure function
+  216 |     xTarget: Math.random() * 100 - 50,
+  217 |     yTarget: Math.random() * 100 - 50,
+  218 |     duration: Math.random() * 5 + 3                                                                                                                                                                                                                                                                                                                                                      react-hooks/purity
+  216:14  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/components/AnimeGreeting.tsx:216:14
+  214 |     left: `${Math.random() * 100}%`,
+  215 |     top: `${Math.random() * 100}%`,
+> 216 |     xTarget: Math.random() * 100 - 50,
+      |              ^^^^^^^^^^^^^ Cannot call impure function
+  217 |     yTarget: Math.random() * 100 - 50,
+  218 |     duration: Math.random() * 5 + 3
+  219 |   })), []);                                                                                                                                                                                                                                                                                                                                                    react-hooks/purity
+  217:14  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/components/AnimeGreeting.tsx:217:14
+  215 |     top: `${Math.random() * 100}%`,
+  216 |     xTarget: Math.random() * 100 - 50,
+> 217 |     yTarget: Math.random() * 100 - 50,
+      |              ^^^^^^^^^^^^^ Cannot call impure function
+  218 |     duration: Math.random() * 5 + 3
+  219 |   })), []);
+  220 |                                                                                                                                                                                                                                                                                                                                                                                         react-hooks/purity
+  218:15  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/components/AnimeGreeting.tsx:218:15
+  216 |     xTarget: Math.random() * 100 - 50,
+  217 |     yTarget: Math.random() * 100 - 50,
+> 218 |     duration: Math.random() * 5 + 3
+      |               ^^^^^^^^^^^^^ Cannot call impure function
+  219 |   })), []);
+  220 |
+  221 |   const starlight = useMemo(() => [...Array(50)].map((_, i) => ({                                                                                                                                                                                                                                                                                                                                                          react-hooks/purity
+  223:14  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/components/AnimeGreeting.tsx:223:14
+  221 |   const starlight = useMemo(() => [...Array(50)].map((_, i) => ({
+  222 |     id: i,
+> 223 |     left: `${Math.random() * 100}%`,
+      |              ^^^^^^^^^^^^^ Cannot call impure function
+  224 |     top: `${Math.random() * 100}%`,
+  225 |     duration: Math.random() * 3 + 1,
+  226 |     delay: Math.random() * 2                                                                                                                                                                                                                                                                                                                                   react-hooks/purity
+  224:13  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/components/AnimeGreeting.tsx:224:13
+  222 |     id: i,
+  223 |     left: `${Math.random() * 100}%`,
+> 224 |     top: `${Math.random() * 100}%`,
+      |             ^^^^^^^^^^^^^ Cannot call impure function
+  225 |     duration: Math.random() * 3 + 1,
+  226 |     delay: Math.random() * 2
+  227 |   })), []);                                                                                                                                                                                                                                                                                                                                                                                          react-hooks/purity
+  225:15  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/components/AnimeGreeting.tsx:225:15
+  223 |     left: `${Math.random() * 100}%`,
+  224 |     top: `${Math.random() * 100}%`,
+> 225 |     duration: Math.random() * 3 + 1,
+      |               ^^^^^^^^^^^^^ Cannot call impure function
+  226 |     delay: Math.random() * 2
+  227 |   })), []);
+  228 |                                                                                                                                                                                                                                                                                                                                                                                                   react-hooks/purity
+  226:12  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/components/AnimeGreeting.tsx:226:12
+  224 |     top: `${Math.random() * 100}%`,
+  225 |     duration: Math.random() * 3 + 1,
+> 226 |     delay: Math.random() * 2
+      |            ^^^^^^^^^^^^^ Cannot call impure function
+  227 |   })), []);
+  228 |
+  229 |   const matrixLines = useMemo(() => [...Array(20)].map((_, i) => ({                                                                                                                                                                                                                                                                                                                                                                       react-hooks/purity
+  232:16  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/components/AnimeGreeting.tsx:232:16
+  230 |     id: i,
+  231 |     left: `${i * 5}%`,
+> 232 |     height: `${Math.random() * 50 + 20}%`,
+      |                ^^^^^^^^^^^^^ Cannot call impure function
+  233 |     duration: Math.random() * 2 + 2,
+  234 |     delay: Math.random() * 2
+  235 |   })), []);                                                                                                                                                                                                                                                                                                                                                                                              react-hooks/purity
+  233:15  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/components/AnimeGreeting.tsx:233:15
+  231 |     left: `${i * 5}%`,
+  232 |     height: `${Math.random() * 50 + 20}%`,
+> 233 |     duration: Math.random() * 2 + 2,
+      |               ^^^^^^^^^^^^^ Cannot call impure function
+  234 |     delay: Math.random() * 2
+  235 |   })), []);
+  236 |                                                                                                                                                                                                                                                                                                                                                                                                          react-hooks/purity
+  234:12  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/components/AnimeGreeting.tsx:234:12
+  232 |     height: `${Math.random() * 50 + 20}%`,
+  233 |     duration: Math.random() * 2 + 2,
+> 234 |     delay: Math.random() * 2
+      |            ^^^^^^^^^^^^^ Cannot call impure function
+  235 |   })), []);
+  236 |
+  237 |   if (vibe === 'power') {                                                                                                                                                                                                                                                                                                                                                                                                          react-hooks/purity
+  495:5   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/components/AnimeGreeting.tsx:495:5
+  493 |
+  494 |   useEffect(() => {
+> 495 |     setMounted(true);
+      |     ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  496 |   }, []);
+  497 |
+  498 |   // Force use of default slides to ensure new CSS architecture is used and old cached URLs are discarded  react-hooks/set-state-in-effect
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/components/EmptyState.tsx
+  19:64  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/components/Layout.tsx
+   28:59   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   61:20   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  150:88   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  176:111  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  250:84   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/components/SidebarArt.tsx
+  16:48  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  17:81  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/components/icons.tsx
+  19:35  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/analytics/AnalyticsFeature.tsx
+  120:22  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/analytics/AnalyticsFeature.tsx:120:22
+  118 |           className="absolute rounded-full bg-primary mix-blend-screen"
+  119 |           style={{
+> 120 |             left: `${Math.random() * 100}%`,
+      |                      ^^^^^^^^^^^^^ Cannot call impure function
+  121 |             top: `${Math.random() * 100}%`,
+  122 |             width: `${Math.random() * 4 + 1}px`,
+  123 |             height: `${Math.random() * 4 + 1}px`,  react-hooks/purity
+  121:21  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/analytics/AnalyticsFeature.tsx:121:21
+  119 |           style={{
+  120 |             left: `${Math.random() * 100}%`,
+> 121 |             top: `${Math.random() * 100}%`,
+      |                     ^^^^^^^^^^^^^ Cannot call impure function
+  122 |             width: `${Math.random() * 4 + 1}px`,
+  123 |             height: `${Math.random() * 4 + 1}px`,
+  124 |             boxShadow: '0:0 10px 2px var(--primary)',                     react-hooks/purity
+  122:23  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/analytics/AnalyticsFeature.tsx:122:23
+  120 |             left: `${Math.random() * 100}%`,
+  121 |             top: `${Math.random() * 100}%`,
+> 122 |             width: `${Math.random() * 4 + 1}px`,
+      |                       ^^^^^^^^^^^^^ Cannot call impure function
+  123 |             height: `${Math.random() * 4 + 1}px`,
+  124 |             boxShadow: '0:0 10px 2px var(--primary)',
+  125 |           }}                         react-hooks/purity
+  123:24  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/analytics/AnalyticsFeature.tsx:123:24
+  121 |             top: `${Math.random() * 100}%`,
+  122 |             width: `${Math.random() * 4 + 1}px`,
+> 123 |             height: `${Math.random() * 4 + 1}px`,
+      |                        ^^^^^^^^^^^^^ Cannot call impure function
+  124 |             boxShadow: '0:0 10px 2px var(--primary)',
+  125 |           }}
+  126 |           animate={{                                                react-hooks/purity
+  128:20  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/analytics/AnalyticsFeature.tsx:128:20
+  126 |           animate={{
+  127 |             y: [0, -40, 0],
+> 128 |             x: [0, Math.random() * 30 - 15, 0],
+      |                    ^^^^^^^^^^^^^ Cannot call impure function
+  129 |             opacity: [0, 0.8, 0],
+  130 |             scale: [0, 1.5, 0],
+  131 |           }}                                                                                                           react-hooks/purity
+  133:27  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/analytics/AnalyticsFeature.tsx:133:27
+  131 |           }}
+  132 |           transition={{
+> 133 |             duration: 3 + Math.random() * 5,
+      |                           ^^^^^^^^^^^^^ Cannot call impure function
+  134 |             repeat: Infinity,
+  135 |             ease: 'easeInOut' as const,
+  136 |             delay: Math.random() * 5,                                                                                      react-hooks/purity
+  136:20  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/analytics/AnalyticsFeature.tsx:136:20
+  134 |             repeat: Infinity,
+  135 |             ease: 'easeInOut' as const,
+> 136 |             delay: Math.random() * 5,
+      |                    ^^^^^^^^^^^^^ Cannot call impure function
+  137 |           }}
+  138 |         />
+  139 |       ))}                                                                                                                                             react-hooks/purity
+  269:42  error  React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      react-hooks/rules-of-hooks
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/calendar/CalendarFeature.tsx
+   52:5   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/calendar/CalendarFeature.tsx:52:5
+  50 |   useEffect(() => {
+  51 |     const note = notes.find(n => n.id === selectedDate);
+> 52 |     setJournalContent(note?.content || '');
+     |     ^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  53 |     setJournalTitle(note?.title || '');
+  54 |
+  55 |     const log = dailyLogs.find(l => l.date === selectedDate);  react-hooks/set-state-in-effect
+   65:53  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
+  115:33  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
+  123:33  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
+  392:98  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                @typescript-eslint/no-explicit-any
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/command/CommandBar.tsx
+   28:7    error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/command/CommandBar.tsx:28:7
+  26 |   useEffect(() => {
+  27 |     if (isOpen) {
+> 28 |       setQuery('');
+     |       ^^^^^^^^ Avoid calling setState() directly within an effect
+  29 |       setSelectedIndex(0);
+  30 |       setTimeout(() => inputRef.current?.focus(), 50);
+  31 |     }  react-hooks/set-state-in-effect
+  171:102  error  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-explicit-any
+  226:39   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               react/no-unescaped-entities
+  226:51   error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               react/no-unescaped-entities
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/dashboard/Dashboard.tsx
+    7:30  warning  'formatDateString' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           @typescript-eslint/no-unused-vars
+  125:38  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-explicit-any
+  143:11  warning  'totalItems' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        @typescript-eslint/no-unused-vars
+  143:23  warning  'completedItems' is assigned a value but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    @typescript-eslint/no-unused-vars
+  159:11  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/dashboard/Dashboard.tsx:159:11
+  157 |         const parsed = parseInt(storedLevel, 10);
+  158 |         if (level > parsed) {
+> 159 |           setShowLevelUpModal(true);
+      |           ^^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  160 |           
+  161 |         }
+  162 |       }  react-hooks/set-state-in-effect
+  261:44  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        react/no-unescaped-entities
+  261:60  error    `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        react/no-unescaped-entities
+  336:98  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-explicit-any
+  381:77  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        react/no-unescaped-entities
+  545:75  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/dashboard/Dashboard.tsx:545:75
+  543 |                 {Array.from({ length: 7 }).map((_, i) => {
+  544 |                   const pastLog = dailyLogs[dailyLogs.length - 7 + i];
+> 545 |                   const score = pastLog ? pastLog.focusScore : Math.floor(Math.random() * 40) + 20; // fallback aesthetic data if missing
+      |                                                                           ^^^^^^^^^^^^^ Cannot call impure function
+  546 |                   const height = Math.max(10, Math.min(100, score));
+  547 |                   const isToday = i === 6;
+  548 |                                                                                                      react-hooks/purity
+  671:78  error    Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               @typescript-eslint/no-explicit-any
+  711:30  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/dashboard/Dashboard.tsx:711:30
+  709 |                   style={{
+  710 |                     backgroundColor: i % 3 === 0 ? '#8b5cf6' : i % 3 === 1 ? '#3b82f6' : '#eab308',
+> 711 |                     left: `${Math.random() * 100}%`,
+      |                              ^^^^^^^^^^^^^ Cannot call impure function
+  712 |                     top: `${Math.random() * 100}%`
+  713 |                   }}
+  714 |                   animate={{                                                                                                                                                                                                                                                      react-hooks/purity
+  712:29  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/dashboard/Dashboard.tsx:712:29
+  710 |                     backgroundColor: i % 3 === 0 ? '#8b5cf6' : i % 3 === 1 ? '#3b82f6' : '#eab308',
+  711 |                     left: `${Math.random() * 100}%`,
+> 712 |                     top: `${Math.random() * 100}%`
+      |                             ^^^^^^^^^^^^^ Cannot call impure function
+  713 |                   }}
+  714 |                   animate={{
+  715 |                     y: [0, 200, 400],                                                                                                                                                                                                                                            react-hooks/purity
+  716:29  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/dashboard/Dashboard.tsx:716:29
+  714 |                   animate={{
+  715 |                     y: [0, 200, 400],
+> 716 |                     x: [0, (Math.random() - 0.5) * 100, (Math.random() - 0.5) * 200],
+      |                             ^^^^^^^^^^^^^ Cannot call impure function
+  717 |                     rotate: [0, 360],
+  718 |                     scale: [1, 1.5, 0.5]
+  719 |                   }}                                                                                                                                                                                                                                                                                   react-hooks/purity
+  716:58  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/dashboard/Dashboard.tsx:716:58
+  714 |                   animate={{
+  715 |                     y: [0, 200, 400],
+> 716 |                     x: [0, (Math.random() - 0.5) * 100, (Math.random() - 0.5) * 200],
+      |                                                          ^^^^^^^^^^^^^ Cannot call impure function
+  717 |                     rotate: [0, 360],
+  718 |                     scale: [1, 1.5, 0.5]
+  719 |                   }}                                                                                                                                                                                                                                                      react-hooks/purity
+  721:35  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/dashboard/Dashboard.tsx:721:35
+  719 |                   }}
+  720 |                   transition={{
+> 721 |                     duration: 3 + Math.random() * 2,
+      |                                   ^^^^^^^^^^^^^ Cannot call impure function
+  722 |                     repeat: Infinity,
+  723 |                     ease: 'easeOut' as const
+  724 |                   }}                                                                                                                                                                                                                                                                                                                        react-hooks/purity
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/habits/HabitsFeature.tsx
+  453:43  warning  'idx' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/money/MoneyFeature.tsx
+   40:30  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/money/MoneyFeature.tsx:40:30
+  38 |       try {
+  39 |         const parsed = JSON.parse(saved);
+> 40 |         if (parsed.expenses) setExpenses(parsed.expenses);
+     |                              ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  41 |         if (parsed.stats) {
+  42 |           if (!parsed.stats.lentBorrowed) parsed.stats.lentBorrowed = [];
+  43 |           setStats(parsed.stats);  react-hooks/set-state-in-effect
+   45:16  warning  'e' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   @typescript-eslint/no-unused-vars
+  160:29  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/money/MoneyFeature.tsx:160:29
+  158 |              key={i}
+  159 |              className="absolute w-32 h-32 rounded-full border border-primary/40 mix-blend-screen"
+> 160 |              style={{ left: Math.random() * 100 + '%', top: Math.random() * 100 + '%' }}
+      |                             ^^^^^^^^^^^^^ Cannot call impure function
+  161 |              animate={{ scale: [1, 1.5, 1], rotate: 360, opacity: [0.1, 0.4, 0.1] }}
+  162 |              transition={{ duration: Math.random() * 10 + 10, repeat: Infinity, ease: 'linear' }}
+  163 |            />                                                                                                                                                                                                                                    react-hooks/purity
+  160:61  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/money/MoneyFeature.tsx:160:61
+  158 |              key={i}
+  159 |              className="absolute w-32 h-32 rounded-full border border-primary/40 mix-blend-screen"
+> 160 |              style={{ left: Math.random() * 100 + '%', top: Math.random() * 100 + '%' }}
+      |                                                             ^^^^^^^^^^^^^ Cannot call impure function
+  161 |              animate={{ scale: [1, 1.5, 1], rotate: 360, opacity: [0.1, 0.4, 0.1] }}
+  162 |              transition={{ duration: Math.random() * 10 + 10, repeat: Infinity, ease: 'linear' }}
+  163 |            />                                                                                                                                                                                                    react-hooks/purity
+  162:38  error    Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/money/MoneyFeature.tsx:162:38
+  160 |              style={{ left: Math.random() * 100 + '%', top: Math.random() * 100 + '%' }}
+  161 |              animate={{ scale: [1, 1.5, 1], rotate: 360, opacity: [0.1, 0.4, 0.1] }}
+> 162 |              transition={{ duration: Math.random() * 10 + 10, repeat: Infinity, ease: 'linear' }}
+      |                                      ^^^^^^^^^^^^^ Cannot call impure function
+  163 |            />
+  164 |          )), [])}
+  165 |          <svg className="absolute w-full h-full opacity-20" viewBox="0:0 100 100" preserveAspectRatio="none">                                                                                                                                                                                                                   react-hooks/purity
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/notes/NotesFeature.tsx
+  72:7  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/set-state-in-effect')
+  74:7  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/set-state-in-effect')
+  77:7  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/set-state-in-effect')
+  79:7  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/set-state-in-effect')
+  81:7  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/set-state-in-effect')
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/lib/quotes.ts
+  244:72  warning  'highestStreak' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/lib/storage.ts
+  40:34  warning  'event' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/store/index.ts
+   10:14  warning  'e' is defined but never used                   @typescript-eslint/no-unused-vars
+  299:11  warning  'todayDate' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  704:7   warning  'leveledUp' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Main_Workspace/Programming/Python/workspace/shadow-tracker/src/tests/dateUtils.test.ts
+  3:19  warning  'addDays' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 105 problems (88 errors, 17 warnings)
+  0 errors and 6 warnings potentially fixable with the `--fix` option.
+
