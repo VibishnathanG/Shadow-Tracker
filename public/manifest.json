@@ -1,0 +1,17 @@
+{
+  "name": "Shadow Tracker",
+  "short_name": "Shadow Tracker",
+  "description": "Gamified Habit, Task & Money Telemetry Matrix",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#030603",
+  "theme_color": "#030603",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
