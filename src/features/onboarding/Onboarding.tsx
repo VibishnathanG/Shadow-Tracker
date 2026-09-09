@@ -15,36 +15,47 @@ export const Onboarding: React.FC = () => {
 
   const slides = [
     {
-      title: 'Welcome to the Shadow Space',
-      subtitle: 'A quiet, disciplined tracker built to elevate your focus, habits, and daily consistency.',
+      title: 'Welcome to Shadow-Tracker',
+      subtitle: 'A quiet, disciplined personal operating system built to elevate your focus, habits, and daily consistency.',
       icon: 'Moon',
       color: 'from-violet-500 to-indigo-600',
       bullets: [
-        'Organize daily tasks and recurring routines.',
-        'Track daily habits and earn streak milestones.',
-        'Reflect on your journey with integrated journal entries.',
+        'Live Dashboard with Focus Score telemetry and streak counters.',
+        'Interactive Wizard Mascot providing daily wisdom and motivation.',
+        '100% offline and local-first: your data never leaves your device.',
       ]
     },
     {
-      title: 'Privacy & Local-First',
-      subtitle: 'Your data is strictly yours. It lives on this browser in a sandbox database, fully offline.',
-      icon: 'ShieldCheck',
-      color: 'from-emerald-500 to-teal-600',
-      bullets: [
-        'Zero tracking scripts, cookies, or telemetry.',
-        'No signup required. Start tracking instantly.',
-        'Easily export a local JSON backup of your records anytime.',
-      ]
-    },
-    {
-      title: 'The Focus Engine',
-      subtitle: 'Gamify your productivity with our proprietary Daily Focus Score.',
-      icon: 'Activity',
+      title: 'Smart Tasks & Flexible Habits',
+      subtitle: 'Organize your daily execution with precision task filters and customizable habit schedules.',
+      icon: 'CheckSquare',
       color: 'from-orange-500 to-rose-600',
       bullets: [
-        'Complete tasks and habits to boost your daily focus percentage.',
-        'Visualize history with streak counters and heatmap calendars.',
-        'Optimize consistency scorecards to identify your peak performance days.',
+        'Tasks with High/Medium/Low priority, due dates, and 1-click snooze.',
+        'Habits with Daily, Once-a-Week (1-tick week lock), or Custom Days.',
+        'Streak milestone tracking to build unbreakable momentum.',
+      ]
+    },
+    {
+      title: 'Analytics Command Center',
+      subtitle: 'Visualize your execution velocity with real-time performance telemetry and interactive grids.',
+      icon: 'TrendingUp',
+      color: 'from-emerald-500 to-teal-600',
+      bullets: [
+        '15-Day Focus Timeline tracking peak performance state.',
+        'Interactive 4-5 Week Habits Grid with live checkbox check-ins.',
+        'GitHub-style Tasks Contribution Heatmap showing 49-day execution.',
+      ]
+    },
+    {
+      title: 'Journal, Wealth & Custom Themes',
+      subtitle: 'A complete environment tailored for mindfulness, financial clarity, and visual aesthetics.',
+      icon: 'Palette',
+      color: 'from-purple-500 to-pink-600',
+      bullets: [
+        'Daily Markdown Journal with instant search and reflections.',
+        'Wealth Tracker for income, savings, expenses, and investments.',
+        '5 dynamic themes (Obsidian, Cyberpunk, OneDark, Midnight, Light).',
       ]
     }
   ];
@@ -129,7 +140,7 @@ export const Onboarding: React.FC = () => {
               Back
             </button>
           ) : (
-            <div /> // spacing placeholder
+            <div />
           )}
 
           {slide < slides.length - 1 ? (

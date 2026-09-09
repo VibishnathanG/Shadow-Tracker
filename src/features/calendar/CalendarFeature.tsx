@@ -5,7 +5,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import { useShadowTrackerStore } from '@/store';
-import { getTodayDateString, formatDateString, getMonthGridDates, getWeekDates } from '@/lib/dateUtils';
+import { getTodayDateString, formatDateString, getMonthGridDates, getWeekDates, parseDateString } from '@/lib/dateUtils';
 import { format, addMonths, subMonths, addWeeks, subWeeks, isSameMonth } from 'date-fns';
 
 interface CalendarFeatureProps {
@@ -35,9 +35,13 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
     updateDailyLog,
     saveNote,
     toggleTaskCompletion,
+    toggleHabitCompletion,
+    settings,
   } = useShadowTrackerStore();
+  
+  const isWhiteTheme = settings?.theme === 'light';
 
-  const [currentViewDate, setCurrentViewDate] = useState<Date>(new Date(selectedDate));
+  const [currentViewDate, setCurrentViewDate] = useState<Date>(() => parseDateString(selectedDate));
   const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
   const [direction, setDirection] = useState(0);
 
@@ -93,6 +97,11 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
   const selectedDateLog = useMemo(() => dailyLogs.find(l => l.date === selectedDate), [dailyLogs, selectedDate]);
   const selectedDateScore = selectedDateLog?.focusScore ?? 0;
 
+  const isPastDate = selectedDate < todayStr;
+  const uncompletedTasksCount = selectedDateTasks.filter(t => !t.isCompleted).length;
+  const uncompletedHabitsCount = habits.filter(h => !h.completedDates.includes(selectedDate)).length;
+  const totalMissedCount = isPastDate ? (uncompletedTasksCount + uncompletedHabitsCount) : 0;
+
 
   const habitCompletionMap = useMemo(() => {
     const map = new Map<string, number>();
@@ -135,11 +144,11 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
 
   return (
     <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-start overflow-hidden">
-      <div className="absolute inset-0 pointer-events-none -z-10 overflow-hidden opacity-[0.05]">
+      <div className="dashboard-watermark absolute inset-0 pointer-events-none -z-10 overflow-hidden">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 300, repeat: Infinity, ease: 'linear' }}
-          className="absolute -top-[40%] -left-[40%] w-[180%] h-[180%] origin-center text-primary"
+          className={`absolute -top-[40%] -left-[40%] w-[180%] h-[180%] origin-center ${isWhiteTheme ? 'text-primary/20' : 'text-primary/10'}`}
         >
           <svg viewBox="0 0 1000 1000" className="w-full h-full text-current">
             <defs>
@@ -153,6 +162,30 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
             <circle cx="500" cy="500" r="160" fill="url(#calBgGlow)" opacity="0.4" />
           </svg>
         </motion.div>
+        
+        {isWhiteTheme && (
+          <>
+            <motion.div
+              animate={{ rotate: -360 }}
+              transition={{ duration: 400, repeat: Infinity, ease: 'linear' }}
+              className="absolute top-[10%] -right-[20%] w-[120%] h-[120%] origin-center text-amber-500"
+            >
+              <svg viewBox="0 0 1000 1000" className="w-full h-full text-current">
+                <circle cx="500" cy="500" r="350" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="8 24" opacity="0.7" />
+                <circle cx="500" cy="500" r="250" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="4 16" opacity="0.5" />
+              </svg>
+            </motion.div>
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 350, repeat: Infinity, ease: 'linear' }}
+              className="absolute -bottom-[20%] right-[10%] w-[80%] h-[80%] origin-center text-amber-300"
+            >
+              <svg viewBox="0 0 1000 1000" className="w-full h-full text-current">
+                <circle cx="500" cy="500" r="400" fill="none" stroke="currentColor" strokeWidth="1.2" strokeDasharray="12 36" opacity="0.6" />
+              </svg>
+            </motion.div>
+          </>
+        )}
       </div>
 
       <div className="md:col-span-2 space-y-4">
@@ -199,13 +232,12 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
         </div>
         
         <div className="flex flex-wrap items-center justify-end gap-4 px-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground pb-2">
-          <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" /> Tasks</div>
-          <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" /> Habits</div>
+          <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(var(--primary-rgb),0.5)]" /> Tasks & Habits</div>
           <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]" /> Notes</div>
           <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]" /> Mood</div>
         </div>
 
-        <div className="tile p-5 md:p-7 relative overflow-hidden">
+        <div className="tile p-2.5 sm:p-5 md:p-7 relative overflow-hidden">
           <AnimatePresence mode="wait" initial={false} custom={direction}>
             <motion.div
               key={currentViewDate.toISOString() + viewMode}
@@ -228,7 +260,7 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
                     ))}
                   </div>
                   
-                  <div className="grid grid-cols-7 gap-2 md:gap-3">
+                  <div className="grid grid-cols-7 gap-1 sm:gap-2 md:gap-3">
                     {monthGrid.map((date) => {
                       const dateStr = formatDateString(date);
                       const isCurrentMonth = isSameMonth(date, currentViewDate);
@@ -257,7 +289,7 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
                             transition: { type: 'spring', stiffness: 500, damping: 20 }
                           }}
                           whileTap={{ scale: 0.95 }}
-                          className={`relative aspect-square flex flex-col justify-between p-2 rounded-2xl cursor-pointer border transition-colors ${
+                          className={`relative aspect-square flex flex-col justify-between p-1 sm:p-2 rounded-xl sm:rounded-2xl cursor-pointer border transition-colors ${
                             isSelected
                               ? 'text-primary-foreground border-transparent z-10'
                               : isTodayDate
@@ -281,10 +313,10 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
                           <div className="flex flex-col items-end gap-1 w-full">
                             <div className="flex flex-wrap gap-1 justify-end w-full mt-1">
                               {hasTasks && (
-                                <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isSelected ? 'bg-primary-foreground' : 'bg-blue-500'} opacity-90`} title={`${dayTasks.length} Task(s)`} />
+                                <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isSelected ? 'bg-primary-foreground' : 'bg-primary'} opacity-90`} title={`${dayTasks.length} Task(s)`} />
                               )}
                               {dayHabitsCompleted > 0 && (
-                                <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isSelected ? 'bg-primary-foreground' : 'bg-emerald-500'} opacity-90`} title={`${dayHabitsCompleted} Habit(s)`} />
+                                <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isSelected ? 'bg-primary-foreground' : 'bg-primary'} opacity-90`} title={`${dayHabitsCompleted} Habit(s)`} />
                               )}
                               {hasNote && (
                                 <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full ${isSelected ? 'bg-primary-foreground' : 'bg-purple-500'} opacity-90`} title="Journal Note" />
@@ -359,7 +391,7 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
                             </h4>
                             <div className={`text-sm font-semibold flex items-center gap-3 mt-1 ${isSelected ? 'text-primary-foreground/90' : 'text-muted-foreground'}`}>
                               {dayTasks.length > 0 && <span>{dayCompletedTasks.length}/{dayTasks.length} Done</span>}
-                              {dayHabitsCompleted > 0 && <span className="flex items-center gap-1"><Lucide.CheckCircle2 size={14} className={isSelected ? '' : 'text-emerald-500'} /> {dayHabitsCompleted} Habits</span>}
+                              {dayHabitsCompleted > 0 && <span className="flex items-center gap-1"><Lucide.CheckCircle2 size={14} className={isSelected ? '' : 'text-primary'} /> {dayHabitsCompleted} Habits</span>}
                               {hasNote && <span className="flex items-center gap-1"><Lucide.BookOpen size={14} className={isSelected ? '' : 'text-purple-500'} /> Note</span>}
                             </div>
                           </div>
@@ -432,7 +464,7 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
 
           <div className="space-y-3 pt-2">
             <label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-              <Lucide.CheckSquare size={14} className="text-blue-500" /> Focus Tasks ({selectedDateTasks.length})
+              <Lucide.CheckSquare size={14} className="text-primary" /> Focus Tasks ({selectedDateTasks.length})
             </label>
             
             <div className="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
@@ -442,17 +474,17 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
                     key={t.id} 
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    whileHover={{ scale: 1.02, x: 2, backgroundColor: 'var(--secondary)' }}
+                    whileHover={{ scale: 1.02, x: 2 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => toggleTaskCompletion(t.id)}
-                    className="flex items-center gap-3 text-sm font-bold text-foreground bg-secondary/40 p-3 border border-border/60 rounded-xl transition-all cursor-pointer shadow-sm hover:shadow-md"
+                    className="flex items-center gap-3 text-sm font-bold text-foreground bg-secondary/80 hover:bg-secondary p-3 border border-border/60 rounded-xl transition-all cursor-pointer shadow-sm hover:shadow-md hover:border-primary/50"
                   >
                     <motion.div
                       whileTap={{ scale: 0.9 }}
                       className={`w-5 h-5 rounded-md flex items-center justify-center transition-all border relative shrink-0 ${
                         t.isCompleted
-                          ? 'bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 border-emerald-400 text-white shadow-[0_0_10px_rgba(16,185,129,0.5)]'
-                          : 'border-muted-foreground/60 hover:border-emerald-500'
+                          ? 'bg-primary border-primary text-primary-foreground shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]'
+                          : 'border-muted-foreground/60 hover:border-primary'
                       }`}
                     >
                       {t.isCompleted && (
@@ -461,7 +493,7 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
                           initial={{ scale: 0.6, opacity: 0.9 }}
                           animate={{ scale: 2.2, opacity: 0 }}
                           transition={{ duration: 0.45, ease: "easeOut" }}
-                          className="absolute inset-0 rounded-md border-2 border-emerald-400 pointer-events-none"
+                          className="absolute inset-0 rounded-md border-2 border-primary pointer-events-none"
                         />
                       )}
                       <motion.div
@@ -476,7 +508,7 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
                         <Lucide.Check size={11} className="stroke-[3.5px]" />
                       </motion.div>
                     </motion.div>
-                    <span className={`truncate flex-1 transition-all ${t.isCompleted ? 'line-through text-muted-foreground' : ''}`}>{t.title}</span>
+                    <span className={`truncate flex-1 transition-all ${t.isCompleted ? 'line-through text-muted-foreground opacity-70' : 'text-foreground'}`}>{t.title}</span>
                   </motion.div>
                 ))
               ) : (
@@ -484,6 +516,67 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
                   <Lucide.Sparkles size={24} className="text-primary/40 mb-2" />
                   <p className="text-sm font-bold text-foreground">A clear day</p>
                   <p className="text-xs font-medium text-muted-foreground mt-1 max-w-[180px]">No tasks are scheduled for this date.</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-3 pt-2">
+            <label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+              <Lucide.Repeat size={14} className="text-primary" /> Daily Habits ({habits.length})
+            </label>
+            
+            <div className="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+              {habits.length > 0 ? (
+                habits.map(h => {
+                  const isCompleted = h.completedDates.includes(selectedDate);
+                  return (
+                    <motion.div 
+                      key={h.id} 
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      whileHover={{ scale: 1.02, x: 2 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => toggleHabitCompletion(h.id, selectedDate)}
+                      className="flex items-center gap-3 text-sm font-bold text-foreground bg-secondary/40 hover:bg-secondary p-3 border border-border/60 rounded-xl transition-all cursor-pointer shadow-sm hover:shadow-md hover:border-primary/50"
+                    >
+                      <motion.div
+                        whileTap={{ scale: 0.9 }}
+                        className={`w-5 h-5 rounded-md flex items-center justify-center transition-all border relative shrink-0 ${
+                          isCompleted
+                            ? 'bg-primary border-primary text-primary-foreground shadow-[0_0_10px_rgba(var(--primary-rgb),0.5)]'
+                            : 'border-muted-foreground/60 hover:border-primary'
+                        }`}
+                      >
+                        {isCompleted && (
+                          <motion.span
+                            key={h.id + "_cal_pulse"}
+                            initial={{ scale: 0.6, opacity: 0.9 }}
+                            animate={{ scale: 2.2, opacity: 0 }}
+                            transition={{ duration: 0.45, ease: "easeOut" }}
+                            className="absolute inset-0 rounded-md border-2 border-primary pointer-events-none"
+                          />
+                        )}
+                        <motion.div
+                          initial={false}
+                          animate={
+                            isCompleted 
+                              ? { scale: [0, 1], rotate: [-45, 0] } 
+                              : { scale: 0, rotate: 0 }
+                          }
+                          transition={{ type: 'spring', stiffness: 400, damping: 18 }}
+                        >
+                          <Lucide.Check size={11} className="stroke-[3.5px]" />
+                        </motion.div>
+                      </motion.div>
+                      <span className={`truncate flex-1 transition-all ${isCompleted ? 'line-through text-muted-foreground opacity-70' : 'text-foreground'}`}>{h.name}</span>
+                    </motion.div>
+                  );
+                })
+              ) : (
+                <div className="flex flex-col items-center justify-center py-6 text-center bg-secondary/30 rounded-2xl border-2 border-dashed border-border/60">
+                  <Lucide.Repeat size={24} className="text-primary/40 mb-2" />
+                  <p className="text-sm font-bold text-foreground">No habits yet</p>
                 </div>
               )}
             </div>
@@ -529,9 +622,19 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
               className="w-full text-sm font-black px-4 py-3 bg-secondary/40 rounded-xl border border-border/60 outline-none text-foreground placeholder:text-muted-foreground focus:bg-secondary/60 focus:border-primary/60 focus:ring-4 focus:ring-primary/20 transition-all shadow-sm"
             />
             
+            {totalMissedCount > 0 && (
+              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex gap-3 text-red-500">
+                <Lucide.AlertTriangle size={18} className="shrink-0 mt-0.5" />
+                <div className="text-xs">
+                  <span className="font-bold block mb-1">Missed Objectives</span>
+                  You missed {uncompletedTasksCount} task(s) and {uncompletedHabitsCount} habit(s) on this day. Use this space to reflect on the blockers and how you can overcome them next time.
+                </div>
+              </div>
+            )}
+
             <motion.textarea
               whileFocus={{ scale: 1.01, transition: { type: 'spring', stiffness: 400, damping: 10 } }}
-              placeholder="Write down any notes, thoughts, and blocks encountered today..."
+              placeholder={totalMissedCount > 0 ? "What caused you to miss your goals today? How can you adjust..." : "Write down any notes, thoughts, and blocks encountered today..."}
               value={journalContent}
               onChange={(e) => setJournalContent(e.target.value)}
               rows={5}

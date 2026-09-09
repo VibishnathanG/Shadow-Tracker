@@ -1,19 +1,95 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useShadowTrackerStore } from '@/store';
 import { getTodayDateString } from '@/lib/dateUtils';
+import { GlobalBadgeCelebration } from './GlobalBadgeCelebration';
+import { GlobalCelebrationNotice } from './GlobalCelebrationNotice';
 import { Lucide } from './icons';
 import CommandBar from '@/features/command/CommandBar';
 import { AnimeGreeting } from './AnimeGreeting';
 import { SidebarArt } from './SidebarArt';
 import { ThemeAmbientBackground } from './ThemeAmbientBackground';
+import { NotificationScheduler } from './NotificationScheduler';
+import { InAppNotificationOverlay } from './InAppNotificationOverlay';
+import { useOneDriveAutoSync } from '@/lib/useOneDriveAutoSync';
+import { GitHubDailySync } from './GitHubDailySync';
+import CustomDialogOverlay from './CustomDialogOverlay';
 
 interface LayoutProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   children: React.ReactNode;
+}
+
+// High-contrast clean app logo SVG — Atom/Electron orbital design (Theme compatible)
+function AppLogo({ size = 26, theme = 'onedark' }: { size?: number; theme?: string }) {
+  const getThemePalette = () => {
+    switch (theme) {
+      case 'light':
+      case 'white':
+        return { r1: '#4f46e5', r2: '#6366f1', r3: '#818cf8', bg: '#4f46e5', core: '#4f46e5', opacity: '0.15' };
+      case 'obsidian':
+        return { r1: '#0284c7', r2: '#38bdf8', r3: '#7dd3fc', bg: '#0284c7', core: '#0284c7', opacity: '0.25' };
+      case 'onedark':
+        return { r1: '#60a5fa', r2: '#38bdf8', r3: '#93c5fd', bg: '#60a5fa', core: '#60a5fa', opacity: '0.25' };
+      case 'cyberpunk':
+        return { r1: '#fb7185', r2: '#38bdf8', r3: '#f43f5e', bg: '#fb7185', core: '#38bdf8', opacity: '0.25' };
+      case 'midnight':
+      case 'pine':
+      case 'purple':
+        return { r1: '#a855f7', r2: '#c084fc', r3: '#e9d5ff', bg: '#a855f7', core: '#a855f7', opacity: '0.25' };
+      default:
+        return { r1: '#4f46e5', r2: '#38bdf8', r3: '#60a5fa', bg: '#4f46e5', core: '#4f46e5', opacity: '0.2' };
+    }
+  };
+
+  const p = getThemePalette();
+
+  return (
+    <svg
+      viewBox="0 0 200 200"
+      style={{ width: `${size}px`, height: `${size}px` }}
+      fill="none"
+      className="shrink-0 transition-all duration-300"
+    >
+      <circle cx="100" cy="100" r="85" fill={p.bg} opacity={p.opacity} />
+      <ellipse
+        cx="100"
+        cy="100"
+        rx="75"
+        ry="32"
+        stroke={p.r1}
+        strokeWidth="14"
+        transform="rotate(-30, 100, 100)"
+      />
+      <ellipse
+        cx="100"
+        cy="100"
+        rx="75"
+        ry="32"
+        stroke={p.r2}
+        strokeWidth="14"
+        transform="rotate(30, 100, 100)"
+      />
+      <ellipse
+        cx="100"
+        cy="100"
+        rx="75"
+        ry="32"
+        stroke={p.r3}
+        strokeWidth="14"
+        transform="rotate(90, 100, 100)"
+      />
+      <circle cx="158" cy="68" r="11" fill={p.r1} />
+      <circle cx="42" cy="132" r="11" fill={p.r2} />
+      <circle cx="100" cy="25" r="11" fill={p.r3} />
+      <circle cx="100" cy="100" r="18" fill={p.core} />
+      <circle cx="100" cy="100" r="9" fill="#ffffff" />
+    </svg>
+  );
 }
 
 export const Layout: React.FC<LayoutProps> = ({
@@ -25,175 +101,121 @@ export const Layout: React.FC<LayoutProps> = ({
   const [mounted, setMounted] = useState(false);
   const [commandBarOpen, setCommandBarOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
+  const [isWizardModalOpen, setIsWizardModalOpen] = useState(false);
+
+  // OneDrive auto-sync
+  useOneDriveAutoSync();
 
   const cycleTheme = () => {
     const themes = ['light', 'obsidian', 'onedark', 'cyberpunk', 'midnight'] as const;
-    const currentIndex = themes.indexOf(settings.theme as typeof themes[number]);
-    const nextIndex = (currentIndex + 1) % themes.length;
+    const currentNorm = (settings.theme === 'white' ? 'light' : (settings.theme === 'pine' || settings.theme === 'purple') ? 'midnight' : settings.theme) as typeof themes[number];
+    const currentIndex = themes.indexOf(currentNorm);
+    const nextIndex = ((currentIndex >= 0 ? currentIndex : 0) + 1) % themes.length;
     updateSettings({ theme: themes[nextIndex] });
   };
 
   const getThemeIcon = (size: number) => {
-    switch (settings.theme) {
-      case 'light':
-        return (
-          <svg viewBox="0 0 100 100" style={{ width: `${size}px`, height: `${size}px` }} className="text-[#ea580c] fill-none stroke-current animate-pulse" strokeWidth="2.2">
-            <path d="M 50,15 C 38,40 22,65 15,85 C 30,80 43,62 50,42 C 57,62 70,80 85,85 C 78,65 62,40 50,15 Z" />
-            <path d="M 32,80 C 43,84 57,84 68,80 C 60,70 50,68 50,68 C 50,68 40,70 32,80 Z" fill="currentColor" opacity="0.3" />
-          </svg>
-        );
-      case 'obsidian':
-        return (
-          <svg viewBox="0 0 100 100" style={{ width: `${size}px`, height: `${size}px` }} className="text-[#a855f7] fill-none stroke-current animate-pulse" strokeWidth="2.2">
-            <polygon points="25,35 15,10 33,25" />
-            <polygon points="75,35 85,10 67,25" />
-            <polygon points="50,45 33,25 67,25" />
-            <polygon points="50,60 42,80 50,85" />
-            <polygon points="50,60 58,80 50,85" />
-          </svg>
-        );
-      case 'onedark':
-        return (
-          <svg viewBox="0 0 100 100" style={{ width: `${size}px`, height: `${size}px` }} className="text-[#5299d3] fill-none stroke-current animate-pulse" strokeWidth="2.2">
-            <polygon points="50,20 45,30 55,30" />
-            <polygon points="45,30 20,25 35,45" />
-            <polygon points="55,30 80,25 65,45" />
-            <polygon points="50,38 35,45 50,65" />
-            <polygon points="50,38 65,45 50,65" />
-          </svg>
-        );
-      case 'cyberpunk':
-        return <Lucide.Zap size={size} className="text-yellow-400 fill-yellow-400 animate-pulse" />;
-      case 'midnight':
-        return (
-          <svg viewBox="0 0 100 100" style={{ width: `${size}px`, height: `${size}px` }} className="text-orange-400 fill-none stroke-current animate-pulse" strokeWidth="2.2">
-            <polygon points="20,30 35,10 40,40" />
-            <polygon points="80,30 65,10 60,40" />
-            <polygon points="50,45 35,30 65,30" />
-            <polygon points="50,85 35,65 50,45" />
-            <polygon points="50,85 65,65 50,45" />
-          </svg>
-        );
-      default:
-        return <Lucide.Moon size={size} />;
+    const current = settings.theme;
+    if (current === 'light' || current === 'white') {
+      return <Lucide.Sun size={size} className="text-amber-500" />;
     }
+    if (current === 'midnight' || current === 'pine' || current === 'purple') {
+      return <Lucide.Sparkles size={size} className="text-purple-400" />;
+    }
+    if (current === 'obsidian') {
+      return <Lucide.Moon size={size} className="text-sky-400" />;
+    }
+    if (current === 'onedark') {
+      return <Lucide.Terminal size={size} className="text-blue-400" />;
+    }
+    if (current === 'cyberpunk') {
+      return <Lucide.Zap size={size} className="text-rose-400" />;
+    }
+    return <Lucide.Moon size={size} />;
   };
 
-  const getLogoIcon = (size: number) => {
-    if (settings.theme === 'midnight') {
-      return (
-        <svg viewBox="0 0 100 100" style={{ width: `${size}px`, height: `${size}px` }} className="fill-none stroke-current" strokeWidth="2">
-          <polygon points="20,30 35,10 40,40" />
-          <polygon points="80,30 65,10 60,40" />
-          <polygon points="50,45 35,30 65,30" />
-          <polygon points="50,45 35,30 20,45" />
-          <polygon points="50,45 65,30 80,45" />
-          <polygon points="50,85 35,65 50,45" />
-          <polygon points="50,85 65,65 50,45" />
-          <polygon points="50,85 47,80 53,80" fill="currentColor"/>
-        </svg>
-      );
-    }
-    if (settings.theme === 'onedark') {
-      return (
-        <svg viewBox="0 0 100 100" style={{ width: `${size}px`, height: `${size}px` }} className="fill-none stroke-current" strokeWidth="1.8">
-          <polygon points="50,20 45,30 55,30" />
-          <polygon points="50,38 45,30 55,30" />
-          <polygon points="45,30 40,25 50,20" />
-          <polygon points="55,30 60,25 50,20" />
-          <polygon points="50,38 47,45 53,45" fill="currentColor" />
-          <polygon points="45,30 20,25 35,45" />
-          <polygon points="35,45 10,35 25,60" />
-          <polygon points="20,70 15,80 35,65" />
-          <polygon points="55,30 80,25 65,45" />
-          <polygon points="65,45 90,35 75,60" />
-          <polygon points="80,70 85,80 65,65" />
-          <polygon points="50,38 35,45 50,65" />
-          <polygon points="50,38 65,45 50,65" />
-          <polygon points="50,65 35,65 50,85" />
-          <polygon points="50,65 65,65 50,85" />
-          <polygon points="50,85 45,95 55,95" />
-        </svg>
-      );
-    }
-    if (settings.theme === 'obsidian') {
-      return (
-        <svg viewBox="0 0 100 100" style={{ width: `${size}px`, height: `${size}px` }} className="fill-none stroke-current" strokeWidth="2">
-          <polygon points="25,35 15,10 33,25" />
-          <polygon points="75,35 85,10 67,25" />
-          <polygon points="50,45 33,25 67,25" />
-          <polygon points="50,45 33,25 25,35" />
-          <polygon points="50,45 67,25 75,35" />
-          <polygon points="50,45 25,35 30,55" />
-          <polygon points="50,45 75,35 70,55" />
-          <polygon points="50,45 30,55 50,60" />
-          <polygon points="50,45 70,55 50,60" />
-          <polygon points="50,60 30,55 42,80" />
-          <polygon points="50,60 70,55 58,80" />
-          <polygon points="50,60 42,80 50,85" />
-          <polygon points="50,60 58,80 50,85" />
-          <polygon points="30,55 25,35 15,50" />
-          <polygon points="70,55 75,35 85,50" />
-          <polygon points="30,55 15,50 42,80" />
-          <polygon points="70,55 85,50 58,80" />
-          <polygon points="50,85 46,80 54,80" fill="currentColor" />
-        </svg>
-      );
-    }
-    if (settings.theme === 'light') {
-      return (
-        <svg viewBox="0 0 100 100" style={{ width: `${size}px`, height: `${size}px` }} className="fill-none stroke-current animate-pulse text-[#ea580c]" strokeWidth="1.8">
-          <path d="M 50,15 C 38,40 22,65 15,85 C 30,80 43,62 50,42 C 57,62 70,80 85,85 C 78,65 62,40 50,15 Z" />
-          <path d="M 32,80 C 43,84 57,84 68,80 C 60,70 50,68 50,68 C 50,68 40,70 32,80 Z" fill="currentColor" opacity="0.3" />
-        </svg>
-      );
-    }
-    return <Lucide.Sparkles size={size} />;
-  };
-
-  // Sync theme
+  // Sync theme + scale + eco/low-gpu mode + activeTab
   useEffect(() => {
     const root = window.document.documentElement;
-    
-    // Clear all existing theme classes
-    root.classList.remove('theme-light', 'theme-obsidian', 'theme-onedark', 'theme-cyberpunk', 'theme-midnight', 'dark', 'light');
-    
-    // Add current theme class
-    root.classList.add(`theme-${settings.theme}`);
-    
-    // Apply Global App Scale
+    root.classList.remove('theme-light', 'theme-white', 'theme-obsidian', 'theme-onedark', 'theme-cyberpunk', 'theme-midnight', 'theme-pine', 'theme-purple', 'dark', 'light');
+
+    const currentTheme = settings.theme || 'onedark';
+    const isLight = currentTheme === 'light' || currentTheme === 'white';
+    const isPurple = currentTheme === 'midnight' || currentTheme === 'pine' || currentTheme === 'purple';
+
+    const semanticTheme = isLight ? 'white' : (isPurple ? 'purple' : currentTheme);
+    root.setAttribute('data-theme', semanticTheme);
+    root.setAttribute('data-active-tab', activeTab);
+
+    if (isLight) {
+      root.classList.add('theme-light', 'theme-white', 'light');
+    } else if (isPurple) {
+      root.classList.add('theme-midnight', 'theme-pine', 'theme-purple', 'dark');
+    } else {
+      root.classList.add(`theme-${currentTheme}`, 'dark');
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (root.style as any).zoom = settings.appScale ? `${settings.appScale}%` : '100%';
-    
-    // Add dark/light class helper for general browser/Tailwind features
-    if (settings.theme === 'light') {
-      root.classList.add('light');
-    } else {
-      root.classList.add('dark');
-    }
-  }, [settings.theme, settings.appScale]);
 
-  // Sync keyboard shortcuts (Cmd+K / Ctrl+K opens command bar, D -> dashboard, T -> tasks, H -> habits, C -> calendar, A -> analytics, N -> journal, S -> settings)
+    const isEco = Boolean(settings.lowGpuMode || settings.ecoMode);
+    if (isEco) {
+      root.classList.add('eco-mode', 'low-gpu-mode');
+    } else {
+      root.classList.remove('eco-mode', 'low-gpu-mode');
+    }
+  }, [settings.theme, settings.appScale, settings.lowGpuMode, settings.ecoMode, activeTab]);
+
+  // Sync minimizeToTray & ecoMode to Tauri Rust commands + listen for tray eco toggle events
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__) {
+      import('@tauri-apps/api/core').then(({ invoke }) => {
+        invoke('set_minimize_to_tray', { enabled: settings.minimizeToTray ?? true }).catch(() => {});
+        invoke('set_eco_mode', { enabled: Boolean(settings.lowGpuMode || settings.ecoMode) }).catch(() => {});
+      });
+
+      import('@tauri-apps/api/event').then(({ listen }) => {
+        const unlisten = listen<{ ecoMode: boolean }>('shadow-tray-eco-toggle', (event) => {
+          const enabled = Boolean(event.payload?.ecoMode);
+          updateSettings({ lowGpuMode: enabled, ecoMode: enabled });
+        });
+        return unlisten;
+      });
+    }
+  }, [settings.minimizeToTray, settings.lowGpuMode, settings.ecoMode, updateSettings]);
+
+  // Request notification permission on first launch (non-intrusive, one time)
+  useEffect(() => {
+    const notifAsked = sessionStorage.getItem('shadow_notif_asked');
+    if (notifAsked) return;
+    sessionStorage.setItem('shadow_notif_asked', '1');
+
+    // Small delay so the app feels fully loaded first
+    const timer = setTimeout(async () => {
+      try {
+        const { LocalNotifications } = await import('@capacitor/local-notifications');
+        const status = await LocalNotifications.checkPermissions();
+        if (status.display !== 'granted') {
+          await LocalNotifications.requestPermissions();
+        }
+      } catch {
+        // Fallback for non-Capacitor environments (browser/Tauri)
+        if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+          Notification.requestPermission().catch(() => {});
+        }
+      }
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Command / Control + K
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         setCommandBarOpen(prev => !prev);
       }
-      
-      // Prevent shortcut interference in input fields
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
-        return;
-      }
-
-      // Quick tab shifts
-      if (e.key === 'g') {
-        // Double key combo helper could be built, but let's support standard key letters
-      }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
@@ -201,6 +223,7 @@ export const Layout: React.FC<LayoutProps> = ({
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: 'LayoutDashboard' },
     { id: 'tasks', label: 'Tasks', icon: 'CheckSquare' },
+    { id: 'todo', label: 'ToDo', icon: 'CheckCircle2' },
     { id: 'habits', label: 'Habits', icon: 'Repeat' },
     { id: 'calendar', label: 'Calendar', icon: 'Calendar' },
     { id: 'analytics', label: 'Analytics', icon: 'TrendingUp' },
@@ -209,7 +232,6 @@ export const Layout: React.FC<LayoutProps> = ({
     { id: 'settings', label: 'Settings', icon: 'Settings' },
   ] as const;
 
-  // Find today's focus score
   const todayStr = getTodayDateString();
   const todayLog = dailyLogs.find(l => l.date === todayStr);
   const todayFocus = todayLog?.focusScore ?? 0;
@@ -231,128 +253,186 @@ export const Layout: React.FC<LayoutProps> = ({
   return (
     <div className="flex-1 flex flex-col md:flex-row min-h-screen">
       <ThemeAmbientBackground theme={settings.theme} />
+      <NotificationScheduler />
+      <InAppNotificationOverlay />
+      <GlobalCelebrationNotice />
+      <GitHubDailySync />
+      <CustomDialogOverlay />
+
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col w-72 h-screen sticky top-0 bg-surface/80 backdrop-blur-xl border-r border-border/80 px-5 py-8 justify-between select-none z-10 overflow-hidden">
-        {/* Ambient Sidebar Art */}
+      <aside className="hidden md:flex flex-col w-72 h-screen fixed top-0 left-0 bg-surface/80 backdrop-blur-xl border-r border-border/80 pt-7 pb-6 select-none z-30">
         <SidebarArt />
 
-        <div className="relative z-10">
+        <div className="flex flex-col h-full relative z-10 px-5 overflow-hidden">
           {/* Logo */}
-          <div className="flex items-center gap-3 px-3 mb-10 relative">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary to-purple-600 flex items-center justify-center text-white shadow-xl shadow-primary/20">
-              {getLogoIcon(18)}
+          <div className="flex items-center gap-3 px-1 mb-8 shrink-0 relative">
+            <div className="w-11 h-11 rounded-2xl bg-primary/10 border border-primary/30 flex items-center justify-center shadow-lg shadow-primary/20 shrink-0 transition-colors">
+              <AppLogo size={26} theme={settings.theme} />
             </div>
             <div>
-              <h1 className="text-base font-extrabold tracking-tight text-foreground"><span className="text-primary">{settings.alias || 'shadow'}</span>-tracker</h1>
-              <span className="text-[11px] text-muted-foreground font-bold tracking-[0.15em] uppercase">PRIVACY FIRST</span>
+              <h1 className="text-base font-extrabold tracking-tight text-foreground"><span className="text-primary capitalize">{settings.alias ? settings.alias.charAt(0).toUpperCase() + settings.alias.slice(1) : 'Shadow'}</span>-Tracker</h1>
+              <Link href="/terms" className="text-[11px] text-secondary font-extrabold tracking-[0.18em] uppercase hover:text-primary transition-colors cursor-pointer block mt-0.5">PRIVACY FIRST</Link>
             </div>
           </div>
 
-          {/* Navigation links */}
-          <nav className="space-y-1.5">
+          {/* Navigation */}
+          <nav className="space-y-1 flex-1 overflow-y-auto scrollbar-none pb-4 px-1">
             {navItems.map((item) => {
               const isActive = activeTab === item.id;
               const Icon = (Lucide[item.icon as keyof typeof Lucide] || Lucide.Zap) as React.ElementType;
-              
               return (
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`flex items-center gap-3.5 w-full px-4 py-3 rounded-2xl text-[13px] font-semibold tracking-wide transition-all duration-300 ${
-                    isActive
-                      ? 'bg-primary text-white shadow-lg shadow-primary/25 scale-[1.02]'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-surface-elevated hover:scale-[1.01]'
-                  }`}
+                  data-active={isActive}
+                  className={`nav-item w-full ${isActive ? 'active' : ''}`}
                 >
-                  <Icon size={18} className={isActive ? 'stroke-[2.5px]' : ''} />
-                  {item.label}
+                  <Icon size={18} className="shrink-0" />
+                  <span className="text-[13.5px] font-bold tracking-wide">{item.label}</span>
                 </button>
               );
             })}
           </nav>
-        </div>
 
-        {/* Bottom Section: Footer + Mascot */}
-        <div className="flex flex-col gap-6 relative z-10">
-          {/* User / Focus Score Footer */}
-          <div className="space-y-5">
-            <div className="bg-surface-elevated border border-border rounded-2xl p-4.5 flex flex-col gap-2 shadow-sm transition-transform hover:-translate-y-1">
+          {/* Bottom Section: Focus + Actions (NO AnimeGreeting here - only in Wizard modal) */}
+          <div className="flex flex-col gap-4 shrink-0 pt-3 px-1 border-t border-border/50 bg-surface/40 rounded-t-xl mt-2 backdrop-blur-sm">
+            {/* Today's Focus Score */}
+            <div className="bg-surface-elevated border border-border rounded-2xl p-4 flex flex-col gap-2.5 shadow-sm transition-transform hover:-translate-y-1">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.1em]">Today&apos;s Focus</span>
-                <span className="text-sm font-bold text-primary">{todayFocus}%</span>
+                <span className="text-[11.5px] font-black text-secondary uppercase tracking-[0.12em]">Today&apos;s Focus</span>
+                <span className="text-sm font-extrabold text-primary font-mono">{todayFocus}%</span>
               </div>
-              <div className="w-full bg-surface h-2 rounded-full overflow-hidden border border-border/50">
-                <div 
-                  className="bg-gradient-to-r from-primary to-purple-500 h-full rounded-full transition-all duration-700 ease-out" 
+              <div className="w-full bg-surface h-2.5 rounded-full overflow-hidden border border-border/50">
+                <div
+                  className="bg-gradient-to-r from-primary to-purple-500 h-full rounded-full transition-all duration-700 ease-out"
                   style={{ width: `${todayFocus}%` }}
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-between border-t border-border pt-5 px-1">
-               <button
-                onClick={cycleTheme}
-                className="p-2.5 bg-surface-elevated hover:bg-surface border border-transparent hover:border-border text-muted-foreground hover:text-foreground rounded-xl transition-all shadow-sm"
-                title="Toggle Theme"
-              >
-                {getThemeIcon(16)}
-              </button>
-
+            {/* Action buttons section */}
+            <div className="space-y-2">
+              {/* Full-width spacious Search Button */}
               <button
                 onClick={() => setCommandBarOpen(true)}
-                className="flex items-center gap-2 px-3.5 py-2 bg-surface-elevated hover:bg-surface text-muted-foreground hover:text-foreground rounded-xl text-xs font-bold transition-all border border-border shadow-sm"
+                className="w-full flex items-center justify-between px-3.5 py-2 bg-surface-elevated hover:bg-surface text-secondary hover:text-foreground rounded-xl text-xs font-bold transition-all border border-border shadow-sm cursor-pointer group"
+                title="Search Command Bar (Ctrl + K)"
               >
-                <Lucide.Search size={14} />
-                <span>⌘K</span>
+                <div className="flex items-center gap-2 min-w-0">
+                  <Lucide.Search size={14} className="text-secondary group-hover:text-primary transition-colors shrink-0" />
+                  <span className="truncate">Search Commands</span>
+                </div>
+                <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-surface border border-border/80 rounded-md text-secondary shadow-xs shrink-0">⌘ K</kbd>
               </button>
+
+              {/* 3-Column Quick Actions Row */}
+              <div className="grid grid-cols-3 gap-1.5">
+                {/* Wizard Button */}
+                <button
+                  onClick={() => setIsWizardModalOpen(true)}
+                  className="flex items-center justify-center gap-1 px-2 py-1.5 bg-gradient-to-r from-purple-950/80 to-indigo-950/80 hover:from-purple-900 hover:to-indigo-900 text-cyan-300 rounded-xl text-[11px] font-bold transition-all border border-cyan-500/40 shadow-sm cursor-pointer active:scale-95 min-w-0"
+                  title="Shadow Wizard"
+                  aria-label="Shadow Wizard Mascot"
+                >
+                  <Lucide.Sparkles size={13} className="text-cyan-400 animate-pulse shrink-0" />
+                  <span className="truncate">Wizard</span>
+                </button>
+
+                {/* ToDo Button */}
+                <button
+                  onClick={() => setActiveTab('todo')}
+                  className={`flex items-center justify-center gap-1 px-2 py-1.5 rounded-xl text-[11px] font-bold transition-all border shadow-sm cursor-pointer active:scale-95 min-w-0 ${
+                    activeTab === 'todo'
+                      ? 'bg-emerald-600 text-white border-emerald-400 shadow-emerald-500/30'
+                      : 'bg-gradient-to-r from-emerald-950/80 to-teal-950/80 hover:from-emerald-900 hover:to-teal-900 text-emerald-300 border-emerald-500/40'
+                  }`}
+                  title="Standalone ToDo"
+                  aria-label="Standalone ToDo Page"
+                >
+                  <Lucide.CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
+                  <span className="truncate">ToDo</span>
+                </button>
+
+                {/* Theme Toggle Button */}
+                <button
+                  onClick={cycleTheme}
+                  className="flex items-center justify-center gap-1 px-2 py-1.5 bg-surface-elevated hover:bg-surface border border-transparent hover:border-border text-secondary hover:text-foreground rounded-xl text-[11px] font-bold transition-all shadow-sm cursor-pointer min-w-0"
+                  title="Toggle Theme"
+                >
+                  {getThemeIcon(13)}
+                  <span className="truncate">Theme</span>
+                </button>
+              </div>
             </div>
-          </div>
-          
-          {/* Full-sized Minion Mascot in Sidebar */}
-          <div className="w-full flex-shrink-0">
-            <AnimeGreeting />
           </div>
         </div>
       </aside>
 
-      {/* Mobile Header */}
-      <header className="md:hidden flex items-center justify-between px-5 py-4 bg-surface/90 backdrop-blur-xl border-b border-border sticky top-0 z-40 select-none shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-primary to-purple-600 flex items-center justify-center text-white shadow-md shadow-primary/20">
-            {getLogoIcon(16)}
+      {/* Main Content */}
+      <div className="flex-1 md:pl-72 flex flex-col min-h-screen w-full">
+        {/* Mobile Header */}
+        <header className="md:hidden flex items-center justify-between px-5 py-4 bg-surface/90 backdrop-blur-xl border-b border-border sticky top-0 z-40 select-none shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center shadow-md shadow-primary/20 shrink-0 transition-colors">
+              <AppLogo size={20} theme={settings.theme} />
+            </div>
+            <span className="text-sm font-extrabold tracking-tight text-foreground"><span className="text-primary capitalize">{settings.alias ? settings.alias.charAt(0).toUpperCase() + settings.alias.slice(1) : 'Shadow'}</span>-Tracker</span>
           </div>
-          <span className="text-sm font-extrabold tracking-tight text-foreground"><span className="text-primary">{settings.alias || 'shadow'}</span>-tracker</span>
-        </div>
-        
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={() => setCommandBarOpen(true)}
-            className="p-2.5 bg-surface-elevated text-muted-foreground hover:text-foreground rounded-xl border border-border"
-            aria-label="Search Command Bar"
-          >
-            <Lucide.Search size={16} />
-          </button>
-          
-           <button
-            onClick={cycleTheme}
-            className="p-2.5 bg-surface-elevated text-muted-foreground hover:text-foreground rounded-xl border border-border"
-            aria-label="Toggle Theme"
-          >
-            {getThemeIcon(16)}
-          </button>
-        </div>
-      </header>
 
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col p-4 md:p-8 max-w-7xl mx-auto w-full pb-20 md:pb-8 overflow-x-hidden relative z-10">
-        {children}
-      </main>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsWizardModalOpen(true)}
+              className="p-2.5 bg-gradient-to-r from-purple-950 to-indigo-950 text-cyan-300 hover:text-cyan-200 rounded-xl border border-cyan-500/40 shadow-sm active:scale-95 transition-all cursor-pointer"
+              aria-label="Shadow Wizard Mascot"
+              title="Shadow Wizard"
+            >
+              <Lucide.Sparkles size={16} className="text-cyan-400 animate-pulse" />
+            </button>
 
-      {/* Mobile More Menu Popup */}
+            {/* ToDo Button next to Wizard Button in Android/Mobile Header */}
+            <button
+              onClick={() => setActiveTab('todo')}
+              className={`p-2.5 rounded-xl border shadow-sm active:scale-95 transition-all cursor-pointer flex items-center justify-center ${
+                activeTab === 'todo'
+                  ? 'bg-emerald-600 text-white border-emerald-400 shadow-emerald-500/30'
+                  : 'bg-gradient-to-r from-emerald-950 to-teal-950 text-emerald-400 hover:text-emerald-300 border-emerald-500/40'
+              }`}
+              aria-label="Standalone ToDo Page"
+              title="Standalone ToDo"
+            >
+              <Lucide.CheckCircle2 size={16} className="text-emerald-400" />
+            </button>
+
+            <button
+              onClick={() => setCommandBarOpen(true)}
+              className="p-2.5 bg-surface-elevated text-muted-foreground hover:text-foreground rounded-xl border border-border"
+              aria-label="Search Command Bar"
+            >
+              <Lucide.Search size={16} />
+            </button>
+
+            <button
+              onClick={cycleTheme}
+              className="p-2.5 bg-surface-elevated text-muted-foreground hover:text-foreground rounded-xl border border-border"
+              aria-label="Toggle Theme"
+            >
+              {getThemeIcon(16)}
+            </button>
+          </div>
+        </header>
+
+        {/* Main Content Area */}
+        <main className="flex-1 flex flex-col p-4 md:p-8 max-w-7xl mx-auto w-full pb-20 md:pb-8 overflow-x-hidden relative z-10">
+          <div key={activeTab}>
+            {children}
+          </div>
+        </main>
+      </div>
+
+      {/* Mobile More Menu */}
       <AnimatePresence>
         {isMoreMenuOpen && (
           <>
-            {/* Backdrop to close menu when clicking outside */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -360,7 +440,6 @@ export const Layout: React.FC<LayoutProps> = ({
               onClick={() => setIsMoreMenuOpen(false)}
               className="md:hidden fixed inset-0 z-40 bg-background/20 backdrop-blur-sm"
             />
-            {/* Menu Items */}
             <motion.div
               initial={{ opacity: 0, y: 30, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -375,8 +454,9 @@ export const Layout: React.FC<LayoutProps> = ({
                     <button
                       key={item.id}
                       onClick={() => { setActiveTab(item.id); setIsMoreMenuOpen(false); }}
-                      className={`flex flex-col items-center justify-center gap-2 px-3 py-4 rounded-2xl transition-all ${
-                        isActive ? 'bg-primary/20 text-primary border border-primary/30' : 'text-foreground bg-secondary/30 border border-border/40 hover:bg-secondary/60'
+                      data-active={isActive}
+                      className={`flex flex-col items-center justify-center gap-2 px-3 py-4 rounded-xl transition-all ${
+                        isActive ? 'bg-primary text-white shadow-md' : 'text-foreground bg-surface-elevated border border-border/40 hover:bg-surface'
                       }`}
                     >
                       <Icon size={24} className={isActive ? 'stroke-[2.5px]' : ''} />
@@ -395,33 +475,33 @@ export const Layout: React.FC<LayoutProps> = ({
         {navItems.filter(item => ['dashboard', 'tasks', 'habits', 'money'].includes(item.id)).map((item) => {
           const isActive = activeTab === item.id;
           const Icon = (Lucide[item.icon as keyof typeof Lucide] || Lucide.Zap) as React.ElementType;
-
           return (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`flex flex-col items-center justify-center gap-[2px] py-1 flex-1 transition-all ${
-                isActive ? 'text-primary scale-110' : 'text-muted-foreground scale-95'
+              className={`flex flex-col items-center justify-center gap-[2px] py-1 flex-1 transition-all duration-200 ease-out ${
+                isActive ? 'text-primary scale-110' : 'text-muted-foreground scale-95 active:scale-90'
               }`}
+              style={{ WebkitTapHighlightColor: 'transparent' }}
             >
               <Icon size={20} className={isActive ? 'stroke-[2.5px]' : ''} />
               <span className="text-[10px] font-bold tracking-tighter leading-none line-clamp-1 mt-1">{item.label}</span>
             </button>
           );
         })}
-        {/* More button */}
         <button
           onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
-          className={`flex flex-col items-center justify-center gap-[2px] py-1 flex-1 transition-all ${
-            isMoreMenuOpen ? 'text-primary scale-110' : 'text-muted-foreground scale-95'
+          className={`flex flex-col items-center justify-center gap-[2px] py-1 flex-1 transition-all duration-200 ease-out ${
+            isMoreMenuOpen ? 'text-primary scale-110' : 'text-muted-foreground scale-95 active:scale-90'
           }`}
+          style={{ WebkitTapHighlightColor: 'transparent' }}
         >
           <Lucide.Menu size={20} className={isMoreMenuOpen ? 'stroke-[2.5px]' : ''} />
           <span className="text-[10px] font-bold tracking-tighter leading-none line-clamp-1 mt-1">More</span>
         </button>
       </nav>
 
-      {/* Command Bar Modal */}
+      {/* Command Bar */}
       <CommandBar
         isOpen={commandBarOpen}
         onClose={() => setCommandBarOpen(false)}
@@ -430,6 +510,41 @@ export const Layout: React.FC<LayoutProps> = ({
           setCommandBarOpen(false);
         }}
       />
+
+      {/* Shadow Wizard Modal - AnimeGreeting ONLY shown here when Wizard button clicked */}
+      {isWizardModalOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/90 p-4 overflow-hidden pointer-events-auto transform-gpu"
+          onClick={() => setIsWizardModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-xl bg-slate-900 border-2 border-cyan-500/50 rounded-3xl p-5 sm:p-6 shadow-2xl relative overflow-y-auto max-h-[85vh] text-foreground space-y-4 my-auto select-none"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-border">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2.5 rounded-2xl bg-cyan-950 border border-cyan-400/50 text-cyan-300 shadow-md">
+                  <Lucide.Sparkles size={20} className="text-cyan-400 animate-pulse" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-white tracking-tight">Shadow Wizard</h3>
+                  <p className="text-[11px] font-medium text-cyan-300/80">Daily Wisdom &amp; Focus Motivation</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsWizardModalOpen(false)}
+                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <Lucide.X size={18} />
+              </button>
+            </div>
+
+            <div className="py-2">
+              <AnimeGreeting />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

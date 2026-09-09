@@ -9,9 +9,9 @@ import { getTodayDateString } from '@/lib/dateUtils';
 import { format, parseISO } from 'date-fns';
 
 const AmbientArt = React.memo(() => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+  <div className="dashboard-watermark absolute inset-0 overflow-hidden pointer-events-none z-0">
     <motion.div
-      className="absolute top-[-20%] right-[-10%] text-primary opacity-[0.05]"
+      className="absolute top-[-20%] right-[-10%] text-primary"
       animate={{ rotate: 360, scale: [1, 1.05, 1] }}
       transition={{ rotate: { duration: 60, repeat: Infinity, ease: "linear" }, scale: { duration: 10, repeat: Infinity, ease: "easeInOut" } }}
     >
@@ -21,8 +21,8 @@ const AmbientArt = React.memo(() => (
     </motion.div>
 
     <motion.div
-      className="absolute bottom-[-15%] left-[-15%] text-primary opacity-[0.05]"
-      animate={{ scale: [1, 1.15, 1], opacity: [0.03, 0.06, 0.03] }}
+      className="absolute bottom-[-15%] left-[-15%] text-primary"
+      animate={{ scale: [1, 1.15, 1], opacity: [0.02, 0.04, 0.02] }}
       transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
     >
       <svg width="500" height="500" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
@@ -108,14 +108,14 @@ export const NotesFeature: React.FC = () => {
   }, [notes, searchQuery]);
 
   return (
-    <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-stretch h-[calc(100vh-160px)] md:h-[calc(100vh-80px)] overflow-hidden min-h-0">
+    <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-stretch md:h-[calc(100vh-80px)] md:overflow-hidden min-h-0">
       <AmbientArt />
 
       <motion.div 
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="md:col-span-1 space-y-5 relative z-10 flex flex-col h-full min-h-0 overflow-hidden"
+        className="order-2 md:order-1 md:col-span-1 space-y-5 relative z-10 flex flex-col h-full min-h-0 overflow-hidden"
       >
         <div className="space-y-1">
           <motion.h2 
@@ -246,7 +246,7 @@ export const NotesFeature: React.FC = () => {
           animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
           exit={{ opacity: 0, scale: 1.02, filter: "blur(4px)" }}
           transition={{ type: "spring", stiffness: 400, damping: 30 }}
-          className="md:col-span-2 relative z-10 tile p-6 md:p-8 flex flex-col h-full min-h-0 overflow-hidden"
+          className="order-1 md:order-2 md:col-span-2 relative z-10 tile p-6 md:p-8 flex flex-col h-full min-h-0 overflow-hidden"
         >
           <div className="absolute top-0 right-0 -mt-20 -mr-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
 

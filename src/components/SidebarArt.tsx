@@ -10,11 +10,7 @@ export const SidebarArt: React.FC = React.memo(() => {
   if (theme === 'obsidian') {
     return (
       <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.25] mix-blend-screen">
-        <motion.svg viewBox="0 0 200 600" className="w-full h-full text-purple-400/80"
-          animate={{ scale: [1, 1.03, 1] }}
-          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-          style={{ willChange: 'transform' }}
-        >
+        <svg viewBox="0 0 200 600" className="w-full h-full text-[#ff4770]/80 animate-pulse-scale-subtle">
           {/* Geometric lines radiating out from a central Wolf emblem */}
           <circle cx="100" cy="300" r="130" stroke="currentColor" strokeWidth="0.3" fill="none" strokeDasharray="2 8" />
           <circle cx="100" cy="300" r="75" stroke="currentColor" strokeWidth="0.4" fill="none" strokeDasharray="6 12" />
@@ -42,7 +38,7 @@ export const SidebarArt: React.FC = React.memo(() => {
           </g>
 
           <line x1="100" y1="0" x2="100" y2="600" stroke="currentColor" strokeWidth="0.2" strokeDasharray="4 8" opacity="0.3" />
-        </motion.svg>
+        </svg>
       </div>
     );
   }
@@ -51,13 +47,11 @@ export const SidebarArt: React.FC = React.memo(() => {
     return (
       <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-20">
         {/* Scanline grid */}
-        <motion.div
-          className="absolute inset-0"
+        <div
+          className="absolute inset-0 animate-pan-y-scanline"
           style={{
             backgroundImage: 'repeating-linear-gradient(0deg, rgba(0,229,255,0.08) 0px, transparent 1px, transparent 30px)',
           }}
-          animate={{ backgroundPositionY: ['0px', '30px'] }}
-          transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
         />
         <svg viewBox="0 0 200 600" className="absolute inset-0 w-full h-full text-cyan-400/40">
           <line x1="0" y1="0" x2="200" y2="600" stroke="currentColor" strokeWidth="0.3" />
@@ -71,11 +65,7 @@ export const SidebarArt: React.FC = React.memo(() => {
   if (theme === 'midnight') {
     return (
       <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.25] mix-blend-screen">
-        <motion.svg viewBox="0 0 200 600" className="w-full h-full text-orange-400/80"
-          animate={{ scale: [1, 1.03, 1] }}
-          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-          style={{ willChange: 'transform' }}
-        >
+        <svg viewBox="0 0 200 600" className="w-full h-full text-emerald-400/80 animate-pulse-scale-subtle">
           {/* Geometric lines radiating out from a central fox emblem */}
           <circle cx="100" cy="300" r="120" stroke="currentColor" strokeWidth="0.3" fill="none" strokeDasharray="2 8" />
           <circle cx="100" cy="300" r="70" stroke="currentColor" strokeWidth="0.4" fill="none" strokeDasharray="6 12" />
@@ -95,7 +85,7 @@ export const SidebarArt: React.FC = React.memo(() => {
           </g>
 
           <line x1="100" y1="0" x2="100" y2="600" stroke="currentColor" strokeWidth="0.2" strokeDasharray="4 8" opacity="0.3" />
-        </motion.svg>
+        </svg>
       </div>
     );
   }
@@ -103,11 +93,7 @@ export const SidebarArt: React.FC = React.memo(() => {
   if (theme === 'onedark') {
     return (
       <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.22] mix-blend-screen">
-        <motion.svg viewBox="0 0 200 600" className="w-full h-full text-[#5299d3]/80"
-          animate={{ scale: [1, 1.03, 1] }}
-          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-          style={{ willChange: 'transform' }}
-        >
+        <svg viewBox="0 0 200 600" className="w-full h-full text-[#5299d3]/80 animate-pulse-scale-subtle">
           {/* Geometric lines radiating out from a central eagle emblem */}
           <circle cx="100" cy="300" r="130" stroke="currentColor" strokeWidth="0.3" fill="none" strokeDasharray="2 8" />
           <circle cx="100" cy="300" r="80" stroke="currentColor" strokeWidth="0.4" fill="none" strokeDasharray="6 12" />
@@ -133,7 +119,7 @@ export const SidebarArt: React.FC = React.memo(() => {
           </g>
 
           <line x1="100" y1="0" x2="100" y2="600" stroke="currentColor" strokeWidth="0.2" strokeDasharray="4 8" opacity="0.3" />
-        </motion.svg>
+        </svg>
       </div>
     );
   }
@@ -141,11 +127,7 @@ export const SidebarArt: React.FC = React.memo(() => {
   // Light theme
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.15]">
-      <motion.svg viewBox="0 0 200 600" className="w-full h-full text-[#ea580c]/60"
-        animate={{ scale: [1, 1.03, 1] }}
-        transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-        style={{ willChange: 'transform' }}
-      >
+      <svg viewBox="0 0 200 600" className="w-full h-full text-[#ea580c]/60 animate-pulse-scale-subtle">
         {/* Geometric radiating framing */}
         <circle cx="100" cy="300" r="130" stroke="currentColor" strokeWidth="0.3" fill="none" strokeDasharray="2 8" />
         <circle cx="100" cy="300" r="75" stroke="currentColor" strokeWidth="0.4" fill="none" strokeDasharray="6 12" />
@@ -157,7 +139,7 @@ export const SidebarArt: React.FC = React.memo(() => {
         </g>
 
         <line x1="100" y1="0" x2="100" y2="600" stroke="currentColor" strokeWidth="0.2" strokeDasharray="4 8" opacity="0.3" />
-      </motion.svg>
+      </svg>
     </div>
   );
 });

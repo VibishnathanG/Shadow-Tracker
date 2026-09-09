@@ -9,11 +9,17 @@ export function formatDateString(date: Date): string {
 }
 
 export function parseDateString(dateStr: string): Date {
+  if (typeof dateStr === 'string' && dateStr.length === 10 && dateStr.includes('-')) {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+      return new Date(year, month - 1, day);
+    }
+  }
   return parseISO(dateStr);
 }
 
 export function calculateNextRecurrence(dateStr: string, pattern: 'daily' | 'weekly' | 'monthly'): string {
-  const date = parseISO(dateStr);
+  const date = parseDateString(dateStr);
   let nextDate: Date;
   switch (pattern) {
     case 'daily':
@@ -34,10 +40,8 @@ export function calculateStreaks(completedDates: string[]): { currentStreak: num
     return { currentStreak: 0, longestStreak: 0 };
   }
 
-  // Remove duplicates and sort dates descending (newest first)
-  const uniqueDates = Array.from(new Set(completedDates)).sort(
-    (a, b) => new Date(b).getTime() - new Date(a).getTime()
-  );
+  // Remove duplicates and sort dates descending (newest first) using lexicographical string sort
+  const uniqueDates = Array.from(new Set(completedDates)).sort((a, b) => b.localeCompare(a));
 
   const todayStr = getTodayDateString();
   const yesterdayStr = formatDateString(subDays(new Date(), 1));
@@ -61,16 +65,13 @@ export function calculateStreaks(completedDates: string[]): { currentStreak: num
   }
 
   // Calculate longest streak historically
-  // Sort ascending for historical check
-  const sortedDates = [...uniqueDates].sort(
-    (a, b) => new Date(a).getTime() - new Date(b).getTime()
-  );
+  const sortedDates = [...uniqueDates].sort((a, b) => a.localeCompare(b));
 
   let tempStreak = 0;
   let prevDate: Date | null = null;
 
   for (const dateStr of sortedDates) {
-    const currentDate = parseISO(dateStr);
+    const currentDate = parseDateString(dateStr);
     if (!prevDate) {
       tempStreak = 1;
     } else {
@@ -140,4 +141,65 @@ export function getMonthGridDates(date: Date = new Date()): Date[] {
   }
   
   return gridDates;
+}
+
+/**
+ * Habit grace period status:
+ * - diff < 0: Future date (strictly cannot complete or update)
+ * - diff === 0: Today (can update)
+ * - diff >= 1 && diff <= graceDays: Within grace period (can update)
+ * - diff > graceDays: Past grace period (faded/disabled from ticking complete)
+ */
+export function getHabitDateStatus(
+  dateStr: string,
+  todayStr: string = getTodayDateString(),
+  graceDays: number = 3
+) {
+  const targetDate = parseDateString(dateStr);
+  const todayDate = parseDateString(todayStr);
+  const diff = differenceInCalendarDays(todayDate, targetDate);
+
+  const isFuture = diff < 0;
+  const isToday = diff === 0;
+  const isInGracePeriod = diff >= 0 && diff <= graceDays;
+  const isPastGracePeriod = diff > graceDays;
+
+  return {
+    diff,
+    isFuture,
+    isToday,
+    isInGracePeriod,
+    isPastGracePeriod,
+    canUpdate: isInGracePeriod, // Only today and last graceDays days can be updated!
+  };
+}
+
+function escapeRegExp(string: string): string {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Cleanly upserts or removes a single mono habit reflection section inside a journal note.
+ * Guarantees strictly ONE mono section per habit per day.
+ */
+export function upsertHabitMissedNoteSection(
+  currentContent: string,
+  habitName: string,
+  dateStr: string,
+  reason?: string
+): string {
+  const formattedDate = format(parseDateString(dateStr), 'MMM d, yyyy');
+  const sectionHeaderPattern = new RegExp(
+    `(?:\\r?\\n\\r?\\n)?### 📝 Habit Missed: ${escapeRegExp(habitName)}[\\s\\S]*?(?=(?:\\r?\\n\\r?\\n### |$))`,
+    'g'
+  );
+
+  const cleanedContent = currentContent.replace(sectionHeaderPattern, '').trim();
+
+  if (!reason || !reason.trim()) {
+    return cleanedContent;
+  }
+
+  const newSection = `\n\n### 📝 Habit Missed: ${habitName}\n- **Date**: ${formattedDate}\n- **Reason**: ${reason.trim()}`;
+  return cleanedContent ? `${cleanedContent}${newSection}` : `# Journal Entry - ${formattedDate}\n\nDaily reflection log.${newSection}`;
 }

@@ -109,7 +109,7 @@ const WizardMiniature: React.FC<{ theme: string }> = ({ theme }) => {
   const themeColors: Record<string, { hat: string; hatDark: string; robe: string; robeDark: string; staff: string; orb: string; skin: string; belt: string; orbGlow: string; beard: string }> = {
     obsidian:  { hat: '#6b7db0', hatDark: '#4a5a80', robe: '#4e6090', robeDark: '#3a4a6e', staff: '#c4a265', orb: '#7dd3fc', skin: '#e0b088', belt: '#b8860b', orbGlow: 'rgba(125,211,252,0.6)', beard: '#c8c0a8' },
     cyberpunk: { hat: '#d946ef', hatDark: '#a21caf', robe: '#8b5cf6', robeDark: '#6d28d9', staff: '#fbbf24', orb: '#22d3ee', skin: '#e0b088', belt: '#f59e0b', orbGlow: 'rgba(34,211,238,0.7)', beard: '#e8e0c0' },
-    midnight:  { hat: '#6366f1', hatDark: '#4338ca', robe: '#4f46e5', robeDark: '#3730a3', staff: '#c4b5fd', orb: '#a5b4fc', skin: '#e0b088', belt: '#818cf8', orbGlow: 'rgba(165,180,252,0.6)', beard: '#d0c8b8' },
+    midnight:  { hat: '#10b981', hatDark: '#059669', robe: '#047857', robeDark: '#064e3b', staff: '#a7f3d0', orb: '#34d399', skin: '#e0b088', belt: '#6ee7b7', orbGlow: 'rgba(52,211,153,0.6)', beard: '#d0c8b8' },
     onedark:   { hat: '#dc2626', hatDark: '#991b1b', robe: '#b91c1c', robeDark: '#7f1d1d', staff: '#fb923c', orb: '#f87171', skin: '#e0b088', belt: '#ea580c', orbGlow: 'rgba(248,113,113,0.6)', beard: '#d8c8a8' },
     light:     { hat: '#2563eb', hatDark: '#1d4ed8', robe: '#1e40af', robeDark: '#1e3a5f', staff: '#d4a020', orb: '#fbbf24', skin: '#e0b088', belt: '#b45309', orbGlow: 'rgba(251,191,36,0.6)', beard: '#c0b898' },
   };
@@ -512,7 +512,13 @@ export const AnimeGreeting: React.FC = () => {
   };
 
   const bg = getThemeBg();
-  const handleOpen = () => setShowPopup(true);
+  const handleOpen = () => {
+    if (slides.length > 0) {
+      const randomIndex = Math.floor(Math.random() * slides.length);
+      setCurrentIndex(randomIndex);
+    }
+    setShowPopup(true);
+  };
 
   const nextSlide = (e: React.MouseEvent) => {
     e.stopPropagation();

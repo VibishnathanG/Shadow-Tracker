@@ -87,6 +87,11 @@ docker compose up prod --build
 
 ---
 
-## 📱 Mobile Roadmap
+## 📦 Production Builds & Deployment Artifacts
 
-`shadow-tracker` is designed to be easily exported to an Android `.apk` or iOS app using **React Native & Expo**. You can reuse 100% of the Zustand stores, business calculations, and types schemas. Check out the migration path in [MOBILE_STRATEGY.md](./MOBILE_STRATEGY.md).
+`shadow-tracker` is engineered for cross-platform deployment across Web, Desktop, and Mobile:
+
+- **⚡ Tauri Windows Setup Installer**: [`shadow-tracker-tauri-setup.exe`](./shadow-tracker-tauri-setup.exe) *(6.0 MB — Ultra-lightweight installer powered by Rust & Windows Native WebView2, ~15MB RAM, instant launch)*
+- **💻 Tauri Windows Standalone**: [`shadow-tracker-tauri-windows.exe`](./shadow-tracker-tauri-windows.exe) *(23 MB — Portable single executable)*
+- **📱 Release Android APK**: [`shadow-tracker-signed.apk`](./shadow-tracker-signed.apk) *(5.3 MB — Verified & Signed Release APK with pre-scheduled background alarms and sticky YES/NO notification actions)*
+- **🐳 Docker Container**: `shadow-tracker:latest` *(Multi-stage Alpine Nginx container serving static export on port 8080)*

@@ -7,7 +7,32 @@ import { dbService } from '@/lib/storage';
 import { getTodayDateString } from '@/lib/dateUtils';
 import Modal from '@/components/Modal';
 import { motion, AnimatePresence } from 'framer-motion';
-import { pushToCloud, pullFromCloud } from '@/lib/gistSync';
+import {
+  pushToCloud,
+  pullFromCloud,
+  listGitHubGistJsonFiles,
+  createCustomGitHubGist,
+  pushToCloudGistFile,
+  pullFromCloudGistFile,
+} from '@/lib/gistSync';
+import { generateMassiveOneYearData } from '@/lib/seedData';
+import { Task, Habit, DailyLog, Note } from '@/types';
+import { smartMergeBackupData } from '@/lib/smartMerge';
+import {
+  pickSyncFile,
+  createNewSyncFile,
+  pickExistingSyncFile,
+  syncToFile,
+  readFromFile,
+  disconnectSyncFile,
+  isFileSyncSupported,
+  performFullBidirectionalSync,
+} from '@/lib/oneDriveSync';
+
+import { LocalNotifications } from '@capacitor/local-notifications';
+import { sendNativeNotification, isTauriEnv } from '@/lib/nativeNotification';
+import { NiceTimePicker } from '@/components/NiceTimePicker';
+import { ScheduleSelector } from '@/components/ScheduleSelector';
 
 const TileArtDisplaySettings = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.1] select-none z-0">
@@ -52,6 +77,209 @@ const TileArtDanger = () => (
   </div>
 );
 
+// --- OneDrive / Local File Sync Tile (self-contained component) ---
+const OneDriveSyncTile: React.FC = () => {
+  const { settings, updateSettings, importBackup } = useShadowTrackerStore();
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncSupported] = useState(() => isFileSyncSupported());
+
+  const handleStartNewSync = async () => {
+    try {
+      setIsSyncing(true);
+      const state = useShadowTrackerStore.getState();
+      const currentBackup = await dbService.exportAllData(state.settings);
+      const fileName = await createNewSyncFile(currentBackup);
+      if (!fileName) return;
+
+      updateSettings({
+        oneDriveSyncFile: fileName,
+        oneDriveSyncEnabled: true,
+        lastOneDriveSyncTimestamp: Date.now(),
+      });
+      alert(`✅ New sync file created: "${fileName}"\n\nCurrent workspace telemetry exported. Data will auto-sync near-realtime.`);
+    } catch (e: any) {
+      alert('Failed to create new sync file: ' + (e?.message || 'Unknown error'));
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handlePickExistingSync = async () => {
+    try {
+      setIsSyncing(true);
+      const result = await pickExistingSyncFile();
+      if (!result) return;
+
+      const { fileName, data } = result;
+      const confirmed = window.confirm(
+        `Linked sync file "${fileName}".\n\nWould you like to import and merge existing file data into your app now?\n\nFile Date: ${data.exportedAt ? new Date(data.exportedAt).toLocaleString() : 'Unknown'}`
+      );
+      if (confirmed) {
+        await importBackup(data);
+      }
+
+      updateSettings({
+        oneDriveSyncFile: fileName,
+        oneDriveSyncEnabled: true,
+        lastOneDriveSyncTimestamp: Date.now(),
+      });
+      alert(`✅ Linked sync file: "${fileName}"\n\nAuto-sync is now active for this file!`);
+      if (confirmed) window.location.reload();
+    } catch (e: any) {
+      alert('Failed to pick existing sync file: ' + (e?.message || 'Unknown error'));
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleSyncNow = async () => {
+    try {
+      setIsSyncing(true);
+      const state = useShadowTrackerStore.getState();
+      const syncedBackup = await performFullBidirectionalSync(state.settings);
+      if (syncedBackup) {
+        updateSettings({ lastOneDriveSyncTimestamp: Date.now() });
+      }
+      alert('✅ Sync completed successfully!\n\nRecorded current state of app with all data and updated the sync file.');
+    } catch (e: any) {
+      alert('Sync failed: ' + (e?.message || 'Unknown error'));
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    const confirmed = window.confirm('Disconnect the sync file? Auto-sync will pause until you link a file again.');
+    if (!confirmed) return;
+    await disconnectSyncFile();
+    updateSettings({ oneDriveSyncFile: undefined, oneDriveSyncEnabled: false });
+  };
+
+  const handleToggleSync = () => {
+    updateSettings({ oneDriveSyncEnabled: !settings.oneDriveSyncEnabled });
+  };
+
+  return (
+    <motion.div
+      className="tile p-6 sm:p-8 space-y-5 flex flex-col justify-between relative overflow-hidden lg:col-span-1"
+    >
+      <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.07] select-none z-0">
+        <motion.svg className="w-full h-full text-sky-400" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <motion.path d="M 10,70 Q 30,50 50,60 Q 70,70 90,40" fill="none" stroke="currentColor" strokeWidth="0.8" animate={{ opacity: [0.2, 0.9, 0.2], pathLength: [0, 1, 0] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }} />
+          <motion.circle cx="50" cy="55" r="15" fill="none" stroke="currentColor" strokeWidth="0.5" animate={{ scale: [0.9, 1.2, 0.9] }} transition={{ duration: 4, repeat: Infinity }} />
+        </motion.svg>
+      </div>
+
+      <div className="relative z-10">
+        <div className="flex items-center justify-between">
+          <h3 className="text-base font-bold text-foreground uppercase tracking-[0.2em] flex items-center gap-3">
+            <span className="p-2 rounded-xl bg-sky-500/10 text-sky-400">
+              <Lucide.HardDrive size={18} />
+            </span>
+            OneDrive / Local File Sync
+          </h3>
+          {settings.oneDriveSyncEnabled && (
+            <span className="px-2.5 py-1 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/40 text-[10px] font-black uppercase tracking-wider">
+              ACTIVE REALTIME SYNC
+            </span>
+          )}
+        </div>
+
+        <p className="text-sm font-medium text-foreground mt-3 leading-relaxed">
+          Create a new sync file or connect an existing file from OneDrive/Disk. Automatic bidirectional sync persists across app restarts.
+        </p>
+
+        {settings.oneDriveSyncFile ? (
+          <div className="mt-4 p-3 bg-sky-500/10 border border-sky-500/30 rounded-xl">
+            <div className="flex items-start gap-2">
+              <Lucide.FileJson size={16} className="text-sky-400 mt-0.5 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-sky-300 truncate">{settings.oneDriveSyncFile}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  Last sync: {settings.lastOneDriveSyncTimestamp ? new Date(settings.lastOneDriveSyncTimestamp).toLocaleString() : 'Never'}
+                </p>
+              </div>
+            </div>
+
+            <label className="flex items-center justify-between mt-3 cursor-pointer select-none">
+              <span className="text-xs font-bold text-foreground">Auto-sync active</span>
+              <div
+                onClick={handleToggleSync}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 shadow-inner cursor-pointer ${settings.oneDriveSyncEnabled ? 'bg-sky-500' : 'bg-secondary border border-border'}`}
+              >
+                <motion.div
+                  className="inline-block h-4 w-4 transform rounded-full bg-white shadow-md"
+                  animate={{ x: settings.oneDriveSyncEnabled ? 22 : 4 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                />
+              </div>
+            </label>
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground mt-3">No sync file connected yet.</p>
+        )}
+      </div>
+
+      {syncSupported && (
+        <div className="flex flex-col gap-2.5 relative z-10 pt-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleStartNewSync}
+              disabled={isSyncing}
+              className="flex items-center justify-center gap-2 px-3.5 py-3 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50"
+            >
+              <Lucide.PlusCircle size={15} />
+              Start New Sync File
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handlePickExistingSync}
+              disabled={isSyncing}
+              className="flex items-center justify-center gap-2 px-3.5 py-3 bg-slate-800 hover:bg-slate-700 text-sky-300 border border-sky-500/40 font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50"
+            >
+              <Lucide.FolderOpen size={15} />
+              Pick Existing Sync File
+            </motion.button>
+          </div>
+
+          {settings.oneDriveSyncFile && (
+            <div className="grid grid-cols-2 gap-2">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleSyncNow}
+                disabled={isSyncing}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-card hover:bg-secondary border-2 border-sky-500/40 text-sky-300 font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50"
+              >
+                <Lucide.RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />
+                Sync Now
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleDisconnect}
+                disabled={isSyncing}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-card hover:bg-secondary border-2 border-red-500/30 text-red-400 font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50"
+              >
+                <Lucide.Unlink size={14} />
+                Disconnect
+              </motion.button>
+            </div>
+          )}
+
+          {isSyncing && (
+            <p className="text-center text-xs text-sky-400 animate-pulse font-bold">Processing sync...</p>
+          )}
+        </div>
+      )}
+    </motion.div>
+  );
+};
+
 export const SettingsFeature: React.FC = () => {
   const {
     settings,
@@ -61,6 +289,12 @@ export const SettingsFeature: React.FC = () => {
     categories,
     addCategory,
     deleteCategory,
+    reminders,
+    addReminder,
+    updateReminder,
+    deleteReminder,
+    tasks,
+    habits,
   } = useShadowTrackerStore();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -77,24 +311,322 @@ export const SettingsFeature: React.FC = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [githubPatInput, setGithubPatInput] = useState(settings.githubPat || '');
 
+  // Dynamic Per-Year Archiving State
+  const [availableYears, setAvailableYears] = useState<string[]>([]);
+  const [selectedPurgeYear, setSelectedPurgeYear] = useState<string>('');
+
+  React.useEffect(() => {
+    dbService.getAvailableYears().then(years => {
+      setAvailableYears(years);
+      if (years.length > 0 && !selectedPurgeYear) {
+        setSelectedPurgeYear(years[0]);
+      }
+    });
+  }, [tasks, habits]);
+
+  const handleExportYear = useCallback(async () => {
+    if (!selectedPurgeYear) return;
+    try {
+      const yearBackup = await dbService.exportYearData(selectedPurgeYear, settings);
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(yearBackup, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute('href', dataStr);
+      downloadAnchor.setAttribute('download', `shadow-tracker-archive-${selectedPurgeYear}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    } catch (e) {
+      console.error('Year export failed:', e);
+      alert('Failed to export year archive.');
+    }
+  }, [selectedPurgeYear, settings]);
+
+  const handlePurgeYear = useCallback(async () => {
+    if (!selectedPurgeYear) return;
+    const confirmPurge = window.confirm(
+      `Purge data for year ${selectedPurgeYear}? A mandatory archive JSON (shadow-tracker-archive-${selectedPurgeYear}.json) will be automatically downloaded FIRST before purging.`
+    );
+    if (!confirmPurge) return;
+
+    try {
+      const { archiveBackup, purgedCount } = await dbService.purgeYearData(selectedPurgeYear, settings);
+      
+      // Auto-trigger mandatory download of pre-purge backup!
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(archiveBackup, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute('href', dataStr);
+      downloadAnchor.setAttribute('download', `shadow-tracker-archive-${selectedPurgeYear}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+
+      // Re-fetch clean updated state from IndexedDB to update store in-memory!
+      const { STORES } = await import('@/lib/storage');
+      const tasks = await dbService.getAll<Task>(STORES.TASKS);
+      const habits = await dbService.getAll<Habit>(STORES.HABITS);
+      const dailyLogs = await dbService.getAll<DailyLog>(STORES.DAILY_LOGS);
+      const notes = await dbService.getAll<Note>(STORES.NOTES);
+
+      useShadowTrackerStore.setState({
+        tasks: tasks.filter(t => !t.isSoftDeleted),
+        habits: habits.filter(h => !h.isSoftDeleted),
+        dailyLogs,
+        notes,
+      });
+
+      alert(`Mandatory archive saved! Purged ${purgedCount} items for year ${selectedPurgeYear}. Reloading app...`);
+      window.location.reload();
+    } catch (e: any) {
+      console.error('Year purge failed:', e);
+      alert('Failed to purge year data: ' + e.message);
+    }
+  }, [selectedPurgeYear, settings]);
+
+  // Custom Notifications State & Logic
+  const [notifPermission, setNotifPermission] = useState<string>('default');
+
+  React.useEffect(() => {
+    const checkPerm = async () => {
+      try {
+        const status = await LocalNotifications.checkPermissions();
+        setNotifPermission(status.display);
+      } catch (e) {
+        if (typeof window !== 'undefined' && 'Notification' in window) {
+          setNotifPermission(Notification.permission);
+        }
+      }
+    };
+    checkPerm();
+  }, []);
+
+  const handleRequestPermission = async () => {
+    if (isTauriEnv()) {
+      try {
+        const { isPermissionGranted, requestPermission } = await import(
+          '@tauri-apps/plugin-notification'
+        );
+        let granted = await isPermissionGranted();
+        if (!granted) {
+          const res = await requestPermission();
+          granted = res === 'granted';
+        }
+        setNotifPermission(granted ? 'granted' : 'denied');
+        if (granted) {
+          alert('Native Windows Notifications Enabled successfully!');
+          sendNativeNotification(
+            '🔔 Shadow Tracker Notification Engine Active',
+            'Native Windows Desktop Notifications are active and verified.',
+            { sound: true }
+          );
+        } else {
+          alert('Notification permission was denied');
+        }
+        return;
+      } catch (e) {
+        console.warn('Tauri permission request error:', e);
+      }
+    }
+
+    try {
+      const res = await LocalNotifications.requestPermissions();
+      setNotifPermission(res.display);
+      if (res.display === 'granted') {
+        alert('Push & Native Notifications Enabled successfully!');
+      } else {
+        alert('Notification permission was ' + res.display);
+      }
+    } catch (e) {
+      if (typeof window !== 'undefined' && 'Notification' in window) {
+        const res = await Notification.requestPermission();
+        setNotifPermission(res);
+      }
+    }
+  };
+
+  const handleTestNativeNotification = async () => {
+    const success = await sendNativeNotification(
+      '🔔 Shadow Tracker Test Notification',
+      'Native Windows notification service is working perfectly!',
+      { sound: true, sticky: true }
+    );
+    if (success) {
+      alert('Test notification dispatched! Check your desktop notification area.');
+    } else {
+      alert('Could not dispatch test notification. Please ensure notifications are allowed in system settings.');
+    }
+  };
+
+  const [taskTime, setTaskTime] = useState('12:00');
+  const [taskMessage, setTaskMessage] = useState('');
+  const [taggedTaskId, setTaggedTaskId] = useState('');
+  const [taskDays, setTaskDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
+
+  const [habitTime, setHabitTime] = useState('09:00');
+  const [habitMessage, setHabitMessage] = useState('');
+  const [taggedHabitId, setTaggedHabitId] = useState('');
+  const [habitDays, setHabitDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
+
+  const handleAddTaskReminder = async () => {
+    if (!taskTime) return alert('Please select a time for task notification');
+    await addReminder({
+      title: taskMessage.trim() || 'Task Reminder',
+      time: taskTime,
+      days: taskDays,
+      isEnabled: true,
+      type: 'task',
+      taskId: taggedTaskId || undefined,
+    });
+    setTaskMessage('');
+    setTaggedTaskId('');
+  };
+
+  const handleAddHabitReminder = async () => {
+    if (!habitTime) return alert('Please select a time for habit notification');
+    await addReminder({
+      title: habitMessage.trim() || 'Habit Reminder',
+      time: habitTime,
+      days: habitDays,
+      isEnabled: true,
+      type: 'habit',
+      habitId: taggedHabitId || undefined,
+    });
+    setHabitMessage('');
+    setTaggedHabitId('');
+  };
+
+  const taskReminders = useMemo(() => reminders.filter(r => r.type === 'task' || (!r.type && (r.taskId || (!r.taskId && !r.habitId)))), [reminders]);
+  const habitReminders = useMemo(() => reminders.filter(r => r.type === 'habit' || (!r.type && r.habitId)), [reminders]);
+
+  // GitHub Gist File Selection & Sync State
+  const [isGitHubPickerOpen, setIsGitHubPickerOpen] = useState(false);
+  const [githubGistFiles, setGithubGistFiles] = useState<Array<{ gistId: string; filename: string; description: string; updatedAt: string }>>([]);
+  const [isFetchingGistFiles, setIsFetchingGistFiles] = useState(false);
+
+  const getActivePat = () => {
+    const pat = (settings.githubPat || githubPatInput || '').trim();
+    if (pat && pat !== settings.githubPat) {
+      updateSettings({ githubPat: pat });
+    }
+    return pat;
+  };
+
+  const handleOpenPickExistingGitHubFile = async () => {
+    const pat = getActivePat();
+    if (!pat) return alert('Please enter and save your GitHub PAT first!');
+    try {
+      setIsFetchingGistFiles(true);
+      const files = await listGitHubGistJsonFiles(pat);
+      if (files.length === 0) {
+        alert('No JSON files found on your GitHub Gists. Click "Create New GitHub JSON" to create one!');
+        return;
+      }
+      setGithubGistFiles(files);
+      setIsGitHubPickerOpen(true);
+    } catch (e: any) {
+      alert('Failed to list GitHub files: ' + (e?.message || 'Check PAT permissions'));
+    } finally {
+      setIsFetchingGistFiles(false);
+    }
+  };
+
+  const handleSelectGitHubFile = async (fileItem: { gistId: string; filename: string }) => {
+    const pat = getActivePat();
+    updateSettings({
+      githubGistId: fileItem.gistId,
+      githubSyncFile: fileItem.filename,
+      githubSyncEnabled: true,
+      githubPat: pat,
+      lastSyncTimestamp: Date.now(),
+    });
+    setIsGitHubPickerOpen(false);
+    
+    const confirmPull = window.confirm(`Linked GitHub file "${fileItem.filename}".\nWould you like to pull and import its data now?`);
+    if (confirmPull) {
+      handlePullFromCloud();
+    } else {
+      alert(`Linked GitHub file "${fileItem.filename}". Once-a-day auto sync is active.`);
+    }
+  };
+
+  const handleCreateNewGitHubFile = async () => {
+    const pat = getActivePat();
+    if (!pat) return alert('Please enter and save your GitHub PAT first!');
+
+    const defaultName = `ShadowTracker_${new Date().getFullYear()}.json`;
+    const nameInput = window.prompt('Enter filename for the new GitHub JSON:', defaultName);
+    if (!nameInput) return;
+
+    try {
+      setIsSyncing(true);
+      const state = useShadowTrackerStore.getState();
+      const fullBackup = await dbService.exportAllData(state.settings);
+      const result = await createCustomGitHubGist(pat, nameInput, {
+        tasks: fullBackup.tasks,
+        habits: fullBackup.habits,
+        dailyLogs: fullBackup.dailyLogs,
+        notes: fullBackup.notes,
+        categories: fullBackup.categories,
+        reminders: fullBackup.reminders,
+        settings: fullBackup.settings,
+        moneyData: fullBackup.moneyData,
+        unlockedBadges: fullBackup.unlockedBadges,
+        version: fullBackup.version,
+        exportedAt: fullBackup.exportedAt,
+        timestamp: Date.now(),
+      });
+
+      updateSettings({
+        githubGistId: result.gistId,
+        githubSyncFile: result.filename,
+        githubSyncEnabled: true,
+        githubPat: pat,
+        lastSyncTimestamp: Date.now(),
+      });
+      alert(`✅ Created new GitHub JSON file: "${result.filename}"!\n\nOnce-a-day auto sync is active.`);
+    } catch (e: any) {
+      alert('Failed to create new GitHub file: ' + (e?.message || 'Check PAT permissions'));
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const handleSavePat = () => {
-    updateSettings({ githubPat: githubPatInput });
+    const trimmed = (githubPatInput || '').trim();
+    if (!trimmed) return alert('Please enter a GitHub Personal Access Token (PAT)');
+    updateSettings({ githubPat: trimmed });
+    setGithubPatInput(trimmed);
     alert('GitHub PAT Saved Locally!');
   };
 
   const handlePushToCloud = async () => {
-    if (!settings.githubPat) return alert('Please save your GitHub PAT first!');
+    const pat = getActivePat();
+    if (!pat) return alert('Please enter and save your GitHub PAT first!');
     try {
       setIsSyncing(true);
       const state = useShadowTrackerStore.getState();
-      await pushToCloud(settings.githubPat, {
-        tasks: state.tasks,
-        habits: state.habits,
-        dailyLogs: state.dailyLogs,
-        notes: state.notes,
-        categories: state.categories,
+      const fullBackup = await dbService.exportAllData(state.settings);
+      
+      const payload = {
+        tasks: fullBackup.tasks,
+        habits: fullBackup.habits,
+        dailyLogs: fullBackup.dailyLogs,
+        notes: fullBackup.notes,
+        categories: fullBackup.categories,
+        reminders: fullBackup.reminders,
+        settings: fullBackup.settings,
+        moneyData: fullBackup.moneyData,
+        unlockedBadges: fullBackup.unlockedBadges,
+        version: fullBackup.version,
+        exportedAt: fullBackup.exportedAt,
         timestamp: Date.now()
-      });
+      };
+
+      if (settings.githubGistId && settings.githubSyncFile) {
+        await pushToCloudGistFile(pat, settings.githubGistId, settings.githubSyncFile, payload);
+      } else {
+        await pushToCloud(pat, payload);
+      }
+
       updateSettings({ lastSyncTimestamp: Date.now() });
       alert('Successfully pushed to Cloud (GitHub Gist)!');
     } catch (e: any) {
@@ -105,35 +637,56 @@ export const SettingsFeature: React.FC = () => {
   };
 
   const handlePullFromCloud = async () => {
-    if (!settings.githubPat) return alert('Please save your GitHub PAT first!');
+    const pat = getActivePat();
+    if (!pat) return alert('Please enter and save your GitHub PAT first!');
     try {
       setIsSyncing(true);
-      const data = await pullFromCloud(settings.githubPat);
+      let data;
+      if (settings.githubGistId && settings.githubSyncFile) {
+        data = await pullFromCloudGistFile(pat, settings.githubGistId, settings.githubSyncFile);
+      } else {
+        data = await pullFromCloud(pat);
+      }
+
       if (!data) {
-        alert('No backup found for this year on the cloud.');
+        alert('No backup found for this file on the cloud.');
         return;
       }
       
       const confirmPull = window.confirm(
-        `Cloud backup from ${new Date(data.timestamp).toLocaleString()}.\nThis will overwrite your local data. Proceed?`
+        `Cloud backup from ${new Date(data.timestamp).toLocaleString()}.\nThis will safely merge cloud changes with local updates without data loss. Proceed?`
       );
       if (!confirmPull) return;
 
-      // Write directly to IndexedDB, bypassing importBackup validation
-      const { STORES } = await import('@/lib/storage');
+      const state = useShadowTrackerStore.getState();
+      const localBackup = await dbService.exportAllData(state.settings);
 
-      // Clear and re-populate each store
-      for (const [storeName, items] of [
-        [STORES.TASKS, data.tasks],
-        [STORES.HABITS, data.habits],
-        [STORES.DAILY_LOGS, data.dailyLogs],
-        [STORES.NOTES, data.notes],
-        [STORES.CATEGORIES, data.categories],
-      ] as const) {
-        await dbService.clear(storeName as any);
-        for (const item of (items || [])) {
-          await dbService.put(storeName as any, item);
-        }
+      // Perform Bi-Directional Smart Merge
+      const mergedData = smartMergeBackupData(localBackup, data as any);
+
+      // Import merged data into IndexedDB & Store
+      await useShadowTrackerStore.getState().importBackup(mergedData as any);
+
+      // Push unified merged state back to cloud Gist
+      if (settings.githubGistId && settings.githubSyncFile) {
+        await pushToCloudGistFile(pat, settings.githubGistId, settings.githubSyncFile, mergedData as any);
+      } else {
+        await pushToCloud(pat, mergedData as any);
+      }
+
+      // Restore settings while preserving current active PAT
+      const activePat = pat;
+      let finalSettings = settings;
+      if (data.settings) {
+        finalSettings = {
+          ...data.settings,
+          githubPat: activePat,
+          githubSyncEnabled: true,
+          githubGistId: settings.githubGistId || data.settings.githubGistId,
+          githubSyncFile: settings.githubSyncFile || data.settings.githubSyncFile,
+        };
+        const { settingsStorage } = await import('@/lib/storage');
+        settingsStorage.set(finalSettings);
       }
 
       // Update the zustand store in-memory to reflect the new data
@@ -142,7 +695,10 @@ export const SettingsFeature: React.FC = () => {
         habits: (data.habits || []).filter((h: any) => !h.isSoftDeleted),
         dailyLogs: data.dailyLogs || [],
         notes: data.notes || [],
+        reminders: data.reminders || [],
         categories: data.categories || [],
+        settings: finalSettings,
+        ...(data.unlockedBadges ? { unlockedBadges: data.unlockedBadges } : {}),
       });
 
       updateSettings({ lastSyncTimestamp: Date.now() });
@@ -169,10 +725,33 @@ export const SettingsFeature: React.FC = () => {
   const handleExport = useCallback(async () => {
     try {
       const backupData = await dbService.exportAllData(settings);
-      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(backupData, null, 2));
+      const jsonContent = JSON.stringify(backupData, null, 2);
+      const filename = `shadow-tracker-full-backup-${getTodayDateString()}.json`;
+
+      if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
+        try {
+          const handle = await (window as any).showSaveFilePicker({
+            suggestedName: filename,
+            types: [{
+              description: 'JSON Backup File',
+              accept: { 'application/json': ['.json'] },
+            }],
+          });
+          const writable = await handle.createWritable();
+          await writable.write(jsonContent);
+          await writable.close();
+          alert('Backup saved successfully! Selected file location updated.');
+          return;
+        } catch (pickerErr: any) {
+          if (pickerErr?.name === 'AbortError') return;
+        }
+      }
+
+      // Fallback HTML5 anchor download
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(jsonContent);
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute('href', dataStr);
-      downloadAnchor.setAttribute('download', `shadow-tracker-backup-${getTodayDateString()}.json`);
+      downloadAnchor.setAttribute('download', filename);
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
@@ -196,7 +775,8 @@ export const SettingsFeature: React.FC = () => {
         const jsonContent = event.target?.result as string;
         const backupData = JSON.parse(jsonContent);
         await importBackup(backupData);
-        alert('Data backup imported successfully!');
+        alert('Data backup imported successfully! Reloading to apply all settings and money data...');
+        window.location.reload();
       } catch (err) {
         console.error('Import failed:', err);
         alert('Failed to import file. Verify it is a valid shadow-tracker backup JSON.');
@@ -205,9 +785,22 @@ export const SettingsFeature: React.FC = () => {
     reader.readAsText(file);
   }, [importBackup]);
 
+  const handleLoadDemoData = useCallback(async () => {
+    if (window.confirm('Load 1-Year Massive Demo Dataset? This will populate 365 days of habits, daily logs, notes, tasks, 12 months of money data, and Level 15 Legend rank.')) {
+      try {
+        const demoData = generateMassiveOneYearData();
+        await importBackup(demoData);
+        alert('1-Year Demo Dataset loaded successfully! Reloading app...');
+        window.location.reload();
+      } catch (err) {
+        console.error('Failed to load demo data:', err);
+      }
+    }
+  }, [importBackup]);
+
   const handleReset = useCallback(async () => {
     const confirmReset = window.confirm(
-      'Are you absolutely sure you want to reset shadow-tracker? All tasks, habits, daily logs, and journal reflections will be permanently deleted. This action cannot be undone.'
+      'Are you absolutely sure you want to reset Shadow-Tracker? All tasks, habits, daily logs, and journal reflections will be permanently deleted. This action cannot be undone.'
     );
     if (confirmReset) {
       await resetAllData();
@@ -273,7 +866,7 @@ export const SettingsFeature: React.FC = () => {
       initial="hidden"
       animate="show"
       variants={containerVariants}
-      className="relative space-y-8 max-w-5xl mx-auto pb-12 overflow-hidden"
+      className="relative space-y-8 w-full max-w-[1700px] mx-auto pb-12 overflow-hidden"
     >
       <div className="absolute inset-0 pointer-events-none select-none opacity-[0.05]" aria-hidden="true">
         <motion.svg
@@ -327,159 +920,182 @@ export const SettingsFeature: React.FC = () => {
         </p>
       </motion.div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 items-start">
           <motion.div 
             variants={itemVariants}
             whileHover={{ y: -2 }}
             transition={{ type: "spring" as const, stiffness: 300 }}
-            className="tile p-6 sm:p-8 space-y-6 relative overflow-hidden"
+            className="tile p-6 sm:p-8 space-y-6 relative overflow-hidden lg:col-span-2"
           >
             <TileArtDisplaySettings />
-            <h3 className="text-base font-bold text-foreground uppercase tracking-[0.2em] flex items-center gap-3 mb-6">
+            <h3 className="text-base font-bold text-foreground uppercase tracking-[0.2em] flex items-center gap-3 mb-4">
               <span className="p-2 rounded-xl bg-primary/10 text-primary">
                 <Lucide.Sliders size={18} />
               </span>
-              Display Settings
+              Display & Interface Settings
             </h3>
 
-            <div className="flex flex-col gap-3">
-              <span className="text-sm font-semibold text-foreground">Application Theme</span>
-              <div className="flex flex-wrap gap-2 bg-secondary border border-border p-2 rounded-2xl">
-                {(['light', 'obsidian', 'onedark', 'cyberpunk', 'midnight'] as const).map(themeOption => {
-                  const labelMap = {
-                    light: 'White',
-                    obsidian: 'Obsidian',
-                    onedark: 'One Dark',
-                    cyberpunk: 'Cyberpunk',
-                    midnight: 'Fox',
-                  };
-                  const isSelected = settings.theme === themeOption;
-                  return (
-                    <motion.button
-                      key={themeOption}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => updateSettings({ theme: themeOption })}
-                      className={`relative flex-1 min-w-[100px] px-3 py-2.5 rounded-xl text-sm font-bold transition-colors ${
-                        isSelected 
-                          ? 'text-foreground' 
-                          : 'text-foreground hover:text-foreground'
-                      }`}
-                    >
-                      {isSelected && (
-                        <motion.div
-                          layoutId="theme-bubble"
-                          className="absolute inset-0 bg-surface rounded-xl shadow-sm border border-border"
-                          transition={{ type: "spring" as const, bounce: 0.2, duration: 0.6 }}
-                        />
-                      )}
-                      <span className="relative z-10">{labelMap[themeOption]}</span>
-                    </motion.button>
-                  );
-                })}
-              </div>
-            </div>
-            <div className="flex flex-col gap-3 pt-5 border-t border-border">
-              <span className="text-sm font-semibold text-foreground">Operator Alias</span>
-              <input 
-                type="text" 
-                value={settings.alias || 'Shadow'} 
-                onChange={(e) => updateSettings({ alias: e.target.value })}
-                placeholder="Enter your alias..."
-                className="w-full text-base px-4 py-2.5 bg-black/50 border border-border focus:border-primary/50 rounded-xl text-foreground placeholder-muted-foreground focus:ring-1 focus:ring-primary/50 focus:outline-none transition-all shadow-inner"
-              />
-              <p className="text-xs text-muted-foreground">This alias will be used by Nexus Prime and the dashboard as <span className="text-primary font-bold">{settings.alias || 'Shadow'}</span>.</p>
-            </div>
-
-            <div className="flex flex-col gap-3 pt-5 border-t border-border">
-              <span className="text-sm font-semibold text-foreground">Monthly Financial Targets</span>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Savings Target</label>
-                  <input 
-                    type="number" 
-                    value={settings.savingsTarget || ''} 
-                    onChange={(e) => updateSettings({ savingsTarget: parseFloat(e.target.value) || 0 })}
-                    placeholder="e.g. 25000"
-                    className="w-full text-sm px-4 py-2.5 bg-black/50 border border-border focus:border-primary/50 rounded-xl text-foreground placeholder-muted-foreground focus:ring-1 focus:ring-primary/50 focus:outline-none transition-all shadow-inner"
-                  />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+              {/* Left Column: Theme, Alias & Financial Targets */}
+              <div className="space-y-5">
+                <div className="flex flex-col gap-2.5">
+                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Application Theme</span>
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 bg-secondary border border-border p-2 rounded-2xl">
+                    {(['light', 'obsidian', 'onedark', 'cyberpunk', 'midnight'] as const).map(themeOption => {
+                      const labelMap: Record<string, string> = {
+                        light: 'White',
+                        obsidian: 'Obsidian',
+                        onedark: 'One Dark',
+                        cyberpunk: 'Cyberpunk',
+                        midnight: 'Purple',
+                      };
+                      const isSelected = settings.theme === themeOption || 
+                        (themeOption === 'midnight' && (settings.theme === 'pine' || settings.theme === 'purple')) || 
+                        (themeOption === 'light' && settings.theme === 'white');
+                      return (
+                        <button
+                          key={themeOption}
+                          onClick={() => updateSettings({ theme: themeOption })}
+                          className={`relative w-full px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                            isSelected 
+                              ? 'bg-surface text-foreground shadow-sm border border-border' 
+                              : 'text-foreground/80 hover:text-foreground hover:bg-surface/50'
+                          }`}
+                        >
+                          {labelMap[themeOption]}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs text-muted-foreground uppercase tracking-wider font-bold">Investments Target</label>
+
+                <div className="flex flex-col gap-2 pt-4 border-t border-border">
+                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Operator Alias</span>
                   <input 
-                    type="number" 
-                    value={settings.investmentsTarget || ''} 
-                    onChange={(e) => updateSettings({ investmentsTarget: parseFloat(e.target.value) || 0 })}
-                    placeholder="e.g. 15000"
-                    className="w-full text-sm px-4 py-2.5 bg-black/50 border border-border focus:border-primary/50 rounded-xl text-foreground placeholder-muted-foreground focus:ring-1 focus:ring-primary/50 focus:outline-none transition-all shadow-inner"
+                    type="text" 
+                    value={settings.alias !== undefined ? settings.alias : ''} 
+                    onChange={(e) => updateSettings({ alias: e.target.value })}
+                    placeholder="Enter your alias..."
+                    className="input-field"
                   />
+                  <p className="text-[11px] text-muted-foreground">Used across dashboard telemetry as <span className="text-primary font-bold">{settings.alias || 'Shadow'}</span>.</p>
+                </div>
+
+                <div className="flex flex-col gap-2.5 pt-4 border-t border-border">
+                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Monthly Financial Targets</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Savings Target</label>
+                      <input 
+                        type="number" 
+                        value={settings.savingsTarget || ''} 
+                        onChange={(e) => updateSettings({ savingsTarget: parseFloat(e.target.value) || 0 })}
+                        placeholder="e.g. 25000"
+                        className="input-field font-mono font-bold"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">Investments Target</label>
+                      <input 
+                        type="number" 
+                        value={settings.investmentsTarget || ''} 
+                        onChange={(e) => updateSettings({ investmentsTarget: parseFloat(e.target.value) || 0 })}
+                        placeholder="e.g. 15000"
+                        className="input-field font-mono font-bold"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">Setting these targets enables the <span className="text-teal-400 font-bold">Wealth Master</span> achievement once met for the month.</p>
-            </div>
 
-            <div className="flex flex-col gap-4 pt-5 border-t border-border">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-foreground">Global Interface Scale</span>
-                <motion.span 
-                  key={settings.appScale}
-                  initial={{ scale: 1.2, color: 'var(--color-primary)' }}
-                  animate={{ scale: 1, color: 'var(--color-foreground)' }}
-                  className="text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full"
-                >
-                  {settings.appScale || 100}%
-                </motion.span>
-              </div>
-              <div className="flex items-center gap-4">
-                <span className="text-xs text-foreground font-bold">A</span>
-                <input 
-                  type="range" 
-                  min="80" 
-                  max="150" 
-                  step="5"
-                  value={settings.appScale || 100} 
-                  onChange={(e) => updateSettings({ appScale: parseInt(e.target.value) })}
-                  className="w-full accent-primary h-2.5 bg-secondary rounded-lg appearance-none cursor-pointer hover:bg-secondary transition-colors"
-                />
-                <span className="text-base text-foreground font-bold">A</span>
-              </div>
-            </div>
+              {/* Right Column: Scale & Environment Toggles */}
+              <div className="space-y-5">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Global Interface Scale</span>
+                    <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-0.5 rounded-full">
+                      {settings.appScale || 100}%
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-foreground font-bold">A</span>
+                    <input 
+                      type="range" 
+                      min="80" 
+                      max="150" 
+                      step="5"
+                      value={settings.appScale || 100} 
+                      onChange={(e) => updateSettings({ appScale: parseInt(e.target.value) })}
+                      className="w-full accent-primary h-2 bg-secondary rounded-lg appearance-none cursor-pointer"
+                    />
+                    <span className="text-base text-foreground font-bold">A</span>
+                  </div>
+                </div>
 
-            <div className="space-y-2 pt-5 border-t border-border">
-              {[
-                { id: 'soundEnabled', label: 'Sound Notifications', checked: settings.soundEnabled },
-                { id: 'showCompletedTasks', label: 'Show Completed Tasks', checked: settings.showCompletedTasks },
-              ].map((setting) => (
-                <motion.label 
-                  key={setting.id} 
-                  whileHover={{ x: 6, backgroundColor: 'var(--color-secondary)' }} 
-                  whileTap={{ scale: 0.95 }}
-                  transition={{ type: 'spring' as const, stiffness: 400, damping: 25 }} 
-                  className="group flex items-center justify-between cursor-pointer select-none p-3.5 -mx-3.5 rounded-2xl hover:bg-secondary transition-all border border-transparent hover:border-border"
-                >
-                  <span className="text-sm font-semibold text-foreground group-hover:text-foreground transition-colors">{setting.label}</span>
-                  <div className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 shadow-inner ${setting.checked ? 'bg-primary' : 'bg-secondary border border-border'}`}>
-                    <motion.div
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition-shadow ${setting.checked ? 'shadow-primary/50' : 'shadow-black/10'}`}
-                      animate={{ x: setting.checked ? 22 : 4 }}
-                      transition={{ type: "spring" as const, stiffness: 500, damping: 30 }}
+                {/* Past Routine Activity Fill Window */}
+                <div className="flex flex-col gap-2 pt-4 border-t border-border">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Past Activity Fill Window</span>
+                    <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-0.5 rounded-full">
+                      {settings.habitGracePeriodDays || 3} {settings.habitGracePeriodDays === 1 ? 'day' : 'days'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <input 
+                      type="range" 
+                      min="1" 
+                      max="10" 
+                      step="1"
+                      value={settings.habitGracePeriodDays || 3} 
+                      onChange={(e) => updateSettings({ habitGracePeriodDays: parseInt(e.target.value, 10) })}
+                      className="w-full accent-primary h-2 bg-secondary rounded-lg appearance-none cursor-pointer"
                     />
                   </div>
-                  <input
-                    type="checkbox"
-                    checked={setting.checked}
-                    onChange={(e) => updateSettings({ [setting.id]: e.target.checked })}
-                    className="sr-only"
-                  />
-                </motion.label>
-              ))}
+                  <p className="text-[11px] text-muted-foreground">
+                    Number of past days permitted to retroactively check off or log missed habit reflections (1-10 days, default 3).
+                  </p>
+                </div>
+
+                <div className="space-y-1.5 pt-4 border-t border-border">
+                  {[
+                    { id: 'soundEnabled', label: '🔔 Sound Notifications', checked: settings.soundEnabled },
+                    { id: 'stickyTaskNotifications', label: '📌 Sticky Task Notifications (YES/NO Actions)', checked: Boolean(settings.stickyTaskNotifications) },
+                    { id: 'showCompletedTasks', label: '👁️ Show Completed Tasks', checked: settings.showCompletedTasks },
+                    { id: 'ecoMode', label: '🌱 Eco Mode (Freezes All Background Animations & Minimal CPU)', checked: Boolean(settings.ecoMode || settings.lowGpuMode) },
+                    { id: 'minimizeToTray', label: '📥 Minimize to System Tray (Eco Suspend)', checked: Boolean(settings.minimizeToTray ?? true) },
+                  ].map((setting) => (
+                    <label 
+                      key={setting.id} 
+                      className="group flex items-center justify-between cursor-pointer select-none p-2.5 rounded-xl hover:bg-secondary transition-all border border-transparent hover:border-border gap-2"
+                    >
+                      <span className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors flex-1 pr-2">{setting.label}</span>
+                      <div className={`toggle-track ${setting.checked ? 'active' : ''}`} data-checked={setting.checked}>
+                        <div className="toggle-handle" />
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={setting.checked}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          if (setting.id === 'ecoMode') {
+                            updateSettings({ ecoMode: checked, lowGpuMode: checked });
+                          } else {
+                            updateSettings({ [setting.id]: checked });
+                          }
+                        }}
+                        className="sr-only"
+                      />
+                    </label>
+                  ))}
+                </div>
+              </div>
             </div>
           </motion.div>
 
           <motion.div 
             variants={itemVariants}
             transition={{ type: "spring" as const, stiffness: 300 }}
-            className="tile p-6 sm:p-8 space-y-6 flex flex-col relative overflow-hidden"
+            className="tile p-6 sm:p-8 space-y-6 flex flex-col relative overflow-hidden lg:col-span-2"
           >
             <TileArtCategories />
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -539,42 +1155,267 @@ export const SettingsFeature: React.FC = () => {
             </div>
           </motion.div>
 
+          {/* User-Defined Notifications Section (Tasks & Habits) */}
           <motion.div 
             variants={itemVariants}
             transition={{ type: "spring" as const, stiffness: 300 }}
-            className="lg:col-span-2 tile p-6 sm:p-8 space-y-6"
+            className="lg:col-span-2 space-y-6"
           >
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <h3 className="text-base font-bold text-foreground uppercase tracking-[0.2em] flex items-center gap-3">
-                <span className="p-2 rounded-xl bg-primary/10 text-primary">
-                  <Lucide.Image size={18} />
-                </span>
-                Mascot Carousel
-              </h3>
-              
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setIsMotivationalModalOpen(true)}
-                className="text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/90 px-4 py-2.5 rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2"
-              >
-                <Lucide.Settings2 size={16} />
-                Manage Slides
-              </motion.button>
+            {/* Permission Status Header */}
+            <div className="tile p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-2xl bg-primary/10 text-primary">
+                  <Lucide.BellRing size={22} />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-foreground">Device Notification Engine</h3>
+                  <p className="text-xs text-muted-foreground font-medium">Works on Windows (.exe), Android (PWA), Linux & Mac without automated spam.</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5 flex-wrap">
+                {notifPermission === 'granted' ? (
+                  <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
+                    <Lucide.CheckCircle size={14} /> Permission Granted
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-extrabold bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                    <Lucide.AlertCircle size={14} /> {notifPermission === 'denied' ? 'In-App Notifications Active' : 'Pending Enable'}
+                  </span>
+                )}
+
+                <button
+                  onClick={handleRequestPermission}
+                  className="px-4 py-2 bg-primary text-primary-foreground text-xs font-bold rounded-xl shadow-md hover:bg-primary/90 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+                >
+                  <Lucide.ShieldAlert size={14} /> {notifPermission === 'granted' ? 'Re-test Permission' : 'Enable Notifications'}
+                </button>
+                <button
+                  onClick={handleTestNativeNotification}
+                  className="px-4 py-2 bg-secondary text-secondary-foreground text-xs font-bold rounded-xl border border-border/80 hover:bg-secondary/80 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+                  title="Test native OS notification toast"
+                >
+                  <Lucide.BellRing size={14} className="text-primary" /> Test Native Notification
+                </button>
+              </div>
             </div>
-            <p className="text-sm text-foreground leading-relaxed font-medium">
-              Add your own powerful quotes and vibe themes to the Mascot&apos;s popup carousel. These will complement or override the defaults to keep you motivated!
-            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Block 1: Task Notifications */}
+              <div className="tile p-6 space-y-5">
+                <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                  <h4 className="text-sm font-extrabold text-foreground uppercase tracking-wider flex items-center gap-2">
+                    <Lucide.CheckSquare size={16} className="text-primary" /> Task Notifications
+                  </h4>
+                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary">
+                    {taskReminders.length} Active
+                  </span>
+                </div>
+
+                {/* Form */}
+                <div className="space-y-4 bg-secondary/30 p-4 rounded-2xl border border-border/50">
+                  <NiceTimePicker
+                    value={taskTime}
+                    onChange={setTaskTime}
+                    label="Task Alert Clock Time"
+                  />
+
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-muted-foreground uppercase">Tag Task (Optional)</label>
+                    <select
+                      value={taggedTaskId}
+                      onChange={(e) => setTaggedTaskId(e.target.value)}
+                      className="w-full text-xs font-bold px-3 py-2.5 bg-secondary text-foreground rounded-xl border border-border/60 outline-none focus:border-primary truncate cursor-pointer"
+                    >
+                      <option value="">General Task Alert</option>
+                      {tasks.filter(t => !t.isCompleted && !t.isSoftDeleted).map(t => (
+                        <option key={t.id} value={t.id}>{t.title}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-muted-foreground uppercase">Notification Message</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Focus time! Finish your high priority task."
+                      value={taskMessage}
+                      onChange={(e) => setTaskMessage(e.target.value)}
+                      className="w-full text-xs font-medium px-3 py-2.5 bg-secondary text-foreground rounded-xl border border-border/60 outline-none focus:border-primary"
+                    />
+                  </div>
+
+                  <ScheduleSelector
+                    selectedDays={taskDays}
+                    onChange={setTaskDays}
+                    label="Task Schedule Repeat Days"
+                  />
+
+                  <div className="flex justify-end pt-1">
+                    <button
+                      onClick={handleAddTaskReminder}
+                      className="px-4 py-2 bg-primary text-primary-foreground text-xs font-extrabold rounded-xl shadow-md hover:bg-primary/95 transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Lucide.Plus size={14} /> Add Task Alert
+                    </button>
+                  </div>
+                </div>
+
+                {/* List */}
+                <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+                  {taskReminders.length === 0 ? (
+                    <p className="text-xs text-muted-foreground text-center py-4 font-medium italic">No task notifications set yet.</p>
+                  ) : (
+                    taskReminders.map(r => {
+                      const taggedTask = tasks.find(t => t.id === r.taskId);
+                      const daysText = !r.days || r.days.length === 0 ? 'Once' : r.days.length === 7 ? 'Daily' : r.days.length === 5 && [1,2,3,4,5].every(d=>r.days.includes(d)) ? 'Weekdays' : r.days.length === 2 && r.days.includes(0) && r.days.includes(6) ? 'Weekends' : r.days.length === 1 ? `Mon` : `${r.days.length} Days`;
+                      return (
+                        <div key={r.id} className="flex items-center justify-between p-3 bg-secondary/50 border border-border/60 rounded-xl text-xs">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <span className="font-extrabold text-primary bg-primary/10 px-2 py-1 rounded-md">{r.time}</span>
+                            <div className="min-w-0">
+                              <p className="font-bold text-foreground truncate">{r.title}</p>
+                              {taggedTask && <p className="text-[10px] text-muted-foreground font-semibold truncate">Task: {taggedTask.title}</p>}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase">{daysText}</span>
+                            <button
+                              onClick={() => updateReminder(r.id, { isEnabled: !r.isEnabled })}
+                              className={`toggle-track ${r.isEnabled ? 'active' : ''}`}
+                              data-checked={r.isEnabled}
+                              title={r.isEnabled ? 'Enabled' : 'Disabled'}
+                            >
+                              <div className="toggle-handle" />
+                            </button>
+                            <button
+                              onClick={() => deleteReminder(r.id)}
+                              className="text-muted-foreground hover:text-red-500 p-1 transition-colors"
+                              title="Delete notification"
+                            >
+                              <Lucide.Trash2 size={13} />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              {/* Block 2: Habit Notifications */}
+              <div className="tile p-6 space-y-5">
+                <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                  <h4 className="text-sm font-extrabold text-foreground uppercase tracking-wider flex items-center gap-2">
+                    <Lucide.Repeat size={16} className="text-primary" /> Habit Notifications
+                  </h4>
+                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary">
+                    {habitReminders.length} Active
+                  </span>
+                </div>
+
+                {/* Form */}
+                <div className="space-y-4 bg-secondary/30 p-4 rounded-2xl border border-border/50">
+                  <NiceTimePicker
+                    value={habitTime}
+                    onChange={setHabitTime}
+                    label="Habit Alert Clock Time"
+                  />
+
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-muted-foreground uppercase">Tag Habit (Optional)</label>
+                    <select
+                      value={taggedHabitId}
+                      onChange={(e) => setTaggedHabitId(e.target.value)}
+                      className="w-full text-xs font-bold px-3 py-2.5 bg-secondary text-foreground rounded-xl border border-border/60 outline-none focus:border-primary truncate cursor-pointer"
+                    >
+                      <option value="">General Habit Alert</option>
+                      {habits.filter(h => !h.isSoftDeleted).map(h => (
+                        <option key={h.id} value={h.id}>{h.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-muted-foreground uppercase">Notification Message</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Keep your streak alive! Time for habit."
+                      value={habitMessage}
+                      onChange={(e) => setHabitMessage(e.target.value)}
+                      className="w-full text-xs font-medium px-3 py-2.5 bg-secondary text-foreground rounded-xl border border-border/60 outline-none focus:border-primary"
+                    />
+                  </div>
+
+                  <ScheduleSelector
+                    selectedDays={habitDays}
+                    onChange={setHabitDays}
+                    label="Habit Schedule Repeat Days"
+                  />
+
+                  <div className="flex justify-end pt-1">
+                    <button
+                      onClick={handleAddHabitReminder}
+                      className="px-4 py-2 bg-primary text-primary-foreground text-xs font-extrabold rounded-xl shadow-md hover:bg-primary/95 transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Lucide.Plus size={14} /> Add Habit Alert
+                    </button>
+                  </div>
+                </div>
+
+                {/* List */}
+                <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
+                  {habitReminders.length === 0 ? (
+                    <p className="text-xs text-muted-foreground text-center py-4 font-medium italic">No habit notifications set yet.</p>
+                  ) : (
+                    habitReminders.map(r => {
+                      const taggedHabit = habits.find(h => h.id === r.habitId);
+                      const daysText = !r.days || r.days.length === 0 ? 'Once' : r.days.length === 7 ? 'Daily' : r.days.length === 5 && [1,2,3,4,5].every(d=>r.days.includes(d)) ? 'Weekdays' : r.days.length === 2 && r.days.includes(0) && r.days.includes(6) ? 'Weekends' : r.days.length === 1 ? `Mon` : `${r.days.length} Days`;
+                      return (
+                        <div key={r.id} className="flex items-center justify-between p-3 bg-secondary/50 border border-border/60 rounded-xl text-xs">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <span className="font-extrabold text-primary bg-primary/10 px-2 py-1 rounded-md">{r.time}</span>
+                            <div className="min-w-0">
+                              <p className="font-bold text-foreground truncate">{r.title}</p>
+                              {taggedHabit && <p className="text-[10px] text-muted-foreground font-semibold truncate">Habit: {taggedHabit.name}</p>}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase">{daysText}</span>
+                            <button
+                              onClick={() => updateReminder(r.id, { isEnabled: !r.isEnabled })}
+                              className={`toggle-track ${r.isEnabled ? 'active' : ''}`}
+                              data-checked={r.isEnabled}
+                              title={r.isEnabled ? 'Enabled' : 'Disabled'}
+                            >
+                              <div className="toggle-handle" />
+                            </button>
+                            <button
+                              onClick={() => deleteReminder(r.id)}
+                              className="text-muted-foreground hover:text-red-500 p-1 transition-colors"
+                              title="Delete notification"
+                            >
+                              <Lucide.Trash2 size={13} />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
           </motion.div>
+
         </div>
 
         <div className="pt-8 mt-4 border-t border-border relative">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-surface px-4 text-xs font-bold uppercase tracking-widest text-muted-foreground border border-border rounded-full py-1">Data & Sync</div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-stretch pt-4">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-surface px-4 text-xs font-bold uppercase tracking-widest text-muted-foreground border border-border rounded-full py-1">Data &amp; Sync</div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 items-stretch pt-4">
           <motion.div 
             variants={itemVariants}
             transition={{ type: "spring" as const, stiffness: 300 }}
-            className="tile p-6 sm:p-8 space-y-6"
+            className="lg:col-span-1 tile p-6 sm:p-8 flex flex-col gap-5 relative overflow-hidden"
           >
             <div className="absolute -bottom-12 -right-12 text-primary/10 pointer-events-none select-none">
               <motion.svg 
@@ -588,43 +1429,55 @@ export const SettingsFeature: React.FC = () => {
               </motion.svg>
             </div>
 
-            <h3 className="text-base font-bold text-foreground uppercase tracking-[0.2em] flex items-center gap-3 relative z-10">
-              <span className="p-2 rounded-xl bg-primary/10 text-primary">
-                <Lucide.Database size={18} />
-              </span>
-              Storage Sandbox
-            </h3>
-
-            <div className="relative z-10 bg-secondary border border-border rounded-2xl p-5 flex items-center gap-4 shadow-sm">
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
-              </span>
-              <div>
-                <p className="text-sm font-extrabold text-foreground">Local-first mode</p>
-                <p className="text-xs text-foreground uppercase tracking-widest font-bold mt-1">Privacy-Safe</p>
+            <div className="relative z-10 flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-bold text-foreground uppercase tracking-[0.2em] flex items-center gap-3">
+                  <span className="p-2 rounded-xl bg-primary/10 text-primary">
+                    <Lucide.Database size={18} />
+                  </span>
+                  Storage Sandbox
+                </h3>
+                <div className="flex items-center gap-2 bg-secondary border border-border px-3 py-1 rounded-xl">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]"></span>
+                  </span>
+                  <span className="text-[11px] font-extrabold text-foreground uppercase tracking-wider">Local-First</span>
+                </div>
               </div>
+              <p className="text-xs font-medium text-foreground leading-relaxed">
+                Manage your offline-first IndexedDB local storage backups and demo datasets:
+              </p>
             </div>
-
-            <div className="space-y-4 relative z-10 pt-2">
+            <div className="mt-auto pt-3 grid grid-cols-1 sm:grid-cols-3 gap-2 relative z-10">
               <motion.button
-                whileHover={{ scale: 1.03 }}
+                whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleExport}
-                className="w-full flex items-center justify-center gap-3 px-5 py-3.5 bg-card hover:bg-secondary border-2 border-border hover:border-border text-foreground font-bold text-sm rounded-2xl shadow-sm transition-all"
+                className="flex items-center justify-center gap-2 px-3 py-3 bg-card hover:bg-secondary border border-border text-foreground font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
               >
-                <Lucide.Download size={18} className="text-primary" />
-                Export Backup (JSON)
+                <Lucide.Download size={15} className="text-primary" />
+                Export JSON
               </motion.button>
 
               <motion.button
-                whileHover={{ scale: 1.03 }}
+                whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleImportClick}
-                className="w-full flex items-center justify-center gap-3 px-5 py-3.5 bg-card hover:bg-secondary border-2 border-border hover:border-border text-foreground font-bold text-sm rounded-2xl shadow-sm transition-all"
+                className="flex items-center justify-center gap-2 px-3 py-3 bg-card hover:bg-secondary border border-border text-foreground font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
               >
-                <Lucide.Upload size={18} className="text-primary" />
-                Import Backup (JSON)
+                <Lucide.Upload size={15} className="text-primary" />
+                Import JSON
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleLoadDemoData}
+                className="flex items-center justify-center gap-2 px-3 py-3 bg-primary/15 hover:bg-primary/25 border border-primary/40 text-primary font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
+              >
+                <Lucide.Sparkles size={15} />
+                Load Demo
               </motion.button>
               <input
                 ref={fileInputRef}
@@ -636,21 +1489,85 @@ export const SettingsFeature: React.FC = () => {
             </div>
           </motion.div>
 
+          {/* Per-Year Archiving & Purge Tile */}
           <motion.div 
             variants={itemVariants}
             transition={{ type: "spring" as const, stiffness: 300 }}
-            className="tile p-6 sm:p-8 space-y-6 relative overflow-hidden"
+            className="lg:col-span-1 tile p-6 sm:p-8 flex flex-col gap-5 relative overflow-hidden"
+          >
+            <div className="relative z-10 flex flex-col gap-4">
+              <h3 className="text-base font-bold text-foreground uppercase tracking-[0.2em] flex items-center gap-3">
+                <span className="p-2 rounded-xl bg-amber-500/10 text-amber-500">
+                  <Lucide.Archive size={18} />
+                </span>
+                Per-Year Archiving &amp; Purge
+              </h3>
+              <p className="text-sm font-medium text-foreground">
+                Select a detected year to archive or purge. Purging <strong className="text-primary font-bold">automatically downloads a mandatory backup JSON first</strong> so you can revert anytime.
+              </p>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Detected History Years</label>
+                <select
+                  value={selectedPurgeYear}
+                  onChange={(e) => setSelectedPurgeYear(e.target.value)}
+                  className="w-full px-4 py-3 bg-secondary rounded-xl text-foreground font-bold border-2 border-border focus:border-primary transition-all outline-none"
+                >
+                  {availableYears.length === 0 ? (
+                    <option value="">No history years detected</option>
+                  ) : (
+                    availableYears.map(yr => (
+                      <option key={yr} value={yr}>Year {yr} Data</option>
+                    ))
+                  )}
+                </select>
+              </div>
+            </div>
+            <div className="mt-auto grid grid-cols-1 sm:grid-cols-2 gap-3 relative z-10">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.96 }}
+                disabled={!selectedPurgeYear}
+                onClick={handleExportYear}
+                className="flex items-center justify-center gap-2 px-4 py-3 bg-card hover:bg-secondary border-2 border-border text-foreground font-bold text-xs rounded-xl shadow-xs transition-all disabled:opacity-50"
+              >
+                <Lucide.Download size={15} className="text-primary" />
+                Export {selectedPurgeYear || 'Year'} JSON
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.96 }}
+                disabled={!selectedPurgeYear}
+                onClick={handlePurgeYear}
+                className="flex items-center justify-center gap-2 px-4 py-3 bg-red-500/15 hover:bg-red-500/25 border-2 border-red-500/40 text-red-500 font-extrabold text-xs rounded-xl shadow-xs transition-all disabled:opacity-50"
+              >
+                <Lucide.Trash2 size={15} className="text-red-500" />
+                Purge {selectedPurgeYear || 'Year'} (Auto-Backup)
+              </motion.button>
+            </div>
+          </motion.div>
+
+          <motion.div 
+            variants={itemVariants}
+            transition={{ type: "spring" as const, stiffness: 300 }}
+            className="lg:col-span-1 tile p-6 sm:p-8 flex flex-col gap-5 relative overflow-hidden"
           >
             <TileArtSync />
-            <h3 className="text-base font-bold text-foreground uppercase tracking-[0.2em] flex items-center gap-3 relative z-10">
-              <span className="p-2 rounded-xl bg-primary/10 text-primary">
-                <Lucide.Cloud size={18} />
-              </span>
-              Cloud Sync (GitHub Gist)
-            </h3>
+            <div className="flex items-center justify-between relative z-10">
+              <h3 className="text-base font-bold text-foreground uppercase tracking-[0.2em] flex items-center gap-3">
+                <span className="p-2 rounded-xl bg-primary/10 text-primary">
+                  <Lucide.Cloud size={18} />
+                </span>
+                GitHub Cloud Sync
+              </h3>
+              {settings.githubSyncEnabled && (
+                <span className="px-2.5 py-1 rounded-full bg-primary/20 text-primary border border-primary/40 text-[10px] font-black uppercase tracking-wider">
+                  ONCE A DAY / MANUAL SYNC
+                </span>
+              )}
+            </div>
 
-            <p className="text-sm font-medium text-foreground">
-              Sync your data across devices seamlessly using a private GitHub Gist. Your data is stored dynamically per-year. 
+            <p className="text-sm font-medium text-foreground leading-relaxed">
+              Sync your data via GitHub Gist JSON files. Everyday once automatically or whenever manual sync button is pressed (no continuous per-change network calls).
             </p>
 
             <div className="space-y-3 relative z-10">
@@ -665,11 +1582,26 @@ export const SettingsFeature: React.FC = () => {
                 />
                 <button
                   onClick={handleSavePat}
-                  className="px-4 py-3 bg-primary text-primary-foreground font-bold rounded-xl shadow-md transition-all hover:scale-105"
+                  className="px-4 py-3 bg-primary text-primary-foreground font-bold rounded-xl shadow-md transition-all hover:scale-105 cursor-pointer"
                 >
                   Save
                 </button>
               </div>
+
+              {settings.githubSyncFile && (
+                <div className="p-3 bg-primary/10 border border-primary/30 rounded-xl">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Lucide.FileJson size={16} className="text-primary shrink-0" />
+                      <span className="text-xs font-bold text-primary truncate">{settings.githubSyncFile}</span>
+                    </div>
+                    <span className="text-[10px] font-bold text-muted-foreground ml-2 shrink-0">
+                      {settings.lastGithubSyncDate ? `Synced ${settings.lastGithubSyncDate}` : 'Pending Today'}
+                    </span>
+                  </div>
+                </div>
+              )}
+
               <details className="text-xs text-muted-foreground mt-2 group relative z-10 cursor-pointer outline-none">
                 <summary className="font-semibold text-primary/80 hover:text-primary transition-colors flex items-center gap-1 w-max outline-none select-none">
                   <Lucide.HelpCircle size={14} /> How to get a PAT?
@@ -683,41 +1615,142 @@ export const SettingsFeature: React.FC = () => {
                 </div>
               </details>
             </div>
-            <div className="flex items-center justify-between text-xs font-medium text-muted-foreground pt-2">
-              <span>Last Synced: {settings.lastSyncTimestamp ? new Date(settings.lastSyncTimestamp).toLocaleString() : 'Never'}</span>
-              {isSyncing && <span className="animate-pulse text-primary">Syncing...</span>}
+
+            {/* Sync Mode Toggle & Live Status Telemetry */}
+            <div className="space-y-3 pt-1">
+              <div className="flex items-center justify-between p-3.5 bg-secondary/30 rounded-2xl border border-border/60">
+                <div className="space-y-0.5">
+                  <div className="flex items-center gap-2">
+                    <Lucide.Zap size={14} className="text-amber-400" />
+                    <span className="text-xs font-bold text-foreground">Sync on Every App Launch</span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">
+                    Automatically perform bi-directional smart merge whenever Shadow Tracker opens
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => updateSettings({ githubSyncOnLaunch: settings.githubSyncOnLaunch === false })}
+                  className={`toggle-track ${settings.githubSyncOnLaunch !== false ? 'active' : ''}`}
+                  data-checked={settings.githubSyncOnLaunch !== false}
+                  title="Toggle App Launch Sync Mode"
+                >
+                  <div className="toggle-handle" />
+                </button>
+              </div>
+
+              {/* Live Last Sync Status Telemetry Notification Card */}
+              <div className="p-3.5 bg-background/60 rounded-2xl border border-border/80 space-y-1.5 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                    <Lucide.Activity size={13} className="text-primary" />
+                    Last Sync Status
+                  </span>
+                  <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                    {settings.githubSyncOnLaunch !== false ? 'App Launch Mode' : 'Daily 1-Time Mode'}
+                  </span>
+                </div>
+                <p className="font-semibold text-foreground flex items-center gap-1.5">
+                  {settings.lastGithubSyncStatus || (settings.lastSyncTimestamp ? '✓ Bi-directional Smart Sync Active' : 'No sync recorded yet')}
+                </p>
+                {settings.lastSyncTimestamp && (
+                  <p className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+                    <Lucide.Clock size={12} />
+                    Last synced: {new Date(settings.lastSyncTimestamp).toLocaleString()}
+                  </p>
+                )}
+              </div>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 relative z-10 pt-2">
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handlePushToCloud}
-                disabled={isSyncing}
-                className="flex-1 flex items-center justify-center gap-3 px-5 py-3.5 bg-card hover:bg-secondary border-2 border-border hover:border-primary text-foreground font-bold text-sm rounded-2xl shadow-sm transition-all"
-              >
-                <Lucide.CloudUpload size={18} className="text-primary" />
-                Push to Cloud
-              </motion.button>
+            <div className="flex flex-col gap-2.5 relative z-10 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleCreateNewGitHubFile}
+                  disabled={isSyncing}
+                  className="flex items-center justify-center gap-2 px-3.5 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                >
+                  <Lucide.PlusCircle size={15} />
+                  Create New GitHub JSON
+                </motion.button>
 
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handlePullFromCloud}
-                disabled={isSyncing}
-                className="flex-1 flex items-center justify-center gap-3 px-5 py-3.5 bg-card hover:bg-secondary border-2 border-border hover:border-primary text-foreground font-bold text-sm rounded-2xl shadow-sm transition-all"
-              >
-                <Lucide.CloudDownload size={18} className="text-primary" />
-                Pull from Cloud
-              </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleOpenPickExistingGitHubFile}
+                  disabled={isSyncing || isFetchingGistFiles}
+                  className="flex items-center justify-center gap-2 px-3.5 py-3 bg-slate-800 hover:bg-slate-700 text-primary border border-primary/40 font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                >
+                  <Lucide.FolderOpen size={15} />
+                  {isFetchingGistFiles ? 'Fetching...' : 'Select Existing JSON'}
+                </motion.button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handlePushToCloud}
+                  disabled={isSyncing}
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-card hover:bg-secondary border-2 border-primary/40 text-primary font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                >
+                  <Lucide.CloudUpload size={14} className={isSyncing ? 'animate-spin' : ''} />
+                  Push Manual
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handlePullFromCloud}
+                  disabled={isSyncing}
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-card hover:bg-secondary border-2 border-primary/40 text-primary font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                >
+                  <Lucide.CloudDownload size={14} className={isSyncing ? 'animate-spin' : ''} />
+                  Pull Manual
+                </motion.button>
+              </div>
             </div>
           </motion.div>
 
-                  </div>
-      </div>
+          {/* OneDrive / Local File Auto-Sync Tile (Right 1x1) */}
+          <OneDriveSyncTile />
+
+          {/* Mascot Carousel Tile (Full width 2-column expansion) */}
+          <motion.div 
+            variants={itemVariants}
+            transition={{ type: "spring" as const, stiffness: 300 }}
+            className="lg:col-span-2 tile p-6 sm:p-8 space-y-4 flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden"
+          >
+            <div className="space-y-2 flex-1">
+              <h3 className="text-base font-bold text-foreground uppercase tracking-[0.2em] flex items-center gap-3">
+                <span className="p-2 rounded-xl bg-primary/10 text-primary">
+                  <Lucide.Image size={18} />
+                </span>
+                Mascot Carousel
+              </h3>
+              <p className="text-xs text-foreground leading-relaxed font-medium">
+                Add your own motivational quotes and vibe themes to the Mascot&apos;s popup carousel. These will complement or override the default slides to keep you focused and motivated!
+              </p>
+            </div>
+
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setIsMotivationalModalOpen(true)}
+              className="text-xs font-bold text-primary-foreground bg-primary hover:bg-primary/90 px-6 py-3.5 rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+            >
+              <Lucide.Settings2 size={16} />
+              Manage Slides
+            </motion.button>
+          </motion.div>
+          </div>
+        </div>
 
       <div className="pt-8 mt-4 border-t border-border relative">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-surface px-4 text-xs font-bold uppercase tracking-widest text-muted-foreground border border-border rounded-full py-1">Achievements Control</div>
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-surface px-3 sm:px-4 py-1 text-[10px] sm:text-xs font-bold uppercase tracking-widest text-muted-foreground border border-border rounded-full whitespace-nowrap select-none">
+          Achievements Control
+        </div>
         
         <motion.div 
           className="tile p-6 sm:p-8 space-y-6 mt-4 w-full relative overflow-hidden"
@@ -983,6 +2016,36 @@ export const SettingsFeature: React.FC = () => {
             >
               Add to Carousel
             </motion.button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        isOpen={isGitHubPickerOpen}
+        onClose={() => setIsGitHubPickerOpen(false)}
+        title="Select Existing GitHub JSON File"
+      >
+        <div className="space-y-4 pt-3">
+          <p className="text-xs text-muted-foreground font-medium">
+            Select an existing JSON file stored on your GitHub Gists to link for once-a-day or manual sync:
+          </p>
+          <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+            {githubGistFiles.map((file) => (
+              <div
+                key={file.gistId + '_' + file.filename}
+                onClick={() => handleSelectGitHubFile(file)}
+                className="p-3.5 bg-secondary hover:bg-surface border border-border hover:border-primary rounded-xl cursor-pointer transition-all flex items-center justify-between group"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <Lucide.FileJson size={18} className="text-primary shrink-0 group-hover:scale-110 transition-transform" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-foreground truncate">{file.filename}</p>
+                    <p className="text-[11px] text-muted-foreground truncate">{file.description}</p>
+                  </div>
+                </div>
+                <Lucide.ChevronRight size={16} className="text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
+              </div>
+            ))}
           </div>
         </div>
       </Modal>

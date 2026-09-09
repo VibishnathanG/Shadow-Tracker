@@ -8,20 +8,26 @@ import { useShadowTrackerStore } from '@/store';
 import { getTodayDateString, formatDateString } from '@/lib/dateUtils';
 import EmptyState from '@/components/EmptyState';
 import Modal from '@/components/Modal';
-import { format, addDays } from 'date-fns';
+import { NiceTimePicker } from '@/components/NiceTimePicker';
+import { ScheduleSelector } from '@/components/ScheduleSelector';
+import { format, addDays, parseISO } from 'date-fns';
 import type { Task } from '@/types';
 
 export const TasksFeature: React.FC = () => {
   const {
     tasks,
     categories,
+    reminders,
     addTask,
     updateTask,
     toggleTaskCompletion,
     deleteTask,
+    addReminder,
+    updateReminder,
   } = useShadowTrackerStore();
 
   const [activeTab, setActiveTab] = useState<'pending' | 'completed' | 'all'>('pending');
+  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'tomorrow' | 'this-week' | 'overdue'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
@@ -37,6 +43,11 @@ export const TasksFeature: React.FC = () => {
   const [formIsRecurring, setFormIsRecurring] = useState(false);
   const [formRecurrencePattern, setFormRecurrencePattern] = useState<'daily' | 'weekly' | 'monthly' | null>('daily');
 
+  // Notification Reminder State
+  const [formEnableNotification, setFormEnableNotification] = useState(false);
+  const [formNotifyTime, setFormNotifyTime] = useState('09:00');
+  const [formNotifyDays, setFormNotifyDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
+
   const openAddModal = useCallback(() => {
     setEditingTask(null);
     setFormTitle('');
@@ -46,6 +57,9 @@ export const TasksFeature: React.FC = () => {
     setFormCategoryId('');
     setFormIsRecurring(false);
     setFormRecurrencePattern('daily');
+    setFormEnableNotification(false);
+    setFormNotifyTime('09:00');
+    setFormNotifyDays([0, 1, 2, 3, 4, 5, 6]);
     setIsModalOpen(true);
   }, []);
 
@@ -58,8 +72,20 @@ export const TasksFeature: React.FC = () => {
     setFormCategoryId(task.categoryId || '');
     setFormIsRecurring(task.isRecurring);
     setFormRecurrencePattern(task.recurrencePattern || 'daily');
+
+    const existingReminder = reminders.find(r => r.taskId === task.id);
+    if (existingReminder) {
+      setFormEnableNotification(existingReminder.isEnabled);
+      setFormNotifyTime(existingReminder.time || '09:00');
+      setFormNotifyDays(existingReminder.days || [0, 1, 2, 3, 4, 5, 6]);
+    } else {
+      setFormEnableNotification(false);
+      setFormNotifyTime('09:00');
+      setFormNotifyDays([0, 1, 2, 3, 4, 5, 6]);
+    }
+
     setIsModalOpen(true);
-  }, []);
+  }, [reminders]);
 
   const handleSave = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,27 +102,64 @@ export const TasksFeature: React.FC = () => {
         recurrencePattern: formIsRecurring ? formRecurrencePattern : null,
       };
 
+      let savedTaskId = editingTask?.id;
       if (editingTask) {
         await updateTask(editingTask.id, taskPayload);
       } else {
-        await addTask(taskPayload);
+        const created = await addTask(taskPayload);
+        savedTaskId = created?.id;
+      }
+
+      if (savedTaskId) {
+        const existing = reminders.find(r => r.taskId === savedTaskId);
+        if (formEnableNotification) {
+          if (existing) {
+            await updateReminder(existing.id, {
+              title: formTitle.trim(),
+              time: formNotifyTime,
+              days: formNotifyDays,
+              isEnabled: true,
+            });
+          } else {
+            await addReminder({
+              title: formTitle.trim(),
+              time: formNotifyTime,
+              days: formNotifyDays,
+              isEnabled: true,
+              type: 'task',
+              taskId: savedTaskId,
+            });
+          }
+        } else if (existing) {
+          await updateReminder(existing.id, { isEnabled: false });
+        }
       }
     } catch (err) {
       console.error('Failed to save task:', err);
     } finally {
       setIsModalOpen(false);
     }
-  }, [formTitle, formDesc, formDueDate, formPriority, formCategoryId, formIsRecurring, formRecurrencePattern, editingTask, updateTask, addTask]);
+  }, [formTitle, formDesc, formDueDate, formPriority, formCategoryId, formIsRecurring, formRecurrencePattern, formEnableNotification, formNotifyTime, formNotifyDays, editingTask, updateTask, addTask, reminders, addReminder, updateReminder]);
 
   const handleSnooze = useCallback(async (id: string, dateStr: string) => {
-    const nextDate = formatDateString(addDays(new Date(dateStr), 1));
+    const nextDate = formatDateString(addDays(parseISO(dateStr), 1));
     await updateTask(id, { dueDate: nextDate });
   }, [updateTask]);
 
   const filteredTasks = useMemo(() => {
+    const todayStr = getTodayDateString();
+    const tomorrowStr = formatDateString(addDays(parseISO(todayStr), 1));
+    const weekEndStr = formatDateString(addDays(parseISO(todayStr), 7));
+
     return tasks.filter(task => {
       if (activeTab === 'pending' && task.isCompleted) return false;
       if (activeTab === 'completed' && !task.isCompleted) return false;
+
+      // Date Filtering
+      if (dateFilter === 'today' && task.dueDate !== todayStr) return false;
+      if (dateFilter === 'tomorrow' && task.dueDate !== tomorrowStr) return false;
+      if (dateFilter === 'this-week' && (task.dueDate < todayStr || task.dueDate > weekEndStr)) return false;
+      if (dateFilter === 'overdue' && (task.isCompleted || task.dueDate >= todayStr)) return false;
 
       if (searchQuery.trim() && !task.title.toLowerCase().includes(searchQuery.toLowerCase()) && !(task.description || '').toLowerCase().includes(searchQuery.toLowerCase())) {
         return false;
@@ -107,7 +170,7 @@ export const TasksFeature: React.FC = () => {
 
       return true;
     });
-  }, [tasks, activeTab, searchQuery, priorityFilter, categoryFilter]);
+  }, [tasks, activeTab, dateFilter, searchQuery, priorityFilter, categoryFilter]);
 
   return (
     <div className="space-y-6 relative min-h-[600px]">
@@ -160,8 +223,9 @@ export const TasksFeature: React.FC = () => {
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 relative z-10">
         <div>
-          <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">Tasks Workspace</h2>
-          <p className="text-sm text-muted-foreground font-semibold uppercase tracking-wider mt-1">
+          <h2 className="text-2xl md:text-3xl font-black tracking-tight text-foreground">Tasks Workspace</h2>
+          <p className="text-xs text-secondary font-extrabold uppercase tracking-widest mt-1 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
             Focus lists and dynamic recurrence schedules
           </p>
         </div>
@@ -178,7 +242,7 @@ export const TasksFeature: React.FC = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-surface border border-border/60 p-3 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative z-10">
         <div className="sm:col-span-2 relative group">
-          <Lucide.Search className="absolute left-3.5 top-3 text-muted-foreground group-hover:text-foreground transition-colors" size={18} />
+          <Lucide.Search className="absolute left-3.5 top-3 text-secondary group-hover:text-primary transition-colors" size={18} />
           <input
             type="text"
             placeholder="Search tasks..."
@@ -192,29 +256,52 @@ export const TasksFeature: React.FC = () => {
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
-            className="w-full text-sm px-4 py-2.5 bg-surface-elevated rounded-xl border border-transparent text-muted-foreground focus:text-foreground hover:bg-surface-elevated/80 cursor-pointer outline-none transition-all focus:ring-2 focus:ring-primary/20 appearance-none"
+            className="w-full text-sm pl-4 pr-9 py-2.5 bg-surface-elevated rounded-xl border border-transparent text-secondary focus:text-foreground hover:bg-surface-elevated/80 cursor-pointer outline-none transition-all focus:ring-2 focus:ring-primary/20 appearance-none font-bold"
           >
             <option value="all">All Priorities</option>
             <option value="high">High Priority</option>
             <option value="medium">Medium Priority</option>
             <option value="low">Low Priority</option>
           </select>
-          <Lucide.ChevronDown className="absolute right-3.5 top-3 text-muted-foreground pointer-events-none group-hover:text-foreground transition-colors" size={16} />
+          <Lucide.ChevronDown className="absolute right-3.5 top-3 text-secondary pointer-events-none group-hover:text-foreground transition-colors" size={16} />
         </div>
 
         <div className="relative group">
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="w-full text-sm px-4 py-2.5 bg-surface-elevated rounded-xl border border-transparent text-muted-foreground focus:text-foreground hover:bg-surface-elevated/80 cursor-pointer outline-none transition-all focus:ring-2 focus:ring-primary/20 appearance-none"
+            className="w-full text-sm pl-4 pr-9 py-2.5 bg-surface-elevated rounded-xl border border-transparent text-secondary focus:text-foreground hover:bg-surface-elevated/80 cursor-pointer outline-none transition-all focus:ring-2 focus:ring-primary/20 appearance-none font-bold"
           >
             <option value="all">All Categories</option>
             {categories.map(c => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
-          <Lucide.ChevronDown className="absolute right-3.5 top-3 text-muted-foreground pointer-events-none group-hover:text-foreground transition-colors" size={16} />
+          <Lucide.ChevronDown className="absolute right-3.5 top-3 text-secondary pointer-events-none group-hover:text-foreground transition-colors" size={16} />
         </div>
+      </div>
+
+      {/* Date Filters Bar */}
+      <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-1 relative z-10">
+        <span className="text-xs font-black text-secondary uppercase tracking-wider mr-1 shrink-0 flex items-center gap-1">
+          <Lucide.Calendar size={13} className="text-primary" /> Filter Date:
+        </span>
+        {[
+          { id: 'all', label: 'All Dates' },
+          { id: 'today', label: 'Today' },
+          { id: 'tomorrow', label: 'Tomorrow' },
+          { id: 'this-week', label: 'This Week' },
+          { id: 'overdue', label: 'Overdue' },
+        ].map(df => (
+          <button
+            key={df.id}
+            type="button"
+            onClick={() => setDateFilter(df.id as typeof dateFilter)}
+            className={`filter-pill ${dateFilter === df.id ? 'active' : ''}`}
+          >
+            {df.label}
+          </button>
+        ))}
       </div>
 
       <div className="flex border-b border-border/50 relative z-10">
@@ -222,13 +309,13 @@ export const TasksFeature: React.FC = () => {
           <motion.button
             key={tab}
             onClick={() => setActiveTab(tab)}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-            className={`px-5 py-3 text-sm font-bold capitalize border-b-2 transition-all relative ${
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.96 }}
+            transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
+            className={`px-5 py-3 text-sm font-bold capitalize border-b-2 transition-colors relative cursor-pointer ${
               activeTab === tab 
                 ? 'border-primary text-foreground' 
-                : 'border-transparent text-muted-foreground hover:text-foreground'
+                : 'border-transparent text-secondary hover:text-foreground'
             }`}
           >
             {tab}
@@ -249,12 +336,11 @@ export const TasksFeature: React.FC = () => {
             return (
               <motion.div
                 key={task.id}
-                layout
-                initial={{ opacity: 0, y: 5 }}
+                initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
-                whileHover={{ scale: 1.02, y: -1 }}
-                transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-                className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-surface border border-border/80 hover:border-border hover:shadow-md rounded-2xl transition-all gap-4 ${
+                whileHover={{ y: -2, scale: 1.005 }}
+                transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
+                className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-surface border border-border/80 hover:border-primary/50 hover:shadow-lg rounded-2xl transition-all duration-150 gap-4 ${
                   task.isCompleted ? 'opacity-65 bg-surface-elevated/50 border-border/30' : ''
                 }`}
               >
@@ -262,9 +348,29 @@ export const TasksFeature: React.FC = () => {
                   <motion.button
                     layout
                     whileTap={{ scale: 0.9 }}
-                    onClick={() => {
-                      if (!task.isCompleted) fireConfetti();
-                      toggleTaskCompletion(task.id);
+                    onClick={async () => {
+                      const willComplete = !task.isCompleted;
+                      const todayStr = getTodayDateString();
+                      const prevFocus = useShadowTrackerStore.getState().dailyLogs.find(l => l.date === todayStr)?.focusScore ?? 0;
+                      
+                      await toggleTaskCompletion(task.id);
+                      
+                      if (willComplete) {
+                        fireConfetti();
+                        const freshLog = useShadowTrackerStore.getState().dailyLogs.find(l => l.date === todayStr);
+                        const newFocus = freshLog?.focusScore ?? prevFocus;
+                        const focusDiff = newFocus - prevFocus;
+                        const flowGainText = focusDiff > 0 ? `+${focusDiff}% Flow State` : `${newFocus}% Flow State`;
+
+                        window.dispatchEvent(new CustomEvent('showCelebrationNotice', {
+                          detail: {
+                            title: 'Node Resolved',
+                            subtitle: task.title,
+                            flowText: flowGainText,
+                            type: 'task'
+                          }
+                        }));
+                      }
                     }}
                     className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all mt-0.5 relative shrink-0 ${
                       task.isCompleted
@@ -404,8 +510,8 @@ export const TasksFeature: React.FC = () => {
               placeholder="Provide a quick action summary..."
               value={formDesc}
               onChange={(e) => setFormDesc(e.target.value)}
-              rows={3}
-              className="w-full text-sm px-4 py-3 bg-surface-elevated rounded-xl text-foreground placeholder:text-muted-foreground border border-border/40 focus:border-primary outline-none resize-none focus:ring-2 focus:ring-primary/20 transition-all"
+              rows={2}
+              className="w-full text-sm px-4 py-2.5 bg-surface-elevated rounded-xl text-foreground placeholder:text-muted-foreground border border-border/40 focus:border-primary outline-none resize-none focus:ring-2 focus:ring-primary/20 transition-all"
             />
           </div>
 
@@ -426,13 +532,13 @@ export const TasksFeature: React.FC = () => {
               <select 
                 value={formPriority}
                 onChange={(e) => setFormPriority(e.target.value as 'low' | 'medium' | 'high')}
-                className="w-full text-base px-5 py-3.5 bg-secondary rounded-2xl text-foreground font-semibold border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+                className="w-full text-base pl-5 pr-10 py-3.5 bg-secondary rounded-2xl text-foreground font-semibold border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none appearance-none cursor-pointer"
               >
                 <option value="low">Low Priority</option>
                 <option value="medium">Medium Priority</option>
                 <option value="high">High Priority</option>
               </select>
-              <Lucide.ChevronDown className="absolute right-4 top-10 text-muted-foreground pointer-events-none" size={16} />
+              <Lucide.ChevronDown className="absolute right-4 top-[38px] text-muted-foreground pointer-events-none" size={16} />
             </div>
           </div>
 
@@ -441,14 +547,14 @@ export const TasksFeature: React.FC = () => {
             <select
               value={formCategoryId}
               onChange={(e) => setFormCategoryId(e.target.value)}
-              className="w-full text-sm px-4 py-3 bg-surface-elevated rounded-xl text-foreground border border-border/40 focus:border-primary outline-none cursor-pointer focus:ring-2 focus:ring-primary/20 transition-all appearance-none"
+              className="w-full text-base pl-5 pr-10 py-3.5 bg-secondary rounded-2xl text-foreground font-semibold border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none appearance-none cursor-pointer"
             >
               <option value="">Uncategorized</option>
               {categories.map(c => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select>
-            <Lucide.ChevronDown className="absolute right-4 top-10 text-muted-foreground pointer-events-none" size={16} />
+            <Lucide.ChevronDown className="absolute right-4 top-[38px] text-muted-foreground pointer-events-none" size={16} />
           </div>
 
           <div className="border-t border-border/40 pt-5 space-y-4">
@@ -468,16 +574,47 @@ export const TasksFeature: React.FC = () => {
                 <select 
                   value={formRecurrencePattern || ''}
                   onChange={(e) => setFormRecurrencePattern(e.target.value as 'daily' | 'weekly' | 'monthly' | null)}
-                  className="flex-1 text-base px-5 py-3.5 bg-secondary rounded-2xl text-foreground font-semibold border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+                  className="w-full text-base pl-5 pr-10 py-3.5 bg-secondary rounded-2xl text-foreground font-semibold border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none appearance-none cursor-pointer"
                 >
                   <option value="daily">Every Day</option>
                   <option value="weekly">Every Week</option>
                   <option value="monthly">Every Month</option>
                 </select>
-                <Lucide.ChevronDown className="absolute right-4 top-10 text-muted-foreground pointer-events-none" size={16} />
+                <Lucide.ChevronDown className="absolute right-4 top-[38px] text-muted-foreground pointer-events-none" size={16} />
                 <p className="text-xs text-muted-foreground leading-relaxed mt-2">
                   When completed, the app will automatically schedule the next task occurrence based on this rule.
                 </p>
+              </div>
+            )}
+          </div>
+
+          <div className="border-t border-border/40 pt-5 space-y-4">
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={formEnableNotification}
+                onChange={(e) => setFormEnableNotification(e.target.checked)}
+                className="w-5 h-5 rounded text-primary focus:ring-primary bg-surface-elevated border-border/60 cursor-pointer"
+              />
+              <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
+                <Lucide.Bell size={16} className="text-primary" />
+                Enable Task Notification Alert
+              </span>
+            </label>
+
+            {formEnableNotification && (
+              <div className="space-y-4 animate-fadeIn p-4 bg-secondary/30 rounded-2xl border border-border/40">
+                <NiceTimePicker
+                  value={formNotifyTime}
+                  onChange={setFormNotifyTime}
+                  label="Notification Time"
+                />
+
+                <ScheduleSelector
+                  selectedDays={formNotifyDays}
+                  onChange={setFormNotifyDays}
+                  label="Notification Repeat Schedule"
+                />
               </div>
             )}
           </div>

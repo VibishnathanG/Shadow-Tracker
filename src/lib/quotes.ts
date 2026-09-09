@@ -133,7 +133,7 @@ export function getMascotStatus(
   // Default empty state
   if (pendingTasks === 0 && completedTasks === 0) {
     const msgs = [
-      `Build systems, not moods, ${settings.alias || 'Shadow'}. Access the Command Bar (⌘K) to schedule your next focus target.`,
+      `Build systems, not moods, ${settings.alias || 'Shadow'}. Access the Command Bar (⌘ K) to schedule your next focus target.`,
       `Empty day. Either you are perfectly organized, or you are avoiding reality. Plan tomorrow.`,
       `A blank slate is an opportunity. Define your objective.`
     ];
@@ -341,7 +341,7 @@ export function getContextualCoaching(stats: {
 
   // 6. Generic/Zero State
   const msgs = [
-    `Build systems, not moods, ${alias}. Access the Command Bar (⌘K) to schedule your next focus target.`,
+    `Build systems, not moods, ${alias}. Access the Command Bar (⌘ K) to schedule your next focus target.`,
     `Empty day. Either you are perfectly organized, or you are avoiding reality. Plan tomorrow.`,
     `A blank slate is an opportunity. Define your objective.`
   ];
@@ -364,89 +364,89 @@ export const ALL_BADGES: BadgeDefinition[] = [
     name: 'First Spark',
     description: 'Scheduled your first objective.',
     icon: 'Target',
-    color: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
+    color: 'text-cyan-700 dark:text-cyan-300 bg-cyan-500/15 border-cyan-500/30',
     requirement: 'Unlock: Complete 1 Task',
     subtitle: 'First task done'
   },
   {
     id: 'badge-first-habit',
-    name: 'Atomic Habitual',
+    name: 'Atomic Habit',
     description: 'Checked off your first habit.',
     icon: 'Activity',
-    color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
+    color: 'text-indigo-700 dark:text-indigo-300 bg-indigo-500/15 border-indigo-500/30',
     requirement: 'Unlock: Complete 1 Habit',
-    subtitle: 'First habit checked'
+    subtitle: 'Habit completed'
   },
   {
     id: 'badge-streak-3',
-    name: 'Consistency Kick',
+    name: 'Triple Streak',
     description: 'Maintained a 3-day habit streak.',
     icon: 'Zap',
-    color: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20',
+    color: 'text-amber-700 dark:text-amber-300 bg-amber-500/15 border-amber-500/30',
     requirement: 'Unlock: 3 Day Habit Streak',
-    subtitle: '3 day streak'
+    subtitle: '3-day streak'
   },
   {
     id: 'badge-streak-7',
-    name: 'Weekly Protocol',
+    name: 'Weekly Streak',
     description: 'Maintained an unbroken 7-day routine streak.',
     icon: 'ShieldCheck',
-    color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20 shadow-[0_0_20px_rgba(16,185,129,0.3)]',
+    color: 'text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 border-emerald-500/30',
     requirement: 'Unlock: 7 Day Habit Streak',
-    subtitle: '7 day streak'
+    subtitle: '7-day streak'
   },
   {
     id: 'badge-streak-30',
     name: 'Monthly Core',
     description: 'Maintained an incredible 30-day consistency record.',
     icon: 'Flame',
-    color: 'text-orange-400 bg-orange-500/10 border-orange-500/20 shadow-[0_0_25px_rgba(249,115,22,0.4)]',
+    color: 'text-orange-700 dark:text-orange-300 bg-orange-500/15 border-orange-500/30',
     requirement: 'Unlock: 30 Day Habit Streak',
-    subtitle: '30 day streak'
+    subtitle: '30-day streak'
   },
   {
     id: 'badge-perfect-day',
     name: 'Deep Harmony',
     description: 'Achieved 100% daily focus score.',
     icon: 'Sun',
-    color: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
+    color: 'text-yellow-700 dark:text-yellow-300 bg-yellow-500/15 border-yellow-500/30',
     requirement: 'Unlock: Score 100% Focus',
-    subtitle: 'Perfect focus score'
+    subtitle: 'Perfect focus'
   },
   {
     id: 'badge-first-note',
     name: 'Mindful Mind',
     description: 'Wrote your first journal entry.',
     icon: 'BookOpen',
-    color: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
+    color: 'text-purple-700 dark:text-purple-300 bg-purple-500/15 border-purple-500/30',
     requirement: 'Unlock: Write 1 Journal Entry',
-    subtitle: 'First journal written'
+    subtitle: 'First journal'
   },
   {
     id: 'badge-streak-90',
-    name: 'Quarterly Zenith',
+    name: 'Quarter Zenith',
     description: 'Forged an unstoppable 90-day unbroken streak.',
     icon: 'Crown',
-    color: 'text-fuchsia-400 bg-fuchsia-500/10 border-fuchsia-500/20 shadow-[0_0_30px_rgba(217,70,239,0.5)]',
+    color: 'text-fuchsia-700 dark:text-fuchsia-300 bg-fuchsia-500/15 border-fuchsia-500/30',
     requirement: 'Unlock: 90 Day Habit Streak',
-    subtitle: '90 day streak'
+    subtitle: '90-day streak'
   },
   {
     id: 'badge-completionist-100',
-    name: 'The 100th Milestone',
+    name: 'Century Master',
     description: 'Processed 100 total tasks successfully.',
     icon: 'CheckCircle2',
-    color: 'text-pink-400 bg-pink-500/10 border-pink-500/20 shadow-[0_0_15px_rgba(236,72,153,0.3)]',
+    color: 'text-pink-700 dark:text-pink-300 bg-pink-500/15 border-pink-500/30',
     requirement: 'Unlock: Complete 100 Total Tasks',
-    subtitle: '100 tasks done'
+    subtitle: '100 tasks'
   },
   {
     id: 'badge-wealth-master',
     name: 'Wealth Master',
     description: 'Met monthly savings and investment targets successfully.',
     icon: 'TrendingUp',
-    color: 'text-teal-400 bg-teal-500/10 border-teal-500/20 shadow-[0_0_20px_rgba(20,184,166,0.3)]',
+    color: 'text-teal-700 dark:text-teal-300 bg-teal-500/15 border-teal-500/30',
     requirement: 'Unlock: Achieve Monthly Savings & Investment targets',
-    subtitle: 'Financial goals met'
+    subtitle: 'Wealth goal met'
   }
 ];

@@ -8,7 +8,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: deps # build up to deps stage
+      target: deps
     command: npm run dev
     ports:
       - "3000:3000"
@@ -22,18 +22,23 @@ services:
       - HOSTNAME=0.0.0.0
       - NEXT_TELEMETRY_DISABLED=1
 
-  # Production container (built and served optimized standalone)
+  # Production container (optimized nginx static serve)
   prod:
     container_name: shadow-tracker-prod
     image: shadow-tracker:prod
     build:
       context: .
       dockerfile: Dockerfile
+      target: runner
     ports:
-      - "8080:3000"
-    environment:
-      - NODE_ENV=production
-      - PORT=3000
-      - HOSTNAME=0.0.0.0
-      - NEXT_TELEMETRY_DISABLED=1
-    restart: always
+      - "8080:80"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    labels:
+      - "com.shadow-tracker.description=Shadow Tracker Production"
+      - "com.shadow-tracker.version=0.1.0"

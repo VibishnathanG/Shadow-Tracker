@@ -35,6 +35,7 @@ export const CommandBar: React.FC<CommandBarProps> = ({
   const commands = useMemo(() => [
     { id: 'nav-dash', category: 'Navigation', label: 'Go to Dashboard', icon: 'LayoutDashboard', action: () => onNavigate('dashboard') },
     { id: 'nav-tasks', category: 'Navigation', label: 'Go to Tasks', icon: 'CheckSquare', action: () => onNavigate('tasks') },
+    { id: 'nav-todo', category: 'Navigation', label: 'Go to Standalone ToDo', icon: 'CheckCircle2', action: () => onNavigate('todo') },
     { id: 'nav-habits', category: 'Navigation', label: 'Go to Habits', icon: 'Repeat', action: () => onNavigate('habits') },
     { id: 'nav-cal', category: 'Navigation', label: 'Go to Calendar', icon: 'Calendar', action: () => onNavigate('calendar') },
     { id: 'nav-anal', category: 'Navigation', label: 'Go to Analytics', icon: 'TrendingUp', action: () => onNavigate('analytics') },
@@ -77,7 +78,7 @@ export const CommandBar: React.FC<CommandBarProps> = ({
       updateSettings({ theme: 'cyberpunk' });
       onClose();
     }},
-    { id: 'theme-midnight', category: 'Appearance', label: 'Switch to Fox Mode', icon: 'Sparkles', action: () => {
+    { id: 'theme-midnight', category: 'Appearance', label: 'Switch to Purple Mode', icon: 'Sparkles', action: () => {
       updateSettings({ theme: 'midnight' });
       onClose();
     }},
@@ -92,6 +93,7 @@ export const CommandBar: React.FC<CommandBarProps> = ({
   }), [commands, query]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (filteredCommands.length === 0) return;
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       setSelectedIndex(prev => (prev + 1) % filteredCommands.length);

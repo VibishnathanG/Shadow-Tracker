@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from './icons';
 
@@ -19,7 +20,7 @@ export const Modal: React.FC<ModalProps> = ({
   children,
   size = 'md',
 }) => {
-  // Close on ESC keypress
+  // Close on ESC keypress & lock body scroll
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -41,31 +42,37 @@ export const Modal: React.FC<ModalProps> = ({
     xl: 'max-w-4xl',
   };
 
-  return (
+  const [mounted, setMounted] = React.useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const modalContent = (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 overflow-y-auto">
+        <div className="fixed inset-0 top-0 left-0 w-full h-full z-[99999] flex flex-col items-center justify-center p-3 sm:p-6 pointer-events-auto overflow-hidden">
           {/* Backdrop overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/85"
           />
 
           {/* Modal Container */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 15 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 15 }}
-            transition={{ type: 'spring', duration: 0.35, bounce: 0.15 }}
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.96 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
             onClick={(e) => e.stopPropagation()}
-            className={`relative w-full ${sizeClasses[size]} glass-panel bg-card border border-border text-foreground rounded-2xl shadow-2xl overflow-hidden z-10 flex flex-col max-h-[85vh]`}
+            className={`relative w-full ${sizeClasses[size]} glass-panel bg-surface-elevated border-2 border-primary/40 text-foreground rounded-2xl shadow-2xl overflow-hidden z-10 flex flex-col max-h-[88vh] sm:max-h-[85vh] my-auto`}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-border/60">
-              <h2 className="text-lg font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-border/60 shrink-0 bg-surface">
+              <h2 className="text-base sm:text-lg font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
                 {title}
               </h2>
               <button
@@ -78,7 +85,7 @@ export const Modal: React.FC<ModalProps> = ({
             </div>
 
             {/* Content body */}
-            <div className="px-6 py-4 overflow-y-auto flex-1 text-sm">
+            <div className="px-4 sm:px-6 py-4 overflow-y-auto flex-1 text-sm scrollbar-thin pb-6">
               {children}
             </div>
           </motion.div>
@@ -86,6 +93,9 @@ export const Modal: React.FC<ModalProps> = ({
       )}
     </AnimatePresence>
   );
+
+  if (!mounted || typeof window === 'undefined') return null;
+  return createPortal(modalContent, document.body);
 };
 
 export default Modal;

@@ -12,58 +12,84 @@ import EmptyState from '@/components/EmptyState';
 import Modal from '@/components/Modal';
 import { format } from 'date-fns';
 import { getMascotStatus, getShadowRank, getContextualCoaching, ALL_BADGES, BadgeDefinition } from '@/lib/quotes';
+import ExplorerFeature from '@/features/explorer/ExplorerFeature';
 
 
 
 
 // --- Tile Hologram GIF-Art ---
-const TileArtCompanion = () => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.15]">
-    <motion.svg className="absolute w-[200%] h-[200%] -top-1/2 -left-1/2 text-primary" viewBox="0 0 100 100" animate={{ rotate: [0, 90, 0] }} transition={{ duration: 30, repeat: Infinity, ease: 'linear' as const }}>
-      <rect x="25" y="25" width="50" height="50" fill="none" stroke="currentColor" strokeWidth="0.5" />
-      <motion.rect x="35" y="35" width="30" height="30" fill="none" stroke="currentColor" strokeWidth="1" animate={{ rotate: [0, -180, 0] }} transition={{ duration: 15, repeat: Infinity }} style={{ transformOrigin: 'center' }} />
-    </motion.svg>
-  </div>
-);
+const useIsEco = () => useShadowTrackerStore((s) => Boolean(s.settings.ecoMode || s.settings.lowGpuMode));
 
+const TileArtCompanion = () => {
+  const isEco = useIsEco();
+  if (isEco) return null;
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.15]">
+      <motion.svg className="absolute w-[200%] h-[200%] -top-1/2 -left-1/2 text-primary" viewBox="0 0 100 100" animate={{ rotate: [0, 90, 0] }} transition={{ duration: 30, repeat: Infinity, ease: 'linear' as const }}>
+        <rect x="25" y="25" width="50" height="50" fill="none" stroke="currentColor" strokeWidth="0.5" />
+        <motion.rect x="35" y="35" width="30" height="30" fill="none" stroke="currentColor" strokeWidth="1" animate={{ rotate: [0, -180, 0] }} transition={{ duration: 15, repeat: Infinity }} style={{ transformOrigin: 'center' }} />
+      </motion.svg>
+    </div>
+  );
+};
 
-const TileArtBadges = () => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
-    <motion.div className="absolute w-[200%] h-[200%] -top-1/2 -left-1/2 bg-[radial-gradient(circle_at_center,var(--primary)_0%,transparent_60%)] mix-blend-screen" animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }} transition={{ duration: 8, repeat: Infinity }} />
-  </div>
-);
+const TileArtBadges = () => {
+  const isEco = useIsEco();
+  if (isEco) return null;
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
+      <motion.div className="absolute w-[200%] h-[200%] -top-1/2 -left-1/2 bg-[radial-gradient(circle_at_center,var(--primary)_0%,transparent_60%)] mix-blend-screen" animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }} transition={{ duration: 8, repeat: Infinity }} />
+    </div>
+  );
+};
 
-const TileArtMission = () => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.15]">
-    <motion.svg className="w-full h-full text-primary" viewBox="0 0 100 100" preserveAspectRatio="none">
-      <path d="M0 50 Q 25 10 50 50 T 100 50" fill="none" stroke="currentColor" strokeWidth="0.5" />
-      <motion.path d="M0 50 Q 25 10 50 50 T 100 50" fill="none" stroke="currentColor" strokeWidth="1" animate={{ pathLength: [0, 1, 0] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' as const }} />
-    </motion.svg>
-  </div>
-);
+const TileArtMission = () => {
+  const isEco = useIsEco();
+  if (isEco) return null;
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.15]">
+      <motion.svg className="w-full h-full text-primary" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path d="M0 50 Q 25 10 50 50 T 100 50" fill="none" stroke="currentColor" strokeWidth="0.5" />
+        <motion.path d="M0 50 Q 25 10 50 50 T 100 50" fill="none" stroke="currentColor" strokeWidth="1" animate={{ pathLength: [0, 1, 0] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' as const }} />
+      </motion.svg>
+    </div>
+  );
+};
 
-const TileArtTimeline = () => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.05]">
-    <div className="w-full h-full bg-[linear-gradient(currentColor_1px,transparent_1px),linear-gradient(90deg,currentColor_1px,transparent_1px)] bg-[size:20px_20px] text-primary" />
-    <motion.div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/50 to-transparent h-1/2 w-full" animate={{ y: ['-100%', '200%'] }} transition={{ duration: 5, repeat: Infinity, ease: 'linear' as const }} />
-  </div>
-);
+const TileArtTimeline = () => {
+  const isEco = useIsEco();
+  if (isEco) return null;
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.05]">
+      <div className="w-full h-full bg-[linear-gradient(currentColor_1px,transparent_1px),linear-gradient(90deg,currentColor_1px,transparent_1px)] bg-[size:20px_20px] text-primary" />
+      <motion.div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/50 to-transparent h-1/2 w-full" animate={{ y: ['-100%', '200%'] }} transition={{ duration: 5, repeat: Infinity, ease: 'linear' as const }} />
+    </div>
+  );
+};
 
-const TileArtAnalytics = () => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
-    <motion.svg className="w-full h-full text-emerald-400" viewBox="0 0 100 100" preserveAspectRatio="none">
-      {[...Array(5)].map((_, i) => (
-        <motion.circle key={i} cx="50" cy="100" r={20 + i * 15} fill="none" stroke="currentColor" strokeWidth="0.5" animate={{ r: [20 + i * 15, 30 + i * 15], opacity: [1, 0] }} transition={{ duration: 4, repeat: Infinity, delay: i * 0.5 }} />
-      ))}
-    </motion.svg>
-  </div>
-);
+const TileArtAnalytics = () => {
+  const isEco = useIsEco();
+  if (isEco) return null;
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
+      <motion.svg className="w-full h-full text-emerald-400" viewBox="0 0 100 100" preserveAspectRatio="none">
+        {[...Array(5)].map((_, i) => (
+          <motion.circle key={i} cx="50" cy="100" r={20 + i * 15} fill="none" stroke="currentColor" strokeWidth="0.5" animate={{ r: [20 + i * 15, 30 + i * 15], opacity: [1, 0] }} transition={{ duration: 4, repeat: Infinity, delay: i * 0.5 }} />
+        ))}
+      </motion.svg>
+    </div>
+  );
+};
 
-const TileArtHabits = () => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
-    <motion.div className="absolute w-[150%] h-[150%] -top-1/4 -left-1/4 bg-gradient-to-tr from-purple-500/30 to-transparent" animate={{ rotate: [0, 360] }} transition={{ duration: 20, repeat: Infinity, ease: 'linear' as const }} style={{ transformOrigin: 'center' }} />
-  </div>
-);
+const TileArtHabits = () => {
+  const isEco = useIsEco();
+  if (isEco) return null;
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
+      <motion.div className="absolute w-[150%] h-[150%] -top-1/4 -left-1/4 bg-gradient-to-tr from-purple-500/30 to-transparent" animate={{ rotate: [0, 360] }} transition={{ duration: 20, repeat: Infinity, ease: 'linear' as const }} style={{ transformOrigin: 'center' }} />
+    </div>
+  );
+};
 // ----------------------------
 
 interface DashboardProps {
@@ -93,24 +119,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [showQuickAddModal, setShowQuickAddModal] = useState(false);
   const [quickAddType, setQuickAddType] = useState<'task' | 'habit'>('task');
   const [showLevelUpModal, setShowLevelUpModal] = useState(false);
-  const [celebratingBadge, setCelebratingBadge] = useState<BadgeDefinition | null>(null);
+  const [showExplorerGuide, setShowExplorerGuide] = useState(false);
+
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    const handleBadgeUnlockedEvent = (e: Event) => {
-      const customEvent = e as CustomEvent;
-      const badgeId = customEvent.detail;
-      const foundBadge = ALL_BADGES.find(b => b.id === badgeId);
-      if (foundBadge) {
-        fireConfetti();
-        setCelebratingBadge(foundBadge);
-      }
-    };
-    window.addEventListener('badgeUnlocked', handleBadgeUnlockedEvent);
-    return () => window.removeEventListener('badgeUnlocked', handleBadgeUnlockedEvent);
+    setIsMounted(true);
   }, []);
   
   // Data processing
   const todayStr = useMemo(() => getTodayDateString(), []);
+  const isWhiteTheme = (settings.theme as string) === 'light' || (settings.theme as string) === 'white';
   
   const todayTasks = useMemo(() => tasks.filter(t => t.dueDate === todayStr && !t.isSoftDeleted), [tasks, todayStr]);
   const pendingTasks = useMemo(() => todayTasks.filter(t => !t.isCompleted), [todayTasks]);
@@ -127,14 +146,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const shadowRank = useMemo(() => getShadowRank(level), [level]);
 
+  const sessionEmoji = useMemo(() => {
+    const emojis = ['✨', '⚡️', '🚀', '🔥', '🌟', '🌅', '☕', '💪', '🎯', '⚔️'];
+    return emojis[Math.floor(Math.random() * emojis.length)];
+  }, []);
+
   const getGreeting = useCallback(() => {
     const alias = settings.alias || 'Shadow';
     const hrs = new Date().getHours();
-    const highlight = <span className="text-primary font-bold">{alias}</span>;
-    if (hrs < 12) return <>Good morning, {highlight}</>;
-    if (hrs < 17) return <>Good afternoon, {highlight}</>;
-    return <>Good evening, {highlight}</>;
-  }, [settings.alias]);
+    const highlight = <span className="text-primary font-bold capitalize">{alias}</span>;
+    if (hrs < 12) return <>Good morning, {highlight} {sessionEmoji}</>;
+    if (hrs < 17) return <>Good afternoon, {highlight} {sessionEmoji}</>;
+    return <>Good evening, {highlight} {sessionEmoji}</>;
+  }, [settings.alias, sessionEmoji]);
 
   const daysSinceLastActive = useMemo(() => {
     let days = 0;
@@ -221,6 +245,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
     }
   }, [level]);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (showLevelUpModal) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = '';
+      }
+    }
+    return () => {
+      if (typeof window !== 'undefined') document.body.style.overflow = '';
+    };
+  }, [showLevelUpModal]);
+
+
   const handleQuickAddSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inlineTaskTitle.trim()) return;
@@ -262,14 +300,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div className="space-y-1.5">
           <motion.span 
             initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }}
-            className="text-sm font-medium tracking-wide text-muted-foreground flex items-center gap-2"
+            className="text-sm font-bold tracking-wide text-secondary flex items-center gap-2"
           >
-            <Lucide.Calendar size={14} />
+            <Lucide.Calendar size={14} className="text-primary" />
             {format(new Date(), 'EEEE, MMMM do')}
           </motion.span>
           <motion.h2 
             initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}
-            className="text-4xl md:text-4xl font-semibold tracking-tight text-foreground"
+            className="text-2xl sm:text-4xl font-semibold tracking-tight text-foreground"
           >
             {getGreeting()}!
           </motion.h2>
@@ -277,8 +315,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}
-          className="flex items-center gap-3"
+          className="flex flex-wrap items-center gap-3"
         >
+          <button
+            onClick={() => setShowExplorerGuide(prev => !prev)}
+            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-2 border cursor-pointer ${
+              showExplorerGuide
+                ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20 scale-[1.02]'
+                : 'bg-secondary/40 border-border/80 text-secondary hover:text-foreground hover:bg-surface-elevated'
+            }`}
+            title="Toggle System Explorer & Feature Guide"
+          >
+            <Lucide.Compass size={15} className={showExplorerGuide ? 'animate-spin-slow text-primary-foreground' : 'text-primary'} />
+            <span>{showExplorerGuide ? 'Hide Explorer Guide' : 'Explorer Hub'}</span>
+            <Lucide.ChevronDown size={14} className={`transition-transform duration-200 ${showExplorerGuide ? 'rotate-180' : ''}`} />
+          </button>
+
           <div className="flex items-center gap-4 px-4 py-1.5 rounded-full bg-secondary/30 border border-border/80 backdrop-blur-sm shadow-sm">
             <div className="flex items-center gap-2" title="Tasks Completed / Total Today">
               <Lucide.CheckSquare size={14} className="text-blue-400" />
@@ -298,78 +350,159 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </motion.div>
       </div>
 
+      {/* Collapsible Explorer Hub Panel */}
+      <AnimatePresence>
+        {showExplorerGuide && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            className="overflow-hidden border-b border-border pb-6"
+          >
+            <div className="p-4 sm:p-6 bg-surface-elevated/80 rounded-3xl border-2 border-primary/30 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center text-primary">
+                    <Lucide.Compass size={18} />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-extrabold text-foreground tracking-tight">System Explorer &amp; Feature Hub</h3>
+                    <p className="text-[11px] font-bold text-secondary">Interactive overview &amp; documentation guide</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowExplorerGuide(false)}
+                  className="text-xs font-bold text-muted-foreground hover:text-foreground px-2.5 py-1 rounded-xl bg-secondary hover:bg-secondary/80 transition-colors"
+                >
+                  Close Guide
+                </button>
+              </div>
+              <ExplorerFeature onNavigate={onNavigate} />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
             {/* 1. TOP ROW: Achievement Nexus */}
       <div className="mb-8">
-        {/* Badges Drawer */}
+          {/* Badges Drawer */}
           <motion.div 
             initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }}
-            className="tile p-5 space-y-4"
+            className={`${
+              isWhiteTheme 
+                ? 'bg-slate-950 text-slate-100 border-2 border-slate-700 shadow-2xl rounded-3xl' 
+                : 'tile'
+            } p-5 space-y-4 relative overflow-hidden`}
           >
             <TileArtBadges />
             <div className="relative z-10 flex items-center justify-between">
-              <span className="text-sm uppercase font-bold text-muted-foreground tracking-widest block">Achievement Nexus</span>
+              <span className={`text-sm uppercase font-bold tracking-widest block ${
+                isWhiteTheme ? 'text-slate-300 font-black' : 'text-muted-foreground'
+              }`}>
+                Achievement Nexus
+              </span>
               <button 
                 onClick={() => setShowBadgesInfo(true)}
-                className="text-xs text-muted-foreground bg-foreground/5 hover:bg-primary/20 hover:text-primary transition-colors px-2.5 py-1 rounded-full border border-border/80 shadow-sm cursor-pointer"
+                className={`text-xs transition-colors px-2.5 py-1 rounded-full border shadow-sm cursor-pointer ${
+                  isWhiteTheme 
+                    ? 'text-slate-200 bg-slate-800 border-slate-700 hover:bg-primary/30 hover:text-white' 
+                    : 'text-muted-foreground bg-foreground/5 hover:bg-primary/20 hover:text-primary border-border/80'
+                }`}
               >
                 View Badges Info
               </button>
             </div>
             
-            <div className="grid grid-cols-5 sm:grid-cols-10 gap-2 py-3 px-1 relative z-10">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-5 xl:grid-cols-5 gap-3 sm:gap-4 py-3 relative z-10">
               {ALL_BADGES.map((b, i) => {
                 const isUnlocked = unlockedBadges.includes(b.id);
                 const IconComponent = (Lucide[b.icon as keyof typeof Lucide] || Lucide.Award) as React.ElementType;
 
+                const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+
+                const pseudoRandom = (seed: number) => {
+                  const x = Math.sin(seed) * 10000;
+                  return x - Math.floor(x);
+                };
+                
+                const dealX = (pseudoRandom(i * 13) - 0.5) * 800;
+                const dealY = (pseudoRandom(i * 17) - 0.5) * 600;
+                const dealRotate = (pseudoRandom(i * 23) - 0.5) * 360;
+                
+                const dealDelay = i * 0.1; 
+
+                const physics = isUnlocked
+                  ? { type: "spring" as const, stiffness: 100, damping: 8, mass: 1 }
+                  : { type: "spring" as const, stiffness: 50, damping: 15, mass: 1 };
+
+                const initialAnim = isMobile 
+                  ? { opacity: 0, scale: 0.95 }
+                  : { opacity: 0, scale: 0.1, x: dealX, y: dealY, rotate: dealRotate };
+
+                const animateTarget = isMobile
+                  ? { opacity: isUnlocked ? 1 : 0.7, scale: 1 }
+                  : { opacity: isUnlocked ? 1 : 0.7, scale: 1, x: 0, y: 0, rotate: 0 };
+
+                const animTransition = isMobile
+                  ? { duration: 0.2, delay: i * 0.02 }
+                  : { ...physics, delay: dealDelay };
+
                 return (
                   <motion.div
-                    key={b.id + "_card"}
-                    initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: i * 0.03 }}
-                    className={`w-full ${isUnlocked ? b.color : 'text-muted-foreground opacity-60 grayscale'}`}
+                    key={b.id + "_" + (isUnlocked ? "u" : "l") + "_" + (isMounted ? "m" : "n")}
+                    className="relative w-full"
+                    initial={initialAnim}
+                    animate={animateTarget}
+                    transition={animTransition}
                   >
                     <div
                       onClick={() => {
                         if (isUnlocked) {
                           fireConfetti();
-                          setCelebratingBadge(b);
+                          window.dispatchEvent(new CustomEvent('badgeUnlocked', { detail: b.id }));
                         }
                       }}
-                      className={`w-full aspect-square relative p-1.5 sm:p-2 rounded-xl border flex flex-col items-center justify-center text-center gap-1 transition-all duration-300 group ${
+                      className={`w-full min-h-[90px] sm:min-h-[98px] lg:min-h-[104px] p-2 sm:p-2.5 lg:p-3 relative rounded-2xl border flex flex-col items-center justify-center gap-1 sm:gap-1.5 text-center transition-all duration-200 ease-out group ${
                         isUnlocked 
-                          ? 'border-current/30 shadow-md shadow-current/15 bg-surface cursor-pointer hover:-translate-y-1 hover:scale-105 hover:shadow-lg hover:shadow-current/25' 
-                          : 'bg-surface/50 border-border/70 shadow-sm hover:scale-[1.02] hover:opacity-80'
+                          ? `${b.color} cursor-pointer shadow-[0_0_14px_currentColor] hover:-translate-y-1 hover:scale-[1.04] hover:shadow-[0_0_22px_currentColor] hover:z-20 ${
+                              isWhiteTheme ? 'bg-slate-900 text-white border-cyan-500/50' : 'bg-gradient-to-b from-cyan-950/40 via-surface/90 to-surface border-cyan-500/30'
+                            }` 
+                          : isWhiteTheme
+                            ? 'bg-slate-900/60 border-slate-800 text-slate-400 opacity-60 grayscale shadow-sm hover:scale-[1.02]'
+                            : 'bg-surface/40 border-border/70 text-muted-foreground opacity-50 grayscale shadow-sm hover:scale-[1.02]'
                       }`}
                     >
                       {isUnlocked && (
-                        <motion.div
-                          className="absolute inset-0 rounded-xl pointer-events-none"
-                          animate={{
-                            boxShadow: [
-                              "0px 0px 6px currentColor, inset 0px 0px 2px currentColor",
-                              "0px 0px 20px currentColor, inset 0px 0px 8px currentColor",
-                              "0px 0px 6px currentColor, inset 0px 0px 2px currentColor"
-                            ]
-                          }}
-                          transition={{
-                            repeat: Infinity,
-                            duration: 3 + (i % 3) * 0.5,
-                            ease: "easeInOut",
-                            delay: (i * 0.05) + 0.3
-                          }}
+                        <div
+                          className="absolute inset-0 rounded-2xl pointer-events-none border border-cyan-400/50 bg-cyan-500/5 shadow-[0_0_12px_currentColor,inset_0_0_8px_currentColor]"
                         />
                       )}
 
-                      <div className={`p-1 sm:p-1.5 rounded-lg bg-current/10 shrink-0 relative z-10 ${isUnlocked ? "drop-shadow-lg scale-105" : ""}`}>
-                        <IconComponent className={`w-4 h-4 sm:w-4.5 sm:h-4.5 transition-transform duration-700 ${isUnlocked ? 'group-hover:rotate-[360deg]' : ''}`} />
+                      {/* Futuristic Icon Container */}
+                      <div className={`p-1.5 sm:p-2 rounded-xl bg-current/15 border border-current/30 flex items-center justify-center shrink-0 relative z-10 ${isUnlocked ? "shadow-sm scale-105" : ""}`}>
+                        {isUnlocked && (
+                          <div className="absolute -inset-1 rounded-xl border border-dashed border-current/50 pointer-events-none hidden sm:block animate-spin-slow" />
+                        )}
+                        <IconComponent className={`w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-4.5 lg:h-4.5 transition-transform duration-700 ${isUnlocked ? 'group-hover:rotate-[360deg] text-current' : 'opacity-70'}`} />
+                        
+                        {!isUnlocked && (
+                          <div className="absolute -top-1 -right-1 p-0.5 rounded-full bg-slate-950 border border-slate-700 text-slate-400">
+                            <Lucide.Lock size={8} />
+                          </div>
+                        )}
                       </div>
                       
-                      <div className="w-full min-w-0 flex flex-col items-center justify-center gap-0.5 select-none relative z-10 px-0.5">
-                        <strong className="block text-[10px] sm:text-[11px] text-foreground font-bold tracking-tight line-clamp-2 whitespace-normal break-words leading-[1.15] text-center antialiased [text-rendering:optimizeLegibility]">
+                      {/* High-Contrast Title & Subtitle */}
+                      <div className="w-full flex flex-col items-center justify-center gap-0.5 select-none relative z-10">
+                        <strong className={`block text-[11.5px] sm:text-[12.5px] lg:text-sm leading-tight font-semibold tracking-tight text-center truncate max-w-full px-0.5 ${
+                          isWhiteTheme ? 'text-white' : 'text-foreground'
+                        }`}>
                           {b.name}
                         </strong>
-                        <span className="block text-[8.5px] sm:text-[9.5px] text-foreground/80 font-semibold tracking-tight line-clamp-2 whitespace-normal break-words leading-[1.15] mt-0.5 text-center lowercase antialiased [text-rendering:optimizeLegibility]">
+                        <span className={`block text-[8.5px] sm:text-[9.5px] lg:text-[10px] font-medium leading-tight text-center truncate max-w-full px-0.5 ${
+                          isUnlocked ? 'text-cyan-300' : 'text-muted-foreground'
+                        }`}>
                           {b.subtitle}
                         </span>
                       </div>
@@ -579,7 +712,30 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 * idx }}
                       whileHover={{ scale: 1.02, transition: { type: "spring" as const, stiffness: 300 } }}
                       whileTap={{ scale: 0.95 }}
-                      onClick={() => toggleHabitCompletion(habit.id, todayStr)}
+                      onClick={async () => {
+                        const isCompletedToday = habit.completedDates.includes(todayStr);
+                        const willComplete = !isCompletedToday;
+                        const prevFocus = focusScore;
+
+                        await toggleHabitCompletion(habit.id, todayStr);
+
+                        if (willComplete) {
+                          fireConfetti();
+                          const freshLog = useShadowTrackerStore.getState().dailyLogs.find(l => l.date === todayStr);
+                          const newFocus = freshLog?.focusScore ?? prevFocus;
+                          const focusDiff = newFocus - prevFocus;
+                          const flowGainText = focusDiff > 0 ? `+${focusDiff}% Flow State` : `${newFocus}% Flow State`;
+
+                          window.dispatchEvent(new CustomEvent('showCelebrationNotice', {
+                            detail: {
+                              title: 'Routine Completed',
+                              subtitle: habit.name,
+                              flowText: flowGainText,
+                              type: 'routine'
+                            }
+                          }));
+                        }
+                      }}
                       className={`flex flex-col justify-center p-3 rounded-xl border cursor-pointer transition-all duration-300 ${
                         isCompletedToday
                           ? 'bg-foreground/5 border-border opacity-70'
@@ -610,7 +766,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                               <Lucide.Check size={11} className={isCompletedToday ? 'stroke-[3.5px]' : 'opacity-30'} />
                             </motion.div>
                           </div>
-                          <p className={`text-sm font-semibold truncate max-w-[110px] ${isCompletedToday ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                          <p className={`text-sm font-semibold truncate flex-1 min-w-0 ${isCompletedToday ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                             {habit.name}
                           </p>
                         </div>
@@ -664,9 +820,28 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         <motion.button
                           whileHover={{ scale: 1.15 }}
                           whileTap={{ scale: 0.9 }}
-                          onClick={() => {
-                            if (!task.isCompleted) fireConfetti();
-                            toggleTaskCompletion(task.id);
+                          onClick={async () => {
+                            const willComplete = !task.isCompleted;
+                            const prevFocus = focusScore;
+
+                            await toggleTaskCompletion(task.id);
+
+                            if (willComplete) {
+                              fireConfetti();
+                              const freshLog = useShadowTrackerStore.getState().dailyLogs.find(l => l.date === todayStr);
+                              const newFocus = freshLog?.focusScore ?? prevFocus;
+                              const focusDiff = newFocus - prevFocus;
+                              const flowGainText = focusDiff > 0 ? `+${focusDiff}% Flow State` : `${newFocus}% Flow State`;
+
+                              window.dispatchEvent(new CustomEvent('showCelebrationNotice', {
+                                detail: {
+                                  title: 'Node Resolved',
+                                  subtitle: task.title,
+                                  flowText: flowGainText,
+                                  type: 'task'
+                                }
+                              }));
+                            }
                           }}
                           className={`flex-shrink-0 w-6 h-6 rounded-lg flex items-center justify-center transition-all duration-300 relative z-10 shrink-0 ${
                             task.isCompleted
@@ -841,17 +1016,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 relative">
                   <label className="text-sm font-medium text-muted-foreground">Priority</label>
                   <select
                     value={inlineTaskPriority}
                     onChange={(e) => setInlineTaskPriority(e.target.value as 'low' | 'medium' | 'high')}
-                    className="w-full text-base px-3 py-2.5 bg-black/50 border border-border focus:border-primary/50 rounded-xl text-foreground focus:outline-none cursor-pointer transition-all shadow-inner appearance-none"
+                    className="w-full text-base pl-4 pr-9 py-2.5 bg-black/50 border border-border focus:border-primary/50 rounded-xl text-foreground focus:outline-none cursor-pointer transition-all shadow-inner appearance-none"
                   >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
+                    <option value="low">Low Priority</option>
+                    <option value="medium">Medium Priority</option>
+                    <option value="high">High Priority</option>
                   </select>
+                  <Lucide.ChevronDown className="absolute right-3.5 top-9 text-muted-foreground pointer-events-none" size={16} />
                 </div>
 
                 <motion.button
@@ -871,13 +1047,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* 5. Level Up / Rank Up Overlay Modal */}
       <AnimatePresence>
         {showLevelUpModal && (
-          <motion.div 
-            className="fixed inset-0 bg-[#04040a]/90 backdrop-blur-xl flex items-center justify-center z-50 p-6 select-none cursor-pointer"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowLevelUpModal(false)}
-          >
+          <div className="fixed inset-0 top-0 left-0 w-full h-full z-[99999] flex flex-col items-center justify-center p-3 sm:p-6 pointer-events-auto overflow-hidden">
+            <motion.div 
+              className="fixed inset-0 bg-[#030603]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowLevelUpModal(false)}
+            />
             {/* Ambient Confetti */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-60">
               {confettiParticles.map((p) => (
@@ -945,81 +1122,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 Claim Ascension
               </motion.button>
             </motion.div>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
 
-      {/* 6. Custom Badge Unlock Celebration Modal */}
-      <AnimatePresence>
-        {celebratingBadge && (
-          <motion.div 
-            className="fixed inset-0 bg-[#04040a]/90 backdrop-blur-xl flex items-center justify-center z-50 p-6 select-none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setCelebratingBadge(null)}
-          >
-            <motion.div 
-              className={`w-full max-w-md bg-surface-elevated border border-border rounded-3xl p-8 shadow-2xl relative overflow-hidden text-center space-y-6 ${celebratingBadge.color}`}
-              initial={{ scale: 0.8, y: 30 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.8, y: 30 }}
-              transition={{ type: 'spring' as const, damping: 20, stiffness: 300 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="absolute top-0 inset-x-0 h-1.5 bg-current opacity-80" />
-              
-              {/* Glow Aura Background */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-current opacity-15 rounded-full blur-3xl pointer-events-none" />
-
-              {/* Big Animated Badge Icon */}
-              <div className="relative z-10 flex flex-col items-center justify-center pt-2">
-                <motion.div
-                  initial={{ scale: 0, rotate: -30 }}
-                  animate={{ scale: [0, 1.5, 1.1, 1], rotate: [0, -15, 15, 0] }}
-                  transition={{ duration: 0.7, ease: "backOut" }}
-                  className="p-6 rounded-3xl bg-current/15 border-2 border-current/30 text-current shadow-2xl relative"
-                >
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-                    className="absolute inset-[-10px] rounded-3xl border border-current/20 pointer-events-none stroke-dasharray"
-                  />
-                  {React.createElement((Lucide[celebratingBadge.icon as keyof typeof Lucide] || Lucide.Award) as React.ElementType, { size: 56, className: "drop-shadow-lg" })}
-                </motion.div>
-              </div>
-
-              {/* Badge Metadata */}
-              <div className="relative z-10 space-y-2">
-                <span className="inline-block text-xs font-black uppercase tracking-widest px-3.5 py-1 rounded-full bg-current/15 text-foreground border border-current/30">
-                  {celebratingBadge.subtitle}
-                </span>
-                <h2 className="text-3xl font-extrabold text-foreground tracking-tight pt-1">
-                  {celebratingBadge.name}
-                </h2>
-                <p className="text-sm text-foreground/80 font-medium leading-relaxed max-w-xs mx-auto">
-                  {celebratingBadge.description}
-                </p>
-              </div>
-
-              {/* Unlock Requirement Badge */}
-              <div className="relative z-10 p-3 bg-background/60 border border-border/80 rounded-2xl text-xs font-bold text-muted-foreground flex items-center justify-center gap-2">
-                <Lucide.ShieldCheck size={16} className="text-emerald-400 shrink-0" />
-                <span>{celebratingBadge.requirement}</span>
-              </div>
-
-              <motion.button
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setCelebratingBadge(null)}
-                className="relative z-10 w-full py-3.5 bg-primary text-primary-foreground font-extrabold text-sm rounded-2xl shadow-lg transition-all"
-              >
-                Claim Badge
-              </motion.button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Theme-Adaptive Celebration Banner Overlay */}
     </div>
   );
 };

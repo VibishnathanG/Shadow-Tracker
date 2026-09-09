@@ -34,6 +34,8 @@ export interface Habit {
   frequency: 'daily' | 'weekly' | 'custom';
   customDays?: number[]; // 0 = Sunday, 1 = Monday, etc.
   completedDates: string[]; // Array of YYYY-MM-DD strings
+  uncompletedDates?: string[]; // Array of YYYY-MM-DD strings explicitly marked uncompleted/missed
+  missedReasons?: Record<string, string>; // dateStr -> single mono reason for this habit on this date
   streakCount: number;
   longestStreak: number;
   createdAt: string;
@@ -67,6 +69,7 @@ export interface Reminder {
   time: string; // HH:MM
   days: number[]; // 0 = Sunday, 1 = Monday, etc.
   isEnabled: boolean;
+  type?: 'task' | 'habit';
   taskId?: string;
   habitId?: string;
   createdAt: string;
@@ -89,7 +92,7 @@ export interface Quote {
 }
 
 export interface Settings {
-  theme: 'light' | 'obsidian' | 'onedark' | 'cyberpunk' | 'midnight';
+  theme: 'light' | 'white' | 'obsidian' | 'onedark' | 'cyberpunk' | 'midnight' | 'pine' | 'purple';
   backupReminderDays: number;
   lastBackupDate?: string;
   soundEnabled: boolean;
@@ -106,6 +109,22 @@ export interface Settings {
   savingsTarget?: number;
   investmentsTarget?: number;
   badgesResetTimestamp?: string;
+  stickyTaskNotifications?: boolean;
+  oneDriveSyncFile?: string; // Name of the configured OneDrive sync file
+  oneDriveSyncEnabled?: boolean;
+  githubSyncEnabled?: boolean;
+  githubGistId?: string;
+  githubSyncFile?: string;
+  githubSyncOnLaunch?: boolean;
+  lastGithubSyncDate?: string;
+  lastGithubSyncStatus?: string;
+  localAutoSyncEnabled?: boolean;
+  activeSyncMode?: 'none' | 'onedrive' | 'github' | 'local';
+  lastOneDriveSyncTimestamp?: number;
+  ecoMode?: boolean;
+  lowGpuMode?: boolean;
+  minimizeToTray?: boolean;
+  habitGracePeriodDays?: number;
 }
 
 export interface BackupData {
@@ -117,5 +136,8 @@ export interface BackupData {
   reminders: Reminder[];
   categories: Category[];
   settings: Settings;
+  moneyData?: any;
+  unlockedBadges?: string[];
   exportedAt: string;
+  archiveYear?: string;
 }

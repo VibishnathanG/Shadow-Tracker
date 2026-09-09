@@ -1,11 +1,30 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
+:root {
+  /* Radius Hierarchy */
+  --radius-sm: 6px;    /* Tooltips, status tags, inner chips */
+  --radius-md: 10px;   /* Buttons, form inputs, toggle tracks */
+  --radius-lg: 16px;   /* Primary cards, setting panels, modals */
+  --radius-xl: 20px;   /* Sidebar floating active pill container */
+
+  /* Shadows (Elevations) */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --shadow-active: 0 0 0 2px var(--border-focus);
+}
+
 @theme {
+  --color-canvas: var(--bg-canvas);
+  --color-bg-canvas: var(--bg-canvas);
   --color-background: var(--background);
   --color-surface: var(--surface);
+  --color-bg-surface: var(--bg-surface);
   --color-surface-elevated: var(--surface-elevated);
+  --color-bg-surface-elevated: var(--bg-surface-elevated);
   --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-focus: var(--border-focus);
   
   --color-text-primary: var(--text-primary);
   --color-text-secondary: var(--text-secondary);
@@ -13,6 +32,9 @@
   
   --color-accent: var(--accent);
   --color-accent-strong: var(--accent-strong);
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-primary-hover: var(--accent-primary-hover);
+  --color-accent-surface: var(--accent-surface);
   
   --color-success: var(--success);
   --color-warning: var(--warning);
@@ -31,20 +53,88 @@
   --color-muted: var(--surface);
   --color-muted-foreground: var(--text-muted);
   --color-input: var(--surface-elevated);
-  --color-ring: var(--accent);
+  --color-ring: var(--border-focus);
 
   --animate-pulse-slow: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Base Typogaphy */
-html, body {
-  font-family: var(--theme-font, 'Inter', sans-serif);
+:root, html, body {
+  background-color: var(--bg-canvas, #09100d);
+  color: var(--text-primary, #f1f5f9);
+  overflow-x: hidden;
+}
+
+/* Base Typogaphy & Android Emoji Support */
+html, body, input, textarea, select, button {
+  font-family: var(--theme-font, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Android Emoji', emoji, sans-serif);
   line-height: 1.6;
   letter-spacing: -0.01em;
   font-weight: 500;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+}
+
+/* Zero-CPU Idle Freeze when Hidden or Eco/Low-GPU Mode active */
+html.is-hidden *,
+html.eco-mode *,
+html.low-gpu-mode *,
+html.eco-mode *::before,
+html.low-gpu-mode *::before,
+html.eco-mode *::after,
+html.low-gpu-mode *::after {
+  animation: none !important;
+  animation-play-state: paused !important;
+  transition: none !important;
+  will-change: auto !important;
+}
+
+html.eco-mode .animate-spin,
+html.low-gpu-mode .animate-spin,
+html.eco-mode .animate-pulse,
+html.low-gpu-mode .animate-pulse,
+html.eco-mode .animate-bounce,
+html.low-gpu-mode .animate-bounce,
+html.eco-mode .animate-pulse-slow,
+html.low-gpu-mode .animate-pulse-slow {
+  animation: none !important;
+}
+
+/* Completely unmount rendering tree from GPU & Chromium layout when minimized to system tray */
+html.is-hidden main, html.is-hidden #raw-critical-splash, html.is-hidden .tile {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  content-visibility: hidden !important;
+}
+/* Halt framer-motion GPU layers when hidden — prevents idle GPU compositing */
+html.is-hidden [style*="transform"], html.eco-mode [style*="transform"], html.low-gpu-mode [style*="transform"] {
+  will-change: auto !important;
+}
+
+/* GPU performance hints for interactive elements */
+button, a, [role="button"] {
+  will-change: auto;
+  transform: translateZ(0);
+}
+
+/* Mobile Touch Scrolling & GPU Performance Boost */
+@media (max-width: 639px) {
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+  html, body {
+    overscroll-behavior-y: none;
+    scroll-behavior: smooth;
+  }
+  .tile, main, section {
+    transform: translateZ(0);
+    will-change: auto;
+  }
+  /* Reduce motion complexity on mobile for smoother scrolling */
+  .fixed {
+    will-change: auto;
+  }
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -113,7 +203,9 @@ h1, h2, h3, h4, h5, h6 {
 .tile {
   position: relative;
   overflow: hidden;
-  background: var(--tile-bg, var(--card));
+  background: radial-gradient(circle at 92% 8%, color-mix(in srgb, var(--primary) 8.5%, transparent) 0%, transparent 55%),
+              linear-gradient(145deg, rgba(255, 255, 255, 0.02) 0%, rgba(0, 0, 0, 0.03) 100%),
+              var(--tile-bg, var(--card));
   backdrop-filter: blur(var(--theme-blur, 10px));
   -webkit-backdrop-filter: blur(var(--theme-blur, 10px));
   border: 1px solid var(--tile-border, var(--border));
@@ -162,231 +254,664 @@ h1, h2, h3, h4, h5, h6 {
 
 
 /* ---------------------------------------------------------
-   THEME 1: WHITE (Apple VisionOS / Arc style)
+   THEME 1: CREAMY WHITE / WARM IVORY
+   Gentle creamy gradient canvas, soft warm tiles, indigo-600 accent
 --------------------------------------------------------- */
-:root, .theme-light {
-  --background: #f8fafc;
-  --surface: rgba(255, 255, 255, 0.7);
-  --surface-elevated: rgba(255, 255, 255, 0.95);
-  --border: rgba(15, 23, 42, 0.08);
-  --text-primary: #000000;
-  --text-secondary: #1e293b;
-  --text-muted: #334155;
-  --accent: rgba(79, 70, 229, 0.1);
-  --accent-strong: #4f46e5;
+:root,
+html[data-theme="white"],
+html[data-theme="light"],
+html.theme-light,
+html.theme-white {
+  --bg-canvas: #faf8f5;
+  --bg-surface: #fffefb;
+  --bg-surface-elevated: #f4eee3;
+  --border-subtle: #e6dfd3;
+  --border-focus: #4f46e5;
+  --text-primary: #1c1917;
+  --text-secondary: #44403c;
+  --text-muted: #78716c;
+  --accent-primary: #4f46e5;
+  --accent-primary-hover: #4338ca;
+  --accent-surface: #eef2ff;
+
+  /* Semantic Mappings */
+  --background: var(--bg-canvas);
+  --surface: var(--bg-surface);
+  --surface-elevated: var(--bg-surface-elevated);
+  --border: var(--border-subtle);
+  --accent: var(--accent-surface);
+  --accent-strong: var(--accent-primary);
+  --accent-secondary: #d97706;
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
   --foreground: var(--text-primary);
-  --card: var(--surface);
+  --card: var(--bg-surface);
   --card-foreground: var(--text-primary);
-  --popover: var(--surface-elevated);
+  --popover: var(--bg-surface-elevated);
   --popover-foreground: var(--text-primary);
-  --primary: var(--accent-strong);
+  --primary: var(--accent-primary);
   --primary-foreground: #ffffff;
-  --secondary: rgba(241, 245, 249, 0.6);
+  --secondary: var(--bg-surface-elevated);
   --secondary-foreground: var(--text-secondary);
-  --muted: rgba(241, 245, 249, 0.8);
+  --muted: var(--bg-surface-elevated);
   --muted-foreground: var(--text-muted);
-  --input: rgba(15, 23, 42, 0.06);
-  --ring: rgba(79, 70, 229, 0.3);
-  --theme-font: 'Inter', -apple-system, sans-serif;
-  --theme-heading-font: 'Inter', -apple-system, sans-serif;
-  --theme-radius: 20px;
-  --theme-border: 1px solid rgba(255, 255, 255, 0.9);
-  --theme-shadow: 0 12px 40px -12px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255,255,255,0.9);
-  --theme-blur: 24px;
+  --input: var(--bg-surface-elevated);
+  --ring: var(--border-focus);
+  --theme-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --theme-heading-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --theme-radius: var(--radius-lg);
+  --theme-border: 1px solid var(--border-subtle);
+  --theme-shadow: 0 4px 20px -2px rgba(28, 25, 23, 0.06), 0 2px 6px -1px rgba(28, 25, 23, 0.04);
+  --theme-blur: 16px;
   --theme-glow: none;
   --theme-noise-opacity: 0;
-  /* Tile */
-  --tile-bg: rgba(255, 255, 255, 0.85);
-  --tile-border: rgba(15, 23, 42, 0.06);
-  --tile-hover-border: rgba(79, 70, 229, 0.35);
-  --tile-hover-gradient: linear-gradient(135deg, rgba(79, 70, 229, 0.03) 0%, rgba(139, 92, 246, 0.04) 50%, rgba(79, 70, 229, 0.02) 100%);
-  --tile-hover-shadow: 0 8px 32px rgba(79, 70, 229, 0.1), 0 0 0 1px rgba(79, 70, 229, 0.06);
+
+  /* Tile & Pill */
+  --tile-bg: linear-gradient(145deg, #ffffff 0%, #faf6ef 100%);
+  --tile-border: #e6dfd3;
+  --tile-hover-border: var(--border-focus);
+  --tile-hover-gradient: linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, rgba(217, 119, 6, 0.03) 100%);
+  --tile-hover-shadow: 0 8px 24px -2px rgba(79, 70, 229, 0.12), 0 4px 8px -2px rgba(28, 25, 23, 0.05);
+  --primary-pill-bg: var(--accent-surface);
+  --primary-pill-text: var(--accent-primary);
+  color-scheme: light !important;
+}
+
+html[data-theme="white"],
+html[data-theme="light"],
+html.theme-light,
+html.theme-white,
+html[data-theme="white"] body,
+html[data-theme="light"] body,
+html.theme-light body,
+html.theme-white body {
+  background: linear-gradient(180deg, #fdfbf7 0%, #f6f3ea 50%, #efeae0 100%) fixed !important;
+  background-color: #faf8f5 !important;
 }
 
 /* ---------------------------------------------------------
-   THEME 2: OBSIDIAN (Notion + Raycast)
+   THEME 2: AMETHYST PURPLE (White and Purple Mixed Aesthetic)
+   Deep luminous purple canvas, rich violet tiles, crisp white & lavender text
 --------------------------------------------------------- */
-.theme-obsidian {
-  --background: #08070a;
-  --surface: rgba(20, 18, 24, 0.75);
-  --surface-elevated: rgba(32, 28, 38, 0.85);
-  --border: rgba(139, 92, 246, 0.08);
+html[data-theme="pine"],
+html[data-theme="midnight"],
+html[data-theme="purple"],
+html.theme-midnight,
+html.theme-pine,
+html.theme-purple {
+  --bg-canvas: #0e0a1a;
+  --bg-surface: #17112b;
+  --bg-surface-elevated: #231a40;
+  --border-subtle: rgba(168, 85, 247, 0.22);
+  --border-focus: #c084fc;
   --text-primary: #ffffff;
-  --text-secondary: #e2e8f0;
-  --text-muted: #94a3b8;
-  --accent: rgba(139, 92, 246, 0.1);
-  --accent-strong: #8b5cf6;
-  --success: #10b981;
-  --warning: #f59e0b;
-  --danger: #ef4444;
+  --text-secondary: #ebd5ff;
+  --text-muted: #c084fc;
+  --accent-primary: #a855f7;
+  --accent-primary-hover: #9333ea;
+  --accent-surface: rgba(168, 85, 247, 0.2);
+
+  /* Semantic Mappings */
+  --background: var(--bg-canvas);
+  --surface: var(--bg-surface);
+  --surface-elevated: var(--bg-surface-elevated);
+  --border: var(--border-subtle);
+  --accent: var(--accent-surface);
+  --accent-strong: var(--accent-primary);
+  --accent-secondary: #e879f9;
+  --success: #34d399;
+  --warning: #fbbf24;
+  --danger: #f87171;
   --foreground: var(--text-primary);
-  --card: var(--surface);
+  --card: var(--bg-surface);
   --card-foreground: var(--text-primary);
-  --popover: var(--surface-elevated);
+  --popover: var(--bg-surface-elevated);
   --popover-foreground: var(--text-primary);
-  --primary: var(--accent-strong);
+  --primary: var(--accent-primary);
   --primary-foreground: #ffffff;
-  --secondary: rgba(32, 28, 38, 0.5);
+  --secondary: var(--bg-surface-elevated);
   --secondary-foreground: var(--text-secondary);
-  --muted: rgba(15, 13, 18, 0.8);
+  --muted: var(--bg-surface-elevated);
   --muted-foreground: var(--text-muted);
-  --input: rgba(28, 24, 34, 0.8);
-  --ring: rgba(139, 92, 246, 0.3);
-  --theme-font: 'Inter', sans-serif;
-  --theme-heading-font: 'Inter', sans-serif;
-  --theme-radius: 12px;
-  --theme-border: 1px solid rgba(139, 92, 246, 0.08);
-  --theme-shadow: 0 16px 32px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255,255,255,0.02);
-  --theme-blur: 12px;
-  --theme-glow: inset 0 0 12px rgba(139, 92, 246, 0.02);
+  --input: var(--bg-surface-elevated);
+  --ring: var(--border-focus);
+  --theme-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --theme-heading-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --theme-radius: var(--radius-lg);
+  --theme-border: 1px solid var(--border-subtle);
+  --theme-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.55);
+  --theme-blur: 16px;
+  --theme-glow: 0 0 20px rgba(168, 85, 247, 0.25);
   --theme-noise-opacity: 0.015;
-  /* Tile */
-  --tile-bg: rgba(20, 18, 24, 0.85);
-  --tile-border: rgba(139, 92, 246, 0.08);
-  --tile-hover-border: rgba(139, 92, 246, 0.35);
-  --tile-hover-gradient: linear-gradient(135deg, rgba(139, 92, 246, 0.03) 0%, transparent 100%);
-  --tile-hover-shadow: 0 8px 32px rgba(139, 92, 246, 0.08), 0 0 0 1px rgba(139, 92, 246, 0.04);
+
+  /* Tile & Pill */
+  --tile-bg: linear-gradient(145deg, #1d1536 0%, #120c22 100%);
+  --tile-border: rgba(168, 85, 247, 0.24);
+  --tile-hover-border: #c084fc;
+  --tile-hover-gradient: linear-gradient(135deg, rgba(168, 85, 247, 0.18) 0%, rgba(192, 132, 252, 0.08) 100%);
+  --tile-hover-shadow: 0 8px 30px rgba(168, 85, 247, 0.25);
+  --primary-pill-bg: rgba(168, 85, 247, 0.22);
+  --primary-pill-text: #ffffff;
+  color-scheme: dark !important;
+}
+
+html[data-theme="pine"],
+html[data-theme="midnight"],
+html[data-theme="purple"],
+html.theme-midnight,
+html.theme-pine,
+html.theme-purple,
+html[data-theme="pine"] body,
+html[data-theme="midnight"] body,
+html[data-theme="purple"] body,
+html.theme-midnight body,
+html.theme-pine body,
+html.theme-purple body {
+  background: radial-gradient(ellipse at 50% 0%, #20133b 0%, #0b0716 100%) fixed !important;
+  background-color: var(--bg-canvas) !important;
 }
 
 /* ---------------------------------------------------------
-   THEME 3: ONE DARK (VS Code / Linear)
+   THEME 3: OBSIDIAN
 --------------------------------------------------------- */
-.theme-onedark {
-  --background: #181a1f;
-  --surface: #21252b;
-  --surface-elevated: #282c34;
-  --border: #2c313a;
+html[data-theme="obsidian"],
+html.theme-obsidian {
+  --bg-canvas: #0b0d11;
+  --bg-surface: #121824;
+  --bg-surface-elevated: #1a2233;
+  --border-subtle: #242f44;
+  --border-focus: #38bdf8;
   --text-primary: #ffffff;
-  --text-secondary: #f1f5f9;
-  --text-muted: #cbd5e1;
-  --accent: rgba(82, 153, 211, 0.15);
-  --accent-strong: #5299d3;
-  --success: #98c379;
-  --warning: #e5c07b;
-  --danger: #ca6069;
+  --text-secondary: #bae6fd;
+  --text-muted: #7dd3fc;
+  --accent-primary: #38bdf8;
+  --accent-primary-hover: #0284c7;
+  --accent-surface: rgba(56, 189, 248, 0.18);
+
+  --background: var(--bg-canvas);
+  --surface: var(--bg-surface);
+  --surface-elevated: var(--bg-surface-elevated);
+  --border: var(--border-subtle);
+  --accent: var(--accent-surface);
+  --accent-strong: var(--accent-primary);
+  --accent-secondary: #38bdf8;
+  --success: #34d399;
+  --warning: #fbbf24;
+  --danger: #fb7185;
   --foreground: var(--text-primary);
-  --card: var(--surface);
+  --card: var(--bg-surface);
   --card-foreground: var(--text-primary);
-  --popover: var(--surface-elevated);
+  --popover: var(--bg-surface-elevated);
   --popover-foreground: var(--text-primary);
-  --primary: var(--accent-strong);
-  --primary-foreground: #181a1f;
-  --secondary: var(--surface-elevated);
+  --primary: var(--accent-primary);
+  --primary-foreground: #0b0d11;
+  --secondary: var(--bg-surface-elevated);
   --secondary-foreground: var(--text-secondary);
-  --muted: #1e2227;
+  --muted: var(--bg-surface-elevated);
   --muted-foreground: var(--text-muted);
-  --input: #1e2227;
-  --ring: rgba(82, 153, 211, 0.4);
-  --theme-font: 'Inter', sans-serif;
-  --theme-heading-font: 'Inter', sans-serif;
-  --theme-radius: 6px;
-  --theme-border: 1px solid #2c313a;
-  --theme-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --input: var(--bg-surface-elevated);
+  --ring: var(--border-focus);
+  --theme-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --theme-heading-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --theme-radius: var(--radius-lg);
+  --theme-border: 1px solid var(--border-subtle);
+  --theme-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --theme-blur: 14px;
+  --theme-glow: none;
+  --theme-noise-opacity: 0.015;
+
+  --tile-bg: var(--bg-surface);
+  --tile-border: var(--border-subtle);
+  --tile-hover-border: var(--border-focus);
+  --tile-hover-gradient: linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(2, 132, 199, 0.06) 100%);
+  --tile-hover-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+  --primary-pill-bg: var(--accent-surface);
+  --primary-pill-text: #ffffff;
+  color-scheme: dark !important;
+}
+
+html[data-theme="obsidian"],
+html.theme-obsidian,
+html[data-theme="obsidian"] body,
+html.theme-obsidian body {
+  background-color: var(--bg-canvas) !important;
+}
+
+/* ---------------------------------------------------------
+   THEME 4: ONE DARK
+--------------------------------------------------------- */
+html[data-theme="onedark"],
+html.theme-onedark {
+  --bg-canvas: #16181d;
+  --bg-surface: #1e2229;
+  --bg-surface-elevated: #252932;
+  --border-subtle: rgba(96, 165, 250, 0.16);
+  --border-focus: #60a5fa;
+  --text-primary: #f8fafc;
+  --text-secondary: #e2e8f0;
+  --text-muted: #93c5fd;
+  --accent-primary: #2563eb;
+  --accent-primary-hover: #1d4ed8;
+  --accent-surface: rgba(96, 165, 250, 0.15);
+
+  --background: var(--bg-canvas);
+  --surface: var(--bg-surface);
+  --surface-elevated: var(--bg-surface-elevated);
+  --border: var(--border-subtle);
+  --accent: var(--accent-surface);
+  --accent-strong: #60a5fa;
+  --accent-secondary: #f59e0b;
+  --success: #4ade80;
+  --warning: #f59e0b;
+  --danger: #f87171;
+  --foreground: var(--text-primary);
+  --card: var(--bg-surface);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-surface-elevated);
+  --popover-foreground: var(--text-primary);
+  --primary: #60a5fa;
+  --primary-foreground: #0f172a;
+  --secondary: var(--bg-surface-elevated);
+  --secondary-foreground: var(--text-secondary);
+  --muted: var(--bg-surface-elevated);
+  --muted-foreground: var(--text-muted);
+  --input: var(--bg-surface-elevated);
+  --ring: var(--border-focus);
+  --theme-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --theme-heading-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --theme-radius: var(--radius-md);
+  --theme-border: 1px solid var(--border-subtle);
+  --theme-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   --theme-blur: 0px;
   --theme-glow: none;
   --theme-noise-opacity: 0.015;
-  /* Tile */
-  --tile-bg: rgba(33, 37, 43, 0.9);
-  --tile-border: rgba(44, 49, 58, 0.8);
-  --tile-hover-border: rgba(82, 153, 211, 0.25);
-  --tile-hover-gradient: linear-gradient(135deg, rgba(82, 153, 211, 0.03) 0%, transparent 100%);
-  --tile-hover-shadow: 0 4px 20px rgba(82, 153, 211, 0.05), 0 0 0 1px rgba(82, 153, 211, 0.03);
+
+  --tile-bg: var(--bg-surface);
+  --tile-border: var(--border-subtle);
+  --tile-hover-border: var(--border-focus);
+  --tile-hover-gradient: linear-gradient(135deg, rgba(96, 165, 250, 0.06) 0%, rgba(245, 158, 11, 0.03) 100%);
+  --tile-hover-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --primary-pill-bg: var(--accent-surface);
+  --primary-pill-text: #60a5fa;
+  color-scheme: dark !important;
 }
-.theme-onedark .font-mono {
-  font-family: 'Fira Code', monospace;
+
+html[data-theme="onedark"],
+html.theme-onedark,
+html[data-theme="onedark"] body,
+html.theme-onedark body {
+  background-color: var(--bg-canvas) !important;
 }
 
 /* ---------------------------------------------------------
-   THEME 4: CYBERPUNK (Futuristic HUD)
+   THEME 5: CYBERPUNK
 --------------------------------------------------------- */
-.theme-cyberpunk {
-  --background: #020205;
-  --surface: rgba(8, 8, 14, 0.98);
-  --surface-elevated: rgba(15, 20, 35, 0.95);
-  --border: rgba(0, 184, 204, 0.15);
-  --text-primary: #ffffff;
-  --text-secondary: #addbe3;
-  --text-muted: #82cbd6;
-  --accent: rgba(230, 25, 94, 0.15);
-  --accent-strong: #e6195e;
-  --success: #00ffaa;
-  --warning: #ffcc00;
-  --danger: #e6195e;
-  --foreground: var(--text-primary);
-  --card: var(--surface);
-  --card-foreground: var(--text-primary);
-  --popover: var(--surface-elevated);
-  --popover-foreground: var(--text-secondary);
-  --primary: var(--accent-strong);
-  --primary-foreground: #ffffff;
-  --secondary: rgba(15, 20, 35, 0.7);
-  --secondary-foreground: var(--text-secondary);
-  --muted: rgba(6, 6, 12, 0.9);
-  --muted-foreground: var(--text-muted);
-  --input: rgba(10, 15, 30, 0.8);
-  --ring: rgba(230, 25, 94, 0.4);
-  --theme-font: 'Space Grotesk', sans-serif;
-  --theme-heading-font: 'Space Grotesk', sans-serif;
-  --theme-radius: 0px;
-  --theme-border: 1px solid rgba(0, 184, 204, 0.15);
-  --theme-shadow: none;
-  --theme-blur: 2px;
-  --theme-glow: 0 0 2px rgba(230, 25, 94, 0.2);
-  --theme-noise-opacity: 0;
-  /* Tile */
-  --tile-bg: rgba(8, 8, 14, 0.95);
-  --tile-border: rgba(0, 184, 204, 0.12);
-  --tile-hover-border: rgba(230, 25, 94, 0.3);
-  --tile-hover-gradient: linear-gradient(135deg, rgba(230, 25, 94, 0.03) 0%, rgba(0, 184, 204, 0.02) 100%);
-  --tile-hover-shadow: 0 0 16px rgba(230, 25, 94, 0.08), 0 0 20px rgba(0, 184, 204, 0.04);
-}
+html[data-theme="cyberpunk"],
+html.theme-cyberpunk {
+  --bg-canvas: #10131a;
+  --bg-surface: #161b26;
+  --bg-surface-elevated: #1c2230;
+  --border-subtle: rgba(56, 189, 248, 0.18);
+  --border-focus: #38bdf8;
+  --text-primary: #f8fafc;
+  --text-secondary: #fbcfe8;
+  --text-muted: #f472b6;
+  --accent-primary: #fb7185;
+  --accent-primary-hover: #f43f5e;
+  --accent-surface: rgba(244, 63, 94, 0.15);
 
-/* ---------------------------------------------------------
-   THEME 5: MIDNIGHT (Deep space navy)
---------------------------------------------------------- */
-.theme-midnight {
-  --background: #0d0a09;
-  --surface: rgba(26, 20, 18, 0.75);
-  --surface-elevated: rgba(43, 34, 30, 0.85);
-  --border: rgba(230, 92, 0, 0.15);
-  --text-primary: #ffffff;
-  --text-secondary: #ffeada;
-  --text-muted: #cca890;
-  --accent: rgba(255, 125, 26, 0.15);
-  --accent-strong: #ff7d1a;
+  --background: var(--bg-canvas);
+  --surface: var(--bg-surface);
+  --surface-elevated: var(--bg-surface-elevated);
+  --border: var(--border-subtle);
+  --accent: var(--accent-surface);
+  --accent-strong: var(--accent-primary);
+  --accent-secondary: #38bdf8;
   --success: #34d399;
   --warning: #fbbf24;
-  --danger: #ef4444;
+  --danger: #fb7185;
   --foreground: var(--text-primary);
-  --card: var(--surface);
+  --card: var(--bg-surface);
   --card-foreground: var(--text-primary);
-  --popover: var(--surface-elevated);
-  --popover-foreground: var(--text-primary);
-  --primary: var(--accent-strong);
+  --popover: var(--bg-surface-elevated);
+  --popover-foreground: var(--text-secondary);
+  --primary: var(--accent-primary);
   --primary-foreground: #ffffff;
-  --secondary: rgba(43, 34, 30, 0.5);
+  --secondary: var(--bg-surface-elevated);
   --secondary-foreground: var(--text-secondary);
-  --muted: rgba(20, 15, 13, 0.8);
+  --muted: var(--bg-surface-elevated);
   --muted-foreground: var(--text-muted);
-  --input: rgba(35, 27, 24, 0.8);
-  --ring: rgba(255, 125, 26, 0.4);
-  --theme-font: 'Inter', sans-serif;
-  --theme-heading-font: 'Space Grotesk', sans-serif;
-  --theme-radius: 18px;
-  --theme-border: 1px solid rgba(230, 92, 0, 0.12);
-  --theme-shadow: 0 12px 36px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255,255,255,0.02);
-  --theme-blur: 16px;
-  --theme-glow: inset 0 0 12px rgba(255, 125, 26, 0.05);
-  --theme-noise-opacity: 0.015;
-  /* Tile */
-  --tile-bg: rgba(26, 20, 18, 0.85);
-  --tile-border: rgba(230, 92, 0, 0.12);
-  --tile-hover-border: rgba(255, 125, 26, 0.45);
-  --tile-hover-gradient: linear-gradient(135deg, rgba(255, 125, 26, 0.06) 0%, rgba(230, 92, 0, 0.04) 50%, rgba(255, 125, 26, 0.02) 100%);
-  --tile-hover-shadow: 0 8px 32px rgba(255, 125, 26, 0.12), 0 0 0 1px rgba(255, 125, 26, 0.08);
+  --input: var(--bg-surface-elevated);
+  --ring: var(--border-focus);
+  --theme-font: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --theme-heading-font: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --theme-radius: var(--radius-md);
+  --theme-border: 1px solid var(--border-subtle);
+  --theme-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  --theme-blur: 4px;
+  --theme-glow: 0 0 10px rgba(251, 113, 133, 0.15);
+  --theme-noise-opacity: 0;
+
+  --tile-bg: var(--bg-surface);
+  --tile-border: var(--border-subtle);
+  --tile-hover-border: var(--border-focus);
+  --tile-hover-gradient: linear-gradient(135deg, rgba(251, 113, 133, 0.06) 0%, rgba(56, 189, 248, 0.04) 100%);
+  --tile-hover-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+  --primary-pill-bg: var(--accent-surface);
+  --primary-pill-text: #fb7185;
+  color-scheme: dark !important;
+}
+
+html[data-theme="cyberpunk"],
+html.theme-cyberpunk,
+html[data-theme="cyberpunk"] body,
+html.theme-cyberpunk body {
+  background-color: var(--bg-canvas) !important;
+}
+
+/* ==========================================================
+   COMPONENT DESIGN SYSTEM SPECIFICATIONS
+   ========================================================== */
+
+/* 1. Navigation Sidebar & Active States */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.nav-item:hover {
+  background-color: var(--bg-surface-elevated);
+  color: var(--text-primary);
+}
+.nav-item.active,
+.nav-item[data-active="true"] {
+  background-color: var(--accent-surface) !important;
+  color: var(--accent-primary) !important;
+  border-left: 3px solid var(--accent-primary) !important;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0 !important;
+  box-shadow: none !important;
+  font-weight: 700;
+}
+.nav-item.active svg,
+.nav-item[data-active="true"] svg {
+  color: var(--accent-primary) !important;
+  stroke: currentColor;
+}
+
+/* Glorified Sub-Color Typography & Contrast Guarantee Across All Pages */
+html.dark .text-muted-foreground,
+html[data-theme="obsidian"] .text-muted-foreground,
+html[data-theme="onedark"] .text-muted-foreground,
+html[data-theme="pine"] .text-muted-foreground,
+html[data-theme="midnight"] .text-muted-foreground,
+html[data-theme="purple"] .text-muted-foreground,
+html[data-theme="cyberpunk"] .text-muted-foreground {
+  color: var(--text-secondary);
+}
+
+.text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+/* Section Subtitles & Upper-case Micro-Captions */
+.section-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* Glorified Filter / Category Pills */
+.filter-pill {
+  padding: 6px 14px;
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+}
+.filter-pill:hover {
+  background-color: var(--bg-surface-elevated);
+  color: var(--text-primary);
+  border-color: var(--border-focus);
+}
+.filter-pill.active,
+.filter-pill[data-active="true"] {
+  background-color: var(--accent-primary) !important;
+  color: #ffffff !important;
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 4px 14px -2px var(--accent-surface);
+}
+
+/* 2. Form Controls, Inputs, and Switch Toggles */
+.input-field {
+  background-color: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  font-size: 14px;
+  color: var(--text-primary);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.input-field:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+.input-field::placeholder {
+  color: var(--text-muted);
+}
+
+/* OS standard dimensions for switch toggle: 38px x 20px with 16px handle */
+.toggle-track {
+  width: 38px;
+  height: 20px;
+  border-radius: 9999px;
+  background-color: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  flex-shrink: 0;
+}
+.toggle-track.active,
+.toggle-track[data-checked="true"] {
+  background-color: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+}
+.toggle-handle {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s ease;
+  transform: translateX(1px);
+}
+.toggle-track.active .toggle-handle,
+.toggle-track[data-checked="true"] .toggle-handle {
+  transform: translateX(19px);
+}
+
+/* 3. Habit Matrix Grid & Calendar Spends */
+.week-header-pill {
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  display: inline-block;
+}
+
+html[data-theme="white"] .week-header-pill,
+html[data-theme="light"] .week-header-pill,
+html.theme-light .week-header-pill {
+  background-color: rgba(0, 0, 0, 0.04);
+  color: var(--text-secondary);
+}
+
+.matrix-cell {
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  transition: all 0.15s ease;
+}
+
+html[data-theme="white"] .matrix-cell,
+html[data-theme="light"] .matrix-cell,
+html.theme-light .matrix-cell {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.matrix-cell.completed {
+  background-color: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+  color: #ffffff !important;
+}
+
+/* Monochromatic ramp opacity steps */
+.matrix-cell.ramp-1 {
+  background-color: color-mix(in srgb, var(--accent-primary) 30%, transparent);
+  border-color: color-mix(in srgb, var(--accent-primary) 40%, transparent);
+  color: #ffffff;
+}
+.matrix-cell.ramp-2 {
+  background-color: color-mix(in srgb, var(--accent-primary) 60%, transparent);
+  border-color: color-mix(in srgb, var(--accent-primary) 70%, transparent);
+  color: #ffffff;
+}
+.matrix-cell.ramp-3 {
+  background-color: color-mix(in srgb, var(--accent-primary) 90%, transparent);
+  border-color: var(--accent-primary);
+  color: #ffffff;
+}
+.matrix-cell.ramp-4 {
+  background-color: var(--accent-primary);
+  border-color: var(--accent-primary);
+  color: #ffffff;
+}
+
+/* 4. Stat Summary Cards */
+.stat-summary-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.stat-summary-card:hover {
+  border-color: var(--border-focus);
+}
+.stat-card-row-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.05em;
+}
+.stat-card-row-label svg {
+  width: 16px;
+  height: 16px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+.stat-card-row-value {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 24px;
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+.stat-card-row-meta {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.2;
+}
+
+/* Light/White Theme High-Contrast Stat Value Overrides */
+html[data-theme="white"] .stat-summary-card .text-emerald-400,
+html[data-theme="light"] .stat-summary-card .text-emerald-400,
+html.theme-light .stat-summary-card .text-emerald-400 {
+  color: #059669 !important;
+}
+html[data-theme="white"] .stat-summary-card .text-orange-400,
+html[data-theme="light"] .stat-summary-card .text-orange-400,
+html.theme-light .stat-summary-card .text-orange-400 {
+  color: #ea580c !important;
+}
+html[data-theme="white"] .stat-summary-card .text-sky-400,
+html[data-theme="light"] .stat-summary-card .text-sky-400,
+html.theme-light .stat-summary-card .text-sky-400 {
+  color: #0284c7 !important;
+}
+html[data-theme="white"] .stat-summary-card .text-purple-400,
+html[data-theme="light"] .stat-summary-card .text-purple-400,
+html.theme-light .stat-summary-card .text-purple-400 {
+  color: #7c3aed !important;
+}
+html[data-theme="white"] .stat-summary-card .text-amber-400,
+html[data-theme="light"] .stat-summary-card .text-amber-400,
+html.theme-light .stat-summary-card .text-amber-400 {
+  color: #d97706 !important;
+}
+html[data-theme="white"] .stat-summary-card .text-rose-400,
+html[data-theme="light"] .stat-summary-card .text-rose-400,
+html.theme-light .stat-summary-card .text-rose-400 {
+  color: #e11d48 !important;
+}
+
+/* 5. Background Compass / Watermark Artifacts */
+.dashboard-watermark {
+  opacity: 0.02;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  transition: opacity 0.3s ease;
+}
+
+html[data-theme="white"] .dashboard-watermark,
+html[data-theme="light"] .dashboard-watermark,
+html.theme-light .dashboard-watermark {
+  opacity: 0.03;
+}
+
+/* Completely hide on high-density information pages (Analytics, Finance, and Habits) */
+html[data-active-tab="analytics"] .dashboard-watermark,
+html[data-active-tab="money"] .dashboard-watermark,
+html[data-active-tab="habits"] .dashboard-watermark,
+[data-active-tab="analytics"] .dashboard-watermark,
+[data-active-tab="money"] .dashboard-watermark,
+[data-active-tab="habits"] .dashboard-watermark,
+.hide-watermark .dashboard-watermark {
+  display: none !important;
+  opacity: 0 !important;
 }
 
 
@@ -420,6 +945,15 @@ body {
   background: var(--muted-foreground);
 }
 
+/* Scrollbar None Utility */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 /* GPU-accelerated transitions */
 .will-change-transform {
   will-change: transform;
@@ -448,20 +982,51 @@ body {
   box-shadow: 0 0 8px rgba(0, 229, 255, 0.2);
 }
 
-/* Responsive Font Sizing */
+/* Responsive Font Sizing & Compact Mobile Touch Targets */
 @media (max-width: 640px) {
   html, body {
-    font-size: 15px;
+    font-size: 15.5px;
+  }
+  .stat-summary-card {
+    padding: 10px 12px;
+    gap: 6px;
+    border-radius: 14px;
+  }
+  .stat-card-row-value {
+    font-size: 18px !important;
+  }
+  .stat-card-row-label {
+    font-size: 9.5px;
+    gap: 4px;
   }
 }
 @media (min-width: 641px) and (max-width: 1024px) {
   html, body {
-    font-size: 16px;
+    font-size: 16.5px;
   }
 }
 @media (min-width: 1025px) {
   html, body {
-    font-size: 16.8px;
+    font-size: 17.5px;
   }
+}
+
+/* Hardware Accelerated Keyframes for SidebarArt */
+@keyframes pulse-scale-subtle {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+.animate-pulse-scale-subtle {
+  animation: pulse-scale-subtle 6s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes pan-y-scanline {
+  0% { background-position-y: 0px; }
+  100% { background-position-y: 30px; }
+}
+.animate-pan-y-scanline {
+  animation: pan-y-scanline 2s linear infinite;
+  will-change: background-position;
 }
 

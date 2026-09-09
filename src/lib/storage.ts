@@ -143,6 +143,26 @@ export const dbService = {
     const reminders = await this.getAll<Reminder>(STORES.REMINDERS);
     const categories = await this.getAll<Category>(STORES.CATEGORIES);
 
+    let moneyData = null;
+    let unlockedBadges: string[] = [];
+
+    if (isBrowser) {
+      try {
+        const savedMoney = localStorage.getItem('shadow_money_data_v3');
+        if (savedMoney) moneyData = JSON.parse(savedMoney);
+        
+        const savedBadges = localStorage.getItem('shadow_unlocked_badges');
+        if (savedBadges) unlockedBadges = JSON.parse(savedBadges);
+      } catch (e) {
+        console.error('Error reading moneyData or unlockedBadges for export:', e);
+      }
+    }
+
+    const safeSettings = settings ? { ...settings } : ({} as Settings);
+    delete safeSettings.githubPat;
+    delete (safeSettings as any).oneDriveAccessToken;
+    delete (safeSettings as any).oneDriveRefreshToken;
+
     return {
       version: '1.0.0',
       tasks,
@@ -151,7 +171,9 @@ export const dbService = {
       notes,
       reminders,
       categories,
-      settings,
+      settings: safeSettings,
+      moneyData,
+      unlockedBadges,
       exportedAt: new Date().toISOString(),
     };
   },
@@ -165,13 +187,16 @@ export const dbService = {
     }
 
     const db = await openDB();
+    const isYearArchive = !!data.archiveYear;
     
     const importStore = <T>(storeName: StoreName, items: T[]): Promise<void> => {
       return new Promise((resolve, reject) => {
         const transaction = db.transaction(storeName, 'readwrite');
         const store = transaction.objectStore(storeName);
         
-        store.clear();
+        if (!isYearArchive) {
+          store.clear();
+        }
         
         for (const item of items) {
           store.put(item);
@@ -188,6 +213,221 @@ export const dbService = {
     await importStore(STORES.NOTES, data.notes || []);
     await importStore(STORES.REMINDERS, data.reminders || []);
     await importStore(STORES.CATEGORIES, data.categories || []);
+
+    if (data.moneyData) {
+      if (isYearArchive) {
+        try {
+          const savedMoney = localStorage.getItem('shadow_money_data_v3');
+          const existingMoney = savedMoney ? JSON.parse(savedMoney) : { expenses: [], stats: {} };
+          const existingExpenses = existingMoney.expenses || [];
+          const importedExpenses = data.moneyData.expenses || [];
+          const mergedExpMap = new Map(existingExpenses.map((e: any) => [e.id, e]));
+          importedExpenses.forEach((e: any) => mergedExpMap.set(e.id, e));
+
+          existingMoney.expenses = Array.from(mergedExpMap.values());
+          localStorage.setItem('shadow_money_data_v3', JSON.stringify(existingMoney));
+        } catch (e) {}
+      } else {
+        localStorage.setItem('shadow_money_data_v3', JSON.stringify(data.moneyData));
+      }
+    }
+
+    if (data.unlockedBadges && Array.isArray(data.unlockedBadges)) {
+      if (isYearArchive) {
+        try {
+          const savedBadges = localStorage.getItem('shadow_unlocked_badges');
+          const existingBadges: string[] = savedBadges ? JSON.parse(savedBadges) : [];
+          const mergedBadges = Array.from(new Set([...existingBadges, ...data.unlockedBadges]));
+          localStorage.setItem('shadow_unlocked_badges', JSON.stringify(mergedBadges));
+        } catch (e) {}
+      } else {
+        localStorage.setItem('shadow_unlocked_badges', JSON.stringify(data.unlockedBadges));
+      }
+    }
+  },
+
+  async getAvailableYears(): Promise<string[]> {
+    const tasks = await this.getAll<Task>(STORES.TASKS);
+    const habits = await this.getAll<Habit>(STORES.HABITS);
+    const dailyLogs = await this.getAll<DailyLog>(STORES.DAILY_LOGS);
+    const notes = await this.getAll<Note>(STORES.NOTES);
+
+    const yearsSet = new Set<string>();
+
+    const extractYear = (dateStr?: string) => {
+      if (!dateStr) return;
+      const yr = dateStr.substring(0, 4);
+      if (/^\d{4}$/.test(yr)) {
+        yearsSet.add(yr);
+      }
+    };
+
+    tasks.forEach(t => {
+      extractYear(t.createdAt);
+      extractYear(t.completedAt);
+      extractYear(t.dueDate);
+    });
+
+    habits.forEach(h => {
+      extractYear(h.createdAt);
+      h.completedDates?.forEach(d => extractYear(d));
+    });
+
+    dailyLogs.forEach(d => extractYear(d.date));
+    notes.forEach(n => {
+      extractYear(n.createdAt);
+      extractYear(n.date);
+    });
+
+    if (isBrowser) {
+      try {
+        const savedMoney = localStorage.getItem('shadow_money_data_v3');
+        if (savedMoney) {
+          const money = JSON.parse(savedMoney);
+          money.expenses?.forEach((e: any) => extractYear(e.date));
+        }
+      } catch (e) {}
+    }
+
+    return Array.from(yearsSet).sort((a, b) => b.localeCompare(a));
+  },
+
+  async exportYearData(year: string, settings: Settings): Promise<BackupData> {
+    const allTasks = await this.getAll<Task>(STORES.TASKS);
+    const allHabits = await this.getAll<Habit>(STORES.HABITS);
+    const allDailyLogs = await this.getAll<DailyLog>(STORES.DAILY_LOGS);
+    const allNotes = await this.getAll<Note>(STORES.NOTES);
+    const reminders = await this.getAll<Reminder>(STORES.REMINDERS);
+    const categories = await this.getAll<Category>(STORES.CATEGORIES);
+
+    const yearTasks = allTasks.filter(t => (t.completedAt && t.completedAt.startsWith(year)) || t.createdAt.startsWith(year) || t.dueDate?.startsWith(year));
+    const yearDailyLogs = allDailyLogs.filter(d => d.date.startsWith(year));
+    const yearNotes = allNotes.filter(n => n.date?.startsWith(year) || n.createdAt.startsWith(year));
+
+    const yearHabits = allHabits.map(h => ({
+      ...h,
+      completedDates: (h.completedDates || []).filter(d => d.startsWith(year))
+    })).filter(h => h.completedDates.length > 0 || h.createdAt.startsWith(year));
+
+    let yearMoneyData = null;
+    let unlockedBadges: string[] = [];
+
+    if (isBrowser) {
+      try {
+        const savedMoney = localStorage.getItem('shadow_money_data_v3');
+        if (savedMoney) {
+          const money = JSON.parse(savedMoney);
+          yearMoneyData = {
+            ...money,
+            expenses: (money.expenses || []).filter((e: any) => e.date && e.date.startsWith(year))
+          };
+        }
+
+        const savedBadges = localStorage.getItem('shadow_unlocked_badges');
+        if (savedBadges) unlockedBadges = JSON.parse(savedBadges);
+      } catch (e) {}
+    }
+
+    return {
+      version: '1.0.0',
+      archiveYear: year,
+      tasks: yearTasks,
+      habits: yearHabits,
+      dailyLogs: yearDailyLogs,
+      notes: yearNotes,
+      reminders,
+      categories,
+      settings,
+      moneyData: yearMoneyData,
+      unlockedBadges,
+      exportedAt: new Date().toISOString(),
+    };
+  },
+
+  async purgeYearData(year: string, settings: Settings): Promise<{ archiveBackup: BackupData; purgedCount: number }> {
+    if (!isBrowser) throw new Error('Purge available only in browser environment');
+
+    // 1. MANDATORY AUTOMATIC EXPORT BEFORE PURGING!
+    const archiveBackup = await this.exportYearData(year, settings);
+
+    const db = await openDB();
+    let purgedCount = 0;
+
+    // Purge Tasks for year
+    const tasks = await this.getAll<Task>(STORES.TASKS);
+    const tasksToKeep = tasks.filter(t => {
+      const isThisYear = (t.completedAt && t.completedAt.startsWith(year)) ||
+                         (t.createdAt && t.createdAt.startsWith(year)) ||
+                         (t.dueDate && t.dueDate.startsWith(year));
+      return !isThisYear;
+    });
+    purgedCount += (tasks.length - tasksToKeep.length);
+
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORES.TASKS, 'readwrite');
+      const store = tx.objectStore(STORES.TASKS);
+      store.clear();
+      tasksToKeep.forEach(t => store.put(t));
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+
+    // Purge Daily Logs for year
+    const dailyLogs = await this.getAll<DailyLog>(STORES.DAILY_LOGS);
+    const logsToKeep = dailyLogs.filter(d => !d.date.startsWith(year));
+    purgedCount += (dailyLogs.length - logsToKeep.length);
+
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORES.DAILY_LOGS, 'readwrite');
+      const store = tx.objectStore(STORES.DAILY_LOGS);
+      store.clear();
+      logsToKeep.forEach(l => store.put(l));
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+
+    // Purge Notes for year
+    const notes = await this.getAll<Note>(STORES.NOTES);
+    const notesToKeep = notes.filter(n => !((n.date && n.date.startsWith(year)) || (n.createdAt && n.createdAt.startsWith(year))));
+    purgedCount += (notes.length - notesToKeep.length);
+
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORES.NOTES, 'readwrite');
+      const store = tx.objectStore(STORES.NOTES);
+      store.clear();
+      notesToKeep.forEach(n => store.put(n));
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+
+    // Purge completed dates for Habits for year
+    const habits = await this.getAll<Habit>(STORES.HABITS);
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(STORES.HABITS, 'readwrite');
+      const store = tx.objectStore(STORES.HABITS);
+      habits.forEach(h => {
+        const origCount = h.completedDates?.length || 0;
+        h.completedDates = (h.completedDates || []).filter(d => !d.startsWith(year));
+        purgedCount += (origCount - h.completedDates.length);
+        store.put(h);
+      });
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+
+    // Purge Money Expenses for year
+    try {
+      const savedMoney = localStorage.getItem('shadow_money_data_v3');
+      if (savedMoney) {
+        const money = JSON.parse(savedMoney);
+        const origExpCount = money.expenses?.length || 0;
+        money.expenses = (money.expenses || []).filter((e: any) => !(e.date && e.date.startsWith(year)));
+        purgedCount += (origExpCount - money.expenses.length);
+        localStorage.setItem('shadow_money_data_v3', JSON.stringify(money));
+      }
+    } catch (e) {}
+
+    return { archiveBackup, purgedCount };
   }
 };
 
@@ -196,12 +436,17 @@ const SETTINGS_KEY = 'shadow_tracker_settings';
 const DEFAULT_SETTINGS: Settings = {
   theme: 'onedark',
   backupReminderDays: 7,
-  soundEnabled: false,
+  soundEnabled: true,
+  stickyTaskNotifications: true,
   showCompletedTasks: true,
   isCompletedOnboarding: false,
   xp: 0,
   level: 1,
   unlockedBadges: [],
+  githubSyncOnLaunch: true,
+  ecoMode: false,
+  minimizeToTray: true,
+  habitGracePeriodDays: 3,
 };
 
 export const settingsStorage = {
