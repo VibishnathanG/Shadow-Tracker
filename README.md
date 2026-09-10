@@ -1,15 +1,104 @@
-# Shadow Tracker (Life OS)
+# Shadow-Tracker-Life-OS
 
-> A sovereign, local-first, privacy-first personal operating system and gamified discipline sanctuary. Engineered for elite productivity, health vitality, financial mastery, and mental focus.
+<p align="center">
+  <img src="./public/app_logo_master.png" alt="Shadow Tracker Logo" width="120" />
+</p>
+
+<h3 align="center">Sovereign • Local-First • Privacy-First • Gamified Discipline Sanctuary</h3>
+
+<p align="center">
+  <a href="https://hub.docker.com/r/vibishnathang/shadow-tracker"><img src="https://img.shields.io/docker/pulls/vibishnathang/shadow-tracker?style=flat-square&logo=docker&label=Docker%20Pulls&color=0db7ed" alt="Docker Pulls" /></a>
+  <a href="https://hub.docker.com/r/vibishnathang/shadow-tracker"><img src="https://img.shields.io/docker/v/vibishnathang/shadow-tracker?sort=semver&style=flat-square&logo=docker&label=Docker%20Hub&color=blue" alt="Docker Hub Version" /></a>
+  <a href="https://github.com/VibishnathanG/Shadow-Tracker/releases"><img src="https://img.shields.io/badge/Release-v1.0.0-success?style=flat-square&logo=github" alt="Release v1.0.0" /></a>
+  <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20Android%20%7C%20Web%20%7C%20Docker-9cf?style=flat-square" alt="Supported Platforms" />
+  <img src="https://img.shields.io/badge/Next.js-16.2-black?style=flat-square&logo=next.js" alt="Next.js 16" />
+  <img src="https://img.shields.io/badge/React-19.2-61dafb?style=flat-square&logo=react" alt="React 19" />
+  <img src="https://img.shields.io/badge/TypeScript-5.0-3178c6?style=flat-square&logo=typescript" alt="TypeScript 5" />
+  <img src="https://img.shields.io/badge/License-Proprietary-red?style=flat-square" alt="License" />
+</p>
+
+---
+
+## Project-Overview
+
+**Shadow Tracker** is an all-in-one sovereign personal operating system designed to elevate productivity, sustain unbreakable atomic habit streaks, optimize physical vitality, govern personal finances, and gamify daily progress. 
+
+Engineered with a **local-first, privacy-first philosophy**, all sensitive personal telemetry, habit logs, financial ledgers, and reflections remain 100% on your local machine. No tracking, no mandatory cloud subscriptions, and no telemetry eavesdropping.
+
+---
+
+## Visual-Showcase
+
+Explore the dark, glassy aesthetic and high-density telemetry dashboards captured directly from live desktop execution.
+
+### 1-Life-OS-Command-Dashboard
+
+The central command dashboard aggregates morning briefings, evening reviews, biological health telemetry, real-time focus indices, and the Level 20 Life RPG progression engine into a single unified workspace.
+
+![Shadow Tracker Dashboard](./public/app-looks/01-dashboard.png)
+
+*Original capture: [Screenshot 2026-09-10 214745.png](./public/app-looks/Screenshot%202026-09-10%20214745.png)*
+
+---
+
+### 2-Atomic-Habits-and-Consistency-Matrix
+
+Build enduring personal discipline through atomic daily milestones, categorized routine cards, dynamic vitality meters, and a continuous 15-week matrix consistency heatmap.
+
+![Atomic Habit Routines](./public/app-looks/02-habits.png)
+
+*Original capture: [Screenshot 2026-09-10 214833.png](./public/app-looks/Screenshot%202026-09-10%20214833.png)*
+
+---
+
+### 3-Health-and-Vitality-Suite
+
+A full biological OS featuring interactive hydration tracking with 7-day volume velocity, daily calorie limits, a dynamic macronutrient plate visualizer (Protein, Carbs, Fats), and scheduled gym training splits.
+
+![Health and Vitality Suite](./public/app-looks/03-health.png)
+
+*Original capture: [Screenshot 2026-09-10 214908.png](./public/app-looks/Screenshot%202026-09-10%20214908.png)*
+
+---
+
+### 4-Command-Center-and-Monthly-Habit-Telemetry
+
+A 5-week monthly habit matrix providing granular completion checkboxes, past date lock-in protection, unbroken streak records, and real-time focus velocity metrics.
+
+![Command Center Telemetry](./public/app-looks/04-analytics.png)
+
+*Original capture: [Screenshot 2026-09-10 214931.png](./public/app-looks/Screenshot%202026-09-10%20214931.png)*
+
+[↑ Back to top](#Shadow-Tracker-Life-OS)
 
 ---
 
 ## Table-of-Contents
 
+- [Project-Overview](#Project-Overview)
+- [Visual-Showcase](#Visual-Showcase)
+  - [1-Life-OS-Command-Dashboard](#1-Life-OS-Command-Dashboard)
+  - [2-Atomic-Habits-and-Consistency-Matrix](#2-Atomic-Habits-and-Consistency-Matrix)
+  - [3-Health-and-Vitality-Suite](#3-Health-and-Vitality-Suite)
+  - [4-Command-Center-and-Monthly-Habit-Telemetry](#4-Command-Center-and-Monthly-Habit-Telemetry)
+- [Docker-Container-Deployment](#Docker-Container-Deployment)
+  - [Pull-from-Docker-Hub](#Pull-from-Docker-Hub)
+  - [Run-with-Docker-CLI](#Run-with-Docker-CLI)
+  - [Run-with-Docker-Compose](#Run-with-Docker-Compose)
+  - [Offline-Docker-Tarball-Loading](#Offline-Docker-Tarball-Loading)
+- [Official-Release-Artifacts](#Official-Release-Artifacts)
+  - [Release-Matrix-and-Checksums](#Release-Matrix-and-Checksums)
+  - [Integrity-Verification](#Integrity-Verification)
+  - [Windows-Installation-and-Certificate-Trust](#Windows-Installation-and-Certificate-Trust)
+  - [Android-APK-Installation](#Android-APK-Installation)
 - [System-Architecture](#System-Architecture)
 - [Application-Lifecycle](#Application-Lifecycle)
+  - [1-Boot-and-Hydration](#1-Boot-and-Hydration)
+  - [2-Zero-CPU-Idle-Freeze](#2-Zero-CPU-Idle-Freeze)
+  - [3-Background-Workers-and-Notifications](#3-Background-Workers-and-Notifications)
 - [Life-RPG-and-XP-Internals](#Life-RPG-and-XP-Internals)
   - [XP-Calculation-Formulas](#XP-Calculation-Formulas)
+  - [Action-XP-Rewards-Table](#Action-XP-Rewards-Table)
   - [Character-Rank-Progression](#Character-Rank-Progression)
   - [Quest-System-and-Multipliers](#Quest-System-and-Multipliers)
   - [Achievement-Badges-Catalog](#Achievement-Badges-Catalog)
@@ -25,14 +114,141 @@
   - [Reflections-Journal](#Reflections-Journal)
   - [Analytics-Room](#Analytics-Room)
 - [Theme-Ambient-Engine](#Theme-Ambient-Engine)
+  - [Eco-Mode-and-Low-GPU-Mode](#Eco-Mode-and-Low-GPU-Mode)
 - [Backup-Restore-and-Cloud-Sync](#Backup-Restore-and-Cloud-Sync)
+  - [1-Local-JSON-Backup-and-Restore](#1-Local-JSON-Backup-and-Restore)
+  - [2-Microsoft-OneDrive-Auto-Sync](#2-Microsoft-OneDrive-Auto-Sync)
+  - [3-GitHub-Gist-Daily-Sync](#3-GitHub-Gist-Daily-Sync)
 - [Running-and-Deployment](#Running-and-Deployment)
+  - [Prerequisites](#Prerequisites)
+  - [Development-Mode](#Development-Mode)
+  - [Production-Static-Export-Build](#Production-Static-Export-Build)
+  - [Desktop-Executable-Build-Tauri-2](#Desktop-Executable-Build-Tauri-2)
+  - [Mobile-Android-Build-Capacitor-8](#Mobile-Android-Build-Capacitor-8)
+- [Verification-Checklist](#Verification-Checklist)
+- [License](#License)
+
+[↑ Back to top](#Shadow-Tracker-Life-OS)
+
+---
+
+## Docker-Container-Deployment
+
+Shadow Tracker is fully containerized with a hardened multi-stage Nginx Alpine container image published on Docker Hub under [`vibishnathang/shadow-tracker`](https://hub.docker.com/r/vibishnathang/shadow-tracker).
+
+### Pull-from-Docker-Hub
+
+```bash
+# Pull latest stable release
+docker pull vibishnathang/shadow-tracker:latest
+
+# Or pull specific version release
+docker pull vibishnathang/shadow-tracker:v1.0.0
+```
+
+### Run-with-Docker-CLI
+
+```bash
+# Run detached container exposing port 8081
+docker run -d \
+  --name shadow-tracker \
+  -p 8081:80 \
+  --restart unless-stopped \
+  vibishnathang/shadow-tracker:latest
+
+# Verify health endpoint
+curl -sI http://localhost:8081/health
+```
+Navigate to `http://localhost:8081` in your browser.
+
+### Run-with-Docker-Compose
+
+Use the included [docker-compose.yml](file:///Main_Workspace/Programming/Python/workspace/shadow-tracker/docker-compose.yml) for single-command management:
+
+```bash
+# Start production container
+docker compose up -d prod
+
+# View logs
+docker compose logs -f prod
+
+# Stop container
+docker compose down
+```
+
+### Offline-Docker-Tarball-Loading
+
+For air-gapped or offline workstations, use the pre-packaged archive from `release/`:
+
+```bash
+# Load Docker image from release bundle
+docker load < release/shadow-tracker-container.tar.gz
+
+# Run loaded container
+docker run -d --name shadow-tracker -p 8081:80 shadow-tracker:latest
+```
+
+[↑ Back to contents](#Table-of-Contents)
+
+---
+
+## Official-Release-Artifacts
+
+Every release binary in the `release/` directory is standardized, compiled, cryptographically hashed, and verified.
+
+### Release-Matrix-and-Checksums
+
+| Artifact Name | Target Platform | Package Type | Size | SHA256 Checksum | Reference Note |
+|---|---|---|---|---|---|
+| `Shadow-Tracker-Setup.exe` | Windows 10/11 (x64) | NSIS Executable Installer | 8.3 MB | `28adb83c43c5487081c9692aa4a1ee88ea7ef0cabb2a71512df1e083088e1bec` | |
+| `Shadow-Tracker-Portable.exe` | Windows 10/11 (x64) | Single Portable Executable | 25.7 MB | `ef32fbada49e6ef619e50a205944fb0fba0ca0c1018d42eab084351f4ddf8de7` | |
+| `Shadow-Tracker-Release.apk` | Android 8.0+ (ARM64/x86) | Signed Mobile APK | 8.7 MB | `a6c798e1ce769518e91bc6f75cf13c49fe8d7c07464158d95dfc6bd4e79fc4d3` | |
+| `shadow-tracker-container.tar.gz` | Linux (x86_64 Docker) | Docker Image Tarball | 33.3 MB | `f942635d3d37dab2ffe6ab098de750b3978cc030860f97ca9d4532b5ba677e8e` | |
+| `shadow-tracker-web-export.tar.gz` | Any Static Web Host | Static HTML5/JS/CSS Bundle | 4.6 MB | `74432ffab891d5033027d855540389f33893402bcba5406a67394fcabe7ec257` | |
+| `Shadow-Tracker-Windows-Certificate.crt` | Windows OS | Trusted Root Signing Cert | 1.3 KB | `aabc149abd60a904878ebfc939611500ed636d22b61157cd891c3c2937ba4c98` | |
+
+### Integrity-Verification
+
+Verify all release package checksums in a single step using the provided manifest:
+
+```bash
+cd release
+sha256sum -c SHA256SUMS.txt
+```
+
+Expected output:
+```text
+Shadow-Tracker-Release.apk: OK
+shadow-tracker-container.tar.gz: OK
+shadow-tracker-web-export.tar.gz: OK
+Shadow-Tracker-Portable.exe: OK
+Shadow-Tracker-Setup.exe: OK
+Shadow-Tracker-Windows-Certificate.crt: OK
+```
+
+### Windows-Installation-and-Certificate-Trust
+
+Because Windows SmartScreen checks for recognized publisher certificates, install the code signing certificate to run without warnings:
+
+1. Double-click `release/Shadow-Tracker-Windows-Certificate.crt`.
+2. Click **Install Certificate...** → Select **Local Machine**.
+3. Place in **Trusted Root Certification Authorities**.
+4. Run `Shadow-Tracker-Setup.exe` (or `Shadow-Tracker-Portable.exe`).
+
+### Android-APK-Installation
+
+1. Transfer `release/Shadow-Tracker-Release.apk` to your Android device via USB, Drive, or local HTTP server.
+2. Enable *Install Unknown Apps* for your file manager.
+3. Tap the APK to install.
+4. Grant notification and exact alarm permissions when prompted to enable the background habit reminder chimes.
+
+[↑ Back to contents](#Table-of-Contents)
 
 ---
 
 ## System-Architecture
 
-Shadow Tracker is built upon a local-first foundation where the user's browser, desktop executable, or mobile application operates as the primary source of truth.
+Shadow Tracker is architected upon an offline-first foundation where local clients (browser, desktop Tauri shell, or mobile Capacitor container) operate as the sole source of truth.
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
@@ -82,7 +298,7 @@ The application lifecycle guarantees zero battery drain, zero idle CPU consumpti
 ### 2-Zero-CPU-Idle-Freeze
 When Shadow Tracker is minimized, sent to the background tray, or hidden behind another window:
 - Framer Motion animation loops (`requestAnimationFrame`) are unmounted immediately.
-- Global ambient canvas backgrounds (`ThemeAmbientBackground.tsx`) suspend rendering.
+- Global ambient canvas backgrounds suspend rendering.
 - DOM nodes receive `content-visibility: hidden` to free GPU texture memory and compositing pipelines.
 - Transitions and CSS keyframe animations are paused globally via the `.is-hidden` root rule.
 
@@ -106,7 +322,7 @@ Cumulative XP required to reach Level $L$:
 
 $$\text{Total XP}(L) = \sum_{k=1}^{L-1} \left\lfloor 100 \times k^{1.5} \right\rfloor$$
 
-#### Action-XP-Rewards-Table
+### Action-XP-Rewards-Table
 
 | Action | XP Awarded | Multiplier Trigger | Reference Note |
 |---|---|---|---|
@@ -126,7 +342,7 @@ $$\text{Total XP}(L) = \sum_{k=1}^{L-1} \left\lfloor 100 \times k^{1.5} \right\r
 
 ### Character-Rank-Progression
 
-Your character's title evolves automatically as you cross XP thresholds:
+Your character title evolves automatically across 20 tiers as you cross XP thresholds:
 
 ```
 [Level 1-4]   ──► Novice Wanderer
@@ -145,7 +361,7 @@ Your character's title evolves automatically as you cross XP thresholds:
 
 ### Quest-System-and-Multipliers
 
-Quests are dynamically refreshed and tracked in [LifeRpgFeature.tsx](file:///Main_Workspace/Programming/Python/workspace/shadow-tracker/src/features/rpg/LifeRpgFeature.tsx):
+Quests are dynamically refreshed and tracked in `LifeRpgFeature.tsx`:
 
 1. **Daily Quests (Refreshed every 24 hours)**:
    - *Deep Work Sprint*: Complete 2+ hours of focused high-priority tasks.
@@ -203,7 +419,7 @@ Badges are awarded for milestones and persisted in `shadow_unlocked_badges`.
 ### Atomic-Habits-Engine
 - Continuous heatmaps displaying 365-day historical consistency.
 - Automatic calculation of current streak and all-time longest streak.
-- Configurable grace periods to protect streaks during planned rest days.
+- Configurable grace periods (1 to 7 days) to protect streaks during planned rest days.
 
 ### Calendar-and-Time-Blocking
 - Monthly calendar grid intersected with habit check-offs, task due dates, and journal notes.
@@ -212,10 +428,10 @@ Badges are awarded for milestones and persisted in `shadow_unlocked_badges`.
 ### Health-and-Vitality-Suite
 - **Vitality & Nutrition**:
   - Visual plate visualizer tracking Macronutrients (Protein, Carbs, Fats) and total Calories.
-  - Water intake tracker with interactive glass counters.
+  - Water intake tracker with interactive glass counters and velocity trendline.
   - Sleep duration and quality gauges.
 - **Diet Planner Sub-Tab**:
-  - 7-day weekly meal planner with 1-click **Copy to Today's Plate** integration.
+  - 7-day weekly meal planner with 1-click **Copy to Today Plate** integration.
   - Custom diet plan creator with automatic BMR and TDEE calorie targets.
   - Extensive built-in Indian and international whole-food nutrition database.
 - **Gym & Fitness Tab**:
@@ -255,7 +471,7 @@ Shadow Tracker features 5 themes with tailored CSS variables, glassy gradient fi
 
 | Theme ID | Aesthetic Description | Background Canvas | Tile Style | Ambient Animation Concept | Reference Note |
 |---|---|---|---|---|---|
-| `white` / `light` | Flashy Textured White | `#edf2f7` (Cool Porcelain) | Warm Creamy Linen/Ivory (`#faf7f0`) | **Eternals Gold Runes**: Marvel *Eternals* movie inspired traversing gold filament circuits, rotating sacred mandalas, and floating gold stardust | |
+| `white` / `light` | Flashy Textured White | `#edf2f7` (Cool Porcelain) | Warm Creamy Linen/Ivory (`#faf7f0`) | **Eternals Gold Runes**: Marvel *Eternals* inspired traversing gold filament circuits, rotating sacred mandalas, and floating gold stardust | |
 | `purple` / `midnight` | Multi-Color Cosmic Void | `#0b0617` (Deep Celestial Void) | Glassy Dark Purple with Specular Sheen | **Multi-Color Cosmic Rings**: 4-hue concentric orbital rings (amethyst, cyan, gold, rose) with multi-hue stardust | |
 | `obsidian` | Pure Pitch Black & Purple | `#07060a` (Obsidian Pitch) | Matte Glassy Black-Purple | **Astronomical Rings & Swords**: Celestial orbital rings with crossed runic swords | |
 | `onedark` | Hacker Dark Blue | `#16181d` (Deep Slate) | Frosted Electric Blue Glass | **Orbital Telemetry HUD**: Rotating radar arcs, orbital rings, and pulse beacons | |
@@ -263,7 +479,7 @@ Shadow Tracker features 5 themes with tailored CSS variables, glassy gradient fi
 
 ### Eco-Mode-and-Low-GPU-Mode
 For battery conservation and ultra-low-spec hardware:
-- Toggling Eco Mode switches all ambient backgrounds to **100% static SVGs** (`StaticEternalRings`) with zero Framer Motion loops and 0.0% idle CPU overhead.
+- Toggling Eco Mode switches all ambient backgrounds to **100% static SVGs** with zero Framer Motion loops and 0.0% idle CPU overhead.
 
 [↑ Back to contents](#Table-of-Contents)
 
@@ -274,8 +490,8 @@ For battery conservation and ultra-low-spec hardware:
 Shadow Tracker guarantees that you own 100% of your data without reliance on proprietary cloud databases.
 
 ### 1-Local-JSON-Backup-and-Restore
-- **Export**: Generates a unified, timestamped `shadow-tracker-full-backup-YYYY-MM-DD.json` file via the browser's File System Access API (or automatic HTML5 download).
-- **Import**: Validates schema integrity, overwrites or merges records, restores all IndexedDB stores and LocalStorage domains (Tasks, Habits, Daily Logs, Notes, Reminders, Categories, Money v4, Health daily logs, Biometrics, Workouts, Diets, Standalone ToDos, Quests, and Badges).
+- **Export**: Generates a unified, timestamped `shadow-tracker-full-backup-YYYY-MM-DD.json` file via the browser File System Access API.
+- **Import**: Validates schema integrity, restores all IndexedDB stores and LocalStorage domains (Tasks, Habits, Daily Logs, Notes, Reminders, Categories, Money v4, Health daily logs, Biometrics, Workouts, Diets, Standalone ToDos, Quests, and Badges).
 - **Annual Archives**: Archive historical data by year to keep active workspace queries lightning fast.
 
 ### 2-Microsoft-OneDrive-Auto-Sync
@@ -315,18 +531,6 @@ npm run build
 # Static export is generated into the `out/` directory
 ```
 
-### Running-with-Docker
-```bash
-# Build Docker image
-docker build -t shadow-tracker:latest .
-
-# Run container on port 8081
-docker run -d --name tracker -p 8081:80 shadow-tracker:latest
-
-# Verify health endpoint
-curl -sI http://localhost:8081/health
-```
-
 ### Desktop-Executable-Build-Tauri-2
 ```bash
 # Build Windows portable single executable and setup installer
@@ -347,6 +551,8 @@ cd android && ./gradlew assembleRelease
 Generated binary:
 - `release/Shadow-Tracker-Release.apk`
 
+[↑ Back to contents](#Table-of-Contents)
+
 ---
 
 ## Verification-Checklist
@@ -362,6 +568,10 @@ Generated binary:
 | Bidirectional Sync Reconciliation | Verified (`mergeBackupDatasets` covers all state domains) | |
 | Zero-CPU Idle Engine | Verified (Visibility API and Eco Mode static SVG fallback) | |
 | Next.js Static Export & Docker Deploy | Verified (Healthy on `http://localhost:8081`) | |
+| Docker Hub Published Image | Verified (`vibishnathang/shadow-tracker:latest` pushed & live) | |
+| Standardized Release Artifacts | Verified (Signed APK, Setup/Portable EXE, Container tarball in `release/`) | |
+
+[↑ Back to contents](#Table-of-Contents)
 
 ---
 

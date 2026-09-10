@@ -25,7 +25,7 @@ services:
   # Production container (optimized nginx static serve)
   prod:
     container_name: shadow-tracker-prod
-    image: shadow-tracker:prod
+    image: vibishnathang/shadow-tracker:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -41,4 +41,4 @@ services:
       start_period: 10s
     labels:
       - "com.shadow-tracker.description=Shadow Tracker Production"
-      - "com.shadow-tracker.version=0.1.0"
+      - "com.shadow-tracker.version=1.0.0"

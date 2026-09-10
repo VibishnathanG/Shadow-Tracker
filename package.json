@@ -1,6 +1,24 @@
 {
   "name": "shadow-tracker",
   "version": "1.0.0",
+  "description": "Sovereign, local-first, privacy-first personal operating system and gamified discipline sanctuary.",
+  "author": "Vibishnathan G <vibishnathang@github.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VibishnathanG/Shadow-Tracker.git"
+  },
+  "keywords": [
+    "life-os",
+    "productivity",
+    "habits",
+    "local-first",
+    "privacy-first",
+    "gamification",
+    "nextjs",
+    "tauri",
+    "capacitor",
+    "docker"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
