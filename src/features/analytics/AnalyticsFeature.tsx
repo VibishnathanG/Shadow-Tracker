@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import { useShadowTrackerStore } from '@/store';
 import EmptyState from '@/components/EmptyState';
+import { useViewPreference } from '@/lib/viewPreferences';
 import { getHabitDateStatus, parseDateString, getTodayDateString } from '@/lib/dateUtils';
 import { 
   format, 
@@ -206,7 +207,7 @@ const HabitsMonthlyGridCard: React.FC = () => {
   const { habits, categories, notes, saveNote, toggleHabitCompletion, markHabitUncompleted, clearHabitUncompleted, settings, updateSettings } = useShadowTrackerStore();
   const graceDays = settings?.habitGracePeriodDays ?? 3;
   const [currentMonthDate, setCurrentMonthDate] = useState<Date>(new Date());
-  const [matrixViewMode, setMatrixViewMode] = useState<'month' | 'week'>('month');
+  const [matrixViewMode, setMatrixViewMode] = useViewPreference('analyticsMatrixViewMode') as ['month' | 'week', (v: 'month' | 'week') => void];
   const [selectedWeekIdx, setSelectedWeekIdx] = useState<number>(0);
   const [reasonModal, setReasonModal] = useState<{ habit: typeof habits[0]; dateStr: string } | null>(null);
   const [presetReason, setPresetReason] = useState<string>('');
@@ -628,12 +629,21 @@ const HabitsMonthlyGridCard: React.FC = () => {
         <div className="space-y-6">
           {/* Scrollable Monthly Grid */}
           <div className="overflow-x-auto custom-scrollbar pb-3">
-            <table className="w-full border-collapse select-none min-w-0">
+            <table className="w-full border-collapse select-none min-w-0 table-fixed">
+              <colgroup>
+                <col className="w-36 sm:w-52" />
+                {displayDays.map(d => (
+                  <col key={format(d, 'yyyy-MM-dd')} className="w-7 sm:w-8 min-w-[26px] sm:min-w-[32px]" />
+                ))}
+              </colgroup>
               <thead>
                 {/* Row 1: Week Headers */}
                 <tr>
-                  <th className="sticky left-0 bg-surface/95 backdrop-blur-md z-20 p-1.5 sm:p-2 text-left text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider border-b border-border/50 w-28 sm:w-44 min-w-[110px] sm:min-w-[170px]">
-                    {matrixViewMode === 'week' ? `WEEK ${weekGroups[selectedWeekIdx]?.weekNumber || 1}` : 'MONTHLY GRID'}
+                  <th className="sticky left-0 bg-surface/95 backdrop-blur-md z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] text-left text-[10px] sm:text-xs font-black text-foreground uppercase tracking-wider border-b border-border/50 border-r border-border/40">
+                    <div className="flex items-center gap-1.5 truncate">
+                      <Lucide.CalendarDays size={13} className="text-primary shrink-0" />
+                      <span className="truncate">{matrixViewMode === 'week' ? `WEEK ${weekGroups[selectedWeekIdx]?.weekNumber || 1}` : 'MONTHLY GRID'}</span>
+                    </div>
                   </th>
                   {displayWeekGroups.map((week, wIdx) => {
                     const actualWeekIdx = matrixViewMode === 'week' ? selectedWeekIdx : wIdx;
@@ -642,7 +652,7 @@ const HabitsMonthlyGridCard: React.FC = () => {
                       <th 
                         key={week.weekNumber}
                         colSpan={week.days.length}
-                        className="p-0.5 sm:p-1 text-center border-b border-border/50"
+                        className="p-0.5 sm:p-1 text-center border-b border-border/50 border-r border-border/40 last:border-r-0"
                       >
                         <div className={`py-1 px-2.5 rounded-md sm:rounded-lg text-[9.5px] sm:text-[10.5px] font-black tracking-wider uppercase ${theme.bg} text-white shadow-xs border ${theme.border}`}>
                           Week {week.weekNumber}
@@ -654,8 +664,11 @@ const HabitsMonthlyGridCard: React.FC = () => {
 
                 {/* Row 2: Day of Week Abbreviation & Day Number */}
                 <tr className="border-b border-border/60">
-                  <th className="sticky left-0 bg-surface/95 backdrop-blur-md z-20 p-1.5 sm:p-2 text-[10px] sm:text-xs font-bold text-muted-foreground uppercase text-left border-r border-border/30">
-                    Habits ({activeHabits.length})
+                  <th className="sticky left-0 bg-surface/95 backdrop-blur-md z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] text-[10px] sm:text-xs font-bold text-muted-foreground uppercase text-left border-r border-border/40">
+                    <div className="flex items-center gap-1.5 truncate">
+                      <Lucide.Repeat size={13} className="text-muted-foreground shrink-0" />
+                      <span className="truncate">Habits ({activeHabits.length})</span>
+                    </div>
                   </th>
                   {displayDays.map((date) => {
                     const dateStr = format(date, 'yyyy-MM-dd');
@@ -666,7 +679,7 @@ const HabitsMonthlyGridCard: React.FC = () => {
                     return (
                       <th
                         key={dateStr}
-                        className={`p-0.5 text-center w-5 sm:w-7 min-w-[20px] sm:min-w-[25px] max-w-[24px] sm:max-w-[28px] transition-colors ${
+                        className={`p-0.5 text-center border-r border-border/30 last:border-r-0 transition-colors ${
                           isCurrent ? 'bg-primary/10 border-x border-primary/30 rounded-t-md' : ''
                         }`}
                       >
@@ -689,18 +702,20 @@ const HabitsMonthlyGridCard: React.FC = () => {
                 {activeHabits.map((habit) => (
                   <tr key={habit.id} className="border-b border-border/30 hover:bg-secondary/20 transition-colors group">
                     {/* Habit Name Column (Sticky Left) */}
-                    <td className="sticky left-0 bg-surface/95 backdrop-blur-md z-20 p-1.5 sm:p-2 flex items-center gap-1.5 sm:gap-2 font-bold text-[10px] sm:text-xs text-foreground group-hover:text-primary transition-colors w-28 sm:w-44 min-w-[110px] sm:min-w-[170px] border-r border-border/30">
-                      <div 
-                        className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full shrink-0 shadow-xs"
-                        style={{ backgroundColor: getCategoryColor(habit.categoryId) }}
-                      />
-                      <div className="flex flex-col min-w-0">
-                        <span className="truncate max-w-[85px] sm:max-w-[130px]" title={habit.name}>
-                          {habit.name}
-                        </span>
-                        <span className="text-[8px] sm:text-[9px] text-muted-foreground font-semibold uppercase tracking-tight truncate">
-                          {habit.frequency === 'custom' ? 'Custom' : habit.frequency === 'weekly' ? '1x/Wk' : 'Daily'}
-                        </span>
+                    <td className="sticky left-0 bg-surface/95 backdrop-blur-md z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r border-border/40 text-left align-middle">
+                      <div className="flex items-center gap-2 font-bold text-[10px] sm:text-xs text-foreground group-hover:text-primary transition-colors min-w-0">
+                        <div 
+                          className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full shrink-0 shadow-xs"
+                          style={{ backgroundColor: getCategoryColor(habit.categoryId) }}
+                        />
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <span className="truncate" title={habit.name}>
+                            {habit.name}
+                          </span>
+                          <span className="text-[8px] sm:text-[9px] text-muted-foreground font-semibold uppercase tracking-tight truncate">
+                            {habit.frequency === 'custom' ? 'Custom' : habit.frequency === 'weekly' ? '1x/Wk' : 'Daily'}
+                          </span>
+                        </div>
                       </div>
                     </td>
 
@@ -719,7 +734,7 @@ const HabitsMonthlyGridCard: React.FC = () => {
                       return (
                         <td 
                           key={dateStr}
-                          className={`p-0.5 text-center align-middle relative group/cell ${isCurrent ? 'bg-primary/5 border-x border-primary/20' : ''}`}
+                          className={`p-0.5 text-center align-middle relative group/cell border-r border-border/25 last:border-r-0 ${isCurrent ? 'bg-primary/5 border-x border-primary/20' : ''}`}
                         >
                           <div className="relative w-full h-full flex items-center justify-center py-0.5">
                             <motion.button
@@ -789,14 +804,14 @@ const HabitsMonthlyGridCard: React.FC = () => {
 
                 {/* Summary Row 1: Progress % */}
                 <tr className="border-t-2 border-border/80 bg-surface-elevated/40 font-black text-xs sm:text-sm">
-                  <td className="sticky left-0 bg-surface/95 backdrop-blur-md z-20 p-2 text-muted-foreground uppercase tracking-wider font-black text-xs sm:text-sm border-r border-border/30">
+                  <td className="sticky left-0 bg-surface/95 backdrop-blur-md z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r border-border/40 text-left align-middle text-muted-foreground uppercase tracking-wider font-black text-xs sm:text-sm">
                     Progress %
                   </td>
                   {displayDays.map(date => {
                     const dateStr = format(date, 'yyyy-MM-dd');
                     const stat = dailyStats.find(s => s.dateStr === dateStr) || { percentage: 0 };
                     return (
-                      <td key={`pct-${dateStr}`} className="p-0.5 text-center text-primary font-black text-[10px] sm:text-xs">
+                      <td key={`pct-${dateStr}`} className="p-0.5 text-center text-primary font-black text-[10px] sm:text-xs border-r border-border/25 last:border-r-0">
                         {stat.percentage}%
                       </td>
                     );
@@ -805,14 +820,14 @@ const HabitsMonthlyGridCard: React.FC = () => {
 
                 {/* Summary Row 2: Done */}
                 <tr className="bg-surface-elevated/20 font-black text-xs sm:text-sm">
-                  <td className="sticky left-0 bg-surface/95 backdrop-blur-md z-20 p-2 text-emerald-400 uppercase tracking-wider font-black text-xs sm:text-sm border-r border-border/30">
+                  <td className="sticky left-0 bg-surface/95 backdrop-blur-md z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r border-border/40 text-left align-middle text-emerald-400 uppercase tracking-wider font-black text-xs sm:text-sm">
                     Done
                   </td>
                   {displayDays.map(date => {
                     const dateStr = format(date, 'yyyy-MM-dd');
                     const stat = dailyStats.find(s => s.dateStr === dateStr) || { doneCount: 0 };
                     return (
-                      <td key={`done-${dateStr}`} className="p-0.5 text-center text-emerald-400 font-black text-[10px] sm:text-xs">
+                      <td key={`done-${dateStr}`} className="p-0.5 text-center text-emerald-400 font-black text-[10px] sm:text-xs border-r border-border/25 last:border-r-0">
                         {stat.doneCount}
                       </td>
                     );
@@ -821,14 +836,14 @@ const HabitsMonthlyGridCard: React.FC = () => {
 
                 {/* Summary Row 3: Not Done */}
                 <tr className="bg-surface-elevated/20 font-black text-xs sm:text-sm">
-                  <td className="sticky left-0 bg-surface/95 backdrop-blur-md z-20 p-2 text-rose-400 uppercase tracking-wider font-black text-xs sm:text-sm border-r border-border/30">
+                  <td className="sticky left-0 bg-surface/95 backdrop-blur-md z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r border-border/40 text-left align-middle text-rose-400 uppercase tracking-wider font-black text-xs sm:text-sm">
                     Not Done
                   </td>
                   {displayDays.map(date => {
                     const dateStr = format(date, 'yyyy-MM-dd');
                     const stat = dailyStats.find(s => s.dateStr === dateStr) || { notDoneCount: 0 };
                     return (
-                      <td key={`notdone-${dateStr}`} className="p-0.5 text-center text-rose-400 font-black text-[10px] sm:text-xs">
+                      <td key={`notdone-${dateStr}`} className="p-0.5 text-center text-rose-400 font-black text-[10px] sm:text-xs border-r border-border/25 last:border-r-0">
                         {stat.notDoneCount}
                       </td>
                     );
@@ -1045,11 +1060,11 @@ const TasksHeatmapCard: React.FC = () => {
         {heatmapDays.map((day, i) => {
           const intensity = day.count === 0 ? 0 : day.count <= 2 ? 1 : day.count <= 4 ? 2 : day.count <= 6 ? 3 : 4;
           const colors = [
-            'bg-secondary/40 border border-border/40', 
-            'bg-blue-500/30 border border-blue-500/40', 
-            'bg-blue-500/60 border border-blue-500/70', 
-            'bg-blue-500/90 border border-blue-400', 
-            'bg-blue-500 shadow-[0_0_10px_#3b82f6] border border-blue-300 scale-105'
+            'bg-secondary/40 border border-border/40 text-muted-foreground/30', 
+            'bg-blue-500/30 border border-blue-500/40 text-blue-200', 
+            'bg-blue-500/60 border border-blue-500/70 text-blue-100', 
+            'bg-blue-500/90 border border-blue-400 text-white', 
+            'bg-blue-500 shadow-[0_0_10px_#3b82f6] border border-blue-300 text-white font-black'
           ];
           
           return (
@@ -1058,10 +1073,14 @@ const TasksHeatmapCard: React.FC = () => {
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.3, delay: i * 0.008 }}
-                className={`w-4 h-4 md:w-5 md:h-5 rounded-md ${colors[intensity]} cursor-pointer`}
-                whileHover={{ scale: 1.3, zIndex: 10 }}
+                className={`w-5 h-5 sm:w-6 sm:h-6 rounded-md ${colors[intensity]} cursor-pointer flex items-center justify-center select-none text-[9.5px] font-bold`}
+                whileHover={{ scale: 1.25, zIndex: 10 }}
                 whileTap={{ scale: 0.95 }}
-              />
+              >
+                {day.count > 0 ? (
+                  <span className="leading-none drop-shadow-xs">{day.count}</span>
+                ) : null}
+              </motion.div>
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover/taskmap:block z-50 pointer-events-none">
                 <motion.div 
                   initial={{ opacity: 0, y: 5, scale: 0.8 }} 

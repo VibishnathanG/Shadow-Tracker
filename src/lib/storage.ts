@@ -144,17 +144,66 @@ export const dbService = {
     const categories = await this.getAll<Category>(STORES.CATEGORIES);
 
     let moneyData = null;
+    let healthData = null;
+    let standaloneTodos = null;
+    let rpgQuests = null;
+    let wizardScrolls = null;
     let unlockedBadges: string[] = [];
 
     if (isBrowser) {
       try {
-        const savedMoney = localStorage.getItem('shadow_money_data_v3');
-        if (savedMoney) moneyData = JSON.parse(savedMoney);
-        
+        // 1. Money Data (v4 + v3 unified)
+        const savedMoneyV4Expenses = localStorage.getItem('shadow_money_expenses_v4');
+        const savedMoneyV4Months = localStorage.getItem('shadow_money_months_v4');
+        const savedMoneyV3 = localStorage.getItem('shadow_money_data_v3');
+        if (savedMoneyV4Expenses || savedMoneyV4Months) {
+          moneyData = {
+            expenses: savedMoneyV4Expenses ? JSON.parse(savedMoneyV4Expenses) : [],
+            monthlyDataMap: savedMoneyV4Months ? JSON.parse(savedMoneyV4Months) : {},
+            ...(savedMoneyV3 ? JSON.parse(savedMoneyV3) : {})
+          };
+        } else if (savedMoneyV3) {
+          moneyData = JSON.parse(savedMoneyV3);
+        }
+
+        // 2. Health & Vitality Suite
+        const savedHealthLogs = localStorage.getItem('shadow_health_data_v2') || localStorage.getItem('shadow_health_data_v1');
+        const savedCustomWorkouts = localStorage.getItem('shadow_custom_workout_plans_v1');
+        const savedTodayExercises = localStorage.getItem('shadow_logged_exercises_today');
+        const savedCustomFoods = localStorage.getItem('shadow_custom_foods_v1');
+        const savedFoodSuggestions = localStorage.getItem('shadow_quick_food_suggestions_v1');
+        const savedBiometrics = localStorage.getItem('shadow_user_biometrics_v1');
+        const savedCustomDiets = localStorage.getItem('shadow_custom_diet_plans_v1');
+
+        if (savedHealthLogs || savedCustomWorkouts || savedCustomDiets || savedBiometrics || savedCustomFoods) {
+          healthData = {
+            dailyLogs: savedHealthLogs ? JSON.parse(savedHealthLogs) : {},
+            customWorkouts: savedCustomWorkouts ? JSON.parse(savedCustomWorkouts) : [],
+            todayExercises: savedTodayExercises ? JSON.parse(savedTodayExercises) : [],
+            customFoods: savedCustomFoods ? JSON.parse(savedCustomFoods) : [],
+            quickSuggestions: savedFoodSuggestions ? JSON.parse(savedFoodSuggestions) : [],
+            biometrics: savedBiometrics ? JSON.parse(savedBiometrics) : null,
+            customDiets: savedCustomDiets ? JSON.parse(savedCustomDiets) : [],
+          };
+        }
+
+        // 3. Standalone ToDos
+        const savedTodos = localStorage.getItem('shadow_standalone_todos_v1');
+        if (savedTodos) standaloneTodos = JSON.parse(savedTodos);
+
+        // 4. RPG Quests
+        const savedQuests = localStorage.getItem('shadow_life_rpg_quests_v1');
+        if (savedQuests) rpgQuests = JSON.parse(savedQuests);
+
+        // 5. Wizard Scrolls
+        const savedScrolls = localStorage.getItem('shadow_wizard_quotes_v1');
+        if (savedScrolls) wizardScrolls = JSON.parse(savedScrolls);
+
+        // 6. Badges
         const savedBadges = localStorage.getItem('shadow_unlocked_badges');
         if (savedBadges) unlockedBadges = JSON.parse(savedBadges);
       } catch (e) {
-        console.error('Error reading moneyData or unlockedBadges for export:', e);
+        console.error('Error reading localStorage data for export:', e);
       }
     }
 
@@ -173,6 +222,10 @@ export const dbService = {
       categories,
       settings: safeSettings,
       moneyData,
+      healthData,
+      standaloneTodos,
+      rpgQuests,
+      wizardScrolls,
       unlockedBadges,
       exportedAt: new Date().toISOString(),
     };
@@ -226,9 +279,68 @@ export const dbService = {
 
           existingMoney.expenses = Array.from(mergedExpMap.values());
           localStorage.setItem('shadow_money_data_v3', JSON.stringify(existingMoney));
+          localStorage.setItem('shadow_money_expenses_v4', JSON.stringify(existingMoney.expenses));
         } catch (e) {}
       } else {
+        if (data.moneyData.expenses) {
+          localStorage.setItem('shadow_money_expenses_v4', JSON.stringify(data.moneyData.expenses));
+        }
+        if (data.moneyData.monthlyDataMap) {
+          localStorage.setItem('shadow_money_months_v4', JSON.stringify(data.moneyData.monthlyDataMap));
+        }
         localStorage.setItem('shadow_money_data_v3', JSON.stringify(data.moneyData));
+      }
+    }
+
+    if (data.healthData) {
+      try {
+        if (data.healthData.dailyLogs) {
+          localStorage.setItem('shadow_health_data_v2', JSON.stringify(data.healthData.dailyLogs));
+        }
+        if (data.healthData.customWorkouts) {
+          localStorage.setItem('shadow_custom_workout_plans_v1', JSON.stringify(data.healthData.customWorkouts));
+        }
+        if (data.healthData.todayExercises) {
+          localStorage.setItem('shadow_logged_exercises_today', JSON.stringify(data.healthData.todayExercises));
+        }
+        if (data.healthData.customFoods) {
+          localStorage.setItem('shadow_custom_foods_v1', JSON.stringify(data.healthData.customFoods));
+        }
+        if (data.healthData.quickSuggestions) {
+          localStorage.setItem('shadow_quick_food_suggestions_v1', JSON.stringify(data.healthData.quickSuggestions));
+        }
+        if (data.healthData.biometrics) {
+          localStorage.setItem('shadow_user_biometrics_v1', JSON.stringify(data.healthData.biometrics));
+        }
+        if (data.healthData.customDiets) {
+          localStorage.setItem('shadow_custom_diet_plans_v1', JSON.stringify(data.healthData.customDiets));
+        }
+      } catch (e) {
+        console.error('Error restoring healthData:', e);
+      }
+    }
+
+    if (data.standaloneTodos && Array.isArray(data.standaloneTodos)) {
+      try {
+        localStorage.setItem('shadow_standalone_todos_v1', JSON.stringify(data.standaloneTodos));
+      } catch (e) {
+        console.error('Error restoring standaloneTodos:', e);
+      }
+    }
+
+    if (data.rpgQuests && Array.isArray(data.rpgQuests)) {
+      try {
+        localStorage.setItem('shadow_life_rpg_quests_v1', JSON.stringify(data.rpgQuests));
+      } catch (e) {
+        console.error('Error restoring rpgQuests:', e);
+      }
+    }
+
+    if (data.wizardScrolls && Array.isArray(data.wizardScrolls)) {
+      try {
+        localStorage.setItem('shadow_wizard_quotes_v1', JSON.stringify(data.wizardScrolls));
+      } catch (e) {
+        console.error('Error restoring wizardScrolls:', e);
       }
     }
 
@@ -434,7 +546,7 @@ export const dbService = {
 // Settings are stored in localStorage for easier synchronous retrieval during initialization
 const SETTINGS_KEY = 'shadow_tracker_settings';
 const DEFAULT_SETTINGS: Settings = {
-  theme: 'onedark',
+  theme: 'spectrum',
   backupReminderDays: 7,
   soundEnabled: true,
   stickyTaskNotifications: true,

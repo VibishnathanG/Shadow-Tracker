@@ -12,6 +12,7 @@ import { ScheduleSelector } from '@/components/ScheduleSelector';
 import { format, subDays, addDays } from 'date-fns';
 import { Habit, Category } from '@/types';
 import { fireConfetti, fireStreakConfetti } from '@/lib/confetti';
+import { useViewPreference } from '@/lib/viewPreferences';
 
 const MagicCrystal = () => (
   <motion.svg width="36" height="36" viewBox="0 0 100 100"
@@ -186,155 +187,182 @@ const PremiumHabitCard: React.FC<PremiumHabitCardProps> = ({
       </div>
       
       <div className="relative z-10 space-y-3.5">
-        <div className="flex justify-between items-start gap-2.5">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-             {/* Action Control: Complete Checkmark & Not Completed X */}
-             <div className="flex items-center gap-1.5 shrink-0">
-               {/* Complete Check Button (✓) */}
-               <div className="relative">
-                 {isCompleted && (
-                   <motion.div
-                     animate={{ scale: [1, 1.4, 1], opacity: [0.6, 0, 0.6] }}
-                     transition={{ duration: 2, repeat: Infinity }}
-                     className="absolute inset-0 bg-primary rounded-xl blur-sm pointer-events-none"
-                   />
-                 )}
-                 <motion.button
-                   whileTap={!isFutureDate && !isPastGracePeriod ? { scale: 0.93 } : undefined}
-                   disabled={isFutureDate || isPastGracePeriod}
-                   onClick={() => onToggle(habit.id, selectedDateStr)}
-                   className={`relative z-10 w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all duration-300 ${
-                     isFutureDate
-                       ? 'bg-secondary/20 text-muted-foreground/30 border border-border/40 cursor-not-allowed opacity-35'
-                       : isPastGracePeriod
-                       ? isCompleted
-                         ? 'bg-primary/50 text-white/80 border border-primary/40 cursor-not-allowed opacity-60'
-                         : 'bg-secondary/20 text-muted-foreground/30 border border-border/40 cursor-not-allowed opacity-35'
-                       : isCompleted
-                       ? 'bg-gradient-to-tr from-primary to-purple-500 text-primary-foreground shadow-md shadow-primary/40 scale-105 border border-primary/40 cursor-pointer'
-                       : 'bg-surface-elevated/90 text-secondary hover:text-primary hover:border-primary/60 border-2 border-border/90 shadow-xs cursor-pointer'
-                   }`}
-                   title={
-                     isFutureDate
-                       ? 'Future habits cannot be marked complete before date'
-                       : isPastGracePeriod
-                       ? '3-day grace period expired - cannot update'
-                       : isCompleted
-                       ? 'Completed (Click to untoggle)'
-                       : 'Mark as Completed'
-                   }
-                 >
-                   <Lucide.Check
-                     size={20}
-                     className={
-                       isCompleted
-                         ? 'stroke-[3px]'
-                         : isFutureDate || isPastGracePeriod
-                         ? 'opacity-20'
-                         : 'opacity-40 hover:opacity-100 stroke-[2.5px]'
-                     }
-                   />
-                 </motion.button>
-               </div>
+        {/* TOP ROW: Check/X Actions + Vitality Base + Artwork & Edit/Delete */}
+        <div className="flex items-center justify-between gap-3">
+          {/* Action Control: Complete Checkmark & Not Completed X */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* Complete Check Button (✓) */}
+            <div className="relative">
+              {isCompleted && (
+                <motion.div
+                  animate={{ scale: [1, 1.4, 1], opacity: [0.6, 0, 0.6] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="absolute inset-0 bg-primary rounded-xl blur-sm pointer-events-none"
+                />
+              )}
+              <motion.button
+                whileTap={!isFutureDate && !isPastGracePeriod ? { scale: 0.93 } : undefined}
+                disabled={isFutureDate || isPastGracePeriod}
+                onClick={() => onToggle(habit.id, selectedDateStr)}
+                className={`relative z-10 w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all duration-300 ${
+                  isFutureDate
+                    ? 'bg-secondary/20 text-muted-foreground/30 border border-border/40 cursor-not-allowed opacity-35'
+                    : isPastGracePeriod
+                    ? isCompleted
+                      ? 'bg-primary/50 text-white/80 border border-primary/40 cursor-not-allowed opacity-60'
+                      : 'bg-secondary/20 text-muted-foreground/30 border border-border/40 cursor-not-allowed opacity-35'
+                    : isCompleted
+                    ? 'bg-gradient-to-tr from-primary to-purple-500 text-primary-foreground shadow-md shadow-primary/40 scale-105 border border-primary/40 cursor-pointer'
+                    : 'bg-surface-elevated/90 text-secondary hover:text-primary hover:border-primary/60 border-2 border-border/90 shadow-xs cursor-pointer'
+                }`}
+                title={
+                  isFutureDate
+                    ? 'Future habits cannot be marked complete before date'
+                    : isPastGracePeriod
+                    ? '3-day grace period expired - cannot update'
+                    : isCompleted
+                    ? 'Completed (Click to untoggle)'
+                    : 'Mark as Completed'
+                }
+              >
+                <Lucide.Check
+                  size={20}
+                  className={
+                    isCompleted
+                      ? 'stroke-[3px]'
+                      : isFutureDate || isPastGracePeriod
+                      ? 'opacity-20'
+                      : 'opacity-40 hover:opacity-100 stroke-[2.5px]'
+                  }
+                />
+              </motion.button>
+            </div>
 
-               {/* Not Completed Button (✗) */}
-               <div className="relative">
-                 {isUncompleted && (
-                   <motion.div
-                     animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
-                     transition={{ duration: 2, repeat: Infinity }}
-                     className="absolute inset-0 bg-rose-500 rounded-xl blur-sm pointer-events-none"
-                   />
-                 )}
-                 <motion.button
-                   whileTap={!isFutureDate ? { scale: 0.93 } : undefined}
-                   disabled={isFutureDate}
-                   onClick={() => onMarkUncompleted(habit, selectedDateStr)}
-                   className={`relative z-10 w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all duration-300 ${
-                     isFutureDate
-                       ? 'bg-secondary/20 text-muted-foreground/30 border border-border/40 cursor-not-allowed opacity-35'
-                       : isUncompleted
-                       ? 'bg-rose-500/20 text-rose-400 border-2 border-rose-500/60 shadow-md shadow-rose-500/20 scale-105 cursor-pointer'
-                       : 'bg-surface-elevated/90 text-secondary hover:text-rose-400 hover:border-rose-500/60 border-2 border-border/90 shadow-xs cursor-pointer'
-                   }`}
-                   title={
-                     isFutureDate
-                       ? 'Cannot log reasons for future dates'
-                       : isUncompleted
-                       ? `Marked uncompleted${reasonText ? `: "${reasonText}"` : ''} (Click to edit reason)`
-                       : 'Mark Not Completed (Optional reason)'
-                   }
-                 >
-                   <Lucide.X
-                     size={18}
-                     className={
-                       isUncompleted
-                         ? 'stroke-[3px]'
-                         : isFutureDate
-                         ? 'opacity-20'
-                         : 'opacity-40 hover:opacity-100 stroke-[2.5px]'
-                     }
-                   />
-                 </motion.button>
-               </div>
-             </div>
+            {/* Not Completed Button (✗) */}
+            <div className="relative">
+              {isUncompleted && (
+                <motion.div
+                  animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="absolute inset-0 bg-rose-500 rounded-xl blur-sm pointer-events-none"
+                />
+              )}
+              <motion.button
+                whileTap={!isFutureDate ? { scale: 0.93 } : undefined}
+                disabled={isFutureDate}
+                onClick={() => onMarkUncompleted(habit, selectedDateStr)}
+                className={`relative z-10 w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all duration-300 ${
+                  isFutureDate
+                    ? 'bg-secondary/20 text-muted-foreground/30 border border-border/40 cursor-not-allowed opacity-35'
+                    : isUncompleted
+                    ? 'bg-rose-500/20 text-rose-400 border-2 border-rose-500/60 shadow-md shadow-rose-500/20 scale-105 cursor-pointer'
+                    : 'bg-surface-elevated/90 text-secondary hover:text-rose-400 hover:border-rose-500/60 border-2 border-border/90 shadow-xs cursor-pointer'
+                }`}
+                title={
+                  isFutureDate
+                    ? 'Cannot log reasons for future dates'
+                    : isUncompleted
+                    ? `Marked uncompleted${reasonText ? `: "${reasonText}"` : ''} (Click to edit reason)`
+                    : 'Mark Not Completed (Optional reason)'
+                }
+              >
+                <Lucide.X
+                  size={18}
+                  className={
+                    isUncompleted
+                      ? 'stroke-[3px]'
+                      : isFutureDate
+                      ? 'opacity-20'
+                      : 'opacity-40 hover:opacity-100 stroke-[2.5px]'
+                  }
+                />
+              </motion.button>
+            </div>
+          </div>
 
-             <div className="min-w-0 flex-1">
-               <motion.h3 layout className="text-base font-extrabold tracking-tight text-foreground flex items-center gap-2 truncate">
-                 <span className="truncate">{habit.name}</span>
+          {/* Vitality Base in Top Row */}
+          <div className="flex-1 min-w-0 px-1 sm:px-2">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-[11px] font-black text-secondary uppercase tracking-widest flex items-center gap-1 truncate">
+                <Lucide.BatteryCharging size={13} className="text-primary shrink-0" /> 
+                <span className="truncate">Vitality Base</span>
+              </span>
+              <span className="text-xs font-black text-foreground font-mono ml-1 shrink-0">{energyLevel}%</span>
+            </div>
+            <div className="h-2 w-full bg-secondary/80 rounded-full overflow-hidden">
+              <motion.div 
+                initial={{ width: 0 }}
+                animate={{ width: `${energyLevel}%` }}
+                transition={{ duration: 1.5, ease: "easeOut" }}
+                className="h-full bg-gradient-to-r from-primary/50 to-primary relative"
+              >
                  <motion.div
-                   animate={{ scale: [1, 1.2, 1], opacity: [0.6, 1, 0.6] }}
-                   transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                   className="shrink-0"
-                 >
-                   <Lucide.Sparkles size={14} className={isCompleted ? "text-primary" : "text-primary/40"} />
-                 </motion.div>
-               </motion.h3>
-                {habit.description && (
-                  <p className="text-xs text-secondary font-semibold mt-0.5 truncate">
-                    {habit.description}
-                  </p>
-                )}
-                {reasonText && (
-                  <button
-                    type="button"
-                    onClick={() => onMarkUncompleted(habit, selectedDateStr)}
-                    className="mt-1 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-400 text-[11px] font-bold hover:bg-amber-500/25 transition-all text-left max-w-full"
-                    title="Click to view/edit reflection reason"
-                  >
-                    <Lucide.FileEdit size={11} className="shrink-0 text-amber-400" />
-                    <span className="truncate max-w-[170px] sm:max-w-[240px]">Reason: {reasonText}</span>
-                  </button>
-                )}
-              </div>
-           </div>
-           
-           <div className="flex items-center shrink-0">
-             <div className="mr-1 sm:mr-2 pointer-events-none drop-shadow-lg">
-               {getArtwork(habit.streakCount)}
-             </div>
+                   animate={{ x: ['-100%', '200%'] }}
+                   transition={{ duration: 2, repeat: Infinity, ease: "linear", delay: 1 }}
+                   className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-12"
+                 />
+              </motion.div>
+            </div>
+          </div>
+          
+          {/* Artwork & Action Controls */}
+          <div className="flex items-center shrink-0">
+            <div className="mr-1 pointer-events-none drop-shadow-lg">
+              {getArtwork(habit.streakCount)}
+            </div>
 
-             <div className="flex items-center gap-0.5 sm:gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity relative z-20">
-               <button 
-                 type="button" 
-                 onClick={(e) => { e.stopPropagation(); onEdit(habit); }} 
-                 className="p-1.5 sm:p-2 text-secondary hover:text-foreground hover:bg-surface-elevated rounded-lg transition-all cursor-pointer"
-                 title="Edit Habit"
-               >
-                 <Lucide.Edit2 size={15} />
-               </button>
-               <button 
-                 type="button" 
-                 onClick={(e) => { e.stopPropagation(); onDelete(habit.id); }} 
-                 className="p-1.5 sm:p-2 text-secondary hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all cursor-pointer"
-                 title="Delete Habit"
-               >
-                 <Lucide.Trash2 size={15} />
-               </button>
-             </div>
-           </div>
-         </div>
+            <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity relative z-20">
+              <button 
+                type="button" 
+                onClick={(e) => { e.stopPropagation(); onEdit(habit); }} 
+                className="p-1.5 text-secondary hover:text-foreground hover:bg-surface-elevated rounded-lg transition-all cursor-pointer"
+                title="Edit Habit"
+              >
+                <Lucide.Edit2 size={15} />
+              </button>
+              <button 
+                type="button" 
+                onClick={(e) => { e.stopPropagation(); onDelete(habit.id); }} 
+                className="p-1.5 text-secondary hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all cursor-pointer"
+                title="Delete Habit"
+              >
+                <Lucide.Trash2 size={15} />
+              </button>
+            </div>
+          </div>
+        </div>
 
+        {/* DOWN/BOTTOM SECTION: Full Habit Name & Multi-line Description */}
+        <div className="min-w-0 pt-1">
+          <motion.h3 layout className="text-base font-extrabold tracking-tight text-foreground flex items-start justify-between gap-2 leading-snug">
+            <span className="break-words">{habit.name}</span>
+            <motion.div
+              animate={{ scale: [1, 1.2, 1], opacity: [0.6, 1, 0.6] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              className="shrink-0 mt-0.5"
+            >
+              <Lucide.Sparkles size={14} className={isCompleted ? "text-primary" : "text-primary/40"} />
+            </motion.div>
+          </motion.h3>
+          {habit.description && (
+            <p className="text-xs text-secondary font-medium mt-1 leading-relaxed break-words">
+              {habit.description}
+            </p>
+          )}
+          {reasonText && (
+            <button
+              type="button"
+              onClick={() => onMarkUncompleted(habit, selectedDateStr)}
+              className="mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-400 text-[11px] font-bold hover:bg-amber-500/25 transition-all text-left max-w-full"
+              title="Click to view/edit reflection reason"
+            >
+              <Lucide.FileEdit size={11} className="shrink-0 text-amber-400" />
+              <span className="truncate max-w-[280px]">Reason: {reasonText}</span>
+            </button>
+          )}
+        </div>
+
+        {/* Streaks & Category Tags */}
         <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
           <div className="flex items-center gap-1.5 bg-surface-elevated/95 px-2.5 py-1.5 rounded-xl border border-border/80 shadow-xs">
             <motion.div
@@ -357,30 +385,6 @@ const PremiumHabitCard: React.FC<PremiumHabitCardProps> = ({
               <span className="text-foreground font-black text-xs truncate max-w-[130px] sm:max-w-none">{category.name}</span>
             </div>
           )}
-        </div>
-
-        <div className="pt-1">
-          <div className="flex justify-between items-center mb-1.5">
-            <span className="text-xs font-black text-secondary uppercase tracking-widest flex items-center gap-1.5">
-              <Lucide.BatteryCharging size={14} className="text-primary shrink-0" /> 
-              Vitality Base
-            </span>
-            <span className="text-xs font-black text-foreground font-mono">{energyLevel}%</span>
-          </div>
-          <div className="h-1.5 w-full bg-secondary/80 rounded-full overflow-hidden">
-            <motion.div 
-              initial={{ width: 0 }}
-              animate={{ width: `${energyLevel}%` }}
-              transition={{ duration: 1.5, ease: "easeOut" }}
-              className="h-full bg-gradient-to-r from-primary/50 to-primary relative"
-            >
-               <motion.div
-                 animate={{ x: ['-100%', '200%'] }}
-                 transition={{ duration: 2, repeat: Infinity, ease: "linear", delay: 1 }}
-                 className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-12"
-               />
-            </motion.div>
-          </div>
         </div>
 
         <motion.div 
@@ -449,7 +453,7 @@ export const HabitsFeature: React.FC = () => {
   } = useShadowTrackerStore();
   const graceDays = settings?.habitGracePeriodDays ?? 3;
 
-  const [habitFilter, setHabitFilter] = useState<'all' | 'today' | 'yesterday' | 'tomorrow' | 'pending-today' | 'completed-today'>('all');
+  const [habitFilter, setHabitFilter] = useViewPreference('habitsFilter') as ['all' | 'today' | 'yesterday' | 'tomorrow' | 'pending-today' | 'completed-today', (v: 'all' | 'today' | 'yesterday' | 'tomorrow' | 'pending-today' | 'completed-today') => void];
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
   const [reasonModal, setReasonModal] = useState<{ habit: Habit; dateStr: string } | null>(null);

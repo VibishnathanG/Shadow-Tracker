@@ -33,6 +33,8 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { sendNativeNotification, isTauriEnv } from '@/lib/nativeNotification';
 import { NiceTimePicker } from '@/components/NiceTimePicker';
 import { ScheduleSelector } from '@/components/ScheduleSelector';
+import { resetAllViewPreferences } from '@/lib/viewPreferences';
+import { fireConfetti } from '@/lib/confetti';
 
 const TileArtDisplaySettings = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.1] select-none z-0">
@@ -161,7 +163,7 @@ const OneDriveSyncTile: React.FC = () => {
 
   return (
     <motion.div
-      className="tile p-6 sm:p-8 space-y-5 flex flex-col justify-between relative overflow-hidden lg:col-span-1"
+      className="tile settings-tile p-6 sm:p-8 space-y-5 flex flex-col justify-between relative overflow-hidden lg:col-span-1"
     >
       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.07] select-none z-0">
         <motion.svg className="w-full h-full text-sky-400" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -228,7 +230,7 @@ const OneDriveSyncTile: React.FC = () => {
               whileTap={{ scale: 0.95 }}
               onClick={handleStartNewSync}
               disabled={isSyncing}
-              className="flex items-center justify-center gap-2 px-3.5 py-3 bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50"
+              className="filter-pill active flex items-center justify-center gap-2 !px-3.5 !py-3 font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer"
             >
               <Lucide.PlusCircle size={15} />
               Start New Sync File
@@ -239,7 +241,7 @@ const OneDriveSyncTile: React.FC = () => {
               whileTap={{ scale: 0.95 }}
               onClick={handlePickExistingSync}
               disabled={isSyncing}
-              className="flex items-center justify-center gap-2 px-3.5 py-3 bg-slate-800 hover:bg-slate-700 text-sky-300 border border-sky-500/40 font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50"
+              className="filter-pill flex items-center justify-center gap-2 !px-3.5 !py-3 font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer"
             >
               <Lucide.FolderOpen size={15} />
               Pick Existing Sync File
@@ -253,7 +255,7 @@ const OneDriveSyncTile: React.FC = () => {
                 whileTap={{ scale: 0.95 }}
                 onClick={handleSyncNow}
                 disabled={isSyncing}
-                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-card hover:bg-secondary border-2 border-sky-500/40 text-sky-300 font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50"
+                className="filter-pill flex items-center justify-center gap-2 !px-4 !py-2.5 font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer"
               >
                 <Lucide.RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />
                 Sync Now
@@ -263,9 +265,9 @@ const OneDriveSyncTile: React.FC = () => {
                 whileTap={{ scale: 0.95 }}
                 onClick={handleDisconnect}
                 disabled={isSyncing}
-                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-card hover:bg-secondary border-2 border-red-500/30 text-red-400 font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50"
+                className="filter-pill flex items-center justify-center gap-2 !px-4 !py-2.5 text-rose-400 border-rose-500/30 hover:border-rose-500/60 font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer"
               >
-                <Lucide.Unlink size={14} />
+                <Lucide.XCircle size={14} />
                 Disconnect
               </motion.button>
             </div>
@@ -285,6 +287,8 @@ export const SettingsFeature: React.FC = () => {
     settings,
     updateSettings,
     resetAllData,
+    resetLifeRpg,
+    recalibrateFromCurrentData,
     importBackup,
     categories,
     addCategory,
@@ -808,6 +812,35 @@ export const SettingsFeature: React.FC = () => {
     }
   }, [resetAllData]);
 
+  const handleResetLifeRpg = useCallback(async () => {
+    const confirmReset = window.confirm(
+      '⚠️ WARNING: Reset Life RPG Progression?\n\n' +
+      'This will reset your Character Level back to Level 1, clear all accumulated RPG XP to 0, and reset your active RPG quest log.\n\n' +
+      'Your actual completed tasks, habits, notes, and records will NOT be deleted, but your RPG gamification rank will start fresh from Level 1.\n\n' +
+      'Are you sure you wish to proceed?'
+    );
+    if (confirmReset) {
+      await resetLifeRpg();
+      alert('⚔️ Life RPG Progression reset. Character Level is now 1 and XP cleared.');
+    }
+  }, [resetLifeRpg]);
+
+  const handleRecalibrateFromCurrentData = useCallback(async () => {
+    const res = await recalibrateFromCurrentData();
+    fireConfetti();
+    alert(
+      `🎯 Recalibration Across Current Data Complete!\n\n` +
+      `• RPG Rank: Level ${res.level} — "${res.title}"\n` +
+      `• Level XP: ${res.xp} XP\n` +
+      `• Achievements Unlocked: ${res.badgesUnlockedCount} / 10 Badges\n\n` +
+      `📊 Productivity Footprint Accounted:\n` +
+      `• ${res.totalTasksCompleted} Completed Tasks & Standalone ToDos\n` +
+      `• ${res.totalHabitCheckoffs} Routine Habit Check-offs\n` +
+      `• ${res.totalNotes} Historical Journals & Notes\n\n` +
+      `All levels, XP, and badges are now perfectly synchronized with your actual data!`
+    );
+  }, [recalibrateFromCurrentData]);
+
   const handleAddCategory = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!catName.trim()) return;
@@ -925,7 +958,7 @@ export const SettingsFeature: React.FC = () => {
             variants={itemVariants}
             whileHover={{ y: -2 }}
             transition={{ type: "spring" as const, stiffness: 300 }}
-            className="tile p-6 sm:p-8 space-y-6 relative overflow-hidden lg:col-span-2"
+            className="tile settings-tile p-6 sm:p-8 space-y-6 relative overflow-hidden lg:col-span-2"
           >
             <TileArtDisplaySettings />
             <h3 className="text-base font-bold text-foreground uppercase tracking-[0.2em] flex items-center gap-3 mb-4">
@@ -940,26 +973,25 @@ export const SettingsFeature: React.FC = () => {
               <div className="space-y-5">
                 <div className="flex flex-col gap-2.5">
                   <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Application Theme</span>
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 bg-secondary border border-border p-2 rounded-2xl">
-                    {(['light', 'obsidian', 'onedark', 'cyberpunk', 'midnight'] as const).map(themeOption => {
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 bg-surface-elevated/40 backdrop-blur-xl border border-border/70 p-2 rounded-2xl shadow-inner">
+                    {(['light', 'obsidian', 'onedark', 'cyberpunk', 'spectrum'] as const).map(themeOption => {
                       const labelMap: Record<string, string> = {
                         light: 'White',
                         obsidian: 'Obsidian',
                         onedark: 'One Dark',
                         cyberpunk: 'Cyberpunk',
-                        midnight: 'Purple',
+                        spectrum: 'Spectrum',
                       };
                       const isSelected = settings.theme === themeOption || 
-                        (themeOption === 'midnight' && (settings.theme === 'pine' || settings.theme === 'purple')) || 
+                        (themeOption === 'spectrum' && (settings.theme === 'midnight' || settings.theme === 'pine' || settings.theme === 'purple' || !settings.theme)) || 
                         (themeOption === 'light' && settings.theme === 'white');
                       return (
                         <button
                           key={themeOption}
+                          type="button"
                           onClick={() => updateSettings({ theme: themeOption })}
-                          className={`relative w-full px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                            isSelected 
-                              ? 'bg-surface text-foreground shadow-sm border border-border' 
-                              : 'text-foreground/80 hover:text-foreground hover:bg-surface/50'
+                          className={`filter-pill w-full !py-2.5 !text-xs font-black transition-all cursor-pointer ${
+                            isSelected ? 'active' : ''
                           }`}
                         >
                           {labelMap[themeOption]}
@@ -1066,9 +1098,9 @@ export const SettingsFeature: React.FC = () => {
                   ].map((setting) => (
                     <label 
                       key={setting.id} 
-                      className="group flex items-center justify-between cursor-pointer select-none p-2.5 rounded-xl hover:bg-secondary transition-all border border-transparent hover:border-border gap-2"
+                      className="group flex items-center justify-between cursor-pointer select-none p-3 rounded-2xl bg-surface-elevated/40 hover:bg-surface-elevated/80 transition-all border border-border/40 hover:border-border/80 gap-3 shadow-2xs"
                     >
-                      <span className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors flex-1 pr-2">{setting.label}</span>
+                      <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors flex-1 pr-2">{setting.label}</span>
                       <div className={`toggle-track ${setting.checked ? 'active' : ''}`} data-checked={setting.checked}>
                         <div className="toggle-handle" />
                       </div>
@@ -1095,7 +1127,7 @@ export const SettingsFeature: React.FC = () => {
           <motion.div 
             variants={itemVariants}
             transition={{ type: "spring" as const, stiffness: 300 }}
-            className="tile p-6 sm:p-8 space-y-6 flex flex-col relative overflow-hidden lg:col-span-2"
+            className="tile settings-tile p-6 sm:p-8 space-y-6 flex flex-col relative overflow-hidden lg:col-span-2"
           >
             <TileArtCategories />
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -1110,7 +1142,7 @@ export const SettingsFeature: React.FC = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsCategoryModalOpen(true)}
-                className="text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/90 px-4 py-2.5 rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2"
+                className="filter-pill active !text-sm !font-bold !px-4 !py-2.5 rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Lucide.Plus size={16} />
                 Add Category
@@ -1129,7 +1161,7 @@ export const SettingsFeature: React.FC = () => {
                     whileHover={{ scale: 1.03, y: -2 }}
                     whileTap={{ scale: 0.95 }}
                     transition={{ type: 'spring' as const, stiffness: 400, damping: 25 }}
-                    className="group flex items-center justify-between p-4 bg-secondary hover:bg-secondary border border-border hover:border-border rounded-2xl text-sm font-semibold shadow-sm hover:shadow-md transition-all"
+                    className="group flex items-center justify-between p-4 bg-surface-elevated/40 hover:bg-surface-elevated/70 backdrop-blur-xl border border-border/60 hover:border-primary/50 rounded-2xl text-sm font-semibold shadow-xs hover:shadow-md transition-all"
                   >
                     <div className="flex items-center gap-3">
                       <div className="relative flex items-center justify-center w-8 h-8 rounded-full shadow-sm" style={{ backgroundColor: `${cat.color}25` }}>
@@ -1162,7 +1194,7 @@ export const SettingsFeature: React.FC = () => {
             className="lg:col-span-2 space-y-6"
           >
             {/* Permission Status Header */}
-            <div className="tile p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="tile settings-tile p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div className="p-3 rounded-2xl bg-primary/10 text-primary">
                   <Lucide.BellRing size={22} />
@@ -1202,7 +1234,7 @@ export const SettingsFeature: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Block 1: Task Notifications */}
-              <div className="tile p-6 space-y-5">
+              <div className="tile settings-tile p-6 space-y-5">
                 <div className="flex items-center justify-between border-b border-border/60 pb-3">
                   <h4 className="text-sm font-extrabold text-foreground uppercase tracking-wider flex items-center gap-2">
                     <Lucide.CheckSquare size={16} className="text-primary" /> Task Notifications
@@ -1213,7 +1245,7 @@ export const SettingsFeature: React.FC = () => {
                 </div>
 
                 {/* Form */}
-                <div className="space-y-4 bg-secondary/30 p-4 rounded-2xl border border-border/50">
+                <div className="space-y-4 bg-surface-elevated/40 backdrop-blur-xl p-4 rounded-2xl border border-border/60 shadow-xs">
                   <NiceTimePicker
                     value={taskTime}
                     onChange={setTaskTime}
@@ -1225,7 +1257,7 @@ export const SettingsFeature: React.FC = () => {
                     <select
                       value={taggedTaskId}
                       onChange={(e) => setTaggedTaskId(e.target.value)}
-                      className="w-full text-xs font-bold px-3 py-2.5 bg-secondary text-foreground rounded-xl border border-border/60 outline-none focus:border-primary truncate cursor-pointer"
+                      className="w-full text-xs font-bold px-3 py-2.5 bg-surface-elevated/60 backdrop-blur-md text-foreground rounded-xl border border-border/70 outline-none focus:border-primary truncate cursor-pointer shadow-xs hover:border-primary/50 transition-all"
                     >
                       <option value="">General Task Alert</option>
                       {tasks.filter(t => !t.isCompleted && !t.isSoftDeleted).map(t => (
@@ -1241,7 +1273,7 @@ export const SettingsFeature: React.FC = () => {
                       placeholder="e.g. Focus time! Finish your high priority task."
                       value={taskMessage}
                       onChange={(e) => setTaskMessage(e.target.value)}
-                      className="w-full text-xs font-medium px-3 py-2.5 bg-secondary text-foreground rounded-xl border border-border/60 outline-none focus:border-primary"
+                      className="w-full text-xs font-medium px-3 py-2.5 bg-surface-elevated/60 backdrop-blur-md text-foreground rounded-xl border border-border/70 outline-none focus:border-primary shadow-xs hover:border-primary/50 transition-all"
                     />
                   </div>
 
@@ -1254,7 +1286,7 @@ export const SettingsFeature: React.FC = () => {
                   <div className="flex justify-end pt-1">
                     <button
                       onClick={handleAddTaskReminder}
-                      className="px-4 py-2 bg-primary text-primary-foreground text-xs font-extrabold rounded-xl shadow-md hover:bg-primary/95 transition-all flex items-center gap-1.5 cursor-pointer"
+                      className="filter-pill active !px-4 !py-2 text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-md"
                     >
                       <Lucide.Plus size={14} /> Add Task Alert
                     </button>
@@ -1270,7 +1302,7 @@ export const SettingsFeature: React.FC = () => {
                       const taggedTask = tasks.find(t => t.id === r.taskId);
                       const daysText = !r.days || r.days.length === 0 ? 'Once' : r.days.length === 7 ? 'Daily' : r.days.length === 5 && [1,2,3,4,5].every(d=>r.days.includes(d)) ? 'Weekdays' : r.days.length === 2 && r.days.includes(0) && r.days.includes(6) ? 'Weekends' : r.days.length === 1 ? `Mon` : `${r.days.length} Days`;
                       return (
-                        <div key={r.id} className="flex items-center justify-between p-3 bg-secondary/50 border border-border/60 rounded-xl text-xs">
+                        <div key={r.id} className="flex items-center justify-between p-3 bg-surface-elevated/40 backdrop-blur-md border border-border/60 hover:border-primary/40 rounded-xl text-xs shadow-xs transition-all">
                           <div className="flex items-center gap-3 min-w-0">
                             <span className="font-extrabold text-primary bg-primary/10 px-2 py-1 rounded-md">{r.time}</span>
                             <div className="min-w-0">
@@ -1304,7 +1336,7 @@ export const SettingsFeature: React.FC = () => {
               </div>
 
               {/* Block 2: Habit Notifications */}
-              <div className="tile p-6 space-y-5">
+              <div className="tile settings-tile p-6 space-y-5">
                 <div className="flex items-center justify-between border-b border-border/60 pb-3">
                   <h4 className="text-sm font-extrabold text-foreground uppercase tracking-wider flex items-center gap-2">
                     <Lucide.Repeat size={16} className="text-primary" /> Habit Notifications
@@ -1315,7 +1347,7 @@ export const SettingsFeature: React.FC = () => {
                 </div>
 
                 {/* Form */}
-                <div className="space-y-4 bg-secondary/30 p-4 rounded-2xl border border-border/50">
+                <div className="space-y-4 bg-surface-elevated/40 backdrop-blur-xl p-4 rounded-2xl border border-border/60 shadow-xs">
                   <NiceTimePicker
                     value={habitTime}
                     onChange={setHabitTime}
@@ -1327,7 +1359,7 @@ export const SettingsFeature: React.FC = () => {
                     <select
                       value={taggedHabitId}
                       onChange={(e) => setTaggedHabitId(e.target.value)}
-                      className="w-full text-xs font-bold px-3 py-2.5 bg-secondary text-foreground rounded-xl border border-border/60 outline-none focus:border-primary truncate cursor-pointer"
+                      className="w-full text-xs font-bold px-3 py-2.5 bg-surface-elevated/60 backdrop-blur-md text-foreground rounded-xl border border-border/70 outline-none focus:border-primary truncate cursor-pointer shadow-xs hover:border-primary/50 transition-all"
                     >
                       <option value="">General Habit Alert</option>
                       {habits.filter(h => !h.isSoftDeleted).map(h => (
@@ -1343,7 +1375,7 @@ export const SettingsFeature: React.FC = () => {
                       placeholder="e.g. Keep your streak alive! Time for habit."
                       value={habitMessage}
                       onChange={(e) => setHabitMessage(e.target.value)}
-                      className="w-full text-xs font-medium px-3 py-2.5 bg-secondary text-foreground rounded-xl border border-border/60 outline-none focus:border-primary"
+                      className="w-full text-xs font-medium px-3 py-2.5 bg-surface-elevated/60 backdrop-blur-md text-foreground rounded-xl border border-border/70 outline-none focus:border-primary shadow-xs hover:border-primary/50 transition-all"
                     />
                   </div>
 
@@ -1356,7 +1388,7 @@ export const SettingsFeature: React.FC = () => {
                   <div className="flex justify-end pt-1">
                     <button
                       onClick={handleAddHabitReminder}
-                      className="px-4 py-2 bg-primary text-primary-foreground text-xs font-extrabold rounded-xl shadow-md hover:bg-primary/95 transition-all flex items-center gap-1.5 cursor-pointer"
+                      className="filter-pill active !px-4 !py-2 text-xs font-extrabold flex items-center gap-1.5 cursor-pointer shadow-md"
                     >
                       <Lucide.Plus size={14} /> Add Habit Alert
                     </button>
@@ -1372,7 +1404,7 @@ export const SettingsFeature: React.FC = () => {
                       const taggedHabit = habits.find(h => h.id === r.habitId);
                       const daysText = !r.days || r.days.length === 0 ? 'Once' : r.days.length === 7 ? 'Daily' : r.days.length === 5 && [1,2,3,4,5].every(d=>r.days.includes(d)) ? 'Weekdays' : r.days.length === 2 && r.days.includes(0) && r.days.includes(6) ? 'Weekends' : r.days.length === 1 ? `Mon` : `${r.days.length} Days`;
                       return (
-                        <div key={r.id} className="flex items-center justify-between p-3 bg-secondary/50 border border-border/60 rounded-xl text-xs">
+                        <div key={r.id} className="flex items-center justify-between p-3 bg-surface-elevated/40 backdrop-blur-md border border-border/60 hover:border-primary/40 rounded-xl text-xs shadow-xs transition-all">
                           <div className="flex items-center gap-3 min-w-0">
                             <span className="font-extrabold text-primary bg-primary/10 px-2 py-1 rounded-md">{r.time}</span>
                             <div className="min-w-0">
@@ -1415,7 +1447,7 @@ export const SettingsFeature: React.FC = () => {
           <motion.div 
             variants={itemVariants}
             transition={{ type: "spring" as const, stiffness: 300 }}
-            className="lg:col-span-1 tile p-6 sm:p-8 flex flex-col gap-5 relative overflow-hidden"
+            className="lg:col-span-1 tile settings-tile p-6 sm:p-8 flex flex-col gap-5 relative overflow-hidden"
           >
             <div className="absolute -bottom-12 -right-12 text-primary/10 pointer-events-none select-none">
               <motion.svg 
@@ -1493,7 +1525,7 @@ export const SettingsFeature: React.FC = () => {
           <motion.div 
             variants={itemVariants}
             transition={{ type: "spring" as const, stiffness: 300 }}
-            className="lg:col-span-1 tile p-6 sm:p-8 flex flex-col gap-5 relative overflow-hidden"
+            className="lg:col-span-1 tile settings-tile p-6 sm:p-8 flex flex-col gap-5 relative overflow-hidden"
           >
             <div className="relative z-10 flex flex-col gap-4">
               <h3 className="text-base font-bold text-foreground uppercase tracking-[0.2em] flex items-center gap-3">
@@ -1549,7 +1581,7 @@ export const SettingsFeature: React.FC = () => {
           <motion.div 
             variants={itemVariants}
             transition={{ type: "spring" as const, stiffness: 300 }}
-            className="lg:col-span-1 tile p-6 sm:p-8 flex flex-col gap-5 relative overflow-hidden"
+            className="lg:col-span-1 tile settings-tile p-6 sm:p-8 flex flex-col gap-5 relative overflow-hidden"
           >
             <TileArtSync />
             <div className="flex items-center justify-between relative z-10">
@@ -1578,11 +1610,11 @@ export const SettingsFeature: React.FC = () => {
                   placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
                   value={githubPatInput}
                   onChange={(e) => setGithubPatInput(e.target.value)}
-                  className="flex-1 text-sm px-4 py-3 bg-secondary rounded-xl text-foreground font-semibold placeholder-foreground/40 border-2 border-border focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none"
+                  className="input-field flex-1 text-sm !px-4 !py-3 font-semibold placeholder-foreground/40 outline-none"
                 />
                 <button
                   onClick={handleSavePat}
-                  className="px-4 py-3 bg-primary text-primary-foreground font-bold rounded-xl shadow-md transition-all hover:scale-105 cursor-pointer"
+                  className="filter-pill active !px-6 !py-3 text-xs font-bold rounded-xl shadow-md cursor-pointer"
                 >
                   Save
                 </button>
@@ -1606,7 +1638,7 @@ export const SettingsFeature: React.FC = () => {
                 <summary className="font-semibold text-primary/80 hover:text-primary transition-colors flex items-center gap-1 w-max outline-none select-none">
                   <Lucide.HelpCircle size={14} /> How to get a PAT?
                 </summary>
-                <div className="mt-3 p-4 bg-background/80 rounded-xl border border-border space-y-2.5 leading-relaxed shadow-inner">
+                <div className="mt-3 p-4 bg-surface-elevated/40 backdrop-blur-xl rounded-xl border border-border space-y-2.5 leading-relaxed shadow-inner">
                   <p>1. Go to <strong>GitHub Settings</strong> &rarr; <strong>Developer settings</strong> &rarr; <strong>Personal access tokens</strong> &rarr; <strong>Tokens (classic)</strong></p>
                   <p>2. Click <strong className="text-foreground">Generate new token (classic)</strong></p>
                   <p>3. Give it a note, set expiration (e.g. No expiration)</p>
@@ -1618,7 +1650,7 @@ export const SettingsFeature: React.FC = () => {
 
             {/* Sync Mode Toggle & Live Status Telemetry */}
             <div className="space-y-3 pt-1">
-              <div className="flex items-center justify-between p-3.5 bg-secondary/30 rounded-2xl border border-border/60">
+              <div className="flex items-center justify-between p-3.5 bg-surface-elevated/40 backdrop-blur-md rounded-2xl border border-border/60">
                 <div className="space-y-0.5">
                   <div className="flex items-center gap-2">
                     <Lucide.Zap size={14} className="text-amber-400" />
@@ -1640,7 +1672,7 @@ export const SettingsFeature: React.FC = () => {
               </div>
 
               {/* Live Last Sync Status Telemetry Notification Card */}
-              <div className="p-3.5 bg-background/60 rounded-2xl border border-border/80 space-y-1.5 text-xs">
+              <div className="p-3.5 bg-surface-elevated/40 backdrop-blur-md rounded-2xl border border-border/70 space-y-1.5 text-xs shadow-xs">
                 <div className="flex items-center justify-between">
                   <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                     <Lucide.Activity size={13} className="text-primary" />
@@ -1669,7 +1701,7 @@ export const SettingsFeature: React.FC = () => {
                   whileTap={{ scale: 0.95 }}
                   onClick={handleCreateNewGitHubFile}
                   disabled={isSyncing}
-                  className="flex items-center justify-center gap-2 px-3.5 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                  className="filter-pill active flex items-center justify-center gap-2 !px-3.5 !py-3 font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer"
                 >
                   <Lucide.PlusCircle size={15} />
                   Create New GitHub JSON
@@ -1680,7 +1712,7 @@ export const SettingsFeature: React.FC = () => {
                   whileTap={{ scale: 0.95 }}
                   onClick={handleOpenPickExistingGitHubFile}
                   disabled={isSyncing || isFetchingGistFiles}
-                  className="flex items-center justify-center gap-2 px-3.5 py-3 bg-slate-800 hover:bg-slate-700 text-primary border border-primary/40 font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                  className="filter-pill flex items-center justify-center gap-2 !px-3.5 !py-3 font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer"
                 >
                   <Lucide.FolderOpen size={15} />
                   {isFetchingGistFiles ? 'Fetching...' : 'Select Existing JSON'}
@@ -1693,7 +1725,7 @@ export const SettingsFeature: React.FC = () => {
                   whileTap={{ scale: 0.95 }}
                   onClick={handlePushToCloud}
                   disabled={isSyncing}
-                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-card hover:bg-secondary border-2 border-primary/40 text-primary font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                  className="filter-pill flex items-center justify-center gap-2 !px-4 !py-2.5 font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer"
                 >
                   <Lucide.CloudUpload size={14} className={isSyncing ? 'animate-spin' : ''} />
                   Push Manual
@@ -1704,7 +1736,7 @@ export const SettingsFeature: React.FC = () => {
                   whileTap={{ scale: 0.95 }}
                   onClick={handlePullFromCloud}
                   disabled={isSyncing}
-                  className="flex items-center justify-center gap-2 px-4 py-2.5 bg-card hover:bg-secondary border-2 border-primary/40 text-primary font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+                  className="filter-pill flex items-center justify-center gap-2 !px-4 !py-2.5 font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer"
                 >
                   <Lucide.CloudDownload size={14} className={isSyncing ? 'animate-spin' : ''} />
                   Pull Manual
@@ -1720,7 +1752,7 @@ export const SettingsFeature: React.FC = () => {
           <motion.div 
             variants={itemVariants}
             transition={{ type: "spring" as const, stiffness: 300 }}
-            className="lg:col-span-2 tile p-6 sm:p-8 space-y-4 flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden"
+            className="lg:col-span-2 tile settings-tile p-6 sm:p-8 space-y-4 flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden"
           >
             <div className="space-y-2 flex-1">
               <h3 className="text-base font-bold text-foreground uppercase tracking-[0.2em] flex items-center gap-3">
@@ -1738,7 +1770,7 @@ export const SettingsFeature: React.FC = () => {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setIsMotivationalModalOpen(true)}
-              className="text-xs font-bold text-primary-foreground bg-primary hover:bg-primary/90 px-6 py-3.5 rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer"
+              className="filter-pill active !text-xs !font-bold !px-6 !py-3.5 rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer"
             >
               <Lucide.Settings2 size={16} />
               Manage Slides
@@ -1753,7 +1785,7 @@ export const SettingsFeature: React.FC = () => {
         </div>
         
         <motion.div 
-          className="tile p-6 sm:p-8 space-y-6 mt-4 w-full relative overflow-hidden"
+          className="tile settings-tile p-6 sm:p-8 space-y-6 mt-4 w-full relative overflow-hidden"
         >
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-2">
@@ -1772,64 +1804,169 @@ export const SettingsFeature: React.FC = () => {
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                  useShadowTrackerStore.getState().resetBadges();
-                  alert("All achievements have been reset and faded. Start fresh from today!");
-                }}
-                className="flex-1 flex items-center justify-center gap-3 px-5 py-3.5 bg-red-500/10 text-red-500 hover:bg-red-500/15 border-2 border-red-500/20 hover:border-red-500/40 font-bold text-sm rounded-2xl shadow-sm transition-all"
+                onClick={handleRecalibrateFromCurrentData}
+                className="filter-pill active flex-1 flex items-center justify-center gap-2.5 !px-5 !py-3.5 font-bold text-xs sm:text-sm rounded-2xl shadow-sm transition-all cursor-pointer"
+                title="Recalculate Level, XP, and unlock all badges based on real current data"
               >
-                <Lucide.RefreshCw size={16} />
-                Reset Badges
+                <Lucide.Target size={16} />
+                <span>Recalibrate from Current Data</span>
               </motion.button>
 
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => {
-                  useShadowTrackerStore.getState().restoreBadges();
-                  alert("Achievements successfully recalculated and restored based on your current data!");
+                  useShadowTrackerStore.getState().resetBadges();
+                  alert("All achievements have been reset and faded. Start fresh from today!");
                 }}
-                className="flex-1 flex items-center justify-center gap-3 px-5 py-3.5 bg-primary/10 text-primary hover:bg-primary/15 border-2 border-primary/20 hover:border-primary/40 font-bold text-sm rounded-2xl shadow-sm transition-all"
+                className="filter-pill flex-1 flex items-center justify-center gap-2 !px-4 !py-3.5 text-rose-400 border-rose-500/30 hover:border-rose-500/60 bg-rose-500/10 hover:bg-rose-500/20 font-bold text-xs rounded-2xl shadow-sm transition-all cursor-pointer"
               >
-                <Lucide.Sparkles size={16} />
-                Restore Badges
+                <Lucide.RefreshCw size={15} />
+                <span>Reset Badges (Wipe)</span>
               </motion.button>
             </div>
           </div>
         </motion.div>
       </div>
 
+      {/* ── DATA-SAFE VIEW PREFERENCES & INTERFACE RESET ── */}
+      <motion.div 
+        variants={itemVariants}
+        className="tile settings-tile p-6 sm:p-8 space-y-6 relative overflow-hidden border border-emerald-500/30 bg-surface/80 shadow-lg"
+      >
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="p-2 rounded-xl bg-emerald-500/15 text-emerald-400">
+                <Lucide.SlidersHorizontal size={18} />
+              </span>
+              <h3 className="text-base font-bold text-foreground uppercase tracking-[0.2em]">
+                Page Views & Filter Preferences
+              </h3>
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                Data Safe • Non-Destructive
+              </span>
+            </div>
+            <p className="text-sm text-secondary leading-relaxed font-medium max-w-2xl">
+              Reset remembered page layouts (ToDo Grid/List, Calendar Month/Week/Timeline, Health sub-tabs, Task workspaces) and filter options back to standard defaults. <strong className="text-foreground">Your actual tasks, habits, health logs, finances, notes, and records remain 100% untouched.</strong>
+            </p>
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-3">
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.96 }}
+              onClick={() => {
+                resetAllViewPreferences();
+                alert('✅ All page views and filter settings have been reset to factory defaults! Your personal data remains completely intact.');
+              }}
+              className="filter-pill active flex items-center justify-center gap-2 !px-5 !py-3 font-bold text-xs rounded-xl shadow-md cursor-pointer"
+            >
+              <Lucide.RotateCcw size={15} />
+              <span>Reset Views & Filters</span>
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.96 }}
+              onClick={() => {
+                updateSettings({
+                  theme: 'spectrum',
+                  soundEnabled: true,
+                  stickyTaskNotifications: true,
+                  showCompletedTasks: true,
+                  appScale: 100,
+                  ecoMode: false,
+                  lowGpuMode: false,
+                });
+                resetAllViewPreferences();
+                alert('✅ Theme restored to Spectrum and interface preferences reset to default! Your personal data is 100% safe.');
+              }}
+              className="filter-pill flex items-center justify-center gap-2 !px-5 !py-3 bg-secondary/80 hover:bg-secondary text-foreground font-bold text-xs rounded-xl border border-border transition-all cursor-pointer"
+            >
+              <Lucide.Sparkles size={15} className="text-primary" />
+              <span>Reset Interface Defaults</span>
+            </motion.button>
+          </div>
+        </div>
+      </motion.div>
+
       <div className="pt-8 mt-4 border-t border-border relative">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-surface px-4 text-xs font-bold uppercase tracking-widest text-muted-foreground border border-border rounded-full py-1">Danger Zone</div>
         
-        <motion.div 
-          className="tile p-6 sm:p-8 space-y-6 mt-4 w-full relative overflow-hidden"
-        >
-          <TileArtDanger />
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="space-y-2">
-              <h3 className="text-base font-bold text-red-500 uppercase tracking-[0.2em] flex items-center gap-3">
-                <span className="p-2 rounded-xl bg-red-500/15">
-                  <Lucide.AlertOctagon size={18} />
-                </span>
-                Reset Database
-              </h3>
-              <p className="text-sm text-foreground leading-relaxed font-medium max-w-xl">
-                Deletes schedules, journals, logs, and streaks permanently from this browser.
-              </p>
+        <div className="space-y-4 mt-4 w-full">
+          {/* Life RPG Reset Tile */}
+          <motion.div 
+            className="tile settings-tile p-6 sm:p-8 space-y-6 w-full relative overflow-hidden border border-amber-500/30 shadow-lg"
+          >
+            <TileArtDanger />
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+              <div className="space-y-2">
+                <h3 className="text-base font-bold text-amber-500 uppercase tracking-[0.2em] flex items-center gap-3">
+                  <span className="p-2 rounded-xl bg-amber-500/15 text-amber-400">
+                    <Lucide.Crown size={18} />
+                  </span>
+                  Reset Life RPG Progression
+                </h3>
+                <p className="text-sm text-foreground leading-relaxed font-medium max-w-xl">
+                  Reverts character level back to Level 1, clears accumulated RPG XP, and resets active quests. Your actual tasks, habits, and notes remain untouched.
+                </p>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-3 shrink-0">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleRecalibrateFromCurrentData}
+                  className="filter-pill active flex items-center justify-center gap-2.5 !px-5 !py-3.5 font-bold text-xs sm:text-sm rounded-2xl shadow-sm transition-all cursor-pointer"
+                  title="Recalculate Level, XP, and unlock all badges based on real current data"
+                >
+                  <Lucide.Target size={16} />
+                  <span>Recalibrate with Current Data</span>
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleResetLifeRpg}
+                  className="filter-pill flex-shrink-0 flex items-center justify-center gap-2.5 !px-5 !py-3.5 bg-amber-500/10 text-amber-400 font-bold text-xs sm:text-sm rounded-2xl border border-amber-500/30 hover:border-amber-500/60 transition-all shadow-sm cursor-pointer"
+                >
+                  <Lucide.RefreshCw size={16} />
+                  <span>Reset RPG (Level 1)</span>
+                </motion.button>
+              </div>
             </div>
-            
-            <motion.button
-              whileHover={{ scale: 1.05, backgroundColor: "rgba(239, 68, 68, 0.2)" }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleReset}
-              className="flex-shrink-0 flex items-center justify-center gap-3 px-8 py-4 bg-red-500/10 text-red-500 font-bold text-sm rounded-2xl border-2 border-red-500/20 hover:border-red-500/40 transition-all shadow-sm"
-            >
-              <Lucide.Trash size={18} />
-              Reset
-            </motion.button>
-          </div>
-        </motion.div>
+          </motion.div>
+
+          {/* Database Reset Tile */}
+          <motion.div 
+            className="tile settings-tile p-6 sm:p-8 space-y-6 w-full relative overflow-hidden"
+          >
+            <TileArtDanger />
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+              <div className="space-y-2">
+                <h3 className="text-base font-bold text-red-500 uppercase tracking-[0.2em] flex items-center gap-3">
+                  <span className="p-2 rounded-xl bg-red-500/15">
+                    <Lucide.AlertOctagon size={18} />
+                  </span>
+                  Reset Database
+                </h3>
+                <p className="text-sm text-foreground leading-relaxed font-medium max-w-xl">
+                  Deletes schedules, journals, logs, and streaks permanently from this browser.
+                </p>
+              </div>
+              
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleReset}
+                className="filter-pill flex-shrink-0 flex items-center justify-center gap-3 !px-8 !py-4 bg-rose-500/10 text-rose-400 font-bold text-sm rounded-2xl border border-rose-500/30 hover:border-rose-500/60 transition-all shadow-sm cursor-pointer"
+              >
+                <Lucide.Trash size={18} />
+                Reset
+              </motion.button>
+            </div>
+          </motion.div>
+        </div>
       </div>
 
       <Modal

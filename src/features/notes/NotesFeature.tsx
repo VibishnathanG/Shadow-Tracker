@@ -1,12 +1,13 @@
 'use client';
 /* eslint-disable react-hooks/set-state-in-effect */
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import { useShadowTrackerStore } from '@/store';
 import { getTodayDateString } from '@/lib/dateUtils';
 import { format, parseISO } from 'date-fns';
+import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 
 const AmbientArt = React.memo(() => (
   <div className="dashboard-watermark absolute inset-0 overflow-hidden pointer-events-none z-0">
@@ -53,6 +54,29 @@ const itemVariants: Variants = {
   exit: { opacity: 0, scale: 0.95, filter: "blur(2px)", transition: { duration: 0.15 } }
 };
 
+// Helper to strip markdown symbols for clean snippet previews in sidebar
+function stripMarkdown(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/```[\s\S]*?```/g, ' [Code Block] ')
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/__(.*?)__/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/_(.*?)_/g, '$1')
+    .replace(/~~(.*?)~~/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/!\[(.*?)\]\(.*?\)/g, '$1')
+    .replace(/\[(.*?)\]\(.*?\)/g, '$1')
+    .replace(/^>\s+/gm, '')
+    .replace(/^[-*+]\s+\[[ xX]\]\s+/gm, '')
+    .replace(/^[-*+]\s+/gm, '')
+    .replace(/^\d+\.\s+/gm, '')
+    .replace(/\|/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export const NotesFeature: React.FC = () => {
   const { notes, saveNote, deleteNote } = useShadowTrackerStore();
   const todayStr = getTodayDateString();
@@ -64,17 +88,29 @@ export const NotesFeature: React.FC = () => {
   const [noteContent, setNoteContent] = useState('');
   const [noteDate, setNoteDate] = useState(todayStr);
   const [isSavedIndicator, setIsSavedIndicator] = useState(false);
+  const [isEditing, setIsEditing] = useState<boolean>(() => {
+    const existing = useShadowTrackerStore.getState().notes.find(n => n.id === todayStr);
+    const hasContent = Boolean(existing && (existing.content?.trim() || existing.title?.trim()));
+    return !hasContent;
+  });
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    const existing = notes.find(n => n.id === selectedNoteId);
+    const existing = notes.find(n => n.id === selectedNoteId || n.date === selectedNoteId);
     if (existing) {
       setNoteTitle(existing.title || '');
       setNoteContent(existing.content);
-      setNoteDate(existing.date);
+      setNoteDate(existing.date || existing.id);
+      // Always open in reading view by default for past notes or if any content is already present!
+      const hasContent = Boolean(existing.content?.trim() || existing.title?.trim());
+      setIsEditing(!hasContent);
     } else {
       setNoteTitle('');
       setNoteContent('');
       setNoteDate(selectedNoteId);
+      // If no content, open by default in editing mode
+      setIsEditing(true);
     }
   }, [selectedNoteId, notes]);
 
@@ -95,8 +131,37 @@ export const NotesFeature: React.FC = () => {
     setSelectedNoteId(getTodayDateString());
   }, [deleteNote, selectedNoteId]);
 
+  // Insert markdown helpers into the textarea at cursor position
+  const insertMarkdown = useCallback((prefix: string, suffix: string = '', defaultPlaceholder: string = '') => {
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      setNoteContent(prev => prev + prefix + defaultPlaceholder + suffix);
+      return;
+    }
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = noteContent.substring(start, end) || defaultPlaceholder;
+    const replacement = prefix + selectedText + suffix;
+    const newContent = noteContent.substring(0, start) + replacement + noteContent.substring(end);
+    setNoteContent(newContent);
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + prefix.length, start + prefix.length + selectedText.length);
+    }, 0);
+  }, [noteContent]);
+
   const filteredNotes = useMemo(() => {
-    return notes.filter(note => {
+    // Strictly deduplicate by date so there is at most 1 entry per day
+    const map = new Map<string, typeof notes[0]>();
+    notes.forEach(n => {
+      const d = n.date || n.id;
+      if (!map.has(d) || (n.updatedAt && map.get(d)!.updatedAt < n.updatedAt)) {
+        map.set(d, n);
+      }
+    });
+    const unique = Array.from(map.values());
+
+    return unique.filter(note => {
       if (searchQuery.trim() === '') return true;
       const q = searchQuery.toLowerCase();
       return (
@@ -107,10 +172,16 @@ export const NotesFeature: React.FC = () => {
     }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [notes, searchQuery]);
 
+  const wordCount = useMemo(() => {
+    if (!noteContent.trim()) return 0;
+    return noteContent.trim().split(/\s+/).length;
+  }, [noteContent]);
+
   return (
     <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-stretch md:h-[calc(100vh-80px)] md:overflow-hidden min-h-0">
       <AmbientArt />
 
+      {/* ── SIDEBAR: REFLECTION SEARCH & ENTRY LIST ── */}
       <motion.div 
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
@@ -133,7 +204,7 @@ export const NotesFeature: React.FC = () => {
             transition={{ delay: 0.2 }}
             className="text-xs text-muted-foreground font-semibold uppercase tracking-widest pl-8"
           >
-            Mindful reflections
+            Mindful reflections & wisdom
           </motion.p>
         </div>
 
@@ -164,15 +235,20 @@ export const NotesFeature: React.FC = () => {
             variants={itemVariants}
             whileHover={{ scale: 1.02, y: -1, boxShadow: "0px 8px 16px -8px rgba(0,0,0,0.1)" }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => setSelectedNoteId(getTodayDateString())}
-            className={`w-full shrink-0 flex items-center justify-between p-4 rounded-2xl border text-sm font-semibold transition-all shadow-sm backdrop-blur-md ${
-              selectedNoteId === todayStr && !notes.some(n=>n.id===todayStr)
+            onClick={() => {
+              const todayNote = notes.find(n => n.id === todayStr);
+              const hasContent = Boolean(todayNote && (todayNote.content?.trim() || todayNote.title?.trim()));
+              setSelectedNoteId(todayStr);
+              setIsEditing(!hasContent);
+            }}
+            className={`w-full shrink-0 flex items-center justify-between p-4 rounded-2xl border text-sm font-semibold transition-all shadow-sm backdrop-blur-md cursor-pointer ${
+              selectedNoteId === todayStr && !notes.some(n => n.id === todayStr)
                 ? 'bg-primary/15 border-primary/60 text-foreground ring-1 ring-primary/30'
                 : 'bg-card/80 border-border/80 hover:border-primary/50 text-muted-foreground hover:text-foreground'
             }`}
           >
             <span className="flex items-center gap-2">
-              <Lucide.PlusCircle size={16} className={selectedNoteId === todayStr && !notes.some(n=>n.id===todayStr) ? 'text-primary' : ''} /> 
+              <Lucide.PlusCircle size={16} className={selectedNoteId === todayStr && !notes.some(n => n.id === todayStr) ? 'text-primary' : ''} /> 
               Today&apos;s Entry
             </span>
             <span className="text-xs font-bold bg-background/60 px-2.5 py-1 rounded-full border border-border/60 text-foreground">
@@ -185,6 +261,7 @@ export const NotesFeature: React.FC = () => {
             {filteredNotes.length > 0 ? (
               filteredNotes.map(n => {
                 const isSelected = n.id === selectedNoteId;
+                const cleanSnippet = stripMarkdown(n.content);
                 return (
                   <motion.div
                     layout
@@ -221,8 +298,8 @@ export const NotesFeature: React.FC = () => {
                     <motion.h4 layout="position" className="relative z-10 text-base font-extrabold truncate leading-tight">
                       {n.title || 'Untitled Entry'}
                     </motion.h4>
-                    <motion.p layout="position" className={`relative z-10 text-sm line-clamp-2 leading-relaxed font-medium ${isSelected ? 'text-primary-foreground/90' : 'text-muted-foreground'}`}>
-                      {n.content || 'No content...'}
+                    <motion.p layout="position" className={`relative z-10 text-xs line-clamp-2 leading-relaxed font-medium ${isSelected ? 'text-primary-foreground/90' : 'text-muted-foreground'}`}>
+                      {cleanSnippet || 'No content...'}
                     </motion.p>
                   </motion.div>
                 );
@@ -239,6 +316,7 @@ export const NotesFeature: React.FC = () => {
         </motion.div>
       </motion.div>
 
+      {/* ── MAIN PANEL: JOURNAL VIEWER & RAW EDITOR ── */}
       <AnimatePresence mode="wait">
         <motion.div 
           key={selectedNoteId}
@@ -250,7 +328,8 @@ export const NotesFeature: React.FC = () => {
         >
           <div className="absolute top-0 right-0 -mt-20 -mr-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="relative z-10 flex items-center justify-between border-b border-border/60 pb-5">
+          {/* Top Action Bar */}
+          <div className="relative z-10 flex items-center justify-between border-b border-border/60 pb-4 gap-2 flex-wrap">
             <div className="flex items-center gap-3">
               <motion.div 
                 whileHover={{ rotate: 15, scale: 1.1 }}
@@ -258,12 +337,49 @@ export const NotesFeature: React.FC = () => {
               >
                 <Lucide.BookOpen size={18} />
               </motion.div>
-              <h3 className="text-sm font-bold text-foreground uppercase tracking-widest">
-                Journal Editor
-              </h3>
+              <div>
+                <h3 className="text-sm font-bold text-foreground uppercase tracking-widest">
+                  Journal Reflection
+                </h3>
+                <span className="text-xs text-muted-foreground">
+                  {format(parseISO(noteDate), 'MMMM dd, yyyy')}
+                </span>
+              </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            {/* Segmented View / Edit Mode Capsule & Save Controls */}
+            <div className="flex items-center gap-3">
+              {/* View / Edit Mode Switcher Capsule */}
+              <div className="flex items-center p-1 bg-secondary/50 border border-border/60 rounded-xl backdrop-blur-md">
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    !isEditing
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-surface'
+                  }`}
+                  title="Rendered Markdown View"
+                >
+                  <Lucide.Eye size={13} />
+                  <span>Reading View</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    isEditing
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-surface'
+                  }`}
+                  title="Raw Markdown Editor"
+                >
+                  <Lucide.Edit3 size={13} />
+                  <span>Raw Editor</span>
+                </button>
+              </div>
+
+              {/* Save Indicator / Button */}
               <AnimatePresence mode="wait">
                 {isSavedIndicator ? (
                   <motion.span 
@@ -271,97 +387,213 @@ export const NotesFeature: React.FC = () => {
                     initial={{ opacity: 0, scale: 0.8, y: -5 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.8, y: 5 }}
-                    className="text-xs font-bold text-foreground flex items-center gap-1.5 bg-emerald-500/15 px-3 py-1.5 rounded-full"
+                    className="text-xs font-bold text-foreground flex items-center gap-1.5 bg-emerald-500/15 px-3 py-1.5 rounded-xl border border-emerald-500/30"
                   >
                     <Lucide.Check size={14} className="text-emerald-500" /> Saved
                   </motion.span>
                 ) : (
                   <motion.button
                     key="save-btn"
-                    whileHover={{ scale: 1.05, boxShadow: "0px 4px 12px rgba(var(--primary-rgb),0.3)" }}
+                    whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     onClick={handleSave}
                     disabled={!noteContent.trim() && !noteTitle.trim()}
-                    className="px-5 py-2.5 text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:pointer-events-none rounded-xl transition-all shadow-md flex items-center gap-2"
+                    className="px-4 py-2 text-xs font-bold text-primary-foreground bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:pointer-events-none rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
                   >
-                    <Lucide.Save size={16} />
-                    Save Note
+                    <Lucide.Save size={14} />
+                    <span>Save</span>
                   </motion.button>
                 )}
               </AnimatePresence>
 
+              {/* Delete Button */}
               {notes.some(n => n.id === selectedNoteId) && (
                 <motion.button
-                  whileHover={{ scale: 1.1, rotate: 10, backgroundColor: "rgba(239, 68, 68, 0.15)" }}
+                  whileHover={{ scale: 1.1, rotate: 10 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleDelete}
-                  className="p-2.5 text-foreground hover:text-foreground rounded-xl transition-colors bg-red-500/5"
+                  className="p-2 text-muted-foreground hover:text-red-500 rounded-xl transition-colors bg-red-500/5 hover:bg-red-500/15 cursor-pointer border border-transparent hover:border-red-500/20"
                   title="Delete Entry"
                 >
-                  <Lucide.Trash2 size={16} className="text-red-500" />
+                  <Lucide.Trash2 size={15} />
                 </motion.button>
               )}
             </div>
           </div>
 
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-secondary/30 p-4 border border-border/60 rounded-2xl transition-colors hover:bg-secondary/50 backdrop-blur-md shrink-0 mt-4"
-          >
-            <span className="text-sm font-bold text-muted-foreground flex items-center gap-2">
-              <Lucide.Calendar size={16} className="text-primary" /> 
-              Scheduled Date
+          {/* Date Selector Row */}
+          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-secondary/30 p-3 border border-border/60 rounded-2xl transition-colors backdrop-blur-md shrink-0 mt-3">
+            <span className="text-xs font-bold text-muted-foreground flex items-center gap-2">
+              <Lucide.Calendar size={14} className="text-primary" /> 
+              Entry Date
             </span>
-            <motion.input
-              whileFocus={{ scale: 1.02 }}
+            <input
               type="date"
               value={noteDate}
-              onChange={(e) => setNoteDate(e.target.value)}
-              className="text-sm px-4 py-2 bg-background/80 backdrop-blur-sm border border-border/80 rounded-xl text-foreground outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/30 cursor-pointer font-bold shadow-sm"
+              onChange={(e) => {
+                const val = e.target.value;
+                if (!val) return;
+                setNoteDate(val);
+                setSelectedNoteId(val);
+              }}
+              className="text-xs px-3 py-1.5 bg-background/80 backdrop-blur-sm border border-border/80 rounded-xl text-foreground outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/30 cursor-pointer font-bold shadow-xs"
             />
-          </motion.div>
+          </div>
 
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15 }}
-            className="relative z-10 group shrink-0 mt-4"
-          >
-            <motion.input
-              whileFocus={{ scale: 1.01 }}
-              type="text"
-              placeholder="Reflection title..."
-              value={noteTitle}
-              onChange={(e) => setNoteTitle(e.target.value)}
-              className="w-full text-xl md:text-2xl font-black px-5 py-4 bg-secondary/20 backdrop-blur-sm border border-border/60 rounded-2xl text-foreground placeholder:text-muted-foreground outline-none transition-all focus:bg-background focus:border-primary focus:ring-4 focus:ring-primary/20 shadow-sm"
-            />
-          </motion.div>
+          {/* View Mode vs Edit Mode Content Body */}
+          <div className="relative z-10 flex-1 flex flex-col min-h-0 mt-3 overflow-hidden">
+            {isEditing ? (
+              /* ── RAW MARKDOWN EDITOR MODE ── */
+              <div className="flex-1 flex flex-col min-h-0 space-y-3">
+                {/* Title Input */}
+                <input
+                  type="text"
+                  placeholder="Reflection title..."
+                  value={noteTitle}
+                  onChange={(e) => setNoteTitle(e.target.value)}
+                  className="w-full text-lg md:text-xl font-black px-4 py-3 bg-secondary/20 backdrop-blur-sm border border-border/60 rounded-2xl text-foreground placeholder:text-muted-foreground outline-none transition-all focus:bg-background focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-xs shrink-0"
+                />
 
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="relative z-10 flex-1 flex flex-col min-h-0 mt-4"
-          >
-            <motion.textarea
-              whileFocus={{ scale: 1.005 }}
-              placeholder="How was today? What goals did you reach? What blocks did you experience? Record thoughts in Markdown..."
-              value={noteContent}
-              onChange={(e) => setNoteContent(e.target.value)}
-              className="w-full text-sm p-5 bg-secondary/20 backdrop-blur-sm border border-border/60 rounded-2xl text-foreground placeholder:text-muted-foreground outline-none resize-none focus:bg-background focus:border-primary focus:ring-4 focus:ring-primary/20 transition-all font-medium leading-relaxed custom-scrollbar shadow-sm flex-1 min-h-0 overflow-y-auto"
-            />
-          </motion.div>
+                {/* Markdown Formatting Helper Toolbar */}
+                <div className="flex items-center gap-1.5 overflow-x-auto p-1.5 bg-secondary/40 border border-border/60 rounded-xl backdrop-blur-md shrink-0 text-xs text-muted-foreground">
+                  <span className="text-[10px] font-bold uppercase tracking-wider px-1 text-primary">Insert:</span>
+                  <button
+                    type="button"
+                    onClick={() => insertMarkdown('**', '**', 'bold text')}
+                    className="px-2 py-1 rounded-md hover:bg-background/80 hover:text-foreground font-bold transition-colors cursor-pointer border border-transparent hover:border-border/60"
+                    title="Bold (**text**)"
+                  >
+                    <Lucide.Bold size={13} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertMarkdown('*', '*', 'italic text')}
+                    className="px-2 py-1 rounded-md hover:bg-background/80 hover:text-foreground italic transition-colors cursor-pointer border border-transparent hover:border-border/60"
+                    title="Italic (*text*)"
+                  >
+                    <Lucide.Italic size={13} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertMarkdown('## ', '', 'Heading 2')}
+                    className="px-2 py-1 rounded-md hover:bg-background/80 hover:text-foreground font-black transition-colors cursor-pointer border border-transparent hover:border-border/60"
+                    title="Heading (## Heading)"
+                  >
+                    <Lucide.Heading size={13} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertMarkdown('- [ ] ', '', 'Task')}
+                    className="px-2 py-1 rounded-md hover:bg-background/80 hover:text-foreground transition-colors cursor-pointer border border-transparent hover:border-border/60"
+                    title="Checklist task (- [ ])"
+                  >
+                    <Lucide.CheckSquare size={13} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertMarkdown('- ', '', 'Bullet item')}
+                    className="px-2 py-1 rounded-md hover:bg-background/80 hover:text-foreground transition-colors cursor-pointer border border-transparent hover:border-border/60"
+                    title="Bullet List (- item)"
+                  >
+                    <Lucide.List size={13} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertMarkdown('> ', '', 'Wisdom or reflection...')}
+                    className="px-2 py-1 rounded-md hover:bg-background/80 hover:text-foreground transition-colors cursor-pointer border border-transparent hover:border-border/60"
+                    title="Blockquote (> quote)"
+                  >
+                    <Lucide.Quote size={13} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertMarkdown('```typescript\n', '\n```', 'console.log("mana");')}
+                    className="px-2 py-1 rounded-md hover:bg-background/80 hover:text-foreground font-mono transition-colors cursor-pointer border border-transparent hover:border-border/60"
+                    title="Code Block (```)"
+                  >
+                    <Lucide.Code size={13} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertMarkdown('[', '](https://)', 'Link title')}
+                    className="px-2 py-1 rounded-md hover:bg-background/80 hover:text-foreground transition-colors cursor-pointer border border-transparent hover:border-border/60"
+                    title="Link [title](url)"
+                  >
+                    <Lucide.Link size={13} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertMarkdown('| Phase | Action |\n| --- | --- |\n| Sprint 1 | ', ' |', 'Design')}
+                    className="px-2 py-1 rounded-md hover:bg-background/80 hover:text-foreground transition-colors cursor-pointer border border-transparent hover:border-border/60"
+                    title="Table (| col | col |)"
+                  >
+                    <Lucide.Table size={13} />
+                  </button>
+                </div>
 
+                {/* Raw Textarea */}
+                <div className="flex-1 flex flex-col min-h-0">
+                  <textarea
+                    ref={textareaRef}
+                    placeholder="How was today? What goals did you reach? Record thoughts in Markdown (# Header, **bold**, - [ ] task, ```code)..."
+                    value={noteContent}
+                    onChange={(e) => setNoteContent(e.target.value)}
+                    className="w-full flex-1 min-h-0 text-sm p-4 bg-secondary/20 backdrop-blur-sm border border-border/60 rounded-2xl text-foreground placeholder:text-muted-foreground outline-none resize-none focus:bg-background focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-mono leading-relaxed custom-scrollbar shadow-xs overflow-y-auto"
+                  />
+                </div>
+              </div>
+            ) : (
+              /* ── BEAUTIFUL MARKDOWN READING VIEW MODE ── */
+              <div className="flex-1 flex flex-col min-h-0 overflow-y-auto custom-scrollbar pr-2 py-2 space-y-4">
+                {/* Rendered Entry Header */}
+                <div className="border-b border-border/60 pb-3 flex items-center justify-between gap-4">
+                  <div>
+                    <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">
+                      {noteTitle || 'Untitled Reflection'}
+                    </h1>
+                    <span className="text-xs text-muted-foreground font-semibold">
+                      Recorded for {format(parseISO(noteDate), 'EEEE, MMMM dd, yyyy')}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-secondary hover:bg-secondary/80 text-foreground text-xs font-bold transition-all border border-border/60 cursor-pointer shadow-xs"
+                    title="Edit Markdown"
+                  >
+                    <Lucide.Edit3 size={13} className="text-primary" />
+                    <span>Edit</span>
+                  </button>
+                </div>
+
+                {/* Rendered Markdown Body */}
+                <div className="flex-1 min-h-0">
+                  <MarkdownRenderer content={noteContent} />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Footer Metadata */}
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="relative z-10 flex items-center justify-between text-xs text-muted-foreground font-semibold px-2 pt-3 border-t border-border/50 shrink-0 mt-4"
+            className="relative z-10 flex items-center justify-between text-xs text-muted-foreground font-semibold px-2 pt-3 border-t border-border/50 shrink-0 mt-3"
           >
-            <span className="flex items-center gap-1.5"><Lucide.Info size={14} className="text-primary" /> Markdown formatting supported</span>
-            <span className="flex items-center gap-1.5"><Lucide.Shield size={14} className="text-primary" /> Locally saved</span>
+            <div className="flex items-center gap-3">
+              <span className="flex items-center gap-1.5">
+                <Lucide.Info size={13} className="text-primary" /> 
+                {isEditing ? 'Raw Markdown Editor' : 'Theme-Apt Markdown View'}
+              </span>
+              <span className="hidden sm:inline-block w-1 h-3 bg-border/60" />
+              <span className="hidden sm:inline-block">
+                {wordCount} {wordCount === 1 ? 'word' : 'words'}
+              </span>
+            </div>
+            <span className="flex items-center gap-1.5">
+              <Lucide.Shield size={13} className="text-primary" /> 
+              Locally saved
+            </span>
           </motion.div>
         </motion.div>
       </AnimatePresence>

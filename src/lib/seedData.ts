@@ -31,7 +31,7 @@ export function generateMassiveOneYearData(): BackupData {
   ];
 
   const settings: Settings = {
-    theme: 'onedark',
+    theme: 'spectrum',
     backupReminderDays: 7,
     soundEnabled: true,
     showCompletedTasks: true,
@@ -235,6 +235,134 @@ export function generateMassiveOneYearData(): BackupData {
     }
   };
 
+  // 9. Standalone ToDos with Subtasks
+  const standaloneTodos = [
+    {
+      id: 'todo-seed-1',
+      title: 'Review System Architecture & Micro-Services',
+      description: 'Audit service boundaries and event loop latency.',
+      priority: 'high',
+      category: 'Work',
+      isCompleted: false,
+      dueDate: todayStr,
+      subtasks: [
+        { id: 'st-1', title: 'Verify IndexedDB transaction concurrency', isCompleted: true },
+        { id: 'st-2', title: 'Profile Next.js SSR hydration metrics', isCompleted: false },
+        { id: 'st-3', title: 'Benchmark battery drain under 60fps canvas', isCompleted: false },
+      ],
+      createdAt: nowStr,
+      updatedAt: nowStr,
+    },
+    {
+      id: 'todo-seed-2',
+      title: 'Weekly Meal Prep: High-Protein Muscle Fuel',
+      description: 'Prep marinated tofu, grilled paneer, and quinoa bowls.',
+      priority: 'medium',
+      category: 'Health',
+      isCompleted: true,
+      completedAt: nowStr,
+      dueDate: todayStr,
+      subtasks: [
+        { id: 'st-4', title: 'Purchase fresh greens and chia seeds', isCompleted: true },
+        { id: 'st-5', title: 'Portion macros into 5 glass containers', isCompleted: true },
+      ],
+      createdAt: nowStr,
+      updatedAt: nowStr,
+    },
+    {
+      id: 'todo-seed-3',
+      title: 'Automate Monthly Savings Transfer',
+      description: 'Allocate 30% savings to index funds and sovereign bonds.',
+      priority: 'high',
+      category: 'Personal',
+      isCompleted: false,
+      dueDate: todayStr,
+      subtasks: [],
+      createdAt: nowStr,
+      updatedAt: nowStr,
+    },
+  ];
+
+  // 10. Health & Vitality Suite Data
+  const healthDailyLogs: Record<string, any> = {};
+  for (let d = 30; d >= 0; d--) {
+    const logDate = new Date(now.getTime() - d * 86400000);
+    const dStr = logDate.toISOString().split('T')[0];
+    healthDailyLogs[dStr] = {
+      date: dStr,
+      waterGlasses: 8 + (d % 4),
+      sleepHours: 7 + ((d % 3) * 0.5),
+      weightKg: 74.2 + (Math.sin(d) * 0.4),
+      calories: 2250 + (d % 3) * 120,
+      protein: 145 + (d % 4) * 8,
+      carbs: 210 + (d % 5) * 10,
+      fat: 65 + (d % 3) * 4,
+      meals: [
+        { id: `m1-${dStr}`, name: 'Greek Yogurt & Mixed Berries Bowl', time: '08:30', calories: 380, protein: 28, carbs: 42, fat: 8 },
+        { id: `m2-${dStr}`, name: 'Grilled Paneer & Quinoa Power Salad', time: '13:00', calories: 650, protein: 38, carbs: 62, fat: 22 },
+        { id: `m3-${dStr}`, name: 'Whey Protein Shake & Almonds', time: '17:00', calories: 320, protein: 34, carbs: 12, fat: 12 },
+        { id: `m4-${dStr}`, name: 'Spiced Lentil Dal & Brown Basmati Bowl', time: '20:15', calories: 680, protein: 35, carbs: 88, fat: 16 },
+      ]
+    };
+  }
+
+  const healthData = {
+    dailyLogs: healthDailyLogs,
+    biometrics: {
+      heightCm: 178,
+      currentWeightKg: 74.5,
+      targetWeightKg: 72,
+      activityLevel: 'moderate',
+      targetCalories: 2350,
+      targetProtein: 155,
+      targetCarbs: 240,
+      targetFat: 68,
+      targetWater: 10,
+      targetSleep: 8,
+    },
+    customWorkouts: [
+      {
+        id: 'plan-push-pull-legs',
+        name: 'Shadow Iron Protocol (Push / Pull / Legs)',
+        description: 'Elite 3-day hypertrophy and strength development split.',
+        targetDaysPerWeek: 4,
+        exercises: [
+          { name: 'Barbell Incline Bench Press', sets: 4, reps: '8-10', targetMuscle: 'Chest / Triceps' },
+          { name: 'Weighted Pull-Ups', sets: 4, reps: '6-8', targetMuscle: 'Lats / Biceps' },
+          { name: 'Romanian Deadlifts', sets: 3, reps: '10-12', targetMuscle: 'Hamstrings / Glutes' },
+          { name: 'Standing Overhead Press', sets: 4, reps: '8-10', targetMuscle: 'Deltoids' },
+        ]
+      }
+    ],
+    customDiets: [
+      {
+        id: 'diet-lean-bulk-clean',
+        name: 'Lean Hypertrophy Athletic Diet',
+        description: 'High-protein whole food plan designed for sustainable recovery.',
+        dailyTargetCalories: 2350,
+        dailyTargetProtein: 155,
+        dailyTargetCarbs: 240,
+        dailyTargetFat: 68,
+      }
+    ]
+  };
+
+  // 11. Life RPG Quests
+  const rpgQuests = [
+    { id: 'quest-1', title: 'Deep Work Mastery', description: 'Log at least 2 hours of laser-focused code or writing.', xpReward: 150, isCompleted: true, type: 'daily' },
+    { id: 'quest-2', title: 'Iron Discipline', description: 'Complete your strength training session today.', xpReward: 120, isCompleted: false, type: 'daily' },
+    { id: 'quest-3', title: 'Macro Alignment', description: 'Hit your daily protein target within 5% variance.', xpReward: 100, isCompleted: true, type: 'daily' },
+    { id: 'quest-4', title: 'Architect of Dynasty', description: 'Maintain a 30-day streak across all core daily habits.', xpReward: 500, isCompleted: true, type: 'epic' },
+  ];
+
+  // 12. Wizard Scrolls
+  const wizardScrolls = [
+    { id: 'sc-1', vibe: 'power', quote: 'A lion does not flinch at the laughter of hyenas. Stay fiercely focused on building your empire.', author: 'Ancient Creed' },
+    { id: 'sc-2', vibe: 'wisdom', quote: 'To reach new heights and perceive the vastness of the realm, one must be prepared to walk in solitude.', author: 'Void Monk' },
+    { id: 'sc-3', vibe: 'wealth', quote: 'Patience is the ultimate leverage. Those who master compounding govern the fate of dynasties.', author: 'Compound Codex' },
+    { id: 'sc-4', vibe: 'health', quote: 'Care for your mortal vessel with reverence. It is the sole temple capable of manifesting your ambitions.', author: 'Vitality Codex' }
+  ];
+
   return {
     version: '1.0.0',
     tasks,
@@ -245,7 +373,12 @@ export function generateMassiveOneYearData(): BackupData {
     categories,
     settings,
     moneyData,
+    healthData,
+    standaloneTodos,
+    rpgQuests,
+    wizardScrolls,
     unlockedBadges,
     exportedAt: nowStr
   };
 }
+

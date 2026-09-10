@@ -431,6 +431,10 @@ export function mergeBackupDatasets(local: BackupData, remote: BackupData): Back
     categories: Array.from(catMap.values()),
     settings: { ...remote.settings, ...local.settings },
     moneyData: local.moneyData || remote.moneyData,
+    healthData: local.healthData || remote.healthData,
+    standaloneTodos: local.standaloneTodos?.length ? local.standaloneTodos : (remote.standaloneTodos || []),
+    rpgQuests: local.rpgQuests?.length ? local.rpgQuests : (remote.rpgQuests || []),
+    wizardScrolls: local.wizardScrolls?.length ? local.wizardScrolls : (remote.wizardScrolls || []),
     unlockedBadges: Array.from(new Set([...(local.unlockedBadges || []), ...(remote.unlockedBadges || [])])),
     exportedAt: new Date().toISOString(),
   };

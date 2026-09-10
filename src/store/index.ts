@@ -4,6 +4,7 @@ import { Task, Habit, DailyLog, Note, Reminder, Category, Settings, BackupData }
 import { dbService, STORES, settingsStorage } from '@/lib/storage';
 import { parseISO, format } from 'date-fns';
 import { calculateStreaks, calculateNextRecurrence, getTodayDateString, formatDateString, parseDateString, getHabitDateStatus, upsertHabitMissedNoteSection } from '@/lib/dateUtils';
+import { getXpForLevel } from '@/features/rpg/rpgLevels';
 
 function generateUUID(): string {
   if (typeof window !== 'undefined' && window.crypto && window.crypto.randomUUID) {
@@ -36,7 +37,7 @@ interface ShadowTrackerStore {
   importBackup: (data: BackupData) => Promise<void>;
 
   // Tasks
-  addTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'isSoftDeleted' | 'isCompleted'>) => Promise<Task>;
+  addTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'isSoftDeleted' | 'isCompleted'> & { isCompleted?: boolean }) => Promise<Task>;
   updateTask: (id: string, updates: Partial<Task>) => Promise<void>;
   toggleTaskCompletion: (id: string) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
@@ -78,6 +79,17 @@ interface ShadowTrackerStore {
   checkAndUnlockBadges: () => Promise<void>;
   resetBadges: () => void;
   restoreBadges: () => Promise<void>;
+  resetLifeRpg: () => Promise<void>;
+  recalibrateFromCurrentData: () => Promise<{
+    level: number;
+    xp: number;
+    title: string;
+    totalTasksCompleted: number;
+    totalHabitCheckoffs: number;
+    totalNotes: number;
+    badgesUnlockedCount: number;
+    unlockedBadges: string[];
+  }>;
 }
 
 const DEFAULT_CATEGORIES: Omit<Category, 'createdAt' | 'updatedAt'>[] = [
@@ -140,12 +152,22 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
         }));
       }
 
+      // Deduplicate notes by date strictly
+      const uniqueNotesMap = new Map<string, Note>();
+      (notes || []).forEach(n => {
+        const key = n.date || n.id;
+        if (!uniqueNotesMap.has(key) || (n.updatedAt && uniqueNotesMap.get(key)!.updatedAt < n.updatedAt)) {
+          uniqueNotesMap.set(key, { ...n, id: key, date: key });
+        }
+      });
+      const cleanNotes = Array.from(uniqueNotesMap.values());
+
       set({
         categories,
         tasks: tasks.filter(t => !t.isSoftDeleted),
         habits: habits.filter(h => !h.isSoftDeleted),
         dailyLogs,
-        notes,
+        notes: cleanNotes,
         reminders,
         settings,
         xp: settings.xp || 0,
@@ -263,6 +285,8 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
           }
         }
         window.dispatchEvent(new CustomEvent('shadow_data_imported'));
+        window.dispatchEvent(new CustomEvent('shadow_health_updated'));
+        window.dispatchEvent(new CustomEvent('shadow_todos_updated'));
       }
     } catch (error) {
       console.error('Failed to import backup:', error);
@@ -274,10 +298,13 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
   // Tasks
   addTask: async (taskData) => {
     const nowStr = new Date().toISOString();
+    const isCompleted = taskData.isCompleted ?? (taskData.status === 'done');
     const newTask: Task = {
       ...taskData,
       id: `task-${generateUUID()}`,
-      isCompleted: false,
+      isCompleted,
+      status: taskData.status || (isCompleted ? 'done' : 'todo'),
+      matrixQuadrant: taskData.matrixQuadrant || (taskData.priority === 'high' ? 'urgent_important' : taskData.priority === 'medium' ? 'not_urgent_important' : 'urgent_not_important'),
       createdAt: nowStr,
       updatedAt: nowStr,
       isSoftDeleted: false,
@@ -294,9 +321,25 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
     if (!task) return;
 
     const nowStr = new Date().toISOString();
+    let isCompleted = updates.isCompleted !== undefined ? updates.isCompleted : task.isCompleted;
+    let status = updates.status !== undefined ? updates.status : task.status;
+
+    if (updates.status !== undefined) {
+      if (updates.status === 'done') {
+        isCompleted = true;
+      } else {
+        isCompleted = false;
+      }
+    } else if (updates.isCompleted !== undefined) {
+      status = updates.isCompleted ? 'done' : 'todo';
+    }
+
     const updatedTask: Task = {
       ...task,
       ...updates,
+      isCompleted,
+      status: status || (isCompleted ? 'done' : 'todo'),
+      completedAt: isCompleted ? (task.completedAt || nowStr) : undefined,
       updatedAt: nowStr,
     };
 
@@ -305,7 +348,7 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
       tasks: state.tasks.map(t => t.id === id ? updatedTask : t)
     }));
 
-    if (updates.dueDate || updates.isCompleted !== undefined) {
+    if (updates.dueDate || updates.isCompleted !== undefined || updates.status !== undefined) {
       await get().recalculateDailyLogStats(task.dueDate);
       if (updates.dueDate && updates.dueDate !== task.dueDate) {
         await get().recalculateDailyLogStats(updates.dueDate);
@@ -319,11 +362,11 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
 
     const isCompleting = !task.isCompleted;
     const nowStr = new Date().toISOString();
-    const todayDate = getTodayDateString();
 
     const updatedTask: Task = {
       ...task,
       isCompleted: isCompleting,
+      status: isCompleting ? 'done' : 'todo',
       completedAt: isCompleting ? nowStr : undefined,
       updatedAt: nowStr,
     };
@@ -345,6 +388,10 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
           title: task.title,
           description: task.description,
           isCompleted: false,
+          status: 'todo',
+          matrixQuadrant: task.matrixQuadrant,
+          scheduledTime: task.scheduledTime,
+          estimatedMinutes: task.estimatedMinutes,
           dueDate: nextDueDate,
           priority: task.priority,
           categoryId: task.categoryId,
@@ -687,19 +734,21 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
 
   // Notes
   saveNote: async (date, content, title) => {
-    const note = get().notes.find(n => n.id === date);
+    const note = get().notes.find(n => n.id === date || n.date === date);
     const nowStr = new Date().toISOString();
 
     if (note) {
       const updatedNote: Note = {
         ...note,
+        id: date,
+        date,
         content,
         title,
         updatedAt: nowStr,
       };
       await dbService.put(STORES.NOTES, updatedNote);
       set(state => ({
-        notes: state.notes.map(n => n.id === date ? updatedNote : n)
+        notes: state.notes.map(n => (n.id === date || n.date === date) ? updatedNote : n)
       }));
     } else {
       const newNote: Note = {
@@ -712,7 +761,7 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
       };
       await dbService.put(STORES.NOTES, newNote);
       set(state => ({
-        notes: [...state.notes, newNote]
+        notes: [...state.notes.filter(n => n.id !== date && n.date !== date), newNote]
       }));
       await get().addXp(40);
     }
@@ -721,7 +770,7 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
   deleteNote: async (date) => {
     await dbService.delete(STORES.NOTES, date);
     set(state => ({
-      notes: state.notes.filter(n => n.id !== date)
+      notes: state.notes.filter(n => n.id !== date && n.date !== date)
     }));
   },
 
@@ -866,15 +915,18 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
   // Gamification Actions
   addXp: async (amount: number) => {
     let currentXp = get().xp + amount;
-    let currentLevel = get().level;
-    let xpNeeded = currentLevel * 100;
+    let currentLevel = get().level || 1;
+    let xpNeeded = getXpForLevel(currentLevel);
 
-    let leveledUp = false;
-    while (currentXp >= xpNeeded) {
+    while (currentXp >= xpNeeded && currentLevel < 100) {
       currentXp -= xpNeeded;
       currentLevel++;
-      xpNeeded = currentLevel * 100;
-      leveledUp = true;
+      xpNeeded = getXpForLevel(currentLevel);
+    }
+
+    if (currentLevel >= 100) {
+      currentLevel = 100;
+      currentXp = Math.min(currentXp, getXpForLevel(100));
     }
 
     if (currentXp < 0) {
@@ -894,13 +946,11 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
     const toUnlock: string[] = [];
     const toRevoke: string[] = [];
     const resetTime = settings.badgesResetTimestamp ? new Date(settings.badgesResetTimestamp).getTime() : 0;
-    const todayStr = getTodayDateString();
 
     const isAfterReset = (dateStr?: string) => {
-      if (!dateStr) return false;
+      if (!settings.badgesResetTimestamp) return true;
+      if (!dateStr) return true;
       if (dateStr.length === 10) { // YYYY-MM-DD
-        if (!settings.badgesResetTimestamp) return true;
-        // Compare alphabetically (YYYY-MM-DD is sortable)
         return dateStr >= settings.badgesResetTimestamp.substring(0, 10);
       }
       return new Date(dateStr).getTime() >= resetTime;
@@ -908,32 +958,47 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
 
     const hasBadge = (bId: string) => unlockedBadges.includes(bId);
 
-    // 1. First Spark (Permanent milestone once first task is completed after reset)
-    const hasCompletedTask = activeTasks.some(t => t.isCompleted && isAfterReset(t.completedAt || t.updatedAt));
+    // Standalone todos count
+    let standaloneCompletedCount = 0;
+    let hasRecentStandalone = false;
+    try {
+      const savedTodos = typeof window !== 'undefined' ? localStorage.getItem('shadow_standalone_todos_v1') : null;
+      if (savedTodos) {
+        const todosArr = JSON.parse(savedTodos);
+        if (Array.isArray(todosArr)) {
+          const completedTodos = todosArr.filter((t: any) => t.isCompleted && isAfterReset(t.completedAt || t.updatedAt || t.createdAt));
+          standaloneCompletedCount = completedTodos.length;
+          hasRecentStandalone = completedTodos.length > 0;
+        }
+      }
+    } catch (e) {}
+
+    // 1. First Spark (Permanent milestone once first task or standalone todo is completed after reset)
+    const hasCompletedTask = activeTasks.some(t => t.isCompleted && isAfterReset(t.completedAt || t.updatedAt || t.createdAt)) || hasRecentStandalone;
     if (hasCompletedTask && !hasBadge('badge-first-task')) toUnlock.push('badge-first-task');
 
     // 2. Atomic Habitual (Permanent milestone once first habit is checked off after reset)
-    const hasCompletedHabit = activeHabits.some(h => h.completedDates && h.completedDates.some(d => isAfterReset(d)));
+    const hasCompletedHabit = activeHabits.some(h => (h.completedDates && h.completedDates.some(d => isAfterReset(d))) || ((h.streakCount || 0) > 0 && isAfterReset()));
     if (hasCompletedHabit && !hasBadge('badge-first-habit')) toUnlock.push('badge-first-habit');
 
     // 3. Consistency Kick (Streak >= 3 or longest streak >= 3)
-    const hasStreak3 = activeHabits.some(h => h.streakCount >= 3 || h.longestStreak >= 3);
+    const hasStreak3 = activeHabits.some(h => (h.streakCount || 0) >= 3 || (h.longestStreak || 0) >= 3);
     if (hasStreak3 && !hasBadge('badge-streak-3')) toUnlock.push('badge-streak-3');
 
     // 4. Weekly Protocol (Streak >= 7 or longest streak >= 7)
-    const hasStreak7 = activeHabits.some(h => h.streakCount >= 7 || h.longestStreak >= 7);
+    const hasStreak7 = activeHabits.some(h => (h.streakCount || 0) >= 7 || (h.longestStreak || 0) >= 7);
     if (hasStreak7 && !hasBadge('badge-streak-7')) toUnlock.push('badge-streak-7');
 
     // 4.5. Monthly Core (Streak >= 30 or longest streak >= 30)
-    const hasStreak30 = activeHabits.some(h => h.streakCount >= 30 || h.longestStreak >= 30);
+    const hasStreak30 = activeHabits.some(h => (h.streakCount || 0) >= 30 || (h.longestStreak || 0) >= 30);
     if (hasStreak30 && !hasBadge('badge-streak-30')) toUnlock.push('badge-streak-30');
 
-    // 5. Deep Harmony (Requires 100% focus score AND at least 1 task/habit completed)
-    const hasTasksOrHabits = activeTasks.length > 0 || activeHabits.length > 0;
+    // 5. Deep Harmony (Requires >= 95% focus score AND at least 1 task/habit completed)
+    const hasTasksOrHabits = activeTasks.length > 0 || activeHabits.length > 0 || standaloneCompletedCount > 0;
     const hasPerfectDay = hasTasksOrHabits && dailyLogs.some(l => 
-      l.focusScore === 100 && 
-      ((l.completedTasksCount || 0) + (l.completedHabitsCount || 0) > 0) && 
-      isAfterReset(l.id)
+      (l.focusScore ?? 0) >= 95 && 
+      ((l.completedTasksCount || 0) + (l.completedHabitsCount || 0) + standaloneCompletedCount > 0) && 
+      isAfterReset(l.date || l.createdAt || l.id)
     );
     if (hasPerfectDay && !hasBadge('badge-perfect-day')) {
       toUnlock.push('badge-perfect-day');
@@ -945,18 +1010,18 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
     }
 
     // 7. Quarterly Legend (Streak >= 90 or longest streak >= 90)
-    const hasStreak90 = activeHabits.some(h => h.streakCount >= 90 || h.longestStreak >= 90);
+    const hasStreak90 = activeHabits.some(h => (h.streakCount || 0) >= 90 || (h.longestStreak || 0) >= 90);
     if (hasStreak90 && !hasBadge('badge-streak-90')) toUnlock.push('badge-streak-90');
 
-    // 9. Completionist 100 (100 total tasks after reset - permanent)
-    const newCompletedTasks = activeTasks.filter(t => t.isCompleted && isAfterReset(t.completedAt || t.updatedAt));
-    if (newCompletedTasks.length >= 100 && !hasBadge('badge-completionist-100')) {
+    // 9. Completionist 100 (100 total tasks or standalone todos after reset - permanent)
+    const newCompletedTasks = activeTasks.filter(t => t.isCompleted && isAfterReset(t.completedAt || t.updatedAt || t.createdAt));
+    if ((newCompletedTasks.length + standaloneCompletedCount) >= 100 && !hasBadge('badge-completionist-100')) {
       toUnlock.push('badge-completionist-100');
     }
 
     // 8. Wealth Master
     try {
-      const savedMoney = localStorage.getItem('shadow_money_data_v3');
+      const savedMoney = typeof window !== 'undefined' ? localStorage.getItem('shadow_money_data_v3') : null;
       if (savedMoney) {
         const moneyData = JSON.parse(savedMoney);
         const savings = moneyData.stats?.savings ?? 0;
@@ -1017,24 +1082,35 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
     const { tasks, habits, dailyLogs, notes } = get();
     const earned: string[] = [];
 
+    let standaloneCompletedCount = 0;
+    try {
+      const savedTodos = typeof window !== 'undefined' ? localStorage.getItem('shadow_standalone_todos_v1') : null;
+      if (savedTodos) {
+        const todosArr = JSON.parse(savedTodos);
+        if (Array.isArray(todosArr)) {
+          standaloneCompletedCount = todosArr.filter((t: any) => t.isCompleted).length;
+        }
+      }
+    } catch (e) {}
+
     // 1. First Spark
-    if (tasks.filter(t => t.isCompleted).length >= 1) earned.push('badge-first-task');
+    if (tasks.filter(t => t.isCompleted).length >= 1 || standaloneCompletedCount >= 1) earned.push('badge-first-task');
     
     // 2. Atomic Habitual
-    if (habits.some(h => h.completedDates.length > 0)) earned.push('badge-first-habit');
+    if (habits.some(h => (h.completedDates && h.completedDates.length > 0) || (h.streakCount || 0) > 0)) earned.push('badge-first-habit');
     
     // 3. Consistency Kick
-    if (habits.some(h => h.streakCount >= 3)) earned.push('badge-streak-3');
+    if (habits.some(h => (h.streakCount || 0) >= 3 || (h.longestStreak || 0) >= 3)) earned.push('badge-streak-3');
     
     // 4. Weekly Protocol
-    if (habits.some(h => h.streakCount >= 7)) earned.push('badge-streak-7');
+    if (habits.some(h => (h.streakCount || 0) >= 7 || (h.longestStreak || 0) >= 7)) earned.push('badge-streak-7');
     
     // 4.5. Monthly Core
-    if (habits.some(h => h.streakCount >= 30)) earned.push('badge-streak-30');
+    if (habits.some(h => (h.streakCount || 0) >= 30 || (h.longestStreak || 0) >= 30)) earned.push('badge-streak-30');
     
     // 5. Deep Harmony
-    const hasTasksOrHabits = tasks.length > 0 || habits.length > 0;
-    if (hasTasksOrHabits && dailyLogs.some(l => l.focusScore === 100 && ((l.completedTasksCount || 0) + (l.completedHabitsCount || 0) > 0))) {
+    const hasTasksOrHabits = tasks.length > 0 || habits.length > 0 || standaloneCompletedCount > 0;
+    if (hasTasksOrHabits && dailyLogs.some(l => (l.focusScore ?? 0) >= 95 && ((l.completedTasksCount || 0) + (l.completedHabitsCount || 0) + standaloneCompletedCount > 0))) {
       earned.push('badge-perfect-day');
     }
     
@@ -1042,15 +1118,15 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
     if (notes.length > 0) earned.push('badge-first-note');
     
     // 7. Quarterly Legend
-    if (habits.some(h => h.streakCount >= 90)) earned.push('badge-streak-90');
+    if (habits.some(h => (h.streakCount || 0) >= 90 || (h.longestStreak || 0) >= 90)) earned.push('badge-streak-90');
     
     // 9. Completionist 100
-    if (tasks.filter(t => t.isCompleted).length >= 100) earned.push('badge-completionist-100');
+    if ((tasks.filter(t => t.isCompleted).length + standaloneCompletedCount) >= 100) earned.push('badge-completionist-100');
     
     // 10. Wealth Master
     const settings = get().settings;
     try {
-      const savedMoney = localStorage.getItem('shadow_money_data_v3');
+      const savedMoney = typeof window !== 'undefined' ? localStorage.getItem('shadow_money_data_v3') : null;
       if (savedMoney) {
         const moneyData = JSON.parse(savedMoney);
         const savings = moneyData.stats?.savings ?? 0;
@@ -1072,6 +1148,146 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
     };
     settingsStorage.set(updatedSettings);
     set({ unlockedBadges: earned, settings: updatedSettings });
+  },
+
+  resetLifeRpg: async () => {
+    set({ xp: 0, level: 1 });
+    get().updateSettings({ xp: 0, level: 1 });
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.removeItem('shadow_rpg_quests_v1');
+        window.dispatchEvent(new CustomEvent('shadowRpgReset'));
+      } catch (e) {}
+    }
+  },
+
+  recalibrateFromCurrentData: async () => {
+    const { tasks, habits, dailyLogs, notes, settings } = get();
+    const activeTasks = tasks.filter(t => !t.isSoftDeleted);
+    const activeHabits = habits.filter(h => !h.isSoftDeleted);
+
+    // 1. Count completed tasks & standalone todos
+    const completedTasksCount = activeTasks.filter(t => t.isCompleted).length;
+    let standaloneCompletedCount = 0;
+    try {
+      const savedTodos = typeof window !== 'undefined' ? localStorage.getItem('shadow_standalone_todos_v1') : null;
+      if (savedTodos) {
+        const todosArr = JSON.parse(savedTodos);
+        if (Array.isArray(todosArr)) {
+          standaloneCompletedCount = todosArr.filter((t: any) => t.isCompleted).length;
+        }
+      }
+    } catch (e) {}
+    const totalTasksDone = completedTasksCount + standaloneCompletedCount;
+
+    // 2. Count habit completions & streaks
+    let totalHabitCheckoffs = 0;
+    let maxStreak = 0;
+    activeHabits.forEach(h => {
+      totalHabitCheckoffs += (h.completedDates?.length || 0);
+      const s = Math.max(h.streakCount || 0, h.longestStreak || 0);
+      if (s > maxStreak) maxStreak = s;
+    });
+
+    // 3. Count notes and logs
+    const notesCount = notes.length;
+    const logsCount = dailyLogs.length;
+
+    // 4. Calculate total earned XP based mathematically on real historical execution
+    let totalEarnedXp = (totalTasksDone * 25) + (totalHabitCheckoffs * 20) + (maxStreak * 25) + (notesCount * 15) + (logsCount * 15);
+    if (totalEarnedXp < 0) totalEarnedXp = 0;
+
+    // 5. Compute level & remaining XP progression
+    let newLevel = 1;
+    let remainingXp = totalEarnedXp;
+    let xpNeeded = getXpForLevel(newLevel);
+
+    while (remainingXp >= xpNeeded && newLevel < 100) {
+      remainingXp -= xpNeeded;
+      newLevel++;
+      xpNeeded = getXpForLevel(newLevel);
+    }
+
+    if (newLevel >= 100) {
+      newLevel = 100;
+      remainingXp = Math.min(remainingXp, getXpForLevel(100));
+    }
+
+    // 6. Recalibrate and unlock all earned badges
+    const earnedBadges: string[] = [];
+
+    // Badge 1: First Spark
+    if (totalTasksDone >= 1) earnedBadges.push('badge-first-task');
+
+    // Badge 2: Atomic Habit
+    if (totalHabitCheckoffs >= 1) earnedBadges.push('badge-first-habit');
+
+    // Badge 3: Triple Streak
+    if (maxStreak >= 3) earnedBadges.push('badge-streak-3');
+
+    // Badge 4: Weekly Streak
+    if (maxStreak >= 7) earnedBadges.push('badge-streak-7');
+
+    // Badge 5: Monthly Core
+    if (maxStreak >= 30) earnedBadges.push('badge-streak-30');
+
+    // Badge 6: Deep Harmony
+    const hasPerfectDay = dailyLogs.some(l => (l.focusScore ?? 0) >= 95 && ((l.completedTasksCount || 0) + (l.completedHabitsCount || 0) + standaloneCompletedCount > 0));
+    if (hasPerfectDay) earnedBadges.push('badge-perfect-day');
+
+    // Badge 7: Mindful Mind
+    if (notesCount >= 1) earnedBadges.push('badge-first-note');
+
+    // Badge 8: Quarter Zenith (90 day streak)
+    if (maxStreak >= 90) earnedBadges.push('badge-streak-90');
+
+    // Badge 9: Century Master (100 total tasks)
+    if (totalTasksDone >= 100) earnedBadges.push('badge-completionist-100');
+
+    // Badge 10: Wealth Master
+    try {
+      const savedMoney = typeof window !== 'undefined' ? localStorage.getItem('shadow_money_data_v3') : null;
+      if (savedMoney) {
+        const moneyData = JSON.parse(savedMoney);
+        const savings = moneyData.stats?.savings ?? 0;
+        const totalInvestments = (moneyData.stats?.investments ?? []).reduce((acc: number, item: any) => acc + item.amount, 0);
+        const targetSavings = settings.savingsTarget ?? 0;
+        const targetInvestments = settings.investmentsTarget ?? 0;
+        if (targetSavings > 0 && targetInvestments > 0 && savings >= targetSavings && totalInvestments >= targetInvestments) {
+          earnedBadges.push('badge-wealth-master');
+        }
+      }
+    } catch (e) {}
+
+    const updatedSettings: Settings = {
+      ...settings,
+      xp: remainingXp,
+      level: newLevel,
+      unlockedBadges: earnedBadges,
+      badgesResetTimestamp: undefined,
+    };
+
+    settingsStorage.set(updatedSettings);
+    set({
+      xp: remainingXp,
+      level: newLevel,
+      unlockedBadges: earnedBadges,
+      settings: updatedSettings,
+    });
+
+    const { getCharacterTitle } = await import('@/features/rpg/rpgLevels');
+    const title = getCharacterTitle(newLevel);
+
+    return {
+      level: newLevel,
+      xp: remainingXp,
+      title,
+      totalTasksCompleted: totalTasksDone,
+      totalHabitCheckoffs,
+      totalNotes: notesCount,
+      badgesUnlockedCount: earnedBadges.length,
+      unlockedBadges: earnedBadges,
+    };
   },
 }));
 

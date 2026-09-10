@@ -112,6 +112,9 @@ const WizardMiniature: React.FC<{ theme: string }> = ({ theme }) => {
     midnight:  { hat: '#10b981', hatDark: '#059669', robe: '#047857', robeDark: '#064e3b', staff: '#a7f3d0', orb: '#34d399', skin: '#e0b088', belt: '#6ee7b7', orbGlow: 'rgba(52,211,153,0.6)', beard: '#d0c8b8' },
     onedark:   { hat: '#dc2626', hatDark: '#991b1b', robe: '#b91c1c', robeDark: '#7f1d1d', staff: '#fb923c', orb: '#f87171', skin: '#e0b088', belt: '#ea580c', orbGlow: 'rgba(248,113,113,0.6)', beard: '#d8c8a8' },
     light:     { hat: '#2563eb', hatDark: '#1d4ed8', robe: '#1e40af', robeDark: '#1e3a5f', staff: '#d4a020', orb: '#fbbf24', skin: '#e0b088', belt: '#b45309', orbGlow: 'rgba(251,191,36,0.6)', beard: '#c0b898' },
+    white:     { hat: '#4f46e5', hatDark: '#3730a3', robe: '#4338ca', robeDark: '#312e81', staff: '#d97706', orb: '#6366f1', skin: '#e0b088', belt: '#b45309', orbGlow: 'rgba(99,102,241,0.6)', beard: '#c0b898' },
+    pine:      { hat: '#059669', hatDark: '#047857', robe: '#065f46', robeDark: '#064e3b', staff: '#10b981', orb: '#34d399', skin: '#e0b088', belt: '#6ee7b7', orbGlow: 'rgba(52,211,153,0.6)', beard: '#d0c8b8' },
+    purple:    { hat: '#9333ea', hatDark: '#7e22ce', robe: '#6b21a8', robeDark: '#581c87', staff: '#c084fc', orb: '#a855f7', skin: '#e0b088', belt: '#d8b4fe', orbGlow: 'rgba(168,85,247,0.6)', beard: '#e8e0c0' },
   };
   const c = themeColors[theme] || themeColors.obsidian;
 

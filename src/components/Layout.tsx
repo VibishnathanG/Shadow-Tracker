@@ -17,6 +17,7 @@ import { InAppNotificationOverlay } from './InAppNotificationOverlay';
 import { useOneDriveAutoSync } from '@/lib/useOneDriveAutoSync';
 import { GitHubDailySync } from './GitHubDailySync';
 import CustomDialogOverlay from './CustomDialogOverlay';
+import { DayReviewModal } from './DayReviewModal';
 
 interface LayoutProps {
   activeTab: string;
@@ -40,7 +41,7 @@ function AppLogo({ size = 26, theme = 'onedark' }: { size?: number; theme?: stri
       case 'midnight':
       case 'pine':
       case 'purple':
-        return { r1: '#a855f7', r2: '#c084fc', r3: '#e9d5ff', bg: '#a855f7', core: '#a855f7', opacity: '0.25' };
+        return { r1: '#6366f1', r2: '#06b6d4', r3: '#f97316', bg: '#6366f1', core: '#ffffff', opacity: '0.2' };
       default:
         return { r1: '#4f46e5', r2: '#38bdf8', r3: '#60a5fa', bg: '#4f46e5', core: '#4f46e5', opacity: '0.2' };
     }
@@ -92,6 +93,8 @@ function AppLogo({ size = 26, theme = 'onedark' }: { size?: number; theme?: stri
   );
 }
 
+
+
 export const Layout: React.FC<LayoutProps> = ({
   activeTab,
   setActiveTab,
@@ -102,6 +105,7 @@ export const Layout: React.FC<LayoutProps> = ({
   const [commandBarOpen, setCommandBarOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [isWizardModalOpen, setIsWizardModalOpen] = useState(false);
+  const [dayReviewModal, setDayReviewModal] = useState<'morning' | 'evening' | null>(null);
 
   // OneDrive auto-sync
   useOneDriveAutoSync();
@@ -119,11 +123,11 @@ export const Layout: React.FC<LayoutProps> = ({
     if (current === 'light' || current === 'white') {
       return <Lucide.Sun size={size} className="text-amber-500" />;
     }
-    if (current === 'midnight' || current === 'pine' || current === 'purple') {
-      return <Lucide.Sparkles size={size} className="text-purple-400" />;
+    if (current === 'midnight' || current === 'pine' || current === 'purple' || current === 'spectrum') {
+      return <Lucide.Sparkles size={size} className="text-indigo-400" />;
     }
     if (current === 'obsidian') {
-      return <Lucide.Moon size={size} className="text-sky-400" />;
+      return <Lucide.Moon size={size} className="text-purple-300" />;
     }
     if (current === 'onedark') {
       return <Lucide.Terminal size={size} className="text-blue-400" />;
@@ -131,26 +135,26 @@ export const Layout: React.FC<LayoutProps> = ({
     if (current === 'cyberpunk') {
       return <Lucide.Zap size={size} className="text-rose-400" />;
     }
-    return <Lucide.Moon size={size} />;
+    return <Lucide.Sparkles size={size} className="text-indigo-400" />;
   };
 
   // Sync theme + scale + eco/low-gpu mode + activeTab
   useEffect(() => {
     const root = window.document.documentElement;
-    root.classList.remove('theme-light', 'theme-white', 'theme-obsidian', 'theme-onedark', 'theme-cyberpunk', 'theme-midnight', 'theme-pine', 'theme-purple', 'dark', 'light');
+    root.classList.remove('theme-light', 'theme-white', 'theme-obsidian', 'theme-onedark', 'theme-cyberpunk', 'theme-midnight', 'theme-pine', 'theme-purple', 'theme-spectrum', 'dark', 'light');
 
-    const currentTheme = settings.theme || 'onedark';
+    const currentTheme = settings.theme || 'spectrum';
     const isLight = currentTheme === 'light' || currentTheme === 'white';
-    const isPurple = currentTheme === 'midnight' || currentTheme === 'pine' || currentTheme === 'purple';
+    const isSpectrum = currentTheme === 'midnight' || currentTheme === 'pine' || currentTheme === 'purple' || currentTheme === 'spectrum';
 
-    const semanticTheme = isLight ? 'white' : (isPurple ? 'purple' : currentTheme);
+    const semanticTheme = isLight ? 'white' : (isSpectrum ? 'spectrum' : currentTheme);
     root.setAttribute('data-theme', semanticTheme);
     root.setAttribute('data-active-tab', activeTab);
 
     if (isLight) {
       root.classList.add('theme-light', 'theme-white', 'light');
-    } else if (isPurple) {
-      root.classList.add('theme-midnight', 'theme-pine', 'theme-purple', 'dark');
+    } else if (isSpectrum) {
+      root.classList.add('theme-midnight', 'theme-pine', 'theme-purple', 'theme-spectrum', 'dark');
     } else {
       root.classList.add(`theme-${currentTheme}`, 'dark');
     }
@@ -226,9 +230,11 @@ export const Layout: React.FC<LayoutProps> = ({
     { id: 'todo', label: 'ToDo', icon: 'CheckCircle2' },
     { id: 'habits', label: 'Habits', icon: 'Repeat' },
     { id: 'calendar', label: 'Calendar', icon: 'Calendar' },
+    { id: 'health', label: 'Health', icon: 'HeartPulse' },
     { id: 'analytics', label: 'Analytics', icon: 'TrendingUp' },
     { id: 'notes', label: 'Journal', icon: 'BookOpen' },
     { id: 'money', label: 'Money', icon: 'DollarSign' },
+    { id: 'rpg', label: 'Life RPG', icon: 'Crown' },
     { id: 'settings', label: 'Settings', icon: 'Settings' },
   ] as const;
 
@@ -270,8 +276,12 @@ export const Layout: React.FC<LayoutProps> = ({
               <AppLogo size={26} theme={settings.theme} />
             </div>
             <div>
-              <h1 className="text-base font-extrabold tracking-tight text-foreground"><span className="text-primary capitalize">{settings.alias ? settings.alias.charAt(0).toUpperCase() + settings.alias.slice(1) : 'Shadow'}</span>-Tracker</h1>
-              <Link href="/terms" className="text-[11px] text-secondary font-extrabold tracking-[0.18em] uppercase hover:text-primary transition-colors cursor-pointer block mt-0.5">PRIVACY FIRST</Link>
+              <h1 className="text-base font-extrabold tracking-tight text-foreground">
+                <span className="text-primary capitalize">{settings.alias ? settings.alias.charAt(0).toUpperCase() + settings.alias.slice(1) : 'Shadow'}</span>-Tracker
+              </h1>
+              <Link href="/terms" className="text-[11px] text-secondary font-extrabold tracking-[0.18em] uppercase hover:text-primary transition-colors cursor-pointer block mt-0.5">
+                PRIVACY FIRST
+              </Link>
             </div>
           </div>
 
@@ -325,16 +335,40 @@ export const Layout: React.FC<LayoutProps> = ({
                 <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-surface border border-border/80 rounded-md text-secondary shadow-xs shrink-0">⌘ K</kbd>
               </button>
 
+              {/* Day Review Launchers */}
+              <div className="grid grid-cols-2 gap-1.5">
+                <button
+                  onClick={() => setDayReviewModal('morning')}
+                  className="flex items-center justify-center gap-1.5 px-2 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl text-[11px] font-bold transition-all cursor-pointer active:scale-95 shadow-2xs"
+                  title="Start My Day (Morning Briefing)"
+                >
+                  <Lucide.Sunrise size={13} />
+                  <span>Morning</span>
+                </button>
+                <button
+                  onClick={() => setDayReviewModal('evening')}
+                  className="flex items-center justify-center gap-1.5 px-2 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 rounded-xl text-[11px] font-bold transition-all cursor-pointer active:scale-95 shadow-2xs"
+                  title="End of Day (Evening Reflection)"
+                >
+                  <Lucide.Sunset size={13} />
+                  <span>Evening</span>
+                </button>
+              </div>
+
               {/* 3-Column Quick Actions Row */}
               <div className="grid grid-cols-3 gap-1.5">
                 {/* Wizard Button */}
                 <button
-                  onClick={() => setIsWizardModalOpen(true)}
-                  className="flex items-center justify-center gap-1 px-2 py-1.5 bg-gradient-to-r from-purple-950/80 to-indigo-950/80 hover:from-purple-900 hover:to-indigo-900 text-cyan-300 rounded-xl text-[11px] font-bold transition-all border border-cyan-500/40 shadow-sm cursor-pointer active:scale-95 min-w-0"
-                  title="Shadow Wizard"
+                  onClick={() => setActiveTab('wizard')}
+                  className={`flex items-center justify-center gap-1 px-2 py-1.5 rounded-xl text-[11px] font-bold transition-all border shadow-sm cursor-pointer active:scale-95 min-w-0 ${
+                    activeTab === 'wizard'
+                      ? 'bg-primary text-primary-foreground border-primary shadow-md shadow-primary/30 ring-1 ring-primary/40'
+                      : 'bg-surface-elevated hover:bg-surface text-secondary hover:text-foreground border-border hover:border-primary/40'
+                  }`}
+                  title="Shadow Wizard Sanctuary"
                   aria-label="Shadow Wizard Mascot"
                 >
-                  <Lucide.Sparkles size={13} className="text-cyan-400 animate-pulse shrink-0" />
+                  <Lucide.Sparkles size={13} className={`${activeTab === 'wizard' ? 'text-primary-foreground' : 'text-primary'} shrink-0`} />
                   <span className="truncate">Wizard</span>
                 </button>
 
@@ -372,21 +406,32 @@ export const Layout: React.FC<LayoutProps> = ({
       <div className="flex-1 md:pl-72 flex flex-col min-h-screen w-full">
         {/* Mobile Header */}
         <header className="md:hidden flex items-center justify-between px-5 py-4 bg-surface/90 backdrop-blur-xl border-b border-border sticky top-0 z-40 select-none shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center shadow-md shadow-primary/20 shrink-0 transition-colors">
+          <div className="flex items-center gap-2.5">
+            <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center shrink-0">
               <AppLogo size={20} theme={settings.theme} />
             </div>
-            <span className="text-sm font-extrabold tracking-tight text-foreground"><span className="text-primary capitalize">{settings.alias ? settings.alias.charAt(0).toUpperCase() + settings.alias.slice(1) : 'Shadow'}</span>-Tracker</span>
+            <div className="flex flex-col">
+              <span className="text-sm font-black tracking-tight text-foreground leading-tight">
+                Shadow <span className="text-primary font-extrabold">Legend</span>
+              </span>
+              <span className="text-[9px] font-extrabold text-emerald-400 tracking-wider uppercase flex items-center gap-1">
+                <Lucide.ShieldCheck size={9} /> PRIVACY FIRST
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setIsWizardModalOpen(true)}
-              className="p-2.5 bg-gradient-to-r from-purple-950 to-indigo-950 text-cyan-300 hover:text-cyan-200 rounded-xl border border-cyan-500/40 shadow-sm active:scale-95 transition-all cursor-pointer"
+              onClick={() => setActiveTab('wizard')}
+              className={`p-2.5 rounded-xl border shadow-sm active:scale-95 transition-all cursor-pointer flex items-center justify-center ${
+                activeTab === 'wizard'
+                  ? 'bg-primary text-white border-primary shadow-primary/30'
+                  : 'bg-surface-elevated text-secondary hover:text-foreground border-border'
+              }`}
               aria-label="Shadow Wizard Mascot"
-              title="Shadow Wizard"
+              title="Shadow Wizard Sanctuary"
             >
-              <Lucide.Sparkles size={16} className="text-cyan-400 animate-pulse" />
+              <Lucide.Sparkles size={16} className={activeTab === 'wizard' ? 'text-white' : 'text-primary'} />
             </button>
 
             {/* ToDo Button next to Wizard Button in Android/Mobile Header */}
@@ -422,7 +467,7 @@ export const Layout: React.FC<LayoutProps> = ({
         </header>
 
         {/* Main Content Area */}
-        <main className="flex-1 flex flex-col p-4 md:p-8 max-w-7xl mx-auto w-full pb-20 md:pb-8 overflow-x-hidden relative z-10">
+        <main className="flex-1 flex flex-col p-4 md:p-8 max-w-7xl mx-auto w-full pb-20 md:pb-8 overflow-x-clip relative z-10">
           <div key={activeTab}>
             {children}
           </div>
@@ -459,7 +504,7 @@ export const Layout: React.FC<LayoutProps> = ({
                         isActive ? 'bg-primary text-white shadow-md' : 'text-foreground bg-surface-elevated border border-border/40 hover:bg-surface'
                       }`}
                     >
-                      <Icon size={24} className={isActive ? 'stroke-[2.5px]' : ''} />
+                      <Icon size={24} className={isActive ? 'stroke-[2.5px] text-white' : 'text-primary/90'} />
                       <span className="text-xs font-bold">{item.label}</span>
                     </button>
                   );
@@ -545,6 +590,13 @@ export const Layout: React.FC<LayoutProps> = ({
           </div>
         </div>
       )}
+
+      {/* Day Review Modal (Morning Briefing / Evening Reflection) */}
+      <DayReviewModal
+        isOpen={dayReviewModal !== null}
+        mode={dayReviewModal || 'morning'}
+        onClose={() => setDayReviewModal(null)}
+      />
     </div>
   );
 };

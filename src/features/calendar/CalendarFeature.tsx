@@ -7,6 +7,9 @@ import { Lucide } from '@/components/icons';
 import { useShadowTrackerStore } from '@/store';
 import { getTodayDateString, formatDateString, getMonthGridDates, getWeekDates, parseDateString } from '@/lib/dateUtils';
 import { format, addMonths, subMonths, addWeeks, subWeeks, isSameMonth } from 'date-fns';
+import { TimeBlockingView } from './TimeBlockingView';
+import { MarkdownRenderer } from '@/components/MarkdownRenderer';
+import { useViewPreference } from '@/lib/viewPreferences';
 
 interface CalendarFeatureProps {
   selectedDate: string;
@@ -39,23 +42,26 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
     settings,
   } = useShadowTrackerStore();
   
-  const isWhiteTheme = settings?.theme === 'light';
+  const isWhiteTheme = settings?.theme === 'light' || settings?.theme === 'white';
 
   const [currentViewDate, setCurrentViewDate] = useState<Date>(() => parseDateString(selectedDate));
-  const [viewMode, setViewMode] = useState<'month' | 'week'>('month');
+  const [viewMode, setViewMode] = useViewPreference('calendarViewMode') as ['month' | 'week' | 'timeline', (v: 'month' | 'week' | 'timeline') => void];
   const [direction, setDirection] = useState(0);
 
   const [journalContent, setJournalContent] = useState('');
   const [journalTitle, setJournalTitle] = useState('');
   const [selectedMood, setSelectedMood] = useState<string>('');
   const [isSavedIndicator, setIsSavedIndicator] = useState(false);
+  const [isNoteEditing, setIsNoteEditing] = useState(false);
 
   const todayStr = useMemo(() => getTodayDateString(), []);
 
   useEffect(() => {
-    const note = notes.find(n => n.id === selectedDate);
+    const note = notes.find(n => n.id === selectedDate || n.date === selectedDate);
     setJournalContent(note?.content || '');
     setJournalTitle(note?.title || '');
+    const hasContent = Boolean(note && (note.content?.trim() || note.title?.trim()));
+    setIsNoteEditing(!hasContent);
 
     const log = dailyLogs.find(l => l.date === selectedDate);
     setSelectedMood(log?.mood || '');
@@ -64,6 +70,7 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
   const handleSaveJournal = useCallback(async () => {
     await saveNote(selectedDate, journalContent.trim(), journalTitle.trim() || undefined);
     setIsSavedIndicator(true);
+    setIsNoteEditing(false);
     setTimeout(() => setIsSavedIndicator(false), 2000);
   }, [saveNote, selectedDate, journalContent, journalTitle]);
 
@@ -162,71 +169,51 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
             <circle cx="500" cy="500" r="160" fill="url(#calBgGlow)" opacity="0.4" />
           </svg>
         </motion.div>
-        
-        {isWhiteTheme && (
-          <>
-            <motion.div
-              animate={{ rotate: -360 }}
-              transition={{ duration: 400, repeat: Infinity, ease: 'linear' }}
-              className="absolute top-[10%] -right-[20%] w-[120%] h-[120%] origin-center text-amber-500"
-            >
-              <svg viewBox="0 0 1000 1000" className="w-full h-full text-current">
-                <circle cx="500" cy="500" r="350" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="8 24" opacity="0.7" />
-                <circle cx="500" cy="500" r="250" fill="none" stroke="currentColor" strokeWidth="0.5" strokeDasharray="4 16" opacity="0.5" />
-              </svg>
-            </motion.div>
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 350, repeat: Infinity, ease: 'linear' }}
-              className="absolute -bottom-[20%] right-[10%] w-[80%] h-[80%] origin-center text-amber-300"
-            >
-              <svg viewBox="0 0 1000 1000" className="w-full h-full text-current">
-                <circle cx="500" cy="500" r="400" fill="none" stroke="currentColor" strokeWidth="1.2" strokeDasharray="12 36" opacity="0.6" />
-              </svg>
-            </motion.div>
-          </>
-        )}
       </div>
 
       <div className="md:col-span-2 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-1 bg-secondary/80 border border-border/80 p-1.5 rounded-xl backdrop-blur-md">
-            <motion.button
-              whileHover={{ scale: 1.05, transition: { type: 'spring', stiffness: 400, damping: 10 } }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setViewMode('month')}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                viewMode === 'month' ? 'bg-card text-foreground shadow-md' : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Month
-            </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05, transition: { type: 'spring', stiffness: 400, damping: 10 } }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setViewMode('week')}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
-                viewMode === 'week' ? 'bg-card text-foreground shadow-md' : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Week
-            </motion.button>
+          <div className="pill-group">
+            {(['month', 'week', 'timeline'] as const).map(mode => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setViewMode(mode)}
+                className={`filter-pill ${viewMode === mode ? 'active' : ''}`}
+              >
+                <span className="capitalize">{mode}</span>
+              </button>
+            ))}
           </div>
 
           <div className="flex items-center justify-between sm:justify-end gap-3 flex-1 sm:flex-initial">
             <h2 className="text-xl font-black tracking-tight min-w-[140px] text-center text-foreground">
               {format(currentViewDate, viewMode === 'month' ? 'MMMM yyyy' : 'MMM yyyy')}
             </h2>
-            <div className="flex items-center gap-1 bg-secondary/80 rounded-xl p-1.5 border border-border/60 backdrop-blur-md">
-              <motion.button whileHover={{ scale: 1.1, backgroundColor: 'var(--card)', transition: { type: 'spring', stiffness: 400, damping: 10 } }} whileTap={{ scale: 0.95 }} onClick={handlePrev} className="p-2 text-muted-foreground hover:text-foreground rounded-lg transition-colors">
-                <Lucide.ChevronLeft size={18} />
-              </motion.button>
-              <motion.button whileHover={{ scale: 1.05, backgroundColor: 'var(--card)', transition: { type: 'spring', stiffness: 400, damping: 10 } }} whileTap={{ scale: 0.95 }} onClick={handleToday} className="px-3 py-2 text-sm font-extrabold text-muted-foreground hover:text-foreground rounded-lg transition-colors uppercase tracking-widest">
+            <div className="pill-group">
+              <button
+                type="button"
+                onClick={handlePrev}
+                className="filter-pill p-1.5"
+                title="Previous period"
+              >
+                <Lucide.ChevronLeft size={16} />
+              </button>
+              <button
+                type="button"
+                onClick={handleToday}
+                className="filter-pill uppercase tracking-wider text-[11px]"
+              >
                 Today
-              </motion.button>
-              <motion.button whileHover={{ scale: 1.1, backgroundColor: 'var(--card)', transition: { type: 'spring', stiffness: 400, damping: 10 } }} whileTap={{ scale: 0.95 }} onClick={handleNext} className="p-2 text-muted-foreground hover:text-foreground rounded-lg transition-colors">
-                <Lucide.ChevronRight size={18} />
-              </motion.button>
+              </button>
+              <button
+                type="button"
+                onClick={handleNext}
+                className="filter-pill p-1.5"
+                title="Next period"
+              >
+                <Lucide.ChevronRight size={16} />
+              </button>
             </div>
           </div>
         </div>
@@ -252,7 +239,9 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
               exit="exit"
               transition={{ type: 'spring', stiffness: 400, damping: 35 }}
             >
-              {viewMode === 'month' ? (
+              {viewMode === 'timeline' ? (
+                <TimeBlockingView selectedDate={selectedDate} />
+              ) : viewMode === 'month' ? (
                 <div className="space-y-3 select-none">
                   <div className="grid grid-cols-7 text-center border-b border-border/60 pb-3 text-xs font-black uppercase tracking-widest text-muted-foreground">
                     {dayOfWeekNames.map(d => (
@@ -588,40 +577,57 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
                 <Lucide.BookOpen size={14} className="text-purple-500" /> Reflection Notes
               </label>
               
-              <AnimatePresence mode="wait">
-                {isSavedIndicator ? (
-                  <motion.span 
-                    key="saved"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    className="text-xs font-bold text-emerald-500 flex items-center gap-1 bg-emerald-500/10 px-2 py-1 rounded-md"
-                  >
-                    <Lucide.Check size={12} strokeWidth={3} /> Saved
-                  </motion.span>
-                ) : (
-                  <motion.button
-                    key="save"
-                    whileHover={{ scale: 1.05, transition: { type: 'spring', stiffness: 400, damping: 10 } }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={handleSaveJournal}
-                    className="text-xs font-black text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-lg transition-colors"
-                  >
-                    Save Entry
-                  </motion.button>
-                )}
-              </AnimatePresence>
+              <div className="flex items-center gap-2">
+                <AnimatePresence mode="wait">
+                  {isSavedIndicator ? (
+                    <motion.span 
+                      key="saved"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      className="text-xs font-bold text-emerald-500 flex items-center gap-1 bg-emerald-500/10 px-2 py-1 rounded-md"
+                    >
+                      <Lucide.Check size={12} strokeWidth={3} /> Saved
+                    </motion.span>
+                  ) : isNoteEditing ? (
+                    <div className="flex items-center gap-1.5">
+                      {(journalContent.trim() || journalTitle.trim()) && (
+                        <button
+                          type="button"
+                          onClick={() => setIsNoteEditing(false)}
+                          className="text-xs font-bold text-muted-foreground hover:text-foreground px-2 py-1 rounded-lg transition-colors cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                      <motion.button
+                        key="save"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={handleSaveJournal}
+                        disabled={!journalContent.trim() && !journalTitle.trim()}
+                        className="text-xs font-black text-primary bg-primary/10 hover:bg-primary/20 disabled:opacity-40 disabled:pointer-events-none px-3 py-1.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1"
+                      >
+                        <Lucide.Save size={12} />
+                        <span>Save Entry</span>
+                      </motion.button>
+                    </div>
+                  ) : (
+                    <motion.button
+                      key="edit"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setIsNoteEditing(true)}
+                      className="text-xs font-bold text-purple-400 bg-purple-500/10 hover:bg-purple-500/20 px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+                    >
+                      <Lucide.Edit3 size={12} />
+                      <span>Edit</span>
+                    </motion.button>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
 
-            <motion.input
-              whileFocus={{ scale: 1.01, transition: { type: 'spring', stiffness: 400, damping: 10 } }}
-              type="text"
-              placeholder="Entry Title (Optional)..."
-              value={journalTitle}
-              onChange={(e) => setJournalTitle(e.target.value)}
-              className="w-full text-sm font-black px-4 py-3 bg-secondary/40 rounded-xl border border-border/60 outline-none text-foreground placeholder:text-muted-foreground focus:bg-secondary/60 focus:border-primary/60 focus:ring-4 focus:ring-primary/20 transition-all shadow-sm"
-            />
-            
             {totalMissedCount > 0 && (
               <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl flex gap-3 text-red-500">
                 <Lucide.AlertTriangle size={18} className="shrink-0 mt-0.5" />
@@ -632,14 +638,53 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
               </div>
             )}
 
-            <motion.textarea
-              whileFocus={{ scale: 1.01, transition: { type: 'spring', stiffness: 400, damping: 10 } }}
-              placeholder={totalMissedCount > 0 ? "What caused you to miss your goals today? How can you adjust..." : "Write down any notes, thoughts, and blocks encountered today..."}
-              value={journalContent}
-              onChange={(e) => setJournalContent(e.target.value)}
-              rows={5}
-              className="w-full text-sm font-medium p-4 bg-secondary/40 rounded-xl border border-border/60 outline-none resize-none text-foreground placeholder:text-muted-foreground focus:bg-secondary/60 focus:border-primary/60 focus:ring-4 focus:ring-primary/20 transition-all leading-relaxed shadow-sm custom-scrollbar"
-            />
+            {!isNoteEditing && (journalContent.trim() || journalTitle.trim()) ? (
+              <div className="p-4 bg-secondary/30 border border-border/70 rounded-2xl space-y-2.5 backdrop-blur-sm">
+                {journalTitle.trim() && (
+                  <h4 className="text-sm font-black text-foreground tracking-tight flex items-center gap-2 border-b border-border/40 pb-2">
+                    <Lucide.PenLine size={14} className="text-primary shrink-0" />
+                    <span>{journalTitle}</span>
+                  </h4>
+                )}
+                <div className="text-xs text-foreground/90 font-medium leading-relaxed max-h-64 overflow-y-auto custom-scrollbar pr-1">
+                  <MarkdownRenderer content={journalContent} />
+                </div>
+              </div>
+            ) : !isNoteEditing ? (
+              <div className="flex flex-col items-center justify-center py-6 text-center bg-secondary/20 rounded-2xl border-2 border-dashed border-border/60 p-4">
+                <Lucide.BookOpen size={22} className="text-purple-400/50 mb-1.5" />
+                <p className="text-xs font-bold text-foreground">No reflection recorded for this day</p>
+                <p className="text-[11px] text-muted-foreground mt-0.5 mb-3">Record learnings, obstacles, and wins.</p>
+                <button
+                  type="button"
+                  onClick={() => setIsNoteEditing(true)}
+                  className="text-xs font-black text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  <Lucide.PlusCircle size={13} />
+                  <span>Write Reflection</span>
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <motion.input
+                  whileFocus={{ scale: 1.01, transition: { type: 'spring', stiffness: 400, damping: 10 } }}
+                  type="text"
+                  placeholder="Entry Title (Optional)..."
+                  value={journalTitle}
+                  onChange={(e) => setJournalTitle(e.target.value)}
+                  className="w-full text-sm font-black px-4 py-3 bg-secondary/40 rounded-xl border border-border/60 outline-none text-foreground placeholder:text-muted-foreground focus:bg-secondary/60 focus:border-primary/60 focus:ring-4 focus:ring-primary/20 transition-all shadow-sm"
+                />
+
+                <motion.textarea
+                  whileFocus={{ scale: 1.01, transition: { type: 'spring', stiffness: 400, damping: 10 } }}
+                  placeholder={totalMissedCount > 0 ? "What caused you to miss your goals today? How can you adjust..." : "Write down any notes, thoughts, and blocks encountered today..."}
+                  value={journalContent}
+                  onChange={(e) => setJournalContent(e.target.value)}
+                  rows={6}
+                  className="w-full text-sm font-medium p-4 bg-secondary/40 rounded-xl border border-border/60 outline-none resize-none text-foreground placeholder:text-muted-foreground focus:bg-secondary/60 focus:border-primary/60 focus:ring-4 focus:ring-primary/20 transition-all leading-relaxed shadow-sm custom-scrollbar"
+                />
+              </div>
+            )}
           </div>
         </motion.div>
       </div>

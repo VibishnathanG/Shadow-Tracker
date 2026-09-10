@@ -38,8 +38,11 @@ export const CommandBar: React.FC<CommandBarProps> = ({
     { id: 'nav-todo', category: 'Navigation', label: 'Go to Standalone ToDo', icon: 'CheckCircle2', action: () => onNavigate('todo') },
     { id: 'nav-habits', category: 'Navigation', label: 'Go to Habits', icon: 'Repeat', action: () => onNavigate('habits') },
     { id: 'nav-cal', category: 'Navigation', label: 'Go to Calendar', icon: 'Calendar', action: () => onNavigate('calendar') },
+    { id: 'nav-health', category: 'Navigation', label: 'Go to Health & Vitality', icon: 'HeartPulse', action: () => onNavigate('health') },
     { id: 'nav-anal', category: 'Navigation', label: 'Go to Analytics', icon: 'TrendingUp', action: () => onNavigate('analytics') },
     { id: 'nav-notes', category: 'Navigation', label: 'Go to Daily Journal', icon: 'BookOpen', action: () => onNavigate('notes') },
+    { id: 'nav-money', category: 'Navigation', label: 'Go to Wealth & Subscriptions OS', icon: 'DollarSign', action: () => onNavigate('money') },
+    { id: 'nav-rpg', category: 'Navigation', label: 'Go to Life RPG & Skill Trees', icon: 'Crown', action: () => onNavigate('rpg') },
     { id: 'nav-set', category: 'Navigation', label: 'Go to Settings', icon: 'Settings', action: () => onNavigate('settings') },
     
     { id: 'act-task', category: 'Quick Add', label: `Create Task: "${query || 'New Task'}"`, icon: 'PlusSquare', action: async () => {

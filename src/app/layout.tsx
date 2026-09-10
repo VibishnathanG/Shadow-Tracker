@@ -31,7 +31,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} min-h-full antialiased`}
       data-theme="onedark"
       suppressHydrationWarning
     >
@@ -45,9 +45,15 @@ export default function RootLayout({
                   var parsed = JSON.parse(saved);
                   var theme = parsed?.state?.settings?.theme;
                   if (theme) {
-                    var norm = (theme === 'light' || theme === 'white') ? 'white' : (theme === 'midnight' || theme === 'pine') ? 'pine' : theme;
+                    var norm = (theme === 'light' || theme === 'white') ? 'white' : (theme === 'midnight' || theme === 'pine' || theme === 'purple') ? 'purple' : theme;
                     document.documentElement.setAttribute('data-theme', norm);
-                    document.documentElement.classList.add(theme === 'white' || theme === 'light' ? 'theme-light' : 'theme-' + (theme === 'pine' ? 'midnight' : theme));
+                    if (norm === 'white') {
+                      document.documentElement.classList.add('theme-light', 'theme-white', 'light');
+                    } else if (norm === 'purple') {
+                      document.documentElement.classList.add('theme-midnight', 'theme-pine', 'theme-purple', 'light');
+                    } else {
+                      document.documentElement.classList.add('theme-' + norm, 'dark');
+                    }
                   }
                 }
               } catch (e) {}

@@ -11,7 +11,10 @@ import Modal from '@/components/Modal';
 import { NiceTimePicker } from '@/components/NiceTimePicker';
 import { ScheduleSelector } from '@/components/ScheduleSelector';
 import { format, addDays, parseISO } from 'date-fns';
-import type { Task } from '@/types';
+import type { Task, TaskStatus, EisenhowerQuadrant } from '@/types';
+import { TaskPlannerView } from './TaskPlannerView';
+import { TaskKanbanView } from './TaskKanbanView';
+import { useViewPreference } from '@/lib/viewPreferences';
 
 export const TasksFeature: React.FC = () => {
   const {
@@ -26,11 +29,15 @@ export const TasksFeature: React.FC = () => {
     updateReminder,
   } = useShadowTrackerStore();
 
-  const [activeTab, setActiveTab] = useState<'pending' | 'completed' | 'all'>('pending');
-  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'tomorrow' | 'this-week' | 'overdue'>('all');
+  // Top Workspace Switcher: 'list' vs 'planner' vs 'kanban' (Persisted)
+  const [workspaceView, setWorkspaceView] = useViewPreference('tasksWorkspaceView') as ['list' | 'planner' | 'kanban', (v: 'list' | 'planner' | 'kanban') => void];
+
+  const [activeTab, setActiveTab] = useViewPreference('tasksActiveTab') as ['pending' | 'completed' | 'all', (v: 'pending' | 'completed' | 'all') => void];
+  const [dateFilter, setDateFilter] = useViewPreference('tasksDateFilter') as ['all' | 'today' | 'tomorrow' | 'this-week' | 'overdue', (v: 'all' | 'today' | 'tomorrow' | 'this-week' | 'overdue') => void];
   const [searchQuery, setSearchQuery] = useState('');
-  const [priorityFilter, setPriorityFilter] = useState<string>('all');
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [priorityFilter, setPriorityFilter] = useViewPreference('tasksPriorityFilter') as [string, (v: string) => void];
+  const [categoryFilter, setCategoryFilter] = useViewPreference('tasksCategoryFilter') as [string, (v: string) => void];
+  const [viewMode, setViewMode] = useViewPreference('tasksViewMode') as ['list' | 'grid', (v: 'list' | 'grid') => void];
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -42,18 +49,26 @@ export const TasksFeature: React.FC = () => {
   const [formCategoryId, setFormCategoryId] = useState('');
   const [formIsRecurring, setFormIsRecurring] = useState(false);
   const [formRecurrencePattern, setFormRecurrencePattern] = useState<'daily' | 'weekly' | 'monthly' | null>('daily');
+  const [formStatus, setFormStatus] = useState<TaskStatus>('todo');
+  const [formQuadrant, setFormQuadrant] = useState<EisenhowerQuadrant>('not_urgent_important');
+  const [formScheduledTime, setFormScheduledTime] = useState('');
+  const [formEstimatedMinutes, setFormEstimatedMinutes] = useState<number>(30);
 
   // Notification Reminder State
   const [formEnableNotification, setFormEnableNotification] = useState(false);
   const [formNotifyTime, setFormNotifyTime] = useState('09:00');
   const [formNotifyDays, setFormNotifyDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
 
-  const openAddModal = useCallback(() => {
+  const openAddModal = useCallback((dueDate?: string, initialStatus?: TaskStatus, initialQuadrant?: EisenhowerQuadrant) => {
     setEditingTask(null);
     setFormTitle('');
     setFormDesc('');
-    setFormDueDate(getTodayDateString());
-    setFormPriority('medium');
+    setFormDueDate(dueDate || getTodayDateString());
+    setFormPriority(initialQuadrant === 'urgent_important' ? 'high' : 'medium');
+    setFormStatus(initialStatus || 'todo');
+    setFormQuadrant(initialQuadrant || (initialStatus === 'done' ? 'not_urgent_important' : 'not_urgent_important'));
+    setFormScheduledTime('');
+    setFormEstimatedMinutes(30);
     setFormCategoryId('');
     setFormIsRecurring(false);
     setFormRecurrencePattern('daily');
@@ -69,6 +84,13 @@ export const TasksFeature: React.FC = () => {
     setFormDesc(task.description || '');
     setFormDueDate(task.dueDate);
     setFormPriority(task.priority);
+    setFormStatus(task.status || (task.isCompleted ? 'done' : 'todo'));
+    setFormQuadrant(
+      task.matrixQuadrant || 
+      (task.priority === 'high' ? 'urgent_important' : task.priority === 'medium' ? 'not_urgent_important' : 'urgent_not_important')
+    );
+    setFormScheduledTime(task.scheduledTime || '');
+    setFormEstimatedMinutes(task.estimatedMinutes || 30);
     setFormCategoryId(task.categoryId || '');
     setFormIsRecurring(task.isRecurring);
     setFormRecurrencePattern(task.recurrencePattern || 'daily');
@@ -100,6 +122,11 @@ export const TasksFeature: React.FC = () => {
         categoryId: formCategoryId || undefined,
         isRecurring: formIsRecurring,
         recurrencePattern: formIsRecurring ? formRecurrencePattern : null,
+        status: formStatus,
+        matrixQuadrant: formQuadrant,
+        scheduledTime: formScheduledTime.trim() || undefined,
+        estimatedMinutes: formEstimatedMinutes > 0 ? formEstimatedMinutes : 30,
+        isCompleted: formStatus === 'done',
       };
 
       let savedTaskId = editingTask?.id;
@@ -139,7 +166,7 @@ export const TasksFeature: React.FC = () => {
     } finally {
       setIsModalOpen(false);
     }
-  }, [formTitle, formDesc, formDueDate, formPriority, formCategoryId, formIsRecurring, formRecurrencePattern, formEnableNotification, formNotifyTime, formNotifyDays, editingTask, updateTask, addTask, reminders, addReminder, updateReminder]);
+  }, [formTitle, formDesc, formDueDate, formPriority, formCategoryId, formIsRecurring, formRecurrencePattern, formStatus, formQuadrant, formScheduledTime, formEstimatedMinutes, formEnableNotification, formNotifyTime, formNotifyDays, editingTask, updateTask, addTask, reminders, addReminder, updateReminder]);
 
   const handleSnooze = useCallback(async (id: string, dateStr: string) => {
     const nextDate = formatDateString(addDays(parseISO(dateStr), 1));
@@ -230,25 +257,63 @@ export const TasksFeature: React.FC = () => {
           </p>
         </div>
         <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={openAddModal}
-          className="inline-flex items-center gap-1.5 px-5 py-3 bg-primary hover:bg-primary/95 text-primary-foreground font-bold text-sm rounded-xl shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.96 }}
+          onClick={() => openAddModal()}
+          className="btn-glass-pill active text-xs font-black py-2.5 px-4 shadow-md flex items-center gap-1.5 cursor-pointer"
         >
-          <Lucide.Plus size={18} />
-          Create Task
+          <Lucide.Plus size={16} />
+          <span>Create Task</span>
         </motion.button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-surface border border-border/60 p-3 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative z-10">
-        <div className="sm:col-span-2 relative group">
-          <Lucide.Search className="absolute left-3.5 top-3 text-secondary group-hover:text-primary transition-colors" size={18} />
-          <input
+      {/* Workspace Sub-Tab Switcher (Same design as Health page) */}
+      <div className="flex flex-wrap items-center gap-3 relative z-10">
+        <div className="pill-group overflow-x-auto scrollbar-none">
+          <button
+            type="button"
+            onClick={() => setWorkspaceView('list')}
+            className={`filter-pill ${workspaceView === 'list' ? 'active' : ''}`}
+          >
+            <Lucide.ListFilter size={14} className="text-primary" />
+            <span>Workspace List</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setWorkspaceView('planner')}
+            className={`filter-pill ${workspaceView === 'planner' ? 'active' : ''}`}
+          >
+            <Lucide.CalendarRange size={14} className="text-sky-400" />
+            <span>Super Planner</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setWorkspaceView('kanban')}
+            className={`filter-pill ${workspaceView === 'kanban' ? 'active' : ''}`}
+          >
+            <Lucide.Kanban size={14} className="text-purple-400" />
+            <span>Kanban &amp; Matrix</span>
+          </button>
+        </div>
+      </div>
+
+      {workspaceView === 'planner' ? (
+        <TaskPlannerView onOpenAddModal={openAddModal} onOpenEditModal={openEditModal} />
+      ) : workspaceView === 'kanban' ? (
+        <TaskKanbanView onOpenAddModal={openAddModal} onOpenEditModal={openEditModal} />
+      ) : (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-surface border border-border/60 p-3 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative z-10">
+            <div className="sm:col-span-2 relative group">
+              <Lucide.Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-hover:text-primary transition-colors pointer-events-none z-10" size={17} />
+              <input
             type="text"
             placeholder="Search tasks..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full text-sm pl-10 pr-4 py-2.5 bg-surface-elevated rounded-xl border border-transparent focus:border-border hover:bg-surface-elevated/80 focus:bg-surface-elevated text-foreground outline-none transition-all focus:ring-2 focus:ring-primary/20"
+            className="w-full text-sm !pl-11 pr-4 py-2.5 bg-surface-elevated rounded-xl border border-transparent focus:border-border hover:bg-surface-elevated/80 focus:bg-surface-elevated text-foreground outline-none transition-all focus:ring-2 focus:ring-primary/20"
           />
         </div>
 
@@ -304,118 +369,111 @@ export const TasksFeature: React.FC = () => {
         ))}
       </div>
 
-      <div className="flex border-b border-border/50 relative z-10">
-        {(['pending', 'completed', 'all'] as const).map(tab => (
-          <motion.button
-            key={tab}
-            onClick={() => setActiveTab(tab)}
-            whileHover={{ y: -1 }}
-            whileTap={{ scale: 0.96 }}
-            transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
-            className={`px-5 py-3 text-sm font-bold capitalize border-b-2 transition-colors relative cursor-pointer ${
-              activeTab === tab 
-                ? 'border-primary text-foreground' 
-                : 'border-transparent text-secondary hover:text-foreground'
-            }`}
+      {/* Tabs & View Mode Switcher */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 relative z-10">
+        <div className="pill-group overflow-x-auto scrollbar-none">
+          {(['pending', 'completed', 'all'] as const).map(tab => {
+            const isActive = activeTab === tab;
+            return (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab)}
+                className={`filter-pill ${isActive ? 'active' : ''}`}
+              >
+                <span className="capitalize">{tab}</span>
+                {tab === 'pending' && tasks.filter(t=>!t.isCompleted).length > 0 && (
+                  <span className={`ml-1.5 px-2 py-0.5 text-[10px] font-black rounded-full ${
+                    isActive ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-primary/20 text-primary'
+                  }`}>
+                    {tasks.filter(t=>!t.isCompleted).length}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* View Mode Toggle: List Details vs Grid View */}
+        <div className="pill-group self-start sm:self-center">
+          <button
+            type="button"
+            onClick={() => setViewMode('list')}
+            className={`filter-pill ${viewMode === 'list' ? 'active' : ''}`}
+            title="List View with full details"
           >
-            {tab}
-            {tab === 'pending' && tasks.filter(t=>!t.isCompleted).length > 0 && (
-              <span className="ml-2 px-2 py-0.5 bg-primary/20 text-primary text-xs font-bold rounded-full">
-                {tasks.filter(t=>!t.isCompleted).length}
-              </span>
-            )}
-          </motion.button>
-        ))}
+            <Lucide.ListFilter size={14} />
+            <span>List Details</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('grid')}
+            className={`filter-pill ${viewMode === 'grid' ? 'active' : ''}`}
+            title="Grid View (view more tasks at once)"
+          >
+            <Lucide.LayoutGrid size={14} />
+            <span>Grid View</span>
+          </button>
+        </div>
       </div>
 
-      <div className="space-y-3 relative z-10">
-        {filteredTasks.length > 0 ? (
-          filteredTasks.map((task) => {
-            const taskCategory = categories.find(c => c.id === task.categoryId);
-            
-            return (
-              <motion.div
-                key={task.id}
-                initial={{ opacity: 0, y: 4 }}
-                animate={{ opacity: 1, y: 0 }}
-                whileHover={{ y: -2, scale: 1.005 }}
-                transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
-                className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-surface border border-border/80 hover:border-primary/50 hover:shadow-lg rounded-2xl transition-all duration-150 gap-4 ${
-                  task.isCompleted ? 'opacity-65 bg-surface-elevated/50 border-border/30' : ''
-                }`}
-              >
-                <div className="flex items-start gap-4 flex-1 min-w-0">
-                  <motion.button
-                    layout
-                    whileTap={{ scale: 0.9 }}
-                    onClick={async () => {
-                      const willComplete = !task.isCompleted;
-                      const todayStr = getTodayDateString();
-                      const prevFocus = useShadowTrackerStore.getState().dailyLogs.find(l => l.date === todayStr)?.focusScore ?? 0;
-                      
-                      await toggleTaskCompletion(task.id);
-                      
-                      if (willComplete) {
-                        fireConfetti();
-                        const freshLog = useShadowTrackerStore.getState().dailyLogs.find(l => l.date === todayStr);
-                        const newFocus = freshLog?.focusScore ?? prevFocus;
-                        const focusDiff = newFocus - prevFocus;
-                        const flowGainText = focusDiff > 0 ? `+${focusDiff}% Flow State` : `${newFocus}% Flow State`;
+      {/* Task Items: Grid vs List Rendering */}
+      {filteredTasks.length > 0 ? (
+        viewMode === 'grid' ? (
+          /* Grid View: High-Density Cards to View More Tasks at Once */
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 relative z-10">
+            {filteredTasks.map((task) => {
+              const taskCategory = categories.find(c => c.id === task.categoryId);
 
-                        window.dispatchEvent(new CustomEvent('showCelebrationNotice', {
-                          detail: {
-                            title: 'Node Resolved',
-                            subtitle: task.title,
-                            flowText: flowGainText,
-                            type: 'task'
-                          }
-                        }));
-                      }
-                    }}
-                    className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all mt-0.5 relative shrink-0 ${
-                      task.isCompleted
-                        ? 'bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 border border-emerald-400 text-white shadow-[0_0_12px_rgba(16,185,129,0.5)]'
-                        : 'border-2 border-muted-foreground/60 hover:border-emerald-500/80 hover:bg-emerald-500/10'
-                    }`}
-                  >
-                    {task.isCompleted && (
-                      <motion.span
-                        key={task.id + "_pulse"}
-                        initial={{ scale: 0.6, opacity: 0.9 }}
-                        animate={{ scale: 2.2, opacity: 0 }}
-                        transition={{ duration: 0.45, ease: "easeOut" }}
-                        className="absolute inset-0 rounded-lg border-2 border-emerald-400 pointer-events-none"
-                      />
-                    )}
-                    <motion.div
-                      initial={false}
-                      animate={
-                        task.isCompleted 
-                          ? { scale: [0, 1], rotate: [-45, 0] } 
-                          : { scale: 0, rotate: 0 }
-                      }
-                      transition={{ type: 'spring', stiffness: 400, damping: 18 }}
-                    >
-                      <Lucide.Check size={14} className="stroke-[3.5px]" />
-                    </motion.div>
-                  </motion.button>
+              return (
+                <motion.div
+                  key={task.id}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  whileHover={{ y: -2 }}
+                  transition={{ duration: 0.15 }}
+                  className={`p-3.5 bg-surface border border-border/80 hover:border-primary/50 hover:shadow-lg rounded-2xl transition-all flex flex-col justify-between gap-3 ${
+                    task.isCompleted ? 'opacity-65 bg-surface-elevated/50 border-border/30' : ''
+                  }`}
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const willComplete = !task.isCompleted;
+                            const todayStr = getTodayDateString();
+                            const prevFocus = useShadowTrackerStore.getState().dailyLogs.find(l => l.date === todayStr)?.focusScore ?? 0;
+                            await toggleTaskCompletion(task.id);
+                            if (willComplete) {
+                              fireConfetti();
+                              const freshLog = useShadowTrackerStore.getState().dailyLogs.find(l => l.date === todayStr);
+                              const newFocus = freshLog?.focusScore ?? prevFocus;
+                              const diff = newFocus - prevFocus;
+                              window.dispatchEvent(new CustomEvent('showCelebrationNotice', {
+                                detail: { title: 'Node Resolved', subtitle: task.title, flowText: diff > 0 ? `+${diff}% Flow` : `${newFocus}% Flow`, type: 'task' }
+                              }));
+                            }
+                          }}
+                          className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all shrink-0 cursor-pointer ${
+                            task.isCompleted
+                              ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-xs'
+                              : 'border-2 border-muted-foreground/60 hover:border-emerald-500 hover:bg-emerald-500/10'
+                          }`}
+                        >
+                          {task.isCompleted && <Lucide.Check size={12} className="stroke-[3.5]" />}
+                        </button>
 
-                  <div className="min-w-0">
-                    <h3 className={`text-base font-bold transition-colors ${task.isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
-                      {task.title}
-                    </h3>
-                    {task.description && (
-                      <p className="text-sm text-muted-foreground mt-1 max-w-xl truncate">
-                        {task.description}
-                      </p>
-                    )}
-                    
-                    <div className="flex flex-wrap items-center gap-2 mt-3">
-                      <span className="text-xs font-bold text-muted-foreground flex items-center gap-1.5 bg-surface-elevated px-2.5 py-1 rounded-md">
-                        <Lucide.Calendar size={13} /> {format(new Date(task.dueDate), 'MMM dd')}
-                      </span>
+                        {taskCategory && (
+                          <span className="text-[10px] font-bold text-muted-foreground flex items-center gap-1 bg-surface-elevated px-2 py-0.5 rounded-md truncate max-w-[120px]">
+                            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: taskCategory.color }} />
+                            <span className="truncate">{taskCategory.name}</span>
+                          </span>
+                        )}
+                      </div>
 
-                      <span className={`text-xs font-bold uppercase px-2.5 py-1 rounded-md ${
+                      <span className={`text-[9.5px] font-black uppercase px-2 py-0.5 rounded-md shrink-0 ${
                         task.priority === 'high' 
                           ? 'text-red-500 bg-red-500/10' 
                           : task.priority === 'medium' 
@@ -424,67 +482,214 @@ export const TasksFeature: React.FC = () => {
                       }`}>
                         {task.priority}
                       </span>
+                    </div>
 
-                      {taskCategory && (
-                        <span className="text-xs font-bold text-muted-foreground flex items-center gap-1.5 bg-surface-elevated px-2.5 py-1 rounded-md">
-                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: taskCategory.color }} />
-                          {taskCategory.name}
-                        </span>
-                      )}
+                    <h4 className={`text-sm font-bold line-clamp-2 leading-snug ${task.isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                      {task.title}
+                    </h4>
 
-                      {task.isRecurring && (
-                        <span className="text-xs font-bold text-primary bg-primary/10 flex items-center gap-1.5 px-2.5 py-1 rounded-md">
-                          <Lucide.Repeat size={13} /> {task.recurrencePattern}
-                        </span>
+                    {task.description && (
+                      <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                        {task.description}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-border/40 text-xs mt-auto">
+                    <span className="text-[11px] font-bold text-muted-foreground flex items-center gap-1">
+                      <Lucide.Calendar size={12} /> {format(new Date(task.dueDate), 'MMM dd')}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      {!task.isCompleted && (
+                        <button
+                          onClick={() => handleSnooze(task.id, task.dueDate)}
+                          className="p-1 text-muted-foreground hover:text-foreground rounded-md hover:bg-surface-elevated transition-colors"
+                          title="Snooze 1 Day"
+                        >
+                          <Lucide.Clock size={13} />
+                        </button>
                       )}
+                      <button
+                        onClick={() => openEditModal(task)}
+                        className="p-1 text-muted-foreground hover:text-foreground rounded-md hover:bg-surface-elevated transition-colors"
+                        title="Edit Task"
+                      >
+                        <Lucide.Edit2 size={13} />
+                      </button>
+                      <button
+                        onClick={() => deleteTask(task.id)}
+                        className="p-1 text-muted-foreground hover:text-red-500 rounded-md hover:bg-red-500/10 transition-colors"
+                        title="Delete Task"
+                      >
+                        <Lucide.Trash2 size={13} />
+                      </button>
                     </div>
                   </div>
-                </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        ) : (
+          /* List View: Full Detailed Cards */
+          <div className="space-y-3 relative z-10">
+            {filteredTasks.map((task) => {
+              const taskCategory = categories.find(c => c.id === task.categoryId);
+              
+              return (
+                <motion.div
+                  key={task.id}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  whileHover={{ y: -2, scale: 1.005 }}
+                  transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
+                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-surface border border-border/80 hover:border-primary/50 hover:shadow-lg rounded-2xl transition-all duration-150 gap-4 ${
+                    task.isCompleted ? 'opacity-65 bg-surface-elevated/50 border-border/30' : ''
+                  }`}
+                >
+                  <div className="flex items-start gap-4 flex-1 min-w-0">
+                    <motion.button
+                      layout
+                      whileTap={{ scale: 0.9 }}
+                      onClick={async () => {
+                        const willComplete = !task.isCompleted;
+                        const todayStr = getTodayDateString();
+                        const prevFocus = useShadowTrackerStore.getState().dailyLogs.find(l => l.date === todayStr)?.focusScore ?? 0;
+                        
+                        await toggleTaskCompletion(task.id);
+                        
+                        if (willComplete) {
+                          fireConfetti();
+                          const freshLog = useShadowTrackerStore.getState().dailyLogs.find(l => l.date === todayStr);
+                          const newFocus = freshLog?.focusScore ?? prevFocus;
+                          const focusDiff = newFocus - prevFocus;
+                          const flowGainText = focusDiff > 0 ? `+${focusDiff}% Flow State` : `${newFocus}% Flow State`;
 
-                <div className="flex items-center gap-2 sm:self-center self-end">
-                  {!task.isCompleted && (
+                          window.dispatchEvent(new CustomEvent('showCelebrationNotice', {
+                            detail: {
+                              title: 'Node Resolved',
+                              subtitle: task.title,
+                              flowText: flowGainText,
+                              type: 'task'
+                            }
+                          }));
+                        }
+                      }}
+                      className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all mt-0.5 relative shrink-0 ${
+                        task.isCompleted
+                          ? 'bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 border border-emerald-400 text-white shadow-[0_0_12px_rgba(16,185,129,0.5)]'
+                          : 'border-2 border-muted-foreground/60 hover:border-emerald-500/80 hover:bg-emerald-500/10'
+                      }`}
+                    >
+                      {task.isCompleted && (
+                        <motion.span
+                          key={task.id + "_pulse"}
+                          initial={{ scale: 0.6, opacity: 0.9 }}
+                          animate={{ scale: 2.2, opacity: 0 }}
+                          transition={{ duration: 0.45, ease: "easeOut" }}
+                          className="absolute inset-0 rounded-lg border-2 border-emerald-400 pointer-events-none"
+                        />
+                      )}
+                      <motion.div
+                        initial={false}
+                        animate={
+                          task.isCompleted 
+                            ? { scale: [0, 1], rotate: [-45, 0] } 
+                            : { scale: 0, rotate: 0 }
+                        }
+                        transition={{ type: 'spring', stiffness: 400, damping: 18 }}
+                      >
+                        <Lucide.Check size={14} className="stroke-[3.5px]" />
+                      </motion.div>
+                    </motion.button>
+
+                    <div className="min-w-0">
+                      <h3 className={`text-base font-bold transition-colors ${task.isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                        {task.title}
+                      </h3>
+                      {task.description && (
+                        <p className="text-sm text-muted-foreground mt-1 max-w-xl truncate">
+                          {task.description}
+                        </p>
+                      )}
+                      
+                      <div className="flex flex-wrap items-center gap-2 mt-3">
+                        <span className="text-xs font-bold text-muted-foreground flex items-center gap-1.5 bg-surface-elevated px-2.5 py-1 rounded-md">
+                          <Lucide.Calendar size={13} /> {format(new Date(task.dueDate), 'MMM dd')}
+                        </span>
+
+                        <span className={`text-xs font-bold uppercase px-2.5 py-1 rounded-md ${
+                          task.priority === 'high' 
+                            ? 'text-red-500 bg-red-500/10' 
+                            : task.priority === 'medium' 
+                            ? 'text-yellow-500 bg-yellow-500/10' 
+                            : 'text-muted-foreground bg-muted-foreground/10'
+                        }`}>
+                          {task.priority}
+                        </span>
+
+                        {taskCategory && (
+                          <span className="text-xs font-bold text-muted-foreground flex items-center gap-1.5 bg-surface-elevated px-2.5 py-1 rounded-md">
+                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: taskCategory.color }} />
+                            {taskCategory.name}
+                          </span>
+                        )}
+
+                        {task.isRecurring && (
+                          <span className="text-xs font-bold text-primary bg-primary/10 flex items-center gap-1.5 px-2.5 py-1 rounded-md">
+                            <Lucide.Repeat size={13} /> {task.recurrencePattern}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 sm:self-center self-end">
+                    {!task.isCompleted && (
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handleSnooze(task.id, task.dueDate)}
+                        className="p-2.5 text-muted-foreground hover:text-foreground hover:bg-surface-elevated rounded-xl transition-all"
+                        title="Snooze 1 Day"
+                      >
+                        <Lucide.Clock size={18} />
+                      </motion.button>
+                    )}
                     <motion.button
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
-                      onClick={() => handleSnooze(task.id, task.dueDate)}
+                      onClick={() => openEditModal(task)}
                       className="p-2.5 text-muted-foreground hover:text-foreground hover:bg-surface-elevated rounded-xl transition-all"
-                      title="Snooze 1 Day"
+                      title="Edit Task"
                     >
-                      <Lucide.Clock size={18} />
+                      <Lucide.Edit2 size={18} />
                     </motion.button>
-                  )}
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => openEditModal(task)}
-                    className="p-2.5 text-muted-foreground hover:text-foreground hover:bg-surface-elevated rounded-xl transition-all"
-                    title="Edit Task"
-                  >
-                    <Lucide.Edit2 size={18} />
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => deleteTask(task.id)}
-                    className="p-2.5 text-red-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
-                    title="Delete Task"
-                  >
-                    <Lucide.Trash2 size={18} />
-                  </motion.button>
-                </div>
-              </motion.div>
-            );
-          })
-        ) : (
-          <EmptyState
-            icon="CheckSquare"
-            title="No tasks match these filters"
-            description="Clear search / filters, or add a new task to get started."
-            actionLabel="Add Task"
-            onAction={openAddModal}
-          />
-        )}
-      </div>
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => deleteTask(task.id)}
+                      className="p-2.5 text-red-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+                      title="Delete Task"
+                    >
+                      <Lucide.Trash2 size={18} />
+                    </motion.button>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )
+      ) : (
+        <EmptyState
+          icon="CheckSquare"
+          title="No tasks match these filters"
+          description="Clear search / filters, or add a new task to get started."
+          actionLabel="Add Task"
+          onAction={() => openAddModal()}
+        />
+      )}
+      </>
+      )}
 
       <Modal
         isOpen={isModalOpen}
@@ -532,13 +737,81 @@ export const TasksFeature: React.FC = () => {
               <select 
                 value={formPriority}
                 onChange={(e) => setFormPriority(e.target.value as 'low' | 'medium' | 'high')}
-                className="w-full text-base pl-5 pr-10 py-3.5 bg-secondary rounded-2xl text-foreground font-semibold border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none appearance-none cursor-pointer"
+                className="w-full text-sm pl-4 pr-9 py-3 bg-secondary rounded-xl text-foreground font-semibold border border-border/60 focus:border-primary outline-none appearance-none cursor-pointer"
               >
                 <option value="low">Low Priority</option>
                 <option value="medium">Medium Priority</option>
                 <option value="high">High Priority</option>
               </select>
-              <Lucide.ChevronDown className="absolute right-4 top-[38px] text-muted-foreground pointer-events-none" size={16} />
+              <Lucide.ChevronDown className="absolute right-3.5 top-[35px] text-muted-foreground pointer-events-none" size={15} />
+            </div>
+          </div>
+
+          {/* Kanban Status & Eisenhower Quadrant */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2 relative">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Kanban Status</label>
+              <select
+                value={formStatus}
+                onChange={(e) => setFormStatus(e.target.value as TaskStatus)}
+                className="w-full text-sm pl-4 pr-9 py-3 bg-secondary rounded-xl text-foreground font-semibold border border-border/60 focus:border-primary outline-none appearance-none cursor-pointer"
+              >
+                <option value="todo">📌 To Do</option>
+                <option value="in_progress">⚡ In Progress</option>
+                <option value="done">✅ Done</option>
+              </select>
+              <Lucide.ChevronDown className="absolute right-3.5 top-[35px] text-muted-foreground pointer-events-none" size={15} />
+            </div>
+
+            <div className="space-y-2 relative">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Eisenhower Matrix</label>
+              <select
+                value={formQuadrant}
+                onChange={(e) => setFormQuadrant(e.target.value as EisenhowerQuadrant)}
+                className="w-full text-sm pl-4 pr-9 py-3 bg-secondary rounded-xl text-foreground font-semibold border border-border/60 focus:border-primary outline-none appearance-none cursor-pointer"
+              >
+                <option value="urgent_important">🔴 Q1: Do First</option>
+                <option value="not_urgent_important">🔵 Q2: Schedule</option>
+                <option value="urgent_not_important">🟡 Q3: Delegate / Quick</option>
+                <option value="neither">⚪ Q4: Eliminate / Backlog</option>
+              </select>
+              <Lucide.ChevronDown className="absolute right-3.5 top-[35px] text-muted-foreground pointer-events-none" size={15} />
+            </div>
+          </div>
+
+          {/* Planner Fields: Scheduled Time & Estimated Duration */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Lucide.Clock size={13} className="text-primary" /> Scheduled Time (Optional)
+              </label>
+              <input
+                type="time"
+                value={formScheduledTime}
+                onChange={(e) => setFormScheduledTime(e.target.value)}
+                className="w-full text-sm px-4 py-2.5 bg-surface-elevated rounded-xl text-foreground border border-border/40 focus:border-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+              />
+            </div>
+
+            <div className="space-y-2 relative">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Lucide.Timer size={13} className="text-primary" /> Estimated Duration
+              </label>
+              <select
+                value={formEstimatedMinutes}
+                onChange={(e) => setFormEstimatedMinutes(Number(e.target.value))}
+                className="w-full text-sm pl-4 pr-9 py-2.5 bg-surface-elevated rounded-xl text-foreground font-bold border border-border/40 focus:border-primary outline-none appearance-none cursor-pointer"
+              >
+                <option value={15}>15 Minutes</option>
+                <option value={30}>30 Minutes</option>
+                <option value={45}>45 Minutes</option>
+                <option value={60}>1 Hour</option>
+                <option value={90}>1.5 Hours</option>
+                <option value={120}>2 Hours</option>
+                <option value={180}>3 Hours</option>
+                <option value={240}>4 Hours</option>
+              </select>
+              <Lucide.ChevronDown className="absolute right-3.5 top-[34px] text-muted-foreground pointer-events-none" size={15} />
             </div>
           </div>
 

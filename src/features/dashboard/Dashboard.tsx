@@ -11,8 +11,9 @@ import { getTodayDateString, formatDateString } from '@/lib/dateUtils';
 import EmptyState from '@/components/EmptyState';
 import Modal from '@/components/Modal';
 import { format } from 'date-fns';
-import { getMascotStatus, getShadowRank, getContextualCoaching, ALL_BADGES, BadgeDefinition } from '@/lib/quotes';
+import { getMascotStatus, getContextualCoaching, ALL_BADGES, BadgeDefinition } from '@/lib/quotes';
 import ExplorerFeature from '@/features/explorer/ExplorerFeature';
+import { DayReviewModal } from '@/components/DayReviewModal';
 
 
 
@@ -118,8 +119,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [inlineTaskPriority, setInlineTaskPriority] = useState<'low' | 'medium' | 'high'>('medium');
   const [showQuickAddModal, setShowQuickAddModal] = useState(false);
   const [quickAddType, setQuickAddType] = useState<'task' | 'habit'>('task');
-  const [showLevelUpModal, setShowLevelUpModal] = useState(false);
   const [showExplorerGuide, setShowExplorerGuide] = useState(false);
+  const [reviewMode, setReviewMode] = useState<'morning' | 'evening' | null>(null);
 
   const [isMounted, setIsMounted] = useState(false);
 
@@ -129,7 +130,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
   
   // Data processing
   const todayStr = useMemo(() => getTodayDateString(), []);
-  const isWhiteTheme = (settings.theme as string) === 'light' || (settings.theme as string) === 'white';
   
   const todayTasks = useMemo(() => tasks.filter(t => t.dueDate === todayStr && !t.isSoftDeleted), [tasks, todayStr]);
   const pendingTasks = useMemo(() => todayTasks.filter(t => !t.isCompleted), [todayTasks]);
@@ -143,8 +143,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const todayLog = useMemo(() => dailyLogs.find(l => l.date === todayStr), [dailyLogs, todayStr]);
   const focusScore = todayLog?.focusScore ?? 0;
-
-  const shadowRank = useMemo(() => getShadowRank(level), [level]);
 
   const sessionEmoji = useMemo(() => {
     const emojis = ['✨', '⚡️', '🚀', '🔥', '🌟', '🌅', '☕', '💪', '🎯', '⚔️'];
@@ -212,16 +210,6 @@ export const Dashboard: React.FC<DashboardProps> = ({
     );
   }, [settings.alias]);
 
-  const confettiParticles = useMemo(() => [...Array(30)].map((_, i) => ({
-    id: i,
-    backgroundColor: i % 3 === 0 ? '#8b5cf6' : i % 3 === 1 ? '#3b82f6' : '#eab308',
-    left: `${Math.random() * 100}%`,
-    top: `${Math.random() * 100}%`,
-    xTarget1: (Math.random() - 0.5) * 100,
-    xTarget2: (Math.random() - 0.5) * 200,
-    duration: 3 + Math.random() * 2
-  })), []);
-
   const { completedPercent } = useMemo(() => {
     const total = todayTasks.length + activeHabitsCount;
     const completed = completedTasksCount + completedHabitsToday;
@@ -232,31 +220,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
     };
   }, [todayTasks.length, activeHabitsCount, completedTasksCount, completedHabitsToday]);
 
+  // Handle Escape key to exit explorer full-view mode
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedLevel = localStorage.getItem('shadow_tracker_seen_level');
-      if (storedLevel) {
-        const parsed = parseInt(storedLevel, 10);
-        if (level > parsed) {
-          setTimeout(() => setShowLevelUpModal(true), 0);
-        }
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showExplorerGuide) {
+        setShowExplorerGuide(false);
       }
-      localStorage.setItem('shadow_tracker_seen_level', level.toString());
-    }
-  }, [level]);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      if (showLevelUpModal) {
-        document.body.style.overflow = 'hidden';
-      } else {
-        document.body.style.overflow = '';
-      }
-    }
-    return () => {
-      if (typeof window !== 'undefined') document.body.style.overflow = '';
     };
-  }, [showLevelUpModal]);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showExplorerGuide]);
 
 
   const handleQuickAddSubmit = async (e: React.FormEvent) => {
@@ -293,6 +266,53 @@ export const Dashboard: React.FC<DashboardProps> = ({
     return cat ? cat.name : 'General';
   }, [categories]);
 
+  if (showExplorerGuide) {
+    return (
+      <motion.div
+        key="explorer-full-view"
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -15 }}
+        transition={{ duration: 0.25, ease: 'easeOut' }}
+        className="space-y-6 font-sans select-none"
+      >
+        {/* Sticky Explorer Header / Breadcrumb Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-4 p-4 tile rounded-2xl bg-surface-elevated/90 border border-border/80 backdrop-blur-md sticky top-2 z-20 shadow-md">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setShowExplorerGuide(false)}
+              className="btn-glass-pill text-xs font-black flex items-center gap-2 text-foreground hover:text-primary transition-all cursor-pointer"
+            >
+              <Lucide.ArrowLeft size={16} />
+              <span>Back to Dashboard</span>
+            </button>
+            <div className="h-5 w-px bg-border/60 hidden sm:block" />
+            <div className="flex items-center gap-2 text-xs font-bold text-secondary">
+              <Lucide.Compass size={16} className="text-primary animate-spin-slow" />
+              <span>System Explorer &amp; Feature Hub</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowExplorerGuide(false)}
+            className="filter-pill text-xs font-bold text-muted-foreground hover:text-foreground cursor-pointer"
+          >
+            Exit Explorer (Esc)
+          </button>
+        </div>
+
+        <ExplorerFeature
+          onNavigate={(tab) => {
+            setShowExplorerGuide(false);
+            onNavigate(tab);
+          }}
+          onBackToDashboard={() => setShowExplorerGuide(false)}
+        />
+      </motion.div>
+    );
+  }
+
   return (
     <div className="space-y-8 select-none font-sans relative">
       {/* 1. Refined Header */}
@@ -318,17 +338,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
           className="flex flex-wrap items-center gap-3"
         >
           <button
-            onClick={() => setShowExplorerGuide(prev => !prev)}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-2 border cursor-pointer ${
-              showExplorerGuide
-                ? 'bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20 scale-[1.02]'
-                : 'bg-secondary/40 border-border/80 text-secondary hover:text-foreground hover:bg-surface-elevated'
-            }`}
-            title="Toggle System Explorer & Feature Guide"
+            type="button"
+            onClick={() => setShowExplorerGuide(true)}
+            className="btn-glass-pill cursor-pointer transition-all flex items-center gap-2 text-xs font-bold hover:scale-[1.02] active:scale-[0.98]"
+            title="Open System Explorer & Feature Guide"
           >
-            <Lucide.Compass size={15} className={showExplorerGuide ? 'animate-spin-slow text-primary-foreground' : 'text-primary'} />
-            <span>{showExplorerGuide ? 'Hide Explorer Guide' : 'Explorer Hub'}</span>
-            <Lucide.ChevronDown size={14} className={`transition-transform duration-200 ${showExplorerGuide ? 'rotate-180' : ''}`} />
+            <Lucide.Compass size={15} className="text-primary animate-spin-slow" />
+            <span>Explorer Hub</span>
+            <Lucide.ChevronRight size={14} className="text-secondary" />
           </button>
 
           <div className="flex items-center gap-4 px-4 py-1.5 rounded-full bg-secondary/30 border border-border/80 backdrop-blur-sm shadow-sm">
@@ -350,62 +367,97 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </motion.div>
       </div>
 
-      {/* Collapsible Explorer Hub Panel */}
-      <AnimatePresence>
-        {showExplorerGuide && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25, ease: 'easeInOut' }}
-            className="overflow-hidden border-b border-border pb-6"
-          >
-            <div className="p-4 sm:p-6 bg-surface-elevated/80 rounded-3xl border-2 border-primary/30 shadow-2xl space-y-4">
-              <div className="flex items-center justify-between border-b border-border/60 pb-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center text-primary">
-                    <Lucide.Compass size={18} />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-extrabold text-foreground tracking-tight">System Explorer &amp; Feature Hub</h3>
-                    <p className="text-[11px] font-bold text-secondary">Interactive overview &amp; documentation guide</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowExplorerGuide(false)}
-                  className="text-xs font-bold text-muted-foreground hover:text-foreground px-2.5 py-1 rounded-xl bg-secondary hover:bg-secondary/80 transition-colors"
-                >
-                  Close Guide
-                </button>
-              </div>
-              <ExplorerFeature onNavigate={onNavigate} />
+      {/* Life OS Quick Launchers Bar */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <button
+          onClick={() => setReviewMode('morning')}
+          className="tile settings-tile p-3.5 rounded-2xl flex items-center justify-between border-amber-500/30 hover:border-amber-500/60 bg-amber-500/5 cursor-pointer transition-all active:scale-95 group"
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="p-2 rounded-xl bg-amber-500/15 text-amber-400 group-hover:scale-110 transition-transform">
+              <Lucide.Sunrise size={18} />
+            </span>
+            <div className="text-left truncate">
+              <span className="text-xs font-black text-foreground block truncate">Start My Day</span>
+              <span className="text-[10px] text-muted-foreground font-medium">Morning Briefing</span>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+          <Lucide.ChevronRight size={14} className="text-amber-400/60 shrink-0" />
+        </button>
 
-            {/* 1. TOP ROW: Achievement Nexus */}
+        <button
+          onClick={() => setReviewMode('evening')}
+          className="tile settings-tile p-3.5 rounded-2xl flex items-center justify-between border-indigo-500/30 hover:border-indigo-500/60 bg-indigo-500/5 cursor-pointer transition-all active:scale-95 group"
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="p-2 rounded-xl bg-indigo-500/15 text-indigo-400 group-hover:scale-110 transition-transform">
+              <Lucide.Sunset size={18} />
+            </span>
+            <div className="text-left truncate">
+              <span className="text-xs font-black text-foreground block truncate">Evening Review</span>
+              <span className="text-[10px] text-muted-foreground font-medium">Wrap up &amp; Wins</span>
+            </div>
+          </div>
+          <Lucide.ChevronRight size={14} className="text-indigo-400/60 shrink-0" />
+        </button>
+
+        <button
+          onClick={() => onNavigate('health')}
+          className="tile settings-tile p-3.5 rounded-2xl flex items-center justify-between border-rose-500/30 hover:border-rose-500/60 bg-rose-500/5 cursor-pointer transition-all active:scale-95 group"
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="p-2 rounded-xl bg-rose-500/15 text-rose-400 group-hover:scale-110 transition-transform">
+              <Lucide.HeartPulse size={18} />
+            </span>
+            <div className="text-left truncate">
+              <span className="text-xs font-black text-foreground block truncate">Health Hub</span>
+              <span className="text-[10px] text-muted-foreground font-medium">Water, Sleep &amp; Gym</span>
+            </div>
+          </div>
+          <Lucide.ChevronRight size={14} className="text-rose-400/60 shrink-0" />
+        </button>
+
+        <button
+          onClick={() => onNavigate('rpg')}
+          className="tile settings-tile p-3.5 rounded-2xl flex items-center justify-between border-primary/30 hover:border-primary/60 bg-primary/5 cursor-pointer transition-all active:scale-95 group"
+        >
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="p-2 rounded-xl bg-primary/15 text-primary group-hover:scale-110 transition-transform">
+              <Lucide.Crown size={18} />
+            </span>
+            <div className="text-left truncate">
+              <span className="text-xs font-black text-foreground block truncate">Life RPG</span>
+              <span className="text-[10px] text-muted-foreground font-medium">Level {level} • Quests</span>
+            </div>
+          </div>
+          <Lucide.ChevronRight size={14} className="text-primary/60 shrink-0" />
+        </button>
+      </div>
+
+      {/* 1. TOP ROW: Achievement Nexus */}
       <div className="mb-8">
           {/* Badges Drawer */}
           <motion.div 
             initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 }}
             className={`${
-              isWhiteTheme 
-                ? 'bg-slate-950 text-slate-100 border-2 border-slate-700 shadow-2xl rounded-3xl' 
+              (settings.theme === 'light' || settings.theme === 'white' || settings.theme === 'midnight' || settings.theme === 'pine' || settings.theme === 'purple')
+                ? 'bg-slate-950 text-slate-100 border-2 border-slate-800/90 shadow-2xl rounded-3xl' 
                 : 'tile'
             } p-5 space-y-4 relative overflow-hidden`}
           >
             <TileArtBadges />
             <div className="relative z-10 flex items-center justify-between">
               <span className={`text-sm uppercase font-bold tracking-widest block ${
-                isWhiteTheme ? 'text-slate-300 font-black' : 'text-muted-foreground'
+                (settings.theme === 'light' || settings.theme === 'white' || settings.theme === 'midnight' || settings.theme === 'pine' || settings.theme === 'purple')
+                  ? 'text-slate-300 font-black' 
+                  : 'text-muted-foreground'
               }`}>
                 Achievement Nexus
               </span>
               <button 
                 onClick={() => setShowBadgesInfo(true)}
                 className={`text-xs transition-colors px-2.5 py-1 rounded-full border shadow-sm cursor-pointer ${
-                  isWhiteTheme 
+                  (settings.theme === 'light' || settings.theme === 'white' || settings.theme === 'midnight' || settings.theme === 'pine' || settings.theme === 'purple')
                     ? 'text-slate-200 bg-slate-800 border-slate-700 hover:bg-primary/30 hover:text-white' 
                     : 'text-muted-foreground bg-foreground/5 hover:bg-primary/20 hover:text-primary border-border/80'
                 }`}
@@ -466,9 +518,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       className={`w-full min-h-[90px] sm:min-h-[98px] lg:min-h-[104px] p-2 sm:p-2.5 lg:p-3 relative rounded-2xl border flex flex-col items-center justify-center gap-1 sm:gap-1.5 text-center transition-all duration-200 ease-out group ${
                         isUnlocked 
                           ? `${b.color} cursor-pointer shadow-[0_0_14px_currentColor] hover:-translate-y-1 hover:scale-[1.04] hover:shadow-[0_0_22px_currentColor] hover:z-20 ${
-                              isWhiteTheme ? 'bg-slate-900 text-white border-cyan-500/50' : 'bg-gradient-to-b from-cyan-950/40 via-surface/90 to-surface border-cyan-500/30'
+                              (settings.theme === 'light' || settings.theme === 'white' || settings.theme === 'midnight' || settings.theme === 'pine' || settings.theme === 'purple')
+                                ? 'bg-slate-900 text-white border-cyan-500/50' 
+                                : 'bg-gradient-to-b from-cyan-950/40 via-surface/90 to-surface border-cyan-500/30'
                             }` 
-                          : isWhiteTheme
+                          : (settings.theme === 'light' || settings.theme === 'white' || settings.theme === 'midnight' || settings.theme === 'pine' || settings.theme === 'purple')
                             ? 'bg-slate-900/60 border-slate-800 text-slate-400 opacity-60 grayscale shadow-sm hover:scale-[1.02]'
                             : 'bg-surface/40 border-border/70 text-muted-foreground opacity-50 grayscale shadow-sm hover:scale-[1.02]'
                       }`}
@@ -496,12 +550,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       {/* High-Contrast Title & Subtitle */}
                       <div className="w-full flex flex-col items-center justify-center gap-0.5 select-none relative z-10">
                         <strong className={`block text-[11.5px] sm:text-[12.5px] lg:text-sm leading-tight font-semibold tracking-tight text-center truncate max-w-full px-0.5 ${
-                          isWhiteTheme ? 'text-white' : 'text-foreground'
+                          (settings.theme === 'light' || settings.theme === 'white' || settings.theme === 'midnight' || settings.theme === 'pine' || settings.theme === 'purple')
+                            ? 'text-white' 
+                            : 'text-foreground'
                         }`}>
                           {b.name}
                         </strong>
                         <span className={`block text-[8.5px] sm:text-[9.5px] lg:text-[10px] font-medium leading-tight text-center truncate max-w-full px-0.5 ${
-                          isUnlocked ? 'text-cyan-300' : 'text-muted-foreground'
+                          isUnlocked 
+                            ? 'text-cyan-300' 
+                            : (settings.theme === 'light' || settings.theme === 'white' || settings.theme === 'midnight' || settings.theme === 'pine' || settings.theme === 'purple')
+                              ? 'text-slate-400' 
+                              : 'text-muted-foreground'
                         }`}>
                           {b.subtitle}
                         </span>
@@ -950,7 +1010,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       >
         <div className="space-y-4 py-2">
           <p className="text-sm text-muted-foreground mb-4">
-            Unlock these badges by maintaining your daily consistency. The longer your streaks, the more legendary your rank becomes.
+            Unlock these 10 permanent milestone badges through real-world consistency across tasks, habit streaks, daily focus harmony, journaling, and financial targets. Badges track your milestone lifecycle and persist across sessions.
           </p>
           <div className="grid grid-cols-1 gap-3 max-h-[60vh] overflow-y-auto pr-2">
             {ALL_BADGES.map((b) => {
@@ -1044,89 +1104,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
         )}
       </AnimatePresence>
 
-      {/* 5. Level Up / Rank Up Overlay Modal */}
-      <AnimatePresence>
-        {showLevelUpModal && (
-          <div className="fixed inset-0 top-0 left-0 w-full h-full z-[99999] flex flex-col items-center justify-center p-3 sm:p-6 pointer-events-auto overflow-hidden">
-            <motion.div 
-              className="fixed inset-0 bg-[#030603]"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowLevelUpModal(false)}
-            />
-            {/* Ambient Confetti */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-60">
-              {confettiParticles.map((p) => (
-                <motion.div
-                  key={p.id}
-                  className="absolute w-1.5 h-1.5 rounded-full"
-                  style={{
-                    backgroundColor: p.backgroundColor,
-                    left: p.left,
-                    top: p.top
-                  }}
-                  animate={{
-                    y: [0, 200, 400],
-                    x: [0, p.xTarget1, p.xTarget2],
-                    rotate: [0, 360],
-                    scale: [1, 1.5, 0.5]
-                  }}
-                  transition={{
-                    duration: p.duration,
-                    repeat: Infinity,
-                    ease: 'easeOut' as const
-                  }}
-                />
-              ))}
-            </div>
-
-            <motion.div 
-              className="w-full max-w-sm bg-surface-elevated border border-primary/30 rounded-3xl p-8 shadow-[0_0_50px_rgba(139,92,246,0.15)] relative overflow-hidden text-center space-y-6 cursor-default"
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              onClick={(e) => e.stopPropagation()}
-              transition={{ type: 'spring' as const, damping: 20 }}
-            >
-              <div className="absolute -top-16 -right-16 w-40 h-40 bg-primary/20 rounded-full blur-[40px] pointer-events-none" />
-              <div className="absolute -bottom-16 -left-16 w-40 h-40 bg-blue-500/10 rounded-full blur-[40px] pointer-events-none" />
-              
-              <div className="flex flex-col items-center space-y-3 relative z-10">
-                <div className="p-4 bg-primary/10 border border-primary/20 rounded-full text-primary shadow-inner">
-                  <Lucide.Sparkles size={40} className="animate-pulse" />
-                </div>
-                <span className="text-sm font-semibold text-primary tracking-widest uppercase">Ascension</span>
-                <h2 className="text-4xl font-bold text-foreground">Level Up</h2>
-                <p className="text-base text-muted-foreground">You have reached a new rank: <br/><span className="font-semibold text-foreground text-base mt-1 block">{shadowRank.name}</span></p>
-              </div>
-
-              {/* Companion notice */}
-              <div className="p-4 bg-foreground/5 border border-border rounded-2xl flex items-center gap-4 relative z-10">
-                <div className="w-14 h-14 bg-black/40 rounded-xl border border-border p-2 flex items-center justify-center shadow-inner">
-                  <div className="w-full h-full" dangerouslySetInnerHTML={{ __html: mascot.avatarSvg }} />
-                </div>
-                <div className="text-left">
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide block">Companion Evolved</span>
-                  <h4 className="text-base font-semibold text-foreground">{mascot.name}</h4>
-                  <p className="text-sm text-muted-foreground mt-0.5">Growing stronger.</p>
-                </div>
-              </div>
-
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setShowLevelUpModal(false)}
-                className="w-full py-3.5 bg-primary hover:bg-primary/90 text-white font-semibold text-base rounded-xl transition-all shadow-[0_4px_14px_rgba(139,92,246,0.3)] hover:shadow-[0_6px_20px_rgba(139,92,246,0.4)] relative z-10"
-              >
-                Claim Ascension
-              </motion.button>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Theme-Adaptive Celebration Banner Overlay */}
+      {/* Day Review Modal (Morning Briefing / Evening Reflection) */}
+      <DayReviewModal
+        isOpen={reviewMode !== null}
+        mode={reviewMode || 'morning'}
+        onClose={() => setReviewMode(null)}
+      />
     </div>
   );
 };

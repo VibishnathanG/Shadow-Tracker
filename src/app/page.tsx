@@ -18,11 +18,15 @@ import NotesFeature from '@/features/notes/NotesFeature';
 import MoneyFeature from '@/features/money/MoneyFeature';
 import SettingsFeature from '@/features/settings/SettingsFeature';
 import TodoFeature from '@/features/todo/TodoFeature';
+import HealthFeature from '@/features/health/HealthFeature';
+import LifeRpgFeature from '@/features/rpg/LifeRpgFeature';
+import WizardFeature from '@/features/wizard/WizardFeature';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { useViewPreference } from '@/lib/viewPreferences';
 
 export default function Home() {
   const { settings, init, isLoading } = useShadowTrackerStore();
-  const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [activeTab, setActiveTab] = useViewPreference('lastActivePage') as [string, (v: string) => void];
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -93,6 +97,12 @@ export default function Home() {
         return <NotesFeature />;
       case 'money':
         return <MoneyFeature />;
+      case 'health':
+        return <HealthFeature />;
+      case 'wizard':
+        return <WizardFeature />;
+      case 'rpg':
+        return <LifeRpgFeature />;
       case 'settings':
         return <SettingsFeature />;
       default:

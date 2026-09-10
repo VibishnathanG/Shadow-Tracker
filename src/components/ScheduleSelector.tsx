@@ -97,13 +97,13 @@ export const ScheduleSelector: React.FC<ScheduleSelectorProps> = ({
         </div>
       )}
 
-      <div className="bg-surface-elevated/90 border border-border/80 rounded-2xl p-3.5 space-y-3 shadow-inner">
+      <div className="bg-surface-elevated/40 backdrop-blur-xl border border-border/80 rounded-2xl p-3.5 space-y-3 shadow-inner">
         {/* Preset Selector Dropdown */}
         <div className="relative">
           <select
             value={getPresetValue()}
             onChange={(e) => handlePresetSelect(e.target.value)}
-            className="w-full text-xs font-bold pl-3.5 pr-8 py-2.5 bg-secondary text-foreground rounded-xl border border-border/60 outline-none focus:border-primary cursor-pointer appearance-none"
+            className="w-full text-xs font-bold pl-3.5 pr-8 py-2.5 bg-surface-elevated/60 backdrop-blur-md text-foreground rounded-xl border border-border/70 outline-none focus:border-primary cursor-pointer appearance-none shadow-xs hover:border-primary/50 transition-all"
           >
             <option value="daily">🌟 Every Single Day (Daily)</option>
             <option value="weekdays">💼 Weekdays Only (Mon - Fri)</option>
@@ -139,8 +139,8 @@ export const ScheduleSelector: React.FC<ScheduleSelectorProps> = ({
                   title={`Toggle ${day.full}`}
                   className={`h-9 rounded-xl font-black text-xs flex flex-col items-center justify-center border transition-all ${
                     isActive
-                      ? 'bg-primary text-primary-foreground border-primary shadow-md shadow-primary/20 scale-[1.03]'
-                      : 'bg-secondary/60 text-muted-foreground hover:text-foreground border-border/40 hover:bg-secondary'
+                      ? 'filter-pill active !p-0 shadow-md shadow-primary/30 scale-[1.04]'
+                      : 'filter-pill !p-0 text-muted-foreground hover:text-foreground hover:border-border-focus'
                   }`}
                 >
                   <span>{day.short}</span>

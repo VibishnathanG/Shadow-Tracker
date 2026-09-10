@@ -9,6 +9,10 @@ export interface Category {
   updatedAt: string;
 }
 
+export type TaskStatus = 'todo' | 'in_progress' | 'done';
+
+export type EisenhowerQuadrant = 'urgent_important' | 'not_urgent_important' | 'urgent_not_important' | 'neither';
+
 export interface Task {
   id: string;
   title: string;
@@ -24,7 +28,13 @@ export interface Task {
   createdAt: string;
   updatedAt: string;
   isSoftDeleted: boolean;
+  status?: TaskStatus;
+  matrixQuadrant?: EisenhowerQuadrant;
+  scheduledTime?: string; // e.g. '14:30'
+  estimatedMinutes?: number; // e.g. 60
+  spentMinutes?: number;
 }
+
 
 export interface Habit {
   id: string;
@@ -92,7 +102,7 @@ export interface Quote {
 }
 
 export interface Settings {
-  theme: 'light' | 'white' | 'obsidian' | 'onedark' | 'cyberpunk' | 'midnight' | 'pine' | 'purple';
+  theme: 'light' | 'white' | 'obsidian' | 'onedark' | 'cyberpunk' | 'midnight' | 'pine' | 'purple' | 'spectrum';
   backupReminderDays: number;
   lastBackupDate?: string;
   soundEnabled: boolean;
@@ -137,7 +147,12 @@ export interface BackupData {
   categories: Category[];
   settings: Settings;
   moneyData?: any;
+  healthData?: any;
+  standaloneTodos?: any[];
+  rpgQuests?: any[];
+  wizardScrolls?: any[];
   unlockedBadges?: string[];
   exportedAt: string;
   archiveYear?: string;
 }
+
