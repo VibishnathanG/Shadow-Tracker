@@ -693,27 +693,39 @@ export const TasksFeature: React.FC = () => {
         title={editingTask ? 'Edit Focus Task' : 'Schedule New Task'}
       >
         <form onSubmit={handleSave} className="space-y-5">
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Task Title</label>
             <input
               type="text"
               required
+              maxLength={120}
               placeholder="e.g. Design app interface"
               value={formTitle}
               onChange={(e) => setFormTitle(e.target.value)}
               className="w-full text-sm px-4 py-3 bg-surface-elevated rounded-xl text-foreground placeholder:text-muted-foreground border border-border/40 focus:border-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all"
             />
+            {formTitle.length >= 120 && (
+              <span className="text-xs text-amber-500 font-medium px-1 block animate-fadeIn">
+                Title character limit reached (120/120)
+              </span>
+            )}
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Description (Optional)</label>
             <textarea
               placeholder="Provide a quick action summary..."
+              maxLength={1000}
               value={formDesc}
               onChange={(e) => setFormDesc(e.target.value)}
               rows={2}
               className="w-full text-sm px-4 py-2.5 bg-surface-elevated rounded-xl text-foreground placeholder:text-muted-foreground border border-border/40 focus:border-primary outline-none resize-none focus:ring-2 focus:ring-primary/20 transition-all"
             />
+            {formDesc.length >= 1000 && (
+              <span className="text-xs text-amber-500 font-medium px-1 block animate-fadeIn">
+                Description character limit reached (1000/1000)
+              </span>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">

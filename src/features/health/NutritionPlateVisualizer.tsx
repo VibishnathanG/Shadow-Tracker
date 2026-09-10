@@ -535,10 +535,16 @@ export default function NutritionPlateVisualizer({
                   <input
                     type="text"
                     required
+                    maxLength={80}
                     value={editName}
                     onChange={e => setEditName(e.target.value)}
                     className="w-full bg-secondary border border-border/60 rounded-xl px-3 py-2 text-foreground text-xs font-bold outline-none focus:border-primary"
                   />
+                  {editName.length >= 80 && (
+                    <span className="text-[10px] text-amber-500 font-semibold block animate-fadeIn">
+                      Dish name limit reached (80/80)
+                    </span>
+                  )}
                 </div>
 
                 {/* Grams & Multiplier */}

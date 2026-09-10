@@ -94,7 +94,17 @@ export const NotesFeature: React.FC = () => {
     return !hasContent;
   });
 
+  const MAX_JOURNAL_LINES = 500;
+  const MAX_TITLE_CHARS = 120;
+  const [lineLimitNotice, setLineLimitNotice] = useState(false);
+  const [titleLimitNotice, setTitleLimitNotice] = useState(false);
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const currentLines = useMemo(() => {
+    if (!noteContent) return 0;
+    return noteContent.split('\n').length;
+  }, [noteContent]);
 
   useEffect(() => {
     const existing = notes.find(n => n.id === selectedNoteId || n.date === selectedNoteId);
@@ -113,6 +123,31 @@ export const NotesFeature: React.FC = () => {
       setIsEditing(true);
     }
   }, [selectedNoteId, notes]);
+
+  const handleTitleChange = (val: string) => {
+    if (val.length >= MAX_TITLE_CHARS) {
+      setTitleLimitNotice(true);
+      setNoteTitle(val.slice(0, MAX_TITLE_CHARS));
+    } else {
+      setTitleLimitNotice(false);
+      setNoteTitle(val);
+    }
+  };
+
+  const handleContentChange = (val: string) => {
+    const lines = val.split('\n');
+    if (lines.length > MAX_JOURNAL_LINES) {
+      setLineLimitNotice(true);
+      setNoteContent(lines.slice(0, MAX_JOURNAL_LINES).join('\n'));
+    } else {
+      if (lines.length === MAX_JOURNAL_LINES) {
+        setLineLimitNotice(true);
+      } else {
+        setLineLimitNotice(false);
+      }
+      setNoteContent(val);
+    }
+  };
 
   const handleSave = useCallback(async () => {
     if (!noteContent.trim() && !noteTitle.trim()) return;
@@ -135,7 +170,14 @@ export const NotesFeature: React.FC = () => {
   const insertMarkdown = useCallback((prefix: string, suffix: string = '', defaultPlaceholder: string = '') => {
     const textarea = textareaRef.current;
     if (!textarea) {
-      setNoteContent(prev => prev + prefix + defaultPlaceholder + suffix);
+      const added = prefix + defaultPlaceholder + suffix;
+      const combined = (noteContent || '') + added;
+      const lines = combined.split('\n');
+      if (lines.length > MAX_JOURNAL_LINES) {
+        setLineLimitNotice(true);
+        return;
+      }
+      setNoteContent(combined);
       return;
     }
     const start = textarea.selectionStart;
@@ -143,6 +185,11 @@ export const NotesFeature: React.FC = () => {
     const selectedText = noteContent.substring(start, end) || defaultPlaceholder;
     const replacement = prefix + selectedText + suffix;
     const newContent = noteContent.substring(0, start) + replacement + noteContent.substring(end);
+    const lines = newContent.split('\n');
+    if (lines.length > MAX_JOURNAL_LINES) {
+      setLineLimitNotice(true);
+      return;
+    }
     setNoteContent(newContent);
     setTimeout(() => {
       textarea.focus();
@@ -446,90 +493,123 @@ export const NotesFeature: React.FC = () => {
               /* ── RAW MARKDOWN EDITOR MODE ── */
               <div className="flex-1 flex flex-col min-h-0 space-y-3">
                 {/* Title Input */}
-                <input
-                  type="text"
-                  placeholder="Reflection title..."
-                  value={noteTitle}
-                  onChange={(e) => setNoteTitle(e.target.value)}
-                  className="w-full text-lg md:text-xl font-black px-4 py-3 bg-secondary/20 backdrop-blur-sm border border-border/60 rounded-2xl text-foreground placeholder:text-muted-foreground outline-none transition-all focus:bg-background focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-xs shrink-0"
-                />
-
-                {/* Markdown Formatting Helper Toolbar */}
-                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none p-1.5 bg-secondary/40 border border-border/60 rounded-xl backdrop-blur-md shrink-0 text-xs text-muted-foreground">
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-1 text-primary">Insert:</span>
-                  <button
-                    type="button"
-                    onClick={() => insertMarkdown('**', '**', 'bold text')}
-                    className="px-2 py-1 rounded-md hover:bg-background/80 hover:text-foreground font-bold transition-colors cursor-pointer border border-transparent hover:border-border/60"
-                    title="Bold (**text**)"
-                  >
-                    <Lucide.Bold size={13} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => insertMarkdown('*', '*', 'italic text')}
-                    className="px-2 py-1 rounded-md hover:bg-background/80 hover:text-foreground italic transition-colors cursor-pointer border border-transparent hover:border-border/60"
-                    title="Italic (*text*)"
-                  >
-                    <Lucide.Italic size={13} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => insertMarkdown('## ', '', 'Heading 2')}
-                    className="px-2 py-1 rounded-md hover:bg-background/80 hover:text-foreground font-black transition-colors cursor-pointer border border-transparent hover:border-border/60"
-                    title="Heading (## Heading)"
-                  >
-                    <Lucide.Heading size={13} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => insertMarkdown('- [ ] ', '', 'Task')}
-                    className="px-2 py-1 rounded-md hover:bg-background/80 hover:text-foreground transition-colors cursor-pointer border border-transparent hover:border-border/60"
-                    title="Checklist task (- [ ])"
-                  >
-                    <Lucide.CheckSquare size={13} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => insertMarkdown('- ', '', 'Bullet item')}
-                    className="px-2 py-1 rounded-md hover:bg-background/80 hover:text-foreground transition-colors cursor-pointer border border-transparent hover:border-border/60"
-                    title="Bullet List (- item)"
-                  >
-                    <Lucide.List size={13} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => insertMarkdown('> ', '', 'Wisdom or reflection...')}
-                    className="px-2 py-1 rounded-md hover:bg-background/80 hover:text-foreground transition-colors cursor-pointer border border-transparent hover:border-border/60"
-                    title="Blockquote (> quote)"
-                  >
-                    <Lucide.Quote size={13} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => insertMarkdown('```typescript\n', '\n```', 'console.log("mana");')}
-                    className="px-2 py-1 rounded-md hover:bg-background/80 hover:text-foreground font-mono transition-colors cursor-pointer border border-transparent hover:border-border/60"
-                    title="Code Block (```)"
-                  >
-                    <Lucide.Code size={13} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => insertMarkdown('[', '](https://)', 'Link title')}
-                    className="px-2 py-1 rounded-md hover:bg-background/80 hover:text-foreground transition-colors cursor-pointer border border-transparent hover:border-border/60"
-                    title="Link [title](url)"
-                  >
-                    <Lucide.Link size={13} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => insertMarkdown('| Phase | Action |\n| --- | --- |\n| Sprint 1 | ', ' |', 'Design')}
-                    className="px-2 py-1 rounded-md hover:bg-background/80 hover:text-foreground transition-colors cursor-pointer border border-transparent hover:border-border/60"
-                    title="Table (| col | col |)"
-                  >
-                    <Lucide.Table size={13} />
-                  </button>
+                <div className="space-y-1">
+                  <input
+                    type="text"
+                    maxLength={MAX_TITLE_CHARS}
+                    placeholder="Reflection title..."
+                    value={noteTitle}
+                    onChange={(e) => handleTitleChange(e.target.value)}
+                    className="w-full text-lg md:text-xl font-black px-4 py-3 bg-secondary/20 backdrop-blur-sm border border-border/60 rounded-2xl text-foreground placeholder:text-muted-foreground outline-none transition-all focus:bg-background focus:border-primary focus:ring-2 focus:ring-primary/20 shadow-xs shrink-0"
+                  />
+                  {titleLimitNotice && (
+                    <span className="text-xs text-amber-500 font-medium px-1 block animate-fadeIn">
+                      Title character limit reached (120/120 characters)
+                    </span>
+                  )}
                 </div>
+
+                {/* Markdown Formatting Helper Toolbar & Line Limit Indicator */}
+                <div className="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar scrollbar-none p-1.5 bg-secondary/40 border border-border/60 rounded-xl backdrop-blur-md shrink-0 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-1 text-primary">Insert:</span>
+                    <button
+                      type="button"
+                      onClick={() => insertMarkdown('**', '**', 'bold text')}
+                      className="px-2 py-1 rounded-md hover:bg-background/80 hover:text-foreground font-bold transition-colors cursor-pointer border border-transparent hover:border-border/60"
+                      title="Bold (**text**)"
+                    >
+                      <Lucide.Bold size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertMarkdown('*', '*', 'italic text')}
+                      className="px-2 py-1 rounded-md hover:bg-background/80 hover:text-foreground italic transition-colors cursor-pointer border border-transparent hover:border-border/60"
+                      title="Italic (*text*)"
+                    >
+                      <Lucide.Italic size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertMarkdown('## ', '', 'Heading 2')}
+                      className="px-2 py-1 rounded-md hover:bg-background/80 hover:text-foreground font-black transition-colors cursor-pointer border border-transparent hover:border-border/60"
+                      title="Heading (## Heading)"
+                    >
+                      <Lucide.Heading size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertMarkdown('- [ ] ', '', 'Task')}
+                      className="px-2 py-1 rounded-md hover:bg-background/80 hover:text-foreground transition-colors cursor-pointer border border-transparent hover:border-border/60"
+                      title="Checklist task (- [ ])"
+                    >
+                      <Lucide.CheckSquare size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertMarkdown('- ', '', 'Bullet item')}
+                      className="px-2 py-1 rounded-md hover:bg-background/80 hover:text-foreground transition-colors cursor-pointer border border-transparent hover:border-border/60"
+                      title="Bullet List (- item)"
+                    >
+                      <Lucide.List size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertMarkdown('> ', '', 'Wisdom or reflection...')}
+                      className="px-2 py-1 rounded-md hover:bg-background/80 hover:text-foreground transition-colors cursor-pointer border border-transparent hover:border-border/60"
+                      title="Blockquote (> quote)"
+                    >
+                      <Lucide.Quote size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertMarkdown('```typescript\n', '\n```', 'console.log("mana");')}
+                      className="px-2 py-1 rounded-md hover:bg-background/80 hover:text-foreground font-mono transition-colors cursor-pointer border border-transparent hover:border-border/60"
+                      title="Code Block (```)"
+                    >
+                      <Lucide.Code size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertMarkdown('[', '](https://)', 'Link title')}
+                      className="px-2 py-1 rounded-md hover:bg-background/80 hover:text-foreground transition-colors cursor-pointer border border-transparent hover:border-border/60"
+                      title="Link [title](url)"
+                    >
+                      <Lucide.Link size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertMarkdown('| Phase | Action |\n| --- | --- |\n| Sprint 1 | ', ' |', 'Design')}
+                      className="px-2 py-1 rounded-md hover:bg-background/80 hover:text-foreground transition-colors cursor-pointer border border-transparent hover:border-border/60"
+                      title="Table (| col | col |)"
+                    >
+                      <Lucide.Table size={13} />
+                    </button>
+                  </div>
+
+                  {/* Dedicated Journal Line Limit Counter */}
+                  <div
+                    className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-bold border transition-colors ${
+                      currentLines >= MAX_JOURNAL_LINES
+                        ? 'bg-red-500/10 text-red-400 border-red-500/30 animate-pulse'
+                        : currentLines >= 450
+                        ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                        : 'bg-background/80 text-muted-foreground border-border/60'
+                    }`}
+                    title="Journal line limit: maximum 500 lines per daily reflection"
+                  >
+                    <Lucide.AlignLeft size={12} />
+                    <span>Lines: {currentLines} / {MAX_JOURNAL_LINES} (Max 500 lines)</span>
+                  </div>
+                </div>
+
+                {/* Line Limit Notification Alert */}
+                {lineLimitNotice && (
+                  <div className="p-2.5 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-400 font-medium flex items-center gap-2 animate-fadeIn">
+                    <Lucide.AlertCircle size={14} className="shrink-0 text-red-400" />
+                    <span>Line limit reached! Maximum 500 lines allowed per journal reflection to maintain optimal storage performance.</span>
+                  </div>
+                )}
 
                 {/* Raw Textarea */}
                 <div className="flex-1 flex flex-col min-h-0">
@@ -537,7 +617,7 @@ export const NotesFeature: React.FC = () => {
                     ref={textareaRef}
                     placeholder="How was today? What goals did you reach? Record thoughts in Markdown (# Header, **bold**, - [ ] task, ```code)..."
                     value={noteContent}
-                    onChange={(e) => setNoteContent(e.target.value)}
+                    onChange={(e) => handleContentChange(e.target.value)}
                     className="w-full flex-1 min-h-0 text-sm p-4 bg-secondary/20 backdrop-blur-sm border border-border/60 rounded-2xl text-foreground placeholder:text-muted-foreground outline-none resize-none focus:bg-background focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-mono leading-relaxed custom-scrollbar shadow-xs overflow-y-auto"
                   />
                 </div>
@@ -551,9 +631,14 @@ export const NotesFeature: React.FC = () => {
                     <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">
                       {noteTitle || 'Untitled Reflection'}
                     </h1>
-                    <span className="text-xs text-muted-foreground font-semibold">
-                      Recorded for {format(parseISO(noteDate), 'EEEE, MMMM dd, yyyy')}
-                    </span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xs text-muted-foreground font-semibold">
+                        Recorded for {format(parseISO(noteDate), 'EEEE, MMMM dd, yyyy')}
+                      </span>
+                      <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-secondary text-muted-foreground border border-border/60">
+                        {currentLines} {currentLines === 1 ? 'line' : 'lines'} / 500
+                      </span>
+                    </div>
                   </div>
                   <button
                     onClick={() => setIsEditing(true)}

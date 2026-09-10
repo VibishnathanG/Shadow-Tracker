@@ -393,11 +393,17 @@ export default function CustomDietPlanModal({
               </label>
               <input
                 type="text"
+                maxLength={80}
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="e.g. Tamil Nadu Lean Cut & Millets Shred"
                 className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs sm:text-sm font-bold text-foreground focus:outline-none focus:border-emerald-500"
               />
+              {name.length >= 80 && (
+                <span className="text-[10px] text-amber-500 font-semibold block animate-fadeIn">
+                  Plan title limit reached (80/80)
+                </span>
+              )}
             </div>
 
             <div className="space-y-1">
@@ -428,11 +434,17 @@ export default function CustomDietPlanModal({
               </label>
               <input
                 type="text"
+                maxLength={150}
                 value={tagline}
                 onChange={e => setTagline(e.target.value)}
                 placeholder="e.g. High fiber keerai & sambar, egg white dosa, brown rice lunch"
                 className="w-full px-3 py-2 bg-surface border border-border rounded-xl text-xs text-foreground focus:outline-none focus:border-emerald-500"
               />
+              {tagline.length >= 150 && (
+                <span className="text-[10px] text-amber-500 font-semibold block animate-fadeIn">
+                  Tagline limit reached (150/150)
+                </span>
+              )}
             </div>
 
             <div className="space-y-1">

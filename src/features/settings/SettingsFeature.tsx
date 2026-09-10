@@ -18,6 +18,8 @@ import {
 import { generateMassiveOneYearData } from '@/lib/seedData';
 import { Task, Habit, DailyLog, Note } from '@/types';
 import { smartMergeBackupData } from '@/lib/smartMerge';
+import { JsonErrorModal } from '@/components/JsonErrorModal';
+import { validateAndParseBackupJSON, JsonDiagnosticIssue } from '@/lib/jsonDiagnostics';
 import {
   pickSyncFile,
   createNewSyncFile,
@@ -80,7 +82,11 @@ const TileArtDanger = () => (
 );
 
 // --- OneDrive / Local File Sync Tile (self-contained component) ---
-const OneDriveSyncTile: React.FC = () => {
+interface OneDriveSyncTileProps {
+  onDiagnosticError?: (err: JsonDiagnosticIssue, fileName: string) => void;
+}
+
+const OneDriveSyncTile: React.FC<OneDriveSyncTileProps> = ({ onDiagnosticError }) => {
   const { settings, updateSettings, importBackup } = useShadowTrackerStore();
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncSupported] = useState(() => isFileSyncSupported());
@@ -113,11 +119,19 @@ const OneDriveSyncTile: React.FC = () => {
       if (!result) return;
 
       const { fileName, data } = result;
+      const jsonStr = typeof data === 'string' ? data : JSON.stringify(data);
+      const validation = validateAndParseBackupJSON(jsonStr);
+
+      if (!validation.isValid) {
+        onDiagnosticError?.(validation.error!, fileName);
+        return;
+      }
+
       const confirmed = window.confirm(
-        `Linked sync file "${fileName}".\n\nWould you like to import and merge existing file data into your app now?\n\nFile Date: ${data.exportedAt ? new Date(data.exportedAt).toLocaleString() : 'Unknown'}`
+        `Linked sync file "${fileName}".\n\nWould you like to import and merge existing file data into your app now?\n\nFile Date: ${validation.data.exportedAt ? new Date(validation.data.exportedAt).toLocaleString() : 'Unknown'}`
       );
       if (confirmed) {
-        await importBackup(data);
+        await importBackup(validation.data);
       }
 
       updateSettings({
@@ -314,6 +328,10 @@ export const SettingsFeature: React.FC = () => {
 
   const [isSyncing, setIsSyncing] = useState(false);
   const [githubPatInput, setGithubPatInput] = useState(settings.githubPat || '');
+
+  // Corrupted JSON Error Diagnostic Engine Modal State
+  const [jsonDiagnosticError, setJsonDiagnosticError] = useState<JsonDiagnosticIssue | null>(null);
+  const [corruptedFileName, setCorruptedFileName] = useState<string>('');
 
   // Dynamic Per-Year Archiving State
   const [availableYears, setAvailableYears] = useState<string[]>([]);
@@ -656,9 +674,17 @@ export const SettingsFeature: React.FC = () => {
         alert('No backup found for this file on the cloud.');
         return;
       }
+
+      const jsonStr = typeof data === 'string' ? data : JSON.stringify(data);
+      const validation = validateAndParseBackupJSON(jsonStr);
+      if (!validation.isValid) {
+        setCorruptedFileName(settings.githubSyncFile || 'Cloud Gist Sync File');
+        setJsonDiagnosticError(validation.error || null);
+        return;
+      }
       
       const confirmPull = window.confirm(
-        `Cloud backup from ${new Date(data.timestamp).toLocaleString()}.\nThis will safely merge cloud changes with local updates without data loss. Proceed?`
+        `Cloud backup from ${new Date(data.timestamp || validation.data.exportedAt || Date.now()).toLocaleString()}.\nThis will safely merge cloud changes with local updates without data loss. Proceed?`
       );
       if (!confirmPull) return;
 
@@ -777,13 +803,28 @@ export const SettingsFeature: React.FC = () => {
     reader.onload = async (event) => {
       try {
         const jsonContent = event.target?.result as string;
-        const backupData = JSON.parse(jsonContent);
-        await importBackup(backupData);
+        const validation = validateAndParseBackupJSON(jsonContent);
+
+        if (!validation.isValid) {
+          setCorruptedFileName(file.name);
+          setJsonDiagnosticError(validation.error || null);
+          return;
+        }
+
+        await importBackup(validation.data);
         alert('Data backup imported successfully! Reloading to apply all settings and money data...');
         window.location.reload();
-      } catch (err) {
+      } catch (err: any) {
         console.error('Import failed:', err);
-        alert('Failed to import file. Verify it is a valid shadow-tracker backup JSON.');
+        setCorruptedFileName(file.name);
+        setJsonDiagnosticError({
+          type: 'syntax',
+          message: err?.message || 'Unexpected failure reading JSON backup file.',
+          suggestion: 'Ensure the file is uncorrupted standard JSON with valid UTF-8 encoding.',
+          expectedStructure: '{\n  "version": "1.0.0",\n  "tasks": [],\n  "habits": []\n}',
+        });
+      } finally {
+        if (fileInputRef.current) fileInputRef.current.value = '';
       }
     };
     reader.readAsText(file);
@@ -1747,7 +1788,7 @@ export const SettingsFeature: React.FC = () => {
           </motion.div>
 
           {/* OneDrive / Local File Auto-Sync Tile (Right 1x1) */}
-          <OneDriveSyncTile />
+          <OneDriveSyncTile onDiagnosticError={(err, fname) => { setCorruptedFileName(fname); setJsonDiagnosticError(err); }} />
 
           {/* Mascot Carousel Tile (Full width 2-column expansion) */}
           <motion.div 
@@ -2187,6 +2228,14 @@ export const SettingsFeature: React.FC = () => {
           </div>
         </div>
       </Modal>
+
+      {/* Pinpoint Corrupted JSON Backup Error Diagnostics Modal (Only pops up on error) */}
+      <JsonErrorModal
+        isOpen={!!jsonDiagnosticError}
+        onClose={() => setJsonDiagnosticError(null)}
+        diagnostic={jsonDiagnosticError}
+        fileName={corruptedFileName}
+      />
     </motion.div>
   );
 };

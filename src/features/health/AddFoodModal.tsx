@@ -484,11 +484,17 @@ export default function AddFoodModal({
                   <input
                     type="text"
                     required
+                    maxLength={80}
                     placeholder="e.g. keerai poriyal, chicken salad, oats, fish..."
                     value={customName}
                     onChange={e => handleCustomNameChange(e.target.value)}
                     className="w-full bg-secondary border border-border/60 rounded-xl px-3 py-2 text-foreground text-xs font-bold outline-none focus:border-emerald-400"
                   />
+                  {customName.length >= 80 && (
+                    <span className="text-[10px] text-amber-500 font-semibold block animate-fadeIn">
+                      Food name limit reached (80/80)
+                    </span>
+                  )}
                   <span className="text-[9.5px] text-muted-foreground block">
                     Typing auto-detects emoji (or tap the icon button on the right to browse).
                   </span>

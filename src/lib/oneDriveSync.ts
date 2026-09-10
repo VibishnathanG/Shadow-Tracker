@@ -15,6 +15,7 @@
 import { BackupData, Task, Habit, DailyLog, Note, Category } from '@/types';
 import { calculateStreaks } from '@/lib/dateUtils';
 import { dbService } from '@/lib/storage';
+import { smartMergeBackupData } from '@/lib/smartMerge';
 
 const HANDLE_STORE_KEY = 'shadow_onedrive_file_handle';
 const IDB_DB_NAME = 'shadow_file_sync';
@@ -350,94 +351,12 @@ export async function disconnectSyncFile(): Promise<void> {
 
 /**
  * Merge local and remote BackupData datasets bidirectionally.
+ * Deeply combines all domains (health, habits, tasks, money, reflections, rpg) while keeping ToDo local.
  */
 export function mergeBackupDatasets(local: BackupData, remote: BackupData): BackupData {
   if (!remote || !Array.isArray(remote.tasks)) return local;
   if (!local || !Array.isArray(local.tasks)) return remote;
-
-  const taskMap = new Map<string, Task>();
-  (local.tasks || []).forEach(t => taskMap.set(t.id, t));
-  (remote.tasks || []).forEach(r => {
-    const existing = taskMap.get(r.id);
-    if (!existing) {
-      taskMap.set(r.id, r);
-    } else {
-      const localTime = new Date(existing.updatedAt || 0).getTime();
-      const remoteTime = new Date(r.updatedAt || 0).getTime();
-      taskMap.set(r.id, remoteTime > localTime ? r : existing);
-    }
-  });
-
-  const habitMap = new Map<string, Habit>();
-  (local.habits || []).forEach(h => habitMap.set(h.id, h));
-  (remote.habits || []).forEach(r => {
-    const existing = habitMap.get(r.id);
-    if (!existing) {
-      habitMap.set(r.id, r);
-    } else {
-      const mergedCompletedDates = Array.from(new Set([...(existing.completedDates || []), ...(r.completedDates || [])])).sort();
-      const streaks = calculateStreaks(mergedCompletedDates);
-      const localTime = new Date(existing.updatedAt || 0).getTime();
-      const remoteTime = new Date(r.updatedAt || 0).getTime();
-      const base = remoteTime > localTime ? r : existing;
-      habitMap.set(r.id, {
-        ...base,
-        completedDates: mergedCompletedDates,
-        streakCount: streaks.currentStreak,
-        longestStreak: streaks.longestStreak,
-      });
-    }
-  });
-
-  const logMap = new Map<string, DailyLog>();
-  (local.dailyLogs || []).forEach(l => logMap.set(l.id, l));
-  (remote.dailyLogs || []).forEach(r => {
-    const existing = logMap.get(r.id);
-    if (!existing) {
-      logMap.set(r.id, r);
-    } else {
-      const localTime = new Date(existing.updatedAt || 0).getTime();
-      const remoteTime = new Date(r.updatedAt || 0).getTime();
-      logMap.set(r.id, remoteTime > localTime ? r : existing);
-    }
-  });
-
-  const noteMap = new Map<string, Note>();
-  (local.notes || []).forEach(n => noteMap.set(n.id, n));
-  (remote.notes || []).forEach(r => {
-    const existing = noteMap.get(r.id);
-    if (!existing) {
-      noteMap.set(r.id, r);
-    } else {
-      const localTime = new Date(existing.updatedAt || 0).getTime();
-      const remoteTime = new Date(r.updatedAt || 0).getTime();
-      noteMap.set(r.id, remoteTime > localTime ? r : existing);
-    }
-  });
-
-  const catMap = new Map<string, Category>();
-  (local.categories || []).forEach(c => catMap.set(c.id, c));
-  (remote.categories || []).forEach(r => {
-    if (!catMap.has(r.id)) catMap.set(r.id, r);
-  });
-
-  return {
-    version: local.version || '1.0.0',
-    tasks: Array.from(taskMap.values()),
-    habits: Array.from(habitMap.values()),
-    dailyLogs: Array.from(logMap.values()),
-    notes: Array.from(noteMap.values()),
-    reminders: local.reminders?.length ? local.reminders : (remote.reminders || []),
-    categories: Array.from(catMap.values()),
-    settings: { ...remote.settings, ...local.settings },
-    moneyData: local.moneyData || remote.moneyData,
-    healthData: local.healthData || remote.healthData,
-    standaloneTodos: local.standaloneTodos?.length ? local.standaloneTodos : (remote.standaloneTodos || []),
-    rpgQuests: local.rpgQuests?.length ? local.rpgQuests : (remote.rpgQuests || []),
-    wizardScrolls: local.wizardScrolls?.length ? local.wizardScrolls : (remote.wizardScrolls || []),
-    unlockedBadges: Array.from(new Set([...(local.unlockedBadges || []), ...(remote.unlockedBadges || [])])),
-    exportedAt: new Date().toISOString(),
-  };
+  return smartMergeBackupData(local as any, remote as any) as any;
 }
 
 /**

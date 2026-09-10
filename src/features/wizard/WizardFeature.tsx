@@ -716,12 +716,18 @@ export default function WizardFeature() {
                   </label>
                   <textarea
                     rows={4}
+                    maxLength={300}
                     placeholder="Enter words of relentless discipline, focus, or strategy..."
                     value={customQuoteText}
                     onChange={e => setCustomQuoteText(e.target.value)}
                     className="w-full text-sm p-3.5 bg-secondary/30 rounded-2xl border border-border/80 text-foreground placeholder:text-muted-foreground focus:bg-background focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none resize-none font-medium"
                     autoFocus
                   />
+                  {customQuoteText.length >= 300 && (
+                    <span className="text-[11px] text-amber-500 font-semibold block animate-fadeIn">
+                      Quote inscription limit reached (300/300)
+                    </span>
+                  )}
                 </div>
 
                 {/* Author / Alias */}
@@ -731,11 +737,17 @@ export default function WizardFeature() {
                   </label>
                   <input
                     type="text"
+                    maxLength={80}
                     placeholder={settings.alias || 'Seeker'}
                     value={customQuoteAuthor}
                     onChange={e => setCustomQuoteAuthor(e.target.value)}
                     className="w-full text-xs p-3 bg-secondary/30 rounded-xl border border-border/80 text-foreground placeholder:text-muted-foreground focus:bg-background focus:border-primary focus:outline-none font-medium"
                   />
+                  {customQuoteAuthor.length >= 80 && (
+                    <span className="text-[11px] text-amber-500 font-semibold block animate-fadeIn">
+                      Signature limit reached (80/80)
+                    </span>
+                  )}
                 </div>
 
                 {/* Modal Actions */}

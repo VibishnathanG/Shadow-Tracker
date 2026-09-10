@@ -271,11 +271,17 @@ export default function CustomWorkoutPlanModal({
               <label className="text-[10px] font-bold text-muted-foreground uppercase">Routine / Plan Name</label>
               <input
                 type="text"
+                maxLength={80}
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="e.g. Heavy Hypertrophy PPL, Arnold 6-Day, Power Chest & Arms..."
                 className="w-full bg-secondary border border-border/70 rounded-xl px-3 py-2 text-xs font-bold text-foreground outline-none focus:border-amber-400"
               />
+              {name.length >= 80 && (
+                <span className="text-[10px] text-amber-500 font-semibold block animate-fadeIn">
+                  Plan name limit reached (80/80)
+                </span>
+              )}
             </div>
 
             <div className="space-y-1">

@@ -1,33 +1,30 @@
 /**
- * Life RPG Exponential Leveling Curve & Legendary Milestone Titles
+ * Life RPG Calibrated Leveling Curve & Legendary Milestone Titles
  *
- * Designed like classic MMOs and deep RPGs:
- * - Levels 1-10: Smooth, engaging onboarding (100 -> 7,000 XP)
- * - Levels 11-40: Solid commitment, regular habit and task execution
- * - Levels 41-75: Master discipline tier
- * - Levels 76-99: Mythic struggle (hundreds of thousands of XP per level)
- * - Level 100: Legendary milestone requiring millions of XP and years of dedication
+ * Balanced progression curve for long-term consistency:
+ * - Levels 1-10: Engaging onboarding (first 1-2 weeks)
+ * - 1 Year of consistent execution: Reaches Level 40 - 50 (~50,000 - 65,000 XP)
+ * - 2 Years of consistent execution: Reaches Level 60 (~100,000 - 120,000 XP)
+ * - 3 Years of continuous discipline: Reaches Level ~77 (~180,000 XP)
+ * - 5 Years of legendary mastery: Reaches Level 100 milestone (~320,000 - 400,000 XP)
  */
 
 export const getXpForLevel = (level: number): number => {
-  if (level <= 0) return 100;
-  if (level === 1) return 100;
-  if (level === 2) return 250;
-  if (level === 3) return 450;
-  if (level === 4) return 750;
-  if (level === 5) return 1200;
-  if (level === 6) return 1800;
-  if (level === 7) return 2600;
-  if (level === 8) return 3600;
-  if (level === 9) return 5000;
-  if (level === 10) return 7000;
+  if (level <= 0) return 50;
+  if (level === 1) return 60;
+  if (level === 2) return 110;
+  if (level === 3) return 170;
+  if (level === 4) return 240;
+  if (level === 5) return 320;
+  if (level === 6) return 410;
+  if (level === 7) return 510;
+  if (level === 8) return 620;
+  if (level === 9) return 740;
+  if (level === 10) return 870;
 
-  // Exponential scaling for levels 11 - 100+
-  // At level 25: ~48,000 XP
-  // At level 50: ~190,000 XP
-  // At level 75: ~420,000 XP
-  // At level 99: ~750,000 XP per level
-  return Math.floor(100 * Math.pow(level, 1.95));
+  // Calibrated formula: 20 * (level ^ 1.28) + 40
+  // Attainable across 5 years of daily consistency while maintaining challenge
+  return Math.floor(20 * Math.pow(level, 1.28)) + 40;
 };
 
 export const getCumulativeXpForLevel = (targetLevel: number): number => {

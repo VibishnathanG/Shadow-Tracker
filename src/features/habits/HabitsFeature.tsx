@@ -816,22 +816,34 @@ export const HabitsFeature: React.FC = () => {
             <input
               type="text"
               required
+              maxLength={120}
               placeholder="e.g. Read code architectures"
               value={formName}
               onChange={(e) => setFormName(e.target.value)}
               className="w-full text-xs px-3.5 py-3 bg-secondary/50 rounded-xl text-foreground placeholder-muted-foreground border border-border/40 focus:border-primary outline-none"
             />
+            {formName.length >= 120 && (
+              <span className="text-[11px] text-amber-500 font-semibold px-1 block animate-fadeIn">
+                Habit name limit reached (120/120)
+              </span>
+            )}
           </div>
 
           <div className="space-y-1.5">
             <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Target Description</label>
             <textarea
               placeholder="Why is this routine critical to build?"
+              maxLength={500}
               value={formDesc}
               onChange={(e) => setFormDesc(e.target.value)}
               rows={3}
               className="w-full text-xs px-3.5 py-3 bg-secondary/50 rounded-xl text-foreground placeholder-muted-foreground border border-border/40 focus:border-primary outline-none resize-none"
             />
+            {formDesc.length >= 500 && (
+              <span className="text-[11px] text-amber-500 font-semibold px-1 block animate-fadeIn">
+                Description limit reached (500/500)
+              </span>
+            )}
           </div>
 
           <div className="space-y-1.5 relative">

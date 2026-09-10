@@ -145,7 +145,6 @@ export const dbService = {
 
     let moneyData = null;
     let healthData = null;
-    let standaloneTodos = null;
     let rpgQuests = null;
     let wizardScrolls = null;
     let unlockedBadges: string[] = [];
@@ -187,12 +186,10 @@ export const dbService = {
           };
         }
 
-        // 3. Standalone ToDos
-        const savedTodos = localStorage.getItem('shadow_standalone_todos_v1');
-        if (savedTodos) standaloneTodos = JSON.parse(savedTodos);
+        // 3. Standalone ToDos are strictly 100% local-first and intentionally omitted from cloud sync
 
         // 4. RPG Quests
-        const savedQuests = localStorage.getItem('shadow_life_rpg_quests_v1');
+        const savedQuests = localStorage.getItem('shadow_rpg_quests_v2') || localStorage.getItem('shadow_life_rpg_quests_v1');
         if (savedQuests) rpgQuests = JSON.parse(savedQuests);
 
         // 5. Wizard Scrolls
@@ -223,7 +220,6 @@ export const dbService = {
       settings: safeSettings,
       moneyData,
       healthData,
-      standaloneTodos,
       rpgQuests,
       wizardScrolls,
       unlockedBadges,
@@ -242,22 +238,36 @@ export const dbService = {
     const db = await openDB();
     const isYearArchive = !!data.archiveYear;
     
-    const importStore = <T>(storeName: StoreName, items: T[]): Promise<void> => {
-      return new Promise((resolve, reject) => {
-        const transaction = db.transaction(storeName, 'readwrite');
-        const store = transaction.objectStore(storeName);
-        
-        if (!isYearArchive) {
+    const CHUNK_SIZE = 500;
+    const importStore = async <T>(storeName: StoreName, items: T[]): Promise<void> => {
+      if (!isYearArchive) {
+        await new Promise<void>((resolve, reject) => {
+          const transaction = db.transaction(storeName, 'readwrite');
+          const store = transaction.objectStore(storeName);
           store.clear();
-        }
-        
-        for (const item of items) {
-          store.put(item);
-        }
-        
-        transaction.oncomplete = () => resolve();
-        transaction.onerror = () => reject(transaction.error);
-      });
+          transaction.oncomplete = () => resolve();
+          transaction.onerror = () => reject(transaction.error);
+        });
+      }
+
+      if (!items || items.length === 0) return;
+
+      // Ingest in chunks of 500 items and yield to event loop to support 10MB+ files seamlessly
+      for (let i = 0; i < items.length; i += CHUNK_SIZE) {
+        const chunk = items.slice(i, i + CHUNK_SIZE);
+        await new Promise<void>((resolve, reject) => {
+          const transaction = db.transaction(storeName, 'readwrite');
+          const store = transaction.objectStore(storeName);
+          for (const item of chunk) {
+            store.put(item);
+          }
+          transaction.oncomplete = () => resolve();
+          transaction.onerror = () => reject(transaction.error);
+        });
+
+        // Yield to keep UI responsive and prevent browser lockup on massive datasets
+        await new Promise((r) => setTimeout(r, 0));
+      }
     };
 
     await importStore(STORES.TASKS, data.tasks);
@@ -320,16 +330,11 @@ export const dbService = {
       }
     }
 
-    if (data.standaloneTodos && Array.isArray(data.standaloneTodos)) {
-      try {
-        localStorage.setItem('shadow_standalone_todos_v1', JSON.stringify(data.standaloneTodos));
-      } catch (e) {
-        console.error('Error restoring standaloneTodos:', e);
-      }
-    }
+    // Standalone ToDos are strictly local-first and are NEVER overwritten or restored by sync/backup imports
 
     if (data.rpgQuests && Array.isArray(data.rpgQuests)) {
       try {
+        localStorage.setItem('shadow_rpg_quests_v2', JSON.stringify(data.rpgQuests));
         localStorage.setItem('shadow_life_rpg_quests_v1', JSON.stringify(data.rpgQuests));
       } catch (e) {
         console.error('Error restoring rpgQuests:', e);
