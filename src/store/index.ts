@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { generate60DaysSeedData } from './generate60Days';
 import { Task, Habit, DailyLog, Note, Reminder, Category, Settings, BackupData } from '@/types';
-import { dbService, STORES, settingsStorage } from '@/lib/storage';
+import { dbService, STORES, settingsStorage, isMobileDevice } from '@/lib/storage';
 import { parseISO, format } from 'date-fns';
 import { calculateStreaks, calculateNextRecurrence, getTodayDateString, formatDateString, parseDateString, getHabitDateStatus, upsertHabitMissedNoteSection } from '@/lib/dateUtils';
 import { getXpForLevel } from '@/features/rpg/rpgLevels';
@@ -219,7 +219,8 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
         savingsTarget: 0,
         investmentsTarget: 0,
         badgesResetTimestamp: new Date().toISOString(),
-        ecoMode: false,
+        ecoMode: isMobileDevice(),
+        lowGpuMode: isMobileDevice(),
         minimizeToTray: true,
         habitGracePeriodDays: 3,
       };

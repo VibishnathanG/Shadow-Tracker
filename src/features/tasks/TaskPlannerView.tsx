@@ -245,7 +245,7 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
 
       {/* ── VIEW 1: WEEK PLANNER (SUPER PRODUCTIVITY COLUMNS) ── */}
       {plannerMode === 'week' && (
-        <div className="overflow-x-auto pb-4 custom-scrollbar">
+        <div className="overflow-x-auto pb-4 no-scrollbar md:custom-scrollbar">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3.5 min-w-[1050px]">
             {/* COLUMN 0: OVERDUE COLUMN */}
             <div className="flex flex-col bg-rose-500/[0.04] border border-rose-500/20 rounded-2xl overflow-hidden shadow-xs">

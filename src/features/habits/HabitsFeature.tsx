@@ -681,7 +681,7 @@ export const HabitsFeature: React.FC = () => {
             </span>
           </div>
 
-          <div className="overflow-x-auto custom-scrollbar py-2">
+          <div className="overflow-x-auto no-scrollbar md:custom-scrollbar py-2">
             <div className="flex gap-1 items-center justify-start min-w-max">
               {globalHeatmapDays.map((date) => {
                 const dateStr = formatDateString(date);

@@ -543,6 +543,17 @@ export const dbService = {
   }
 };
 
+export const isMobileDevice = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  const ua = (navigator.userAgent || '').toLowerCase();
+  const isCapacitor = Boolean(
+    (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor?.isNativePlatform?.()
+  );
+  const isMobileUa = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(ua);
+  const isTouchNarrow = ('ontouchstart' in window || navigator.maxTouchPoints > 0) && window.innerWidth <= 820;
+  return isCapacitor || isMobileUa || isTouchNarrow;
+};
+
 // Settings are stored in localStorage for easier synchronous retrieval during initialization
 const SETTINGS_KEY = 'shadow_tracker_settings';
 const DEFAULT_SETTINGS: Settings = {
@@ -564,15 +575,34 @@ const DEFAULT_SETTINGS: Settings = {
 export const settingsStorage = {
   get(): Settings {
     if (!isBrowser) return DEFAULT_SETTINGS;
+    const isMobile = isMobileDevice();
     try {
       const stored = localStorage.getItem(SETTINGS_KEY);
       if (stored) {
-        return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
+        const parsed = JSON.parse(stored);
+        const hasExplicitEco = typeof parsed.ecoMode === 'boolean';
+        const finalEco = hasExplicitEco ? parsed.ecoMode : (isMobile ? true : false);
+        return {
+          ...DEFAULT_SETTINGS,
+          ...parsed,
+          ecoMode: finalEco,
+          lowGpuMode: typeof parsed.lowGpuMode === 'boolean' ? parsed.lowGpuMode : finalEco,
+        };
+      } else {
+        return {
+          ...DEFAULT_SETTINGS,
+          ecoMode: isMobile,
+          lowGpuMode: isMobile,
+        };
       }
     } catch (e) {
       console.error('Error reading settings from localStorage:', e);
     }
-    return DEFAULT_SETTINGS;
+    return {
+      ...DEFAULT_SETTINGS,
+      ecoMode: isMobile,
+      lowGpuMode: isMobile,
+    };
   },
 
   set(settings: Settings): void {

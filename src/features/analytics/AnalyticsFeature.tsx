@@ -628,7 +628,7 @@ const HabitsMonthlyGridCard: React.FC = () => {
       ) : (
         <div className="space-y-6">
           {/* Scrollable Monthly Grid */}
-          <div className="overflow-x-auto custom-scrollbar pb-3">
+          <div className="overflow-x-auto no-scrollbar md:custom-scrollbar pb-3">
             <table className="w-full border-collapse select-none min-w-0 table-fixed">
               <colgroup>
                 <col className="w-36 sm:w-52" />

@@ -515,8 +515,8 @@ export const Layout: React.FC<LayoutProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Mobile Tab Nav Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex w-full bg-surface/95 backdrop-blur-xl border-t border-border px-2 py-2 justify-between select-none shadow-2xl items-center pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+      {/* Mobile Tab Nav Bar — Rounded Glossy Navigation Dock */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex w-full bg-surface/90 backdrop-blur-2xl border-t border-border/60 px-2.5 py-1.5 justify-between select-none shadow-2xl items-center gap-1.5 pb-[max(0.6rem,env(safe-area-inset-bottom))]">
         {navItems.filter(item => ['dashboard', 'tasks', 'habits', 'money'].includes(item.id)).map((item) => {
           const isActive = activeTab === item.id;
           const Icon = (Lucide[item.icon as keyof typeof Lucide] || Lucide.Zap) as React.ElementType;
@@ -524,25 +524,23 @@ export const Layout: React.FC<LayoutProps> = ({
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`flex flex-col items-center justify-center gap-[2px] py-1 flex-1 transition-all duration-200 ease-out ${
-                isActive ? 'text-primary scale-110' : 'text-muted-foreground scale-95 active:scale-90'
-              }`}
+              className={`mobile-nav-btn flex-1 ${isActive ? 'active' : ''}`}
               style={{ WebkitTapHighlightColor: 'transparent' }}
+              aria-label={item.label}
             >
-              <Icon size={20} className={isActive ? 'stroke-[2.5px]' : ''} />
-              <span className="text-[10px] font-bold tracking-tighter leading-none line-clamp-1 mt-1">{item.label}</span>
+              <Icon size={19} className={isActive ? 'stroke-[2.5px]' : 'opacity-80'} />
+              <span className="text-[10px] font-bold tracking-tight leading-none truncate max-w-full">{item.label}</span>
             </button>
           );
         })}
         <button
           onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
-          className={`flex flex-col items-center justify-center gap-[2px] py-1 flex-1 transition-all duration-200 ease-out ${
-            isMoreMenuOpen ? 'text-primary scale-110' : 'text-muted-foreground scale-95 active:scale-90'
-          }`}
+          className={`mobile-nav-btn flex-1 ${isMoreMenuOpen ? 'active' : ''}`}
           style={{ WebkitTapHighlightColor: 'transparent' }}
+          aria-label="More features menu"
         >
-          <Lucide.Menu size={20} className={isMoreMenuOpen ? 'stroke-[2.5px]' : ''} />
-          <span className="text-[10px] font-bold tracking-tighter leading-none line-clamp-1 mt-1">More</span>
+          <Lucide.Menu size={19} className={isMoreMenuOpen ? 'stroke-[2.5px]' : 'opacity-80'} />
+          <span className="text-[10px] font-bold tracking-tight leading-none truncate max-w-full">More</span>
         </button>
       </nav>
 

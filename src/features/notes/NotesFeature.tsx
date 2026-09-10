@@ -455,7 +455,7 @@ export const NotesFeature: React.FC = () => {
                 />
 
                 {/* Markdown Formatting Helper Toolbar */}
-                <div className="flex items-center gap-1.5 overflow-x-auto p-1.5 bg-secondary/40 border border-border/60 rounded-xl backdrop-blur-md shrink-0 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none p-1.5 bg-secondary/40 border border-border/60 rounded-xl backdrop-blur-md shrink-0 text-xs text-muted-foreground">
                   <span className="text-[10px] font-bold uppercase tracking-wider px-1 text-primary">Insert:</span>
                   <button
                     type="button"

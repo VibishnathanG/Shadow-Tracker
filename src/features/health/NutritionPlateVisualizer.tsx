@@ -404,7 +404,7 @@ export default function NutritionPlateVisualizer({
           </div>
 
           {/* Filter Tabs */}
-          <div className="flex items-center gap-1 bg-secondary/80 p-1 rounded-xl border border-border/60 text-[10px] font-bold overflow-x-auto">
+          <div className="flex items-center gap-1 bg-secondary/80 p-1 rounded-xl border border-border/60 text-[10px] font-bold overflow-x-auto no-scrollbar scrollbar-none">
             {(['all', 'breakfast', 'lunch', 'dinner', 'snack'] as const).map(tab => (
               <button
                 key={tab}

@@ -22,7 +22,7 @@ export const CommandBar: React.FC<CommandBarProps> = ({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   
-  const { addTask, addHabit, updateSettings, settings } = useShadowTrackerStore();
+  const { addTask, addHabit, updateSettings, settings, importBackup } = useShadowTrackerStore();
 
   useEffect(() => {
     if (isOpen) {
@@ -85,7 +85,19 @@ export const CommandBar: React.FC<CommandBarProps> = ({
       updateSettings({ theme: 'midnight' });
       onClose();
     }},
-  ], [onNavigate, query, addTask, addHabit, updateSettings, onClose]);
+    { id: 'data-load-2y-demo', category: 'Data & Workspaces', label: 'Load 2-Year Masterclass Demo (730 Days)', icon: 'Sparkles', action: async () => {
+      if (window.confirm('Load 2-Year Extensive Masterclass Demo Dataset? This will populate 730 days of habits, daily logs, notes, 220+ tasks, 24 full months of financial data, and Level 25 Master rank.')) {
+        try {
+          const { generateMassiveTwoYearData } = await import('@/lib/seedData');
+          await importBackup(generateMassiveTwoYearData());
+          window.location.reload();
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      onClose();
+    }},
+  ], [onNavigate, query, addTask, addHabit, updateSettings, importBackup, onClose]);
 
   const filteredCommands = useMemo(() => commands.filter(cmd => {
     if (cmd.id === 'act-task' || cmd.id === 'act-habit') {

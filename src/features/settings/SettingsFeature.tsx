@@ -790,11 +790,11 @@ export const SettingsFeature: React.FC = () => {
   }, [importBackup]);
 
   const handleLoadDemoData = useCallback(async () => {
-    if (window.confirm('Load 1-Year Massive Demo Dataset? This will populate 365 days of habits, daily logs, notes, tasks, 12 months of money data, and Level 15 Legend rank.')) {
+    if (window.confirm('Load 2-Year Extensive Masterclass Demo Dataset? This will populate 730 days of habits, daily logs, notes, 220+ tasks, 24 full months of financial data, 365 days of nutrition & health logs, and Level 25 Master rank.')) {
       try {
         const demoData = generateMassiveOneYearData();
         await importBackup(demoData);
-        alert('1-Year Demo Dataset loaded successfully! Reloading app...');
+        alert('2-Year Extensive Demo Dataset loaded successfully! Reloading app...');
         window.location.reload();
       } catch (err) {
         console.error('Failed to load demo data:', err);
@@ -1507,9 +1507,10 @@ export const SettingsFeature: React.FC = () => {
                 whileTap={{ scale: 0.95 }}
                 onClick={handleLoadDemoData}
                 className="flex items-center justify-center gap-2 px-3 py-3 bg-primary/15 hover:bg-primary/25 border border-primary/40 text-primary font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
+                title="Load 2-Year Extensive Masterclass Demo Dataset (730 days of telemetry)"
               >
                 <Lucide.Sparkles size={15} />
-                Load Demo
+                Load 2-Year Demo
               </motion.button>
               <input
                 ref={fileInputRef}

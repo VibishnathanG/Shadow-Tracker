@@ -431,7 +431,7 @@ export default function WizardFeature() {
         {/* Vibe Filter Controls & Inscribe Action */}
         <div className="flex items-center justify-between gap-3 flex-wrap">
           {/* Filter Pills */}
-          <div className="flex items-center gap-1.5 p-1 bg-secondary/50 rounded-2xl border border-border/60 overflow-x-auto max-w-full backdrop-blur-md">
+          <div className="flex items-center gap-1.5 p-1 bg-secondary/50 rounded-2xl border border-border/60 overflow-x-auto no-scrollbar scrollbar-none max-w-full backdrop-blur-md">
             {VIBE_CATEGORIES.map((v) => {
               const Icon = v.icon;
               const isSelected = selectedVibe === v.id;

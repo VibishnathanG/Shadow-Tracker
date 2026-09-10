@@ -202,9 +202,9 @@ Every release binary in the `release/` directory is standardized, compiled, cryp
 |---|---|---|---|---|---|
 | `Shadow-Tracker-Setup.exe` | Windows 10/11 (x64) | NSIS Executable Installer | 8.3 MB | `28adb83c43c5487081c9692aa4a1ee88ea7ef0cabb2a71512df1e083088e1bec` | |
 | `Shadow-Tracker-Portable.exe` | Windows 10/11 (x64) | Single Portable Executable | 25.7 MB | `ef32fbada49e6ef619e50a205944fb0fba0ca0c1018d42eab084351f4ddf8de7` | |
-| `Shadow-Tracker-Release.apk` | Android 8.0+ (ARM64/x86) | Signed Mobile APK | 8.7 MB | `a6c798e1ce769518e91bc6f75cf13c49fe8d7c07464158d95dfc6bd4e79fc4d3` | |
-| `shadow-tracker-container.tar.gz` | Linux (x86_64 Docker) | Docker Image Tarball | 33.3 MB | `f942635d3d37dab2ffe6ab098de750b3978cc030860f97ca9d4532b5ba677e8e` | |
-| `shadow-tracker-web-export.tar.gz` | Any Static Web Host | Static HTML5/JS/CSS Bundle | 4.6 MB | `74432ffab891d5033027d855540389f33893402bcba5406a67394fcabe7ec257` | |
+| `Shadow-Tracker-Release.apk` | Android 8.0+ (ARM64/x86) | Signed Mobile APK | 8.7 MB | `ffb3af2ec3f865fc90b79f940b5fe31ab458ada0fa4396b8db001e454b67f0d7` | |
+| `shadow-tracker-container.tar.gz` | Linux (x86_64 Docker) | Docker Image Tarball | 33.3 MB | `aa886a41e916f98724110347df68d81f73f0af2951ebb59d75632e765e5e21d5` | |
+| `shadow-tracker-web-export.tar.gz` | Any Static Web Host | Static HTML5/JS/CSS Bundle | 4.6 MB | `65b85e08c6dca142a2f2fc79d1a6426c3e4b9a45cdaf74c2c785687546de7a1a` | |
 | `Shadow-Tracker-Windows-Certificate.crt` | Windows OS | Trusted Root Signing Cert | 1.3 KB | `aabc149abd60a904878ebfc939611500ed636d22b61157cd891c3c2937ba4c98` | |
 
 ### Integrity-Verification

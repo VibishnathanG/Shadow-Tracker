@@ -195,7 +195,7 @@ export default function EmojiPickerModal({
 
           {/* Category Tabs */}
           {!search && (
-            <div className="flex items-center gap-1 overflow-x-auto pb-1 text-[10px] font-bold">
+            <div className="flex items-center gap-1 overflow-x-auto pb-1 text-[10px] font-bold no-scrollbar scrollbar-none">
               <button
                 type="button"
                 onClick={() => setSelectedCat('all')}
