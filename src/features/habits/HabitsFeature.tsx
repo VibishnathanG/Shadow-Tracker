@@ -655,10 +655,6 @@ export const HabitsFeature: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-xl md:text-2xl font-black tracking-tight text-foreground">Habit Routines</h2>
-          <p className="text-xs text-secondary font-extrabold uppercase tracking-widest mt-1 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            Build discipline via recurring atomic milestones
-          </p>
         </div>
         <button
           type="button"

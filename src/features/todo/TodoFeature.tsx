@@ -515,9 +515,6 @@ export default function TodoFeature() {
                 </span>
               </div>
             </div>
-            <p className="text-xs text-muted-foreground font-medium max-w-xl pl-9 sm:pl-0">
-              100% local task manager with checklist sub-tasks, priority badges, and dedicated alarms.
-            </p>
           </div>
 
           {/* Quick Stats Grid + Graph Toggle */}

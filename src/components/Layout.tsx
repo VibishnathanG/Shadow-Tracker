@@ -492,7 +492,7 @@ export const Layout: React.FC<LayoutProps> = ({
               className="md:hidden fixed bottom-20 right-4 left-4 z-50 bg-surface/95 backdrop-blur-2xl border border-border/60 rounded-3xl p-3 shadow-2xl flex flex-col gap-1 overflow-hidden"
             >
               <div className="grid grid-cols-2 gap-2">
-                {navItems.filter(i => !['dashboard', 'tasks', 'habits', 'money'].includes(i.id)).map(item => {
+                {navItems.filter(i => !['dashboard', 'habits', 'tasks'].includes(i.id)).map(item => {
                   const isActive = activeTab === item.id;
                   const Icon = (Lucide[item.icon as keyof typeof Lucide] || Lucide.Zap) as React.ElementType;
                   return (
@@ -516,23 +516,55 @@ export const Layout: React.FC<LayoutProps> = ({
       </AnimatePresence>
 
       {/* Mobile Tab Nav Bar — Rounded Glossy Navigation Dock */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex w-full bg-surface/90 backdrop-blur-2xl border-t border-border/60 px-2.5 py-1.5 justify-between select-none shadow-2xl items-center gap-1.5 pb-[max(0.6rem,env(safe-area-inset-bottom))]">
-        {navItems.filter(item => ['dashboard', 'tasks', 'habits', 'money'].includes(item.id)).map((item) => {
-          const isActive = activeTab === item.id;
-          const Icon = (Lucide[item.icon as keyof typeof Lucide] || Lucide.Zap) as React.ElementType;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={`mobile-nav-btn flex-1 ${isActive ? 'active' : ''}`}
-              style={{ WebkitTapHighlightColor: 'transparent' }}
-              aria-label={item.label}
-            >
-              <Icon size={19} className={isActive ? 'stroke-[2.5px]' : 'opacity-80'} />
-              <span className="text-[10px] font-bold tracking-tight leading-none truncate max-w-full">{item.label}</span>
-            </button>
-          );
-        })}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex w-full bg-surface/90 backdrop-blur-2xl border-t border-border/60 px-2 py-1.5 justify-between select-none shadow-2xl items-center gap-1 pb-[max(0.6rem,env(safe-area-inset-bottom))]">
+        {/* 1. Dashboard */}
+        <button
+          onClick={() => setActiveTab('dashboard')}
+          className={`mobile-nav-btn flex-1 ${activeTab === 'dashboard' ? 'active' : ''}`}
+          style={{ WebkitTapHighlightColor: 'transparent' }}
+          aria-label="Dashboard"
+        >
+          <Lucide.LayoutDashboard size={19} className={activeTab === 'dashboard' ? 'stroke-[2.5px]' : 'opacity-80'} />
+          <span className="text-[10px] font-bold tracking-tight leading-none truncate max-w-full">Dashboard</span>
+        </button>
+
+        {/* 2. Habits */}
+        <button
+          onClick={() => setActiveTab('habits')}
+          className={`mobile-nav-btn flex-1 ${activeTab === 'habits' ? 'active' : ''}`}
+          style={{ WebkitTapHighlightColor: 'transparent' }}
+          aria-label="Habits"
+        >
+          <Lucide.Repeat size={19} className={activeTab === 'habits' ? 'stroke-[2.5px]' : 'opacity-80'} />
+          <span className="text-[10px] font-bold tracking-tight leading-none truncate max-w-full">Habits</span>
+        </button>
+
+        {/* 3. Search (⌘K) Center Button - Slightly bigger, elevated rounded glossy pill */}
+        <button
+          onClick={() => setCommandBarOpen(true)}
+          className="mobile-nav-btn-center group cursor-pointer shrink-0"
+          style={{ WebkitTapHighlightColor: 'transparent' }}
+          aria-label="Search & Commands"
+          title="Search Commands (⌘K)"
+        >
+          <div className="center-search-icon-wrapper">
+            <Lucide.Search size={20} className="transition-transform group-hover:scale-110 group-active:scale-95 text-white" />
+          </div>
+          <span className="text-[9px] font-extrabold tracking-tight leading-none">⌘K</span>
+        </button>
+
+        {/* 4. Tasks */}
+        <button
+          onClick={() => setActiveTab('tasks')}
+          className={`mobile-nav-btn flex-1 ${activeTab === 'tasks' ? 'active' : ''}`}
+          style={{ WebkitTapHighlightColor: 'transparent' }}
+          aria-label="Tasks"
+        >
+          <Lucide.CheckSquare size={19} className={activeTab === 'tasks' ? 'stroke-[2.5px]' : 'opacity-80'} />
+          <span className="text-[10px] font-bold tracking-tight leading-none truncate max-w-full">Tasks</span>
+        </button>
+
+        {/* 5. More Menu */}
         <button
           onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
           className={`mobile-nav-btn flex-1 ${isMoreMenuOpen ? 'active' : ''}`}

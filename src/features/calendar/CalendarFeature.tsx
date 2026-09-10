@@ -186,15 +186,15 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
             ))}
           </div>
 
-          <div className="flex items-center justify-between sm:justify-end gap-3 flex-1 sm:flex-initial">
-            <h2 className="text-xl font-black tracking-tight min-w-[140px] text-center text-foreground">
+          <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 flex-1 sm:flex-initial w-full sm:w-auto">
+            <h2 className="text-lg sm:text-xl font-black tracking-tight min-w-[120px] text-center text-foreground">
               {format(currentViewDate, viewMode === 'month' ? 'MMMM yyyy' : 'MMM yyyy')}
             </h2>
-            <div className="pill-group">
+            <div className="pill-group shrink-0">
               <button
                 type="button"
                 onClick={handlePrev}
-                className="filter-pill p-1.5"
+                className="filter-pill p-1.5 shrink-0"
                 title="Previous period"
               >
                 <Lucide.ChevronLeft size={16} />
@@ -202,14 +202,14 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
               <button
                 type="button"
                 onClick={handleToday}
-                className="filter-pill uppercase tracking-wider text-[11px]"
+                className="filter-pill uppercase tracking-wider text-[11px] shrink-0"
               >
                 Today
               </button>
               <button
                 type="button"
                 onClick={handleNext}
-                className="filter-pill p-1.5"
+                className="filter-pill p-1.5 shrink-0"
                 title="Next period"
               >
                 <Lucide.ChevronRight size={16} />

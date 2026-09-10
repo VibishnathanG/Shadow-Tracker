@@ -251,10 +251,6 @@ export const TasksFeature: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 relative z-10">
         <div>
           <h2 className="text-2xl md:text-3xl font-black tracking-tight text-foreground">Tasks Workspace</h2>
-          <p className="text-xs text-secondary font-extrabold uppercase tracking-widest mt-1 flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-            Focus lists and dynamic recurrence schedules
-          </p>
         </div>
         <motion.button
           whileHover={{ scale: 1.03 }}
@@ -267,34 +263,34 @@ export const TasksFeature: React.FC = () => {
         </motion.button>
       </div>
 
-      {/* Workspace Sub-Tab Switcher (Same design as Health page) */}
-      <div className="flex flex-wrap items-center gap-3 relative z-10">
-        <div className="pill-group overflow-x-auto scrollbar-none">
+      {/* Workspace Sub-Tab Switcher */}
+      <div className="w-full relative z-10">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
           <button
             type="button"
             onClick={() => setWorkspaceView('list')}
-            className={`filter-pill ${workspaceView === 'list' ? 'active' : ''}`}
+            className={`filter-pill w-full sm:w-auto justify-center sm:justify-start gap-2.5 ${workspaceView === 'list' ? 'active' : ''}`}
           >
-            <Lucide.ListFilter size={14} className="text-primary" />
-            <span>Workspace List</span>
+            <Lucide.ListFilter size={15} className={workspaceView === 'list' ? 'text-white shrink-0' : 'text-primary shrink-0'} />
+            <span className="font-bold">Workspace List</span>
           </button>
 
           <button
             type="button"
             onClick={() => setWorkspaceView('planner')}
-            className={`filter-pill ${workspaceView === 'planner' ? 'active' : ''}`}
+            className={`filter-pill w-full sm:w-auto justify-center sm:justify-start gap-2.5 ${workspaceView === 'planner' ? 'active' : ''}`}
           >
-            <Lucide.CalendarRange size={14} className="text-sky-400" />
-            <span>Super Planner</span>
+            <Lucide.CalendarRange size={15} className={workspaceView === 'planner' ? 'text-white shrink-0' : 'text-sky-400 shrink-0'} />
+            <span className="font-bold">Super Planner</span>
           </button>
 
           <button
             type="button"
             onClick={() => setWorkspaceView('kanban')}
-            className={`filter-pill ${workspaceView === 'kanban' ? 'active' : ''}`}
+            className={`filter-pill w-full sm:w-auto justify-center sm:justify-start gap-2.5 ${workspaceView === 'kanban' ? 'active' : ''}`}
           >
-            <Lucide.Kanban size={14} className="text-purple-400" />
-            <span>Kanban &amp; Matrix</span>
+            <Lucide.Kanban size={15} className={workspaceView === 'kanban' ? 'text-white shrink-0' : 'text-purple-400 shrink-0'} />
+            <span className="font-bold">Kanban &amp; Matrix</span>
           </button>
         </div>
       </div>

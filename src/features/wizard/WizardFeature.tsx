@@ -343,7 +343,7 @@ export default function WizardFeature() {
                 ease: 'easeInOut'
               }}
               className="relative z-10 w-22 h-22 sm:w-26 sm:h-26 rounded-full p-1 bg-gradient-to-tr from-purple-500 via-indigo-400 to-cyan-400 shadow-[0_0_28px_rgba(168,85,247,0.55)] hover:shadow-[0_0_45px_rgba(6,182,212,0.8)] transition-shadow cursor-pointer select-none group"
-              title="🧙‍♂️ Click to Commune with the Oracle (+10 XP & Voice Recital)!"
+              title="🧙‍♂️ Click to interact with Shadow Wizard (+10 XP & Voice Recital)!"
             >
               <div className="w-full h-full rounded-full overflow-hidden border-2 border-white/30 bg-[#07050f] relative shadow-inner">
                 <Image
@@ -357,14 +357,14 @@ export default function WizardFeature() {
                 <div className="absolute inset-0 bg-gradient-to-t from-purple-950/60 via-transparent to-cyan-500/15 pointer-events-none" />
               </div>
 
-              {/* Glowing Oracle Badge */}
+              {/* Companion Badge */}
               <motion.div
                 animate={{ scale: [1, 1.12, 1], opacity: [0.85, 1, 0.85] }}
                 transition={{ duration: 2.2, repeat: Infinity }}
                 className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-purple-950/95 border border-cyan-400/60 shadow-md shadow-purple-500/50 flex items-center gap-1 text-[8.5px] font-black text-cyan-300 uppercase tracking-wider whitespace-nowrap"
               >
                 <Lucide.Sparkles size={9} className="text-cyan-300" />
-                <span>Void Oracle</span>
+                <span>Shadow Wizard</span>
               </motion.div>
             </motion.div>
           </div>
@@ -415,7 +415,7 @@ export default function WizardFeature() {
               </span>
               <span className="px-2 py-0.5 rounded-lg bg-white/10 border border-white/15 text-purple-200 flex items-center gap-1.5 text-[10.5px] sm:text-xs">
                 <Lucide.Zap size={11} className="text-amber-400" />
-                <span>+10 XP On Oracle Touch</span>
+                <span>+10 XP On Wizard Interaction</span>
               </span>
               <span className="px-2 py-0.5 rounded-lg bg-white/10 border border-white/15 text-purple-200 flex items-center gap-1.5 text-[10.5px] sm:text-xs">
                 <Lucide.Volume2 size={11} className="text-emerald-400" />
@@ -579,7 +579,7 @@ export default function WizardFeature() {
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <h3 className="text-base sm:text-lg font-extrabold text-foreground flex items-center gap-2">
             <Lucide.BookOpen size={18} className="text-primary" />
-            <span>The Great Grimoire Library ({libraryFilteredQuotes.length} Scrolls)</span>
+            <span>Wisdom &amp; Quotes Library ({libraryFilteredQuotes.length} Quotes)</span>
           </h3>
 
           {/* Quick Search */}
@@ -587,7 +587,7 @@ export default function WizardFeature() {
             <Lucide.Search className="absolute left-3 top-2.5 text-muted-foreground" size={14} />
             <input
               type="text"
-              placeholder="Search grimoire scrolls..."
+              placeholder="Search wisdom quotes..."
               value={librarySearch}
               onChange={(e) => setLibrarySearch(e.target.value)}
               className="w-full text-xs !pl-9 pr-3 py-2 bg-secondary/40 border border-border/60 rounded-xl text-foreground placeholder:text-muted-foreground outline-none transition-all focus:bg-background focus:ring-2 focus:ring-primary/30"

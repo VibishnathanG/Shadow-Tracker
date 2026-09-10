@@ -86,12 +86,12 @@ export const ScheduleSelector: React.FC<ScheduleSelectorProps> = ({
   return (
     <div className="space-y-2.5">
       {label && (
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-            <Lucide.Repeat size={13} className="text-primary" />
+        <div className="flex flex-wrap items-center justify-between gap-1.5">
+          <label className="text-[10px] sm:text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 shrink-0">
+            <Lucide.Repeat size={13} className="text-primary shrink-0" />
             {label}
           </label>
-          <span className="text-xs font-black text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20">
+          <span className="text-[10px] sm:text-xs font-black text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20 shrink-0 whitespace-nowrap">
             {getActiveScheduleLabel()}
           </span>
         </div>

@@ -376,62 +376,62 @@ export default function HealthFeature() {
             </div>
 
             {/* Sub-tab Switcher: Vitality & Nutrition vs Gym & Pro Fitness vs Health Dashboard */}
-            <div className="flex flex-wrap items-center gap-3 pt-1">
-              <div className="pill-group overflow-x-auto scrollbar-none">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 pt-1 w-full sm:w-auto">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={() => setActiveSubTab('vitality')}
-                  className={`filter-pill ${activeSubTab === 'vitality' ? 'active' : ''}`}
+                  className={`filter-pill w-full sm:w-auto justify-center sm:justify-start gap-2 ${activeSubTab === 'vitality' ? 'active' : ''}`}
                 >
-                  <span className="text-emerald-400">🌿</span>
+                  <span className="text-emerald-400 shrink-0">🌿</span>
                   <span>Vitality &amp; Nutrition</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveSubTab('diet')}
-                  className={`filter-pill ${activeSubTab === 'diet' ? 'active' : ''}`}
+                  className={`filter-pill w-full sm:w-auto justify-center sm:justify-start gap-2 ${activeSubTab === 'diet' ? 'active' : ''}`}
                 >
-                  <span className="text-orange-400">🥗</span>
+                  <span className="text-orange-400 shrink-0">🥗</span>
                   <span>Diet Planner</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveSubTab('gym')}
-                  className={`filter-pill ${activeSubTab === 'gym' ? 'active' : ''}`}
+                  className={`filter-pill w-full sm:w-auto justify-center sm:justify-start gap-2 ${activeSubTab === 'gym' ? 'active' : ''}`}
                 >
-                  <span className="text-amber-400">🏋️‍♂️</span>
+                  <span className="text-amber-400 shrink-0">🏋️‍♂️</span>
                   <span>Gym &amp; Fitness</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveSubTab('dashboard')}
-                  className={`filter-pill ${activeSubTab === 'dashboard' ? 'active' : ''}`}
+                  className={`filter-pill w-full sm:w-auto justify-center sm:justify-start gap-2 ${activeSubTab === 'dashboard' ? 'active' : ''}`}
                 >
-                  <span className="text-sky-400">📊</span>
+                  <span className="text-sky-400 shrink-0">📊</span>
                   <span>Dashboard</span>
                 </button>
               </div>
 
               {/* Interactive Date Launcher with Micro Calendar Modal */}
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto pt-1 sm:pt-0">
                 <button
                   type="button"
                   onClick={() => setIsCalendarOpen(true)}
-                  className="btn-glass-pill flex items-center gap-2 text-xs font-black text-foreground cursor-pointer shadow-xs hover:border-primary/50 group"
+                  className="btn-glass-pill flex items-center justify-center gap-2 text-xs font-black text-foreground cursor-pointer shadow-xs hover:border-primary/50 group w-full sm:w-auto"
                   title="Open Health Calendar Overview"
                 >
-                  <Lucide.Calendar size={14} className="text-primary group-hover:scale-110 transition-transform" />
+                  <Lucide.Calendar size={14} className="text-primary group-hover:scale-110 transition-transform shrink-0" />
                   <span>{selectedDate === todayStr ? `Today (${selectedDate})` : selectedDate}</span>
-                  <Lucide.ChevronDown size={13} className="text-muted-foreground" />
+                  <Lucide.ChevronDown size={13} className="text-muted-foreground shrink-0" />
                 </button>
 
                 {selectedDate !== todayStr && (
                   <button
                     onClick={() => setSelectedDate(todayStr)}
-                    className="text-[11px] font-bold px-2.5 py-1.5 bg-primary/10 text-primary hover:bg-primary/20 rounded-xl transition-colors cursor-pointer"
+                    className="text-[11px] font-bold px-2.5 py-1.5 bg-primary/10 text-primary hover:bg-primary/20 rounded-xl transition-colors cursor-pointer shrink-0"
                   >
                     Jump to Today
                   </button>

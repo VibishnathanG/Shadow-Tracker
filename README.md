@@ -4,17 +4,17 @@
   <img src="./public/app_logo_master.png" alt="Shadow Tracker Logo" width="120" />
 </p>
 
-<h3 align="center">Sovereign • Local-First • Privacy-First • Gamified Discipline Sanctuary</h3>
+<h3 align="center">Sovereign • Local-First • Privacy-First • Gamified Personal Operating System</h3>
 
 <p align="center">
   <a href="https://hub.docker.com/r/vibishnathang/shadow-tracker"><img src="https://img.shields.io/docker/pulls/vibishnathang/shadow-tracker?style=flat-square&logo=docker&label=Docker%20Pulls&color=0db7ed" alt="Docker Pulls" /></a>
   <a href="https://hub.docker.com/r/vibishnathang/shadow-tracker"><img src="https://img.shields.io/docker/v/vibishnathang/shadow-tracker?sort=semver&style=flat-square&logo=docker&label=Docker%20Hub&color=blue" alt="Docker Hub Version" /></a>
-  <a href="https://github.com/VibishnathanG/Shadow-Tracker/releases"><img src="https://img.shields.io/badge/Release-v1.0.0-success?style=flat-square&logo=github" alt="Release v1.0.0" /></a>
+  <a href="https://github.com/VibishnathanG/Shadow-Tracker/releases"><img src="https://img.shields.io/badge/Release-v1.1.0-success?style=flat-square&logo=github" alt="Release v1.1.0" /></a>
   <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20Android%20%7C%20Web%20%7C%20Docker-9cf?style=flat-square" alt="Supported Platforms" />
   <img src="https://img.shields.io/badge/Next.js-16.2-black?style=flat-square&logo=next.js" alt="Next.js 16" />
   <img src="https://img.shields.io/badge/React-19.2-61dafb?style=flat-square&logo=react" alt="React 19" />
   <img src="https://img.shields.io/badge/TypeScript-5.0-3178c6?style=flat-square&logo=typescript" alt="TypeScript 5" />
-  <img src="https://img.shields.io/badge/License-Proprietary-red?style=flat-square" alt="License" />
+  <a href="./LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-blue?style=flat-square" alt="License: GPL-3.0" /></a>
 </p>
 
 ---
@@ -37,8 +37,6 @@ The central command dashboard aggregates morning briefings, evening reviews, bio
 
 ![Shadow Tracker Dashboard](./public/app-looks/01-dashboard.png)
 
-*Original capture: [Screenshot 2026-09-10 214745.png](./public/app-looks/Screenshot%202026-09-10%20214745.png)*
-
 ---
 
 ### 2-Atomic-Habits-and-Consistency-Matrix
@@ -46,8 +44,6 @@ The central command dashboard aggregates morning briefings, evening reviews, bio
 Build enduring personal discipline through atomic daily milestones, categorized routine cards, dynamic vitality meters, and a continuous 15-week matrix consistency heatmap.
 
 ![Atomic Habit Routines](./public/app-looks/02-habits.png)
-
-*Original capture: [Screenshot 2026-09-10 214833.png](./public/app-looks/Screenshot%202026-09-10%20214833.png)*
 
 ---
 
@@ -57,8 +53,6 @@ A full biological OS featuring interactive hydration tracking with 7-day volume 
 
 ![Health and Vitality Suite](./public/app-looks/03-health.png)
 
-*Original capture: [Screenshot 2026-09-10 214908.png](./public/app-looks/Screenshot%202026-09-10%20214908.png)*
-
 ---
 
 ### 4-Command-Center-and-Monthly-Habit-Telemetry
@@ -66,8 +60,6 @@ A full biological OS featuring interactive hydration tracking with 7-day volume 
 A 5-week monthly habit matrix providing granular completion checkboxes, past date lock-in protection, unbroken streak records, and real-time focus velocity metrics.
 
 ![Command Center Telemetry](./public/app-looks/04-analytics.png)
-
-*Original capture: [Screenshot 2026-09-10 214931.png](./public/app-looks/Screenshot%202026-09-10%20214931.png)*
 
 [↑ Back to top](#Shadow-Tracker-Life-OS)
 
@@ -110,7 +102,7 @@ A 5-week monthly habit matrix providing granular completion checkboxes, past dat
   - [Calendar-and-Time-Blocking](#Calendar-and-Time-Blocking)
   - [Health-and-Vitality-Suite](#Health-and-Vitality-Suite)
   - [Money-and-Financial-Tracker](#Money-and-Financial-Tracker)
-  - [Shadow-Wizard-Sanctuary](#Shadow-Wizard-Sanctuary)
+  - [Shadow-Wizard-Companion](#Shadow-Wizard-Companion)
   - [Reflections-Journal](#Reflections-Journal)
   - [Analytics-Room](#Analytics-Room)
 - [Theme-Ambient-Engine](#Theme-Ambient-Engine)
@@ -202,9 +194,9 @@ Every release binary in the `release/` directory is standardized, compiled, cryp
 |---|---|---|---|---|---|
 | `Shadow-Tracker-Setup.exe` | Windows 10/11 (x64) | NSIS Executable Installer | 8.3 MB | `28adb83c43c5487081c9692aa4a1ee88ea7ef0cabb2a71512df1e083088e1bec` | |
 | `Shadow-Tracker-Portable.exe` | Windows 10/11 (x64) | Single Portable Executable | 25.7 MB | `ef32fbada49e6ef619e50a205944fb0fba0ca0c1018d42eab084351f4ddf8de7` | |
-| `Shadow-Tracker-Release.apk` | Android 8.0+ (ARM64/x86) | Signed Mobile APK | 8.7 MB | `ffb3af2ec3f865fc90b79f940b5fe31ab458ada0fa4396b8db001e454b67f0d7` | |
-| `shadow-tracker-container.tar.gz` | Linux (x86_64 Docker) | Docker Image Tarball | 33.3 MB | `aa886a41e916f98724110347df68d81f73f0af2951ebb59d75632e765e5e21d5` | |
-| `shadow-tracker-web-export.tar.gz` | Any Static Web Host | Static HTML5/JS/CSS Bundle | 4.6 MB | `65b85e08c6dca142a2f2fc79d1a6426c3e4b9a45cdaf74c2c785687546de7a1a` | |
+| `Shadow-Tracker-Release.apk` | Android 8.0+ (ARM64/x86) | Signed Mobile APK | 14.1 MB | `40dd4e40fce908e67b0a5cc886424f163fac011a3e1f867d0ceb3613001e4bfd` | |
+| `shadow-tracker-container.tar.gz` | Linux (x86_64 Docker) | Docker Image Tarball | 37.0 MB | `8a72bd7db23534db35499cdb5b3cfa1232be34abf2753bb5aa35073fcfef8e9f` | |
+| `shadow-tracker-web-export.tar.gz` | Any Static Web Host | Static HTML5/JS/CSS Bundle | 9.5 MB | `9969dd2e8dfc599c620abacbe9d46ec9efc73033ad70d44b95d4c493734b7300` | |
 | `Shadow-Tracker-Windows-Certificate.crt` | Windows OS | Trusted Root Signing Cert | 1.3 KB | `aabc149abd60a904878ebfc939611500ed636d22b61157cd891c3c2937ba4c98` | |
 
 ### Integrity-Verification
@@ -332,8 +324,8 @@ $$\text{Total XP}(L) = \sum_{k=1}^{L-1} \left\lfloor 100 \times k^{1.5} \right\r
 | Log Gym Strength Session | +40 XP | Full workout completion | |
 | Water Target Achieved (100%) | +20 XP | Daily 8-10 glasses | |
 | Morning / Evening Day Review | +20 XP | Per review completed | |
-| Commune with 3D Wizard Oracle | +10 XP | Click 3D Sanctuary Avatar | |
-| Inscribe Arcane Wisdom Scroll | +15 XP | New custom wisdom inscribed | |
+| Interact with Shadow Wizard | +10 XP | Click 3D Wizard Mascot | |
+| Add Custom Wisdom Quote | +15 XP | New custom wisdom inscribed | |
 | Epic Quest Milestone | +500 XP | 30-day streak achievement | |
 
 [↑ Back to contents](#Table-of-Contents)
@@ -402,7 +394,7 @@ Badges are awarded for milestones and persisted in `shadow_unlocked_badges`.
 ### Dashboard-and-Life-OS
 - **Life OS Bar**: 4-column launcher cards for *Start My Day* (Morning Briefing), *Evening Review* (Wins & Reflections), *Health Hub* (Water, Sleep, Nutrition), and *Life RPG* (Character level, quest log).
 - **Focus Score Metric**: Real-time calculated score (0-100%) incorporating task completion density, habit consistency, and daily reflections.
-- **3D Wizard Oracle Button**: Instant portal launcher in the header providing direct communion with the Sanctuary.
+- **3D Wizard Companion Button**: Quick launcher in the header providing instant focus motivation and daily reflections.
 
 ### Tasks-Workspace-Grid-and-List
 - **Dual View Modes**:
@@ -445,13 +437,13 @@ Badges are awarded for milestones and persisted in `shadow_unlocked_badges`.
 - **Category Distribution**: Shopping, Food, Bills, Subscriptions, and Custom entries.
 - **Asset Allocation**: Fixed Big Expenses (Rent, EMI, Insurance), Mutual Funds & Stock investments, and Lent/Borrowed records.
 
-### Shadow-Wizard-Sanctuary
+### Shadow-Wizard-Companion
 - **3D Interactive Wizard Avatar**:
-  - Embedded 3D hooded mascot encased in levitating mana rings.
-  - Click-to-commune action: invokes Web Speech API audio recitals, bursts multi-hue stardust confetti, and awards +10 XP.
-- **Arcane Grimoire Library**:
-  - Filterable by Arcana (Power, Wisdom, Wealth, Tech, Vitality).
-  - Inscribe custom wisdom scrolls with persistent local storage.
+  - Embedded 3D hooded mascot with animated rings and responsive lighting.
+  - Interactive click action: triggers speech synthesis audio recitals, bursts celebratory confetti, and awards +10 XP.
+- **Wisdom & Quotes Library**:
+  - Filterable by category (Power, Wisdom, Wealth, Tech, Vitality).
+  - Add custom wisdom quotes with persistent local storage.
 
 ### Reflections-Journal
 - Distraction-free full Markdown editor with live preview.
@@ -561,8 +553,8 @@ Generated binary:
 |---|---|---|
 | Health Suite Diet Planner Sub-Tab | Verified (Sub-tab toggle inside Health feature) | |
 | Multi-Color Cosmic Purple Theme | Verified (Deep void canvas `#0b0617`, multi-color domain accents) | |
-| White Theme Creamy Ivory Tiles | Verified (Linen tiles, distinct warm borders, Eternals gold runes) | |
-| 3D Wizard Logo & Companion Interactivity | Verified (Sidebar logo, mobile header, Dashboard launcher, Sanctuary communion) | |
+| White Theme Creamy Ivory Tiles | Verified (Linen tiles, distinct warm borders, subtle golden accents) | |
+| 3D Wizard Logo & Companion Interactivity | Verified (Sidebar logo, mobile header, Dashboard launcher, companion modal) | |
 | Glassy Gradient & Non-Harsh Borders | Verified (Universal `.tile`, `.glossy-tile`, `.btn-glass`, `.badge-glass`) | |
 | Backup, Restore & Demo Dataset | Verified (100% roundtrip test passed across all modern features) | |
 | Bidirectional Sync Reconciliation | Verified (`mergeBackupDatasets` covers all state domains) | |
@@ -577,4 +569,4 @@ Generated binary:
 
 ## License
 
-Proprietary sovereign personal OS. Built with passion for discipline, focus, and clarity.
+This project is open source and licensed under the **GNU General Public License v3.0 (GPL-3.0)**. See the [LICENSE](./LICENSE) file for details.

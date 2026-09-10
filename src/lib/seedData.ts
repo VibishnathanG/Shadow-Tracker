@@ -137,7 +137,7 @@ export function generateMassiveTwoYearData(): BackupData {
     "Build Capacitor 8 Native Mobile Alarm Notification Bridge",
     "Synthesize 5-Week Monthly Habit Telemetry Matrix Engine",
     "Architect Automated Microsoft OneDrive Sync Engine",
-    "Design 3D Arcane Grimoire Sanctuary Oracle with Canvas Confetti"
+    "Design 3D Interactive Shadow Wizard Companion with Canvas Confetti"
   ];
 
   // 220 historical tasks across 730 days
@@ -167,7 +167,7 @@ export function generateMassiveTwoYearData(): BackupData {
     { id: "task-act-1", title: "Review 2-Year Financial Milestones & Rebalance Portfolio", description: "Audit annual investment returns and execute automatic monthly savings transfer.", isCompleted: false, priority: "high", categoryId: "cat-4", isRecurring: false, recurrencePattern: null, dueDate: todayStr, createdAt: nowStr, updatedAt: nowStr, isSoftDeleted: false },
     { id: "task-act-2", title: "Deep Work Sprint: Next.js 16 Web Worker Optimization", description: "Profile client hydration performance, eliminate memory leaks in canvas animators.", isCompleted: false, priority: "high", categoryId: "cat-1", isRecurring: false, recurrencePattern: null, dueDate: todayStr, createdAt: nowStr, updatedAt: nowStr, isSoftDeleted: false },
     { id: "task-act-3", title: "Heavy Deadlift & Hamstring Strength Protocol", description: "4 sets of 6 reps compound deadlifts + Bulgarian split squats.", isCompleted: false, priority: "medium", categoryId: "cat-2", isRecurring: false, recurrencePattern: null, dueDate: todayStr, createdAt: nowStr, updatedAt: nowStr, isSoftDeleted: false },
-    { id: "task-act-4", title: "Read Chapter 8: Designing Data-Intensive Applications", description: "Inscribe architectural insights into Reflections Grimoire.", isCompleted: false, priority: "low", categoryId: "cat-3", isRecurring: false, recurrencePattern: null, dueDate: todayStr, createdAt: nowStr, updatedAt: nowStr, isSoftDeleted: false },
+    { id: "task-act-4", title: "Read Chapter 8: Designing Data-Intensive Applications", description: "Record architectural insights into Reflections Journal.", isCompleted: false, priority: "low", categoryId: "cat-3", isRecurring: false, recurrencePattern: null, dueDate: todayStr, createdAt: nowStr, updatedAt: nowStr, isSoftDeleted: false },
     { id: "task-act-5", title: "Nightly Journal Reflection on 2-Year Trajectory", description: "Audit weekly focus velocity and align with quarterly horizon.", isCompleted: false, priority: "medium", categoryId: "cat-5", isRecurring: false, recurrencePattern: null, dueDate: todayStr, createdAt: nowStr, updatedAt: nowStr, isSoftDeleted: false }
   );
 
