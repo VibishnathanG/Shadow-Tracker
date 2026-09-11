@@ -149,45 +149,45 @@ const ObsidianBackground = React.memo(() => (
       </svg>
     </motion.div>
 
-    {/* Central Abstract Crossed Celestial Swords in Purple & Brilliant White */}
+    {/* Central Abstract Crossed Celestial Swords in Purple & Brilliant White (Halved Visibility) */}
     <motion.div
-      className="absolute w-[360px] h-[360px] flex items-center justify-center"
+      className="absolute w-[360px] h-[360px] flex items-center justify-center opacity-50"
       animate={{ rotate: [-8, 8, -8], scale: [0.98, 1.02, 0.98] }}
       transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut' }}
       style={{ willChange: 'transform' }}
     >
-      <svg viewBox="0 0 300 300" className="w-full h-full drop-shadow-[0_0_18px_rgba(168,85,247,0.35)]">
+      <svg viewBox="0 0 300 300" className="w-full h-full drop-shadow-[0_0_10px_rgba(168,85,247,0.18)]">
         {/* Sword 1: Slanted left-to-right (-45 deg) */}
         <g transform="translate(150,150) rotate(-45) translate(-150,-150)">
           {/* Blade Spine: Brilliant White */}
-          <line x1="150" y1="20" x2="150" y2="215" stroke="#ffffff" strokeWidth="1.8" opacity="0.9" />
+          <line x1="150" y1="20" x2="150" y2="215" stroke="#ffffff" strokeWidth="1.8" opacity="0.45" />
           {/* Blade Edges: Amethyst Purple */}
-          <polygon points="150,15 155,50 154,215 146,215 145,50" fill="none" stroke="#c084fc" strokeWidth="0.9" opacity="0.6" />
+          <polygon points="150,15 155,50 154,215 146,215 145,50" fill="none" stroke="#c084fc" strokeWidth="0.9" opacity="0.3" />
           {/* Crossguard: Vivid Purple */}
-          <line x1="130" y1="215" x2="170" y2="215" stroke="#a855f7" strokeWidth="2.4" strokeLinecap="round" opacity="0.8" />
+          <line x1="130" y1="215" x2="170" y2="215" stroke="#a855f7" strokeWidth="2.4" strokeLinecap="round" opacity="0.4" />
           {/* Grip / Hilt */}
-          <line x1="150" y1="215" x2="150" y2="260" stroke="#f3e8ff" strokeWidth="2.5" opacity="0.7" />
+          <line x1="150" y1="215" x2="150" y2="260" stroke="#f3e8ff" strokeWidth="2.5" opacity="0.35" />
           {/* Pommel Diamond: White */}
-          <polygon points="150,265 155,272 150,279 145,272" fill="#ffffff" opacity="0.8" />
+          <polygon points="150,265 155,272 150,279 145,272" fill="#ffffff" opacity="0.4" />
         </g>
 
         {/* Sword 2: Slanted right-to-left (+45 deg) */}
         <g transform="translate(150,150) rotate(45) translate(-150,-150)">
           {/* Blade Spine: Brilliant White */}
-          <line x1="150" y1="20" x2="150" y2="215" stroke="#ffffff" strokeWidth="1.8" opacity="0.9" />
+          <line x1="150" y1="20" x2="150" y2="215" stroke="#ffffff" strokeWidth="1.8" opacity="0.45" />
           {/* Blade Edges: Amethyst Purple */}
-          <polygon points="150,15 155,50 154,215 146,215 145,50" fill="none" stroke="#c084fc" strokeWidth="0.9" opacity="0.6" />
+          <polygon points="150,15 155,50 154,215 146,215 145,50" fill="none" stroke="#c084fc" strokeWidth="0.9" opacity="0.3" />
           {/* Crossguard: Vivid Purple */}
-          <line x1="130" y1="215" x2="170" y2="215" stroke="#a855f7" strokeWidth="2.4" strokeLinecap="round" opacity="0.8" />
+          <line x1="130" y1="215" x2="170" y2="215" stroke="#a855f7" strokeWidth="2.4" strokeLinecap="round" opacity="0.4" />
           {/* Grip */}
-          <line x1="150" y1="215" x2="150" y2="260" stroke="#f3e8ff" strokeWidth="2.5" opacity="0.7" />
+          <line x1="150" y1="215" x2="150" y2="260" stroke="#f3e8ff" strokeWidth="2.5" opacity="0.35" />
           {/* Pommel Diamond: White */}
-          <polygon points="150,265 155,272 150,279 145,272" fill="#ffffff" opacity="0.8" />
+          <polygon points="150,265 155,272 150,279 145,272" fill="#ffffff" opacity="0.4" />
         </g>
 
         {/* Center Intersection Rune Ring in White & Purple */}
-        <circle cx="150" cy="150" r="18" fill="none" stroke="#ffffff" strokeWidth="1.4" opacity="0.8" />
-        <circle cx="150" cy="150" r="8" fill="#a855f7" opacity="0.6" />
+        <circle cx="150" cy="150" r="18" fill="none" stroke="#ffffff" strokeWidth="1.4" opacity="0.4" />
+        <circle cx="150" cy="150" r="8" fill="#a855f7" opacity="0.3" />
       </svg>
     </motion.div>
 
@@ -195,7 +195,7 @@ const ObsidianBackground = React.memo(() => (
     {Array.from({ length: 6 }).map((_, i) => (
       <motion.div
         key={i}
-        className="mobile-hide-symbol absolute w-1 h-8 bg-gradient-to-b from-[#a855f7] via-[#ffffff] to-transparent rounded-full opacity-35"
+        className="mobile-hide-symbol absolute w-1 h-8 bg-gradient-to-b from-[#a855f7] via-[#ffffff] to-transparent rounded-full opacity-18"
         style={{
           left: `${15 + (i * 14) % 75}%`,
           top: `${20 + (i * 17) % 65}%`,
@@ -203,7 +203,7 @@ const ObsidianBackground = React.memo(() => (
         }}
         animate={{
           y: [-15, 15, -15],
-          opacity: [0.2, 0.6, 0.2],
+          opacity: [0.1, 0.3, 0.1],
         }}
         transition={{ duration: 4 + i, repeat: Infinity, ease: 'easeInOut' }}
       />
