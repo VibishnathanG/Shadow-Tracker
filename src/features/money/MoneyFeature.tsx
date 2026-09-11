@@ -573,15 +573,15 @@ export default function MoneyFeature() {
                 {/* Separate Clean Month Selector and Calendar Action */}
                 <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                   {/* Month Switcher Segment */}
-                  <div className="flex items-center bg-surface-elevated/90 border border-border/70 rounded-xl shadow-xs overflow-hidden">
+                  <div className="flex items-center gap-1 p-1 bg-surface-elevated/90 border border-border/70 rounded-2xl shadow-xs">
                     <button
                       type="button"
                       onClick={prevMonth}
-                      className="p-1.5 px-2 text-muted-foreground hover:text-foreground hover:bg-surface transition-colors cursor-pointer border-r border-border/50"
+                      className="w-7 h-7 rounded-full bg-secondary/80 hover:bg-secondary border border-border/60 hover:border-primary/40 text-muted-foreground hover:text-foreground flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95 shrink-0"
                       title="Previous Month"
                       aria-label="Previous Month"
                     >
-                      <Lucide.ChevronLeft size={14} />
+                      <Lucide.ChevronLeft size={13} />
                     </button>
 
                     <div className="relative flex items-center">
@@ -600,7 +600,7 @@ export default function MoneyFeature() {
                           outline: 'none',
                           boxShadow: 'none'
                         }}
-                        className="pl-3 pr-7 py-1.5 font-mono text-xs font-black uppercase tracking-wider text-foreground cursor-pointer hover:text-primary transition-colors"
+                        className="pl-2 pr-6 py-1 font-mono text-xs font-black uppercase tracking-wider text-foreground cursor-pointer hover:text-primary transition-colors text-center"
                         title="Select Month"
                       >
                         {availableMonths.map(m => (
@@ -609,33 +609,33 @@ export default function MoneyFeature() {
                           </option>
                         ))}
                       </select>
-                      <Lucide.ChevronDown size={11} className="text-muted-foreground pointer-events-none absolute right-2 top-1/2 -translate-y-1/2" />
+                      <Lucide.ChevronDown size={11} className="text-muted-foreground pointer-events-none absolute right-1 top-1/2 -translate-y-1/2" />
                     </div>
 
                     <button
                       type="button"
                       onClick={nextMonth}
-                      className="p-1.5 px-2 text-muted-foreground hover:text-foreground hover:bg-surface transition-colors cursor-pointer border-l border-border/50"
+                      className="w-7 h-7 rounded-full bg-secondary/80 hover:bg-secondary border border-border/60 hover:border-primary/40 text-muted-foreground hover:text-foreground flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95 shrink-0"
                       title="Next Month"
                       aria-label="Next Month"
                     >
-                      <Lucide.ChevronRight size={14} />
+                      <Lucide.ChevronRight size={13} />
                     </button>
                   </div>
 
-                  {/* Separate Dedicated Calendar / Jump to Today Button */}
+                  {/* Separate Dedicated Calendar / Jump to Today Button (Icon-Only) */}
                   <button
                     type="button"
                     onClick={() => setCurrentDate(new Date())}
-                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-xs ${
+                    className={`w-8 h-8 sm:w-9 sm:h-9 rounded-2xl border flex items-center justify-center transition-all cursor-pointer shadow-xs shrink-0 active:scale-95 ${
                       currentMonthStr === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
-                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                        ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40 shadow-emerald-500/10'
                         : 'bg-surface-elevated/90 hover:bg-surface text-muted-foreground hover:text-foreground border-border/70'
                     }`}
                     title="View Current Month"
+                    aria-label="View Current Month"
                   >
-                    <Lucide.Calendar size={13} className={currentMonthStr === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}` ? 'text-emerald-400' : 'text-primary'} />
-                    <span>Calendar</span>
+                    <Lucide.Calendar size={15} className={currentMonthStr === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}` ? 'text-emerald-400' : 'text-primary'} />
                   </button>
                 </div>
               </div>

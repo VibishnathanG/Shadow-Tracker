@@ -150,7 +150,7 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
   }, [tasks]);
 
   return (
-    <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-start overflow-hidden">
+    <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-start">
       <div className="dashboard-watermark absolute inset-0 pointer-events-none -z-10 overflow-hidden">
         <motion.div
           animate={{ rotate: 360 }}
