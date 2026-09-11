@@ -570,58 +570,73 @@ export default function MoneyFeature() {
               </div>
               <div>
                 <h1 className="text-base sm:text-lg font-black tracking-tight text-foreground leading-tight">Wealth</h1>
-                {/* Unified Sleek Month Capsule */}
-                <div className="inline-flex items-center bg-surface/90 border border-border/70 rounded-xl p-0.5 mt-1 shadow-xs hover:border-primary/30 transition-all backdrop-blur-sm">
-                  <button
-                    type="button"
-                    onClick={prevMonth}
-                    className="p-1 text-muted-foreground hover:text-foreground hover:bg-surface-elevated transition-colors cursor-pointer rounded-lg"
-                    title="Previous Month"
-                    aria-label="Previous Month"
-                  >
-                    <Lucide.ChevronLeft size={13} />
-                  </button>
-
-                  <div className="relative inline-flex items-center px-1.5 border-x border-border/40">
-                    <Lucide.Calendar size={11} className="text-primary/70 mr-1 shrink-0" />
-                    <select
-                      value={currentMonthStr}
-                      onChange={(e) => {
-                        const [y, m] = e.target.value.split('-').map(Number);
-                        setCurrentDate(new Date(y, m - 1, 1));
-                      }}
-                      className="appearance-none border-0 outline-none ring-0 shadow-none bg-transparent font-mono text-[11px] font-black uppercase tracking-wider text-foreground cursor-pointer pr-3 hover:text-primary transition-colors"
-                      title="Select Month"
-                    >
-                      {availableMonths.map(m => (
-                        <option key={m.key} value={m.key} className="bg-surface text-foreground font-semibold text-xs capitalize">
-                          {m.label}
-                        </option>
-                      ))}
-                    </select>
-                    <Lucide.ChevronDown size={10} className="text-muted-foreground pointer-events-none -ml-2" />
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={nextMonth}
-                    className="p-1 text-muted-foreground hover:text-foreground hover:bg-surface-elevated transition-colors cursor-pointer rounded-lg"
-                    title="Next Month"
-                    aria-label="Next Month"
-                  >
-                    <Lucide.ChevronRight size={13} />
-                  </button>
-
-                  {currentMonthStr !== `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}` && (
+                {/* Separate Clean Month Selector and Calendar Action */}
+                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                  {/* Month Switcher Segment */}
+                  <div className="flex items-center bg-surface-elevated/90 border border-border/70 rounded-xl shadow-xs overflow-hidden">
                     <button
                       type="button"
-                      onClick={() => setCurrentDate(new Date())}
-                      className="ml-1 mr-0.5 px-1.5 py-0.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-[8.5px] font-black uppercase tracking-wider text-primary transition-colors cursor-pointer"
-                      title="Jump to Current Month"
+                      onClick={prevMonth}
+                      className="p-1.5 px-2 text-muted-foreground hover:text-foreground hover:bg-surface transition-colors cursor-pointer border-r border-border/50"
+                      title="Previous Month"
+                      aria-label="Previous Month"
                     >
-                      Current
+                      <Lucide.ChevronLeft size={14} />
                     </button>
-                  )}
+
+                    <div className="relative flex items-center">
+                      <select
+                        value={currentMonthStr}
+                        onChange={(e) => {
+                          const [y, m] = e.target.value.split('-').map(Number);
+                          setCurrentDate(new Date(y, m - 1, 1));
+                        }}
+                        style={{
+                          WebkitAppearance: 'none',
+                          MozAppearance: 'none',
+                          appearance: 'none',
+                          background: 'transparent',
+                          border: 'none',
+                          outline: 'none',
+                          boxShadow: 'none'
+                        }}
+                        className="pl-3 pr-7 py-1.5 font-mono text-xs font-black uppercase tracking-wider text-foreground cursor-pointer hover:text-primary transition-colors"
+                        title="Select Month"
+                      >
+                        {availableMonths.map(m => (
+                          <option key={m.key} value={m.key} className="bg-surface text-foreground font-semibold text-xs capitalize">
+                            {m.label}
+                          </option>
+                        ))}
+                      </select>
+                      <Lucide.ChevronDown size={11} className="text-muted-foreground pointer-events-none absolute right-2 top-1/2 -translate-y-1/2" />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={nextMonth}
+                      className="p-1.5 px-2 text-muted-foreground hover:text-foreground hover:bg-surface transition-colors cursor-pointer border-l border-border/50"
+                      title="Next Month"
+                      aria-label="Next Month"
+                    >
+                      <Lucide.ChevronRight size={14} />
+                    </button>
+                  </div>
+
+                  {/* Separate Dedicated Calendar / Jump to Today Button */}
+                  <button
+                    type="button"
+                    onClick={() => setCurrentDate(new Date())}
+                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer shadow-xs ${
+                      currentMonthStr === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
+                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                        : 'bg-surface-elevated/90 hover:bg-surface text-muted-foreground hover:text-foreground border-border/70'
+                    }`}
+                    title="View Current Month"
+                  >
+                    <Lucide.Calendar size={13} className={currentMonthStr === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}` ? 'text-emerald-400' : 'text-primary'} />
+                    <span>Calendar</span>
+                  </button>
                 </div>
               </div>
             </div>

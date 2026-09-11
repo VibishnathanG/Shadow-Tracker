@@ -271,18 +271,21 @@ export const Layout: React.FC<LayoutProps> = ({
 
         <div className="flex flex-col h-full relative z-10 px-5 overflow-hidden">
           {/* Logo */}
-          <div className="flex items-center gap-3 px-1 mb-8 shrink-0 relative">
-            <div className="w-11 h-11 rounded-2xl bg-primary/10 border border-primary/30 flex items-center justify-center shadow-lg shadow-primary/20 shrink-0 transition-colors">
-              <AppLogo size={26} theme={settings.theme} />
+          <div className="flex items-center gap-3.5 px-1 mb-8 shrink-0 relative">
+            <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/30 flex items-center justify-center shadow-lg shadow-primary/20 shrink-0 transition-colors">
+              <AppLogo size={34} theme={settings.theme} />
             </div>
             <div>
-              <h1 className="text-[12.5px] font-semibold tracking-tight text-foreground/90 leading-tight">
+              <h1 className="text-[13px] font-bold tracking-tight text-foreground leading-tight">
                 {settings.alias ? settings.alias.charAt(0).toUpperCase() + settings.alias.slice(1) : 'Shadow'}-Tracker
               </h1>
-              <Link href="/terms" className="inline-flex items-center gap-0.5 px-1.5 py-[0.5px] mt-0.5 rounded-full bg-surface-elevated/90 border border-border/80 text-[6.5px] font-bold text-foreground/75 tracking-wider uppercase hover:text-foreground hover:border-border transition-colors cursor-pointer leading-none">
+              <span 
+                style={{ fontSize: '7px', lineHeight: '9px' }}
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 mt-1 rounded-full bg-surface-elevated/90 border border-border/70 font-semibold text-muted-foreground tracking-wider uppercase select-none pointer-events-none w-fit"
+              >
                 <Lucide.ShieldCheck size={7} className="text-emerald-400" />
                 PRIVACY FIRST
-              </Link>
+              </span>
             </div>
           </div>
 
@@ -408,15 +411,18 @@ export const Layout: React.FC<LayoutProps> = ({
         {/* Mobile Header */}
         <header className="md:hidden flex items-center justify-between px-5 py-4 bg-surface/90 backdrop-blur-xl border-b border-border sticky top-0 z-40 select-none shadow-sm">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center shrink-0">
-              <AppLogo size={20} theme={settings.theme} />
+            <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center shrink-0">
+              <AppLogo size={26} theme={settings.theme} />
             </div>
             <div className="flex flex-col">
-              <span className="text-[11.5px] font-semibold tracking-tight text-foreground/90 leading-tight">
+              <span className="text-[12px] font-bold tracking-tight text-foreground leading-tight">
                 {settings.alias ? settings.alias.charAt(0).toUpperCase() + settings.alias.slice(1) : 'Shadow'}-Tracker
               </span>
-              <span className="text-[6.5px] font-bold tracking-wider uppercase flex items-center gap-0.5 px-1.5 py-[0.5px] mt-0.5 rounded-full bg-surface-elevated/90 border border-border/80 text-foreground/75 leading-none w-fit">
-                <Lucide.ShieldCheck size={7} className="text-emerald-400" /> PRIVACY FIRST
+              <span 
+                style={{ fontSize: '6.5px', lineHeight: '8px' }}
+                className="font-semibold tracking-wider uppercase flex items-center gap-1 px-1.5 py-0.5 mt-0.5 rounded-full bg-surface-elevated/90 border border-border/80 text-muted-foreground w-fit select-none pointer-events-none"
+              >
+                <Lucide.ShieldCheck size={6.5} className="text-emerald-400" /> PRIVACY FIRST
               </span>
             </div>
           </div>

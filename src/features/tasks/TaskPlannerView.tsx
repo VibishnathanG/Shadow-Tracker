@@ -161,7 +161,10 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
           <div>
             <h3 className="text-base sm:text-lg font-black tracking-tight text-foreground flex items-center gap-2">
               <span>Super Planner</span>
-              <span className="text-[6.5px] font-black uppercase px-1.5 py-[1px] rounded-full bg-primary/10 text-primary border border-primary/25 tracking-wider leading-none">
+              <span 
+                style={{ fontSize: '7px', lineHeight: '9px' }}
+                className="font-extrabold uppercase px-1.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/25 tracking-wider select-none inline-block align-middle"
+              >
                 Pro Schedule
               </span>
             </h3>
