@@ -156,6 +156,19 @@ export default function MoneyFeature() {
   
   const currentMonthStr = useMemo(() => `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`, [currentDate]);
 
+  // Available months for direct month selector dropdown
+  const availableMonths = useMemo(() => {
+    const list: { key: string; label: string }[] = [];
+    const now = new Date();
+    for (let offset = -18; offset <= 12; offset++) {
+      const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const label = d.toLocaleString('default', { month: 'short', year: 'numeric' });
+      list.push({ key, label });
+    }
+    return list;
+  }, []);
+
   // Per-Month Financial Data Map
   const [monthlyDataMap, setMonthlyDataMap] = useState<Record<string, { budgetCap: number; categoryBudgets?: CategoryBudgets; stats: GlobalStats }>>(() => {
     if (typeof window !== 'undefined') {
@@ -555,23 +568,57 @@ export default function MoneyFeature() {
                 <Lucide.Wallet size={18} />
               </div>
               <div>
-                <h1 className="text-base sm:text-lg font-black tracking-tight text-foreground">Wealth</h1>
-                <div className="flex items-center gap-0.5 text-xs text-muted-foreground font-bold">
+                <h1 className="text-base sm:text-lg font-black tracking-tight text-foreground leading-tight">Wealth</h1>
+                {/* Clean Month Selector without Clunky Outer Box */}
+                <div className="flex items-center gap-1 mt-0.5">
                   <button
+                    type="button"
                     onClick={prevMonth}
                     className="p-1 text-muted-foreground hover:text-foreground transition-colors cursor-pointer rounded-lg hover:bg-surface-elevated"
                     title="Previous Month"
+                    aria-label="Previous Month"
                   >
                     <Lucide.ChevronLeft size={14} />
                   </button>
-                  <span className="font-mono text-[11px] uppercase tracking-wider text-foreground px-1">{monthYearStr}</span>
+
+                  <div className="relative inline-flex items-center">
+                    <select
+                      value={currentMonthStr}
+                      onChange={(e) => {
+                        const [y, m] = e.target.value.split('-').map(Number);
+                        setCurrentDate(new Date(y, m - 1, 1));
+                      }}
+                      className="appearance-none border-0 outline-none ring-0 shadow-none bg-transparent font-mono text-[11px] sm:text-xs font-black uppercase tracking-wider text-foreground cursor-pointer pr-4 hover:text-primary transition-colors"
+                      title="Select Month"
+                    >
+                      {availableMonths.map(m => (
+                        <option key={m.key} value={m.key} className="bg-surface text-foreground font-semibold text-xs capitalize">
+                          {m.label}
+                        </option>
+                      ))}
+                    </select>
+                    <Lucide.ChevronDown size={11} className="text-muted-foreground pointer-events-none -ml-3" />
+                  </div>
+
                   <button
+                    type="button"
                     onClick={nextMonth}
                     className="p-1 text-muted-foreground hover:text-foreground transition-colors cursor-pointer rounded-lg hover:bg-surface-elevated"
                     title="Next Month"
+                    aria-label="Next Month"
                   >
                     <Lucide.ChevronRight size={14} />
                   </button>
+
+                  {currentMonthStr !== `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}` && (
+                    <button
+                      type="button"
+                      onClick={() => setCurrentDate(new Date())}
+                      className="ml-1 text-[9.5px] font-extrabold uppercase tracking-wider text-primary hover:underline cursor-pointer"
+                    >
+                      Current
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

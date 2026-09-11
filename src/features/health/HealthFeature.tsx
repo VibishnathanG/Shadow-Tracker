@@ -112,6 +112,29 @@ export default function HealthFeature() {
     }
   }, [healthMap]);
 
+  // Listen for external updates (Cloud sync, backup restoration, multi-tab sync)
+  useEffect(() => {
+    const handleExternalSync = () => {
+      if (typeof window !== 'undefined') {
+        try {
+          const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('shadow_health_data_v1');
+          if (saved) {
+            setHealthMap(JSON.parse(saved));
+          }
+        } catch (e) {
+          console.error('Error syncing external health data:', e);
+        }
+      }
+    };
+
+    window.addEventListener('shadow_health_updated', handleExternalSync);
+    window.addEventListener('storage', handleExternalSync);
+    return () => {
+      window.removeEventListener('shadow_health_updated', handleExternalSync);
+      window.removeEventListener('storage', handleExternalSync);
+    };
+  }, []);
+
   // Current day data
   const currentData = useMemo(() => {
     const raw = healthMap[selectedDate] || getDefaultHealthData(selectedDate);

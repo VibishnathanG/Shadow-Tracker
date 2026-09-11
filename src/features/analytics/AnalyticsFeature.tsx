@@ -560,7 +560,7 @@ const HabitsMonthlyGridCard: React.FC = () => {
                 setToastNotice(`Past lock-in window set to ${days} ${days === 1 ? 'day' : 'days'}`);
                 setTimeout(() => setToastNotice(null), 3000);
               }}
-              className="bg-transparent font-black text-foreground text-xs focus:outline-none cursor-pointer pr-1"
+              className="bg-transparent font-black text-foreground text-xs appearance-none border-0 outline-none ring-0 shadow-none cursor-pointer pr-1"
             >
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(d => (
                 <option key={d} value={d} className="bg-surface text-foreground font-semibold">
@@ -570,27 +570,27 @@ const HabitsMonthlyGridCard: React.FC = () => {
             </select>
           </div>
 
-          <button
-            onClick={resetToToday}
-            className="px-2.5 py-1.5 bg-secondary/80 hover:bg-secondary text-foreground text-xs font-bold rounded-xl border border-border transition-all"
-          >
-            Today
-          </button>
-          
-          <div className="flex items-center bg-surface-elevated border border-border/80 rounded-2xl p-1 shadow-sm">
+          <div className="flex items-center bg-surface-elevated border border-border/80 rounded-2xl p-0.5 shadow-xs shrink-0">
             <button
               onClick={prevMonth}
-              className="p-1.5 hover:bg-secondary text-muted-foreground hover:text-foreground rounded-xl transition-all"
+              className="p-1.5 hover:bg-secondary text-muted-foreground hover:text-foreground rounded-xl transition-all cursor-pointer"
               title="Previous Month"
             >
               <Lucide.ChevronLeft size={16} />
             </button>
-            <span className="text-xs font-extrabold px-3 text-foreground tracking-wider uppercase">
+            <button
+              onClick={resetToToday}
+              className="px-2.5 py-1 text-xs font-black text-foreground hover:text-primary transition-all uppercase tracking-wider cursor-pointer"
+              title="Jump to Today"
+            >
+              Today
+            </button>
+            <span className="text-xs font-extrabold px-3 text-foreground tracking-wider uppercase border-l border-border/60">
               {format(currentMonthDate, 'MMMM yyyy')}
             </span>
             <button
               onClick={nextMonth}
-              className="p-1.5 hover:bg-secondary text-muted-foreground hover:text-foreground rounded-xl transition-all"
+              className="p-1.5 hover:bg-secondary text-muted-foreground hover:text-foreground rounded-xl transition-all cursor-pointer"
               title="Next Month"
             >
               <Lucide.ChevronRight size={16} />

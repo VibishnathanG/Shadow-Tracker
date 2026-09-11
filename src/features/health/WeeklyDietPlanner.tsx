@@ -27,7 +27,16 @@ export default function WeeklyDietPlanner({ onCopyDayToPlate }: WeeklyDietPlanne
   const [customPlans, setCustomPlans] = useState<WeeklyDietPlan[]>([]);
   
   useEffect(() => {
-    setCustomPlans(getCustomDietPlans());
+    const reload = () => {
+      setCustomPlans(getCustomDietPlans());
+    };
+    reload();
+    window.addEventListener('shadow_health_updated', reload);
+    window.addEventListener('storage', reload);
+    return () => {
+      window.removeEventListener('shadow_health_updated', reload);
+      window.removeEventListener('storage', reload);
+    };
   }, []);
 
   // Filter state

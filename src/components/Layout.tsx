@@ -276,11 +276,11 @@ export const Layout: React.FC<LayoutProps> = ({
               <AppLogo size={26} theme={settings.theme} />
             </div>
             <div>
-              <h1 className="text-base font-extrabold tracking-tight text-foreground">
-                <span className="text-primary capitalize">{settings.alias ? settings.alias.charAt(0).toUpperCase() + settings.alias.slice(1) : 'Shadow'}</span>-Tracker
+              <h1 className="text-sm font-bold tracking-tight text-foreground leading-tight">
+                {settings.alias ? settings.alias.charAt(0).toUpperCase() + settings.alias.slice(1) : 'Shadow'}-Tracker
               </h1>
-              <Link href="/terms" className="inline-flex items-center gap-1 px-1.5 py-0.5 mt-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-bold text-emerald-400 tracking-wider uppercase hover:bg-emerald-500/20 transition-colors cursor-pointer">
-                <Lucide.ShieldCheck size={10} />
+              <Link href="/terms" className="inline-flex items-center gap-1 px-1 py-0.2 mt-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 text-[7.5px] font-bold text-emerald-400/90 tracking-wider uppercase hover:bg-emerald-500/20 transition-colors cursor-pointer leading-tight">
+                <Lucide.ShieldCheck size={8} />
                 PRIVACY FIRST
               </Link>
             </div>
@@ -412,11 +412,11 @@ export const Layout: React.FC<LayoutProps> = ({
               <AppLogo size={20} theme={settings.theme} />
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-black tracking-tight text-foreground leading-tight">
-                Shadow <span className="text-primary font-extrabold">Legend</span>
+              <span className="text-xs font-bold tracking-tight text-foreground leading-tight">
+                {settings.alias ? settings.alias.charAt(0).toUpperCase() + settings.alias.slice(1) : 'Shadow'}-Tracker
               </span>
-              <span className="text-[8.5px] font-semibold text-emerald-400 tracking-wide uppercase flex items-center gap-1 px-1.5 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
-                <Lucide.ShieldCheck size={9} /> PRIVACY FIRST
+              <span className="text-[7.5px] font-bold text-emerald-400/90 tracking-wider uppercase flex items-center gap-1 px-1 py-0.2 mt-0.5 rounded bg-emerald-500/10 border border-emerald-500/20 leading-tight w-fit">
+                <Lucide.ShieldCheck size={8} /> PRIVACY FIRST
               </span>
             </div>
           </div>

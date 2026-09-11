@@ -94,10 +94,9 @@ export const NotesFeature: React.FC = () => {
     return !hasContent;
   });
 
-  const MAX_JOURNAL_LINES = 500;
   const MAX_TITLE_CHARS = 120;
-  const [lineLimitNotice, setLineLimitNotice] = useState(false);
   const [titleLimitNotice, setTitleLimitNotice] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(25);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -105,6 +104,10 @@ export const NotesFeature: React.FC = () => {
     if (!noteContent) return 0;
     return noteContent.split('\n').length;
   }, [noteContent]);
+
+  useEffect(() => {
+    setVisibleCount(25);
+  }, [searchQuery]);
 
   useEffect(() => {
     const existing = notes.find(n => n.id === selectedNoteId || n.date === selectedNoteId);
@@ -135,18 +138,7 @@ export const NotesFeature: React.FC = () => {
   };
 
   const handleContentChange = (val: string) => {
-    const lines = val.split('\n');
-    if (lines.length > MAX_JOURNAL_LINES) {
-      setLineLimitNotice(true);
-      setNoteContent(lines.slice(0, MAX_JOURNAL_LINES).join('\n'));
-    } else {
-      if (lines.length === MAX_JOURNAL_LINES) {
-        setLineLimitNotice(true);
-      } else {
-        setLineLimitNotice(false);
-      }
-      setNoteContent(val);
-    }
+    setNoteContent(val);
   };
 
   const handleSave = useCallback(async () => {
@@ -171,13 +163,7 @@ export const NotesFeature: React.FC = () => {
     const textarea = textareaRef.current;
     if (!textarea) {
       const added = prefix + defaultPlaceholder + suffix;
-      const combined = (noteContent || '') + added;
-      const lines = combined.split('\n');
-      if (lines.length > MAX_JOURNAL_LINES) {
-        setLineLimitNotice(true);
-        return;
-      }
-      setNoteContent(combined);
+      setNoteContent((noteContent || '') + added);
       return;
     }
     const start = textarea.selectionStart;
@@ -185,11 +171,6 @@ export const NotesFeature: React.FC = () => {
     const selectedText = noteContent.substring(start, end) || defaultPlaceholder;
     const replacement = prefix + selectedText + suffix;
     const newContent = noteContent.substring(0, start) + replacement + noteContent.substring(end);
-    const lines = newContent.split('\n');
-    if (lines.length > MAX_JOURNAL_LINES) {
-      setLineLimitNotice(true);
-      return;
-    }
     setNoteContent(newContent);
     setTimeout(() => {
       textarea.focus();
@@ -218,6 +199,10 @@ export const NotesFeature: React.FC = () => {
       );
     }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [notes, searchQuery]);
+
+  const displayedNotes = useMemo(() => {
+    return filteredNotes.slice(0, visibleCount);
+  }, [filteredNotes, visibleCount]);
 
   const wordCount = useMemo(() => {
     if (!noteContent.trim()) return 0;
@@ -303,10 +288,20 @@ export const NotesFeature: React.FC = () => {
             </span>
           </motion.button>
 
-          <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-3 min-h-0 pb-2">
+          <div 
+            className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-3 min-h-0 pb-2"
+            onScroll={(e) => {
+              const target = e.currentTarget;
+              if (target.scrollHeight - target.scrollTop <= target.clientHeight + 120) {
+                if (visibleCount < filteredNotes.length) {
+                  setVisibleCount(prev => Math.min(prev + 25, filteredNotes.length));
+                }
+              }
+            }}
+          >
             <AnimatePresence mode="popLayout">
-            {filteredNotes.length > 0 ? (
-              filteredNotes.map(n => {
+            {displayedNotes.length > 0 ? (
+              displayedNotes.map(n => {
                 const isSelected = n.id === selectedNoteId;
                 const cleanSnippet = stripMarkdown(n.content);
                 return (
@@ -359,6 +354,19 @@ export const NotesFeature: React.FC = () => {
               )
             )}
             </AnimatePresence>
+
+            {filteredNotes.length > visibleCount && (
+              <div className="pt-2 text-center">
+                <button
+                  type="button"
+                  onClick={() => setVisibleCount(prev => Math.min(prev + 25, filteredNotes.length))}
+                  className="w-full py-2.5 px-3 bg-secondary/70 hover:bg-secondary text-foreground text-xs font-bold rounded-xl border border-border/60 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <Lucide.ChevronDown size={14} />
+                  <span>Load Earlier Reflections ({filteredNotes.length - visibleCount} remaining)</span>
+                </button>
+              </div>
+            )}
           </div>
         </motion.div>
       </motion.div>
@@ -587,29 +595,15 @@ export const NotesFeature: React.FC = () => {
                     </button>
                   </div>
 
-                  {/* Dedicated Journal Line Limit Counter */}
+                  {/* Dedicated Journal Line Counter */}
                   <div
-                    className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-bold border transition-colors ${
-                      currentLines >= MAX_JOURNAL_LINES
-                        ? 'bg-red-500/10 text-red-400 border-red-500/30 animate-pulse'
-                        : currentLines >= 450
-                        ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
-                        : 'bg-background/80 text-muted-foreground border-border/60'
-                    }`}
-                    title="Journal line limit: maximum 500 lines per daily reflection"
+                    className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-bold border transition-colors bg-background/80 text-muted-foreground border-border/60"
+                    title="Daily reflection line count"
                   >
                     <Lucide.AlignLeft size={12} />
-                    <span>Lines: {currentLines} / {MAX_JOURNAL_LINES} (Max 500 lines)</span>
+                    <span>Lines: {currentLines}</span>
                   </div>
                 </div>
-
-                {/* Line Limit Notification Alert */}
-                {lineLimitNotice && (
-                  <div className="p-2.5 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-400 font-medium flex items-center gap-2 animate-fadeIn">
-                    <Lucide.AlertCircle size={14} className="shrink-0 text-red-400" />
-                    <span>Line limit reached! Maximum 500 lines allowed per journal reflection to maintain optimal storage performance.</span>
-                  </div>
-                )}
 
                 {/* Raw Textarea */}
                 <div className="flex-1 flex flex-col min-h-0">
@@ -636,7 +630,7 @@ export const NotesFeature: React.FC = () => {
                         Recorded for {format(parseISO(noteDate), 'EEEE, MMMM dd, yyyy')}
                       </span>
                       <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-secondary text-muted-foreground border border-border/60">
-                        {currentLines} {currentLines === 1 ? 'line' : 'lines'} / 500
+                        {currentLines} {currentLines === 1 ? 'line' : 'lines'}
                       </span>
                     </div>
                   </div>

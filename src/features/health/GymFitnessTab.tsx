@@ -141,9 +141,24 @@ export default function GymFitnessTab({
   // Collapsible Biometric Feasibility Calculator state (default collapsed for spacious decluttered layout)
   const [isFeasibilityOpen, setIsFeasibilityOpen] = useState(false);
 
-  // Load custom plans on mount
+  // Load custom plans on mount & reload when health data syncs
   useEffect(() => {
-    setCustomPlans(getCustomWorkoutPlans());
+    const reload = () => {
+      setCustomPlans(getCustomWorkoutPlans());
+      if (typeof window !== 'undefined') {
+        try {
+          const saved = localStorage.getItem('shadow_logged_exercises_today');
+          if (saved) setLoggedExercises(JSON.parse(saved));
+        } catch (e) {}
+      }
+    };
+    reload();
+    window.addEventListener('shadow_health_updated', reload);
+    window.addEventListener('storage', reload);
+    return () => {
+      window.removeEventListener('shadow_health_updated', reload);
+      window.removeEventListener('storage', reload);
+    };
   }, []);
 
   // Combined plans list
@@ -444,7 +459,7 @@ export default function GymFitnessTab({
               <span className="text-2xl p-2 bg-secondary rounded-xl">{feasibility.emoji}</span>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className={`text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md ${feasibility.bgClass} border ${feasibility.borderClass} ${feasibility.colorClass}`}>
+                  <span className={`text-[7.5px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded ${feasibility.bgClass} border ${feasibility.borderClass} ${feasibility.colorClass} leading-tight`}>
                     {feasibility.badge}
                   </span>
                   <span className="text-xs sm:text-sm font-extrabold text-foreground">
@@ -779,7 +794,7 @@ export default function GymFitnessTab({
               </span>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className={`text-xs font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${feasibility.bgClass} border ${feasibility.borderClass} ${feasibility.colorClass}`}>
+                  <span className={`text-[7.5px] font-bold uppercase tracking-wider px-1.5 py-0.2 rounded ${feasibility.bgClass} border ${feasibility.borderClass} ${feasibility.colorClass} leading-tight`}>
                     {feasibility.badge}
                   </span>
                   <span className="text-[11px] font-bold text-muted-foreground">

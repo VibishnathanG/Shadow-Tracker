@@ -161,7 +161,7 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
           <div>
             <h3 className="text-base sm:text-lg font-black tracking-tight text-foreground flex items-center gap-2">
               <span>Super Planner</span>
-              <span className="text-[8.5px] font-bold uppercase px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
+              <span className="text-[7.5px] font-bold uppercase px-1.5 py-0.2 rounded bg-primary/10 text-primary border border-primary/20 tracking-wider">
                 Pro Schedule
               </span>
             </h3>
@@ -193,12 +193,12 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
             </button>
           </div>
 
-          {/* Navigation Pill Group */}
-          <div className="flex items-center gap-1 bg-surface-elevated px-1.5 py-1 rounded-2xl border border-border/80 shadow-xs">
+          {/* Navigation Pill Group - Single Enclosing Capsule */}
+          <div className="flex items-center bg-surface-elevated px-1 py-0.5 rounded-2xl border border-border/80 shadow-xs shrink-0">
             <button
               type="button"
               onClick={handlePrev}
-              className="p-1 text-muted-foreground hover:text-foreground rounded-lg hover:bg-surface transition-colors cursor-pointer"
+              className="p-1 text-muted-foreground hover:text-foreground rounded-xl hover:bg-surface transition-colors cursor-pointer"
               title="Previous period"
             >
               <Lucide.ChevronLeft size={15} />
@@ -206,14 +206,14 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
             <button
               type="button"
               onClick={handleToday}
-              className="px-2 py-0.5 text-xs font-black text-foreground hover:bg-surface rounded-lg transition-colors cursor-pointer uppercase tracking-wider text-[10px]"
+              className="px-2.5 py-0.5 text-[10.5px] font-black uppercase tracking-wider text-foreground hover:text-primary transition-colors cursor-pointer"
             >
               Today
             </button>
             <button
               type="button"
               onClick={handleNext}
-              className="p-1 text-muted-foreground hover:text-foreground rounded-lg hover:bg-surface transition-colors cursor-pointer"
+              className="p-1 text-muted-foreground hover:text-foreground rounded-xl hover:bg-surface transition-colors cursor-pointer"
               title="Next period"
             >
               <Lucide.ChevronRight size={15} />

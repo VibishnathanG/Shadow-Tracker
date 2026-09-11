@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import { useShadowTrackerStore } from '@/store';
 import confetti from 'canvas-confetti';
+import Modal from '@/components/Modal';
 
 export interface TimeBlock {
   id: string;
@@ -314,124 +315,104 @@ export const TimeBlockingView: React.FC<{
         )}
       </div>
 
-      {/* Add / Edit Block Modal */}
-      <AnimatePresence>
-        {isModalOpen && (
-          <div
-            className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
-            onClick={() => setIsModalOpen(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="w-full max-w-md bg-surface-elevated border border-border/80 text-foreground rounded-3xl shadow-2xl p-6 space-y-4 my-auto"
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between pb-3 border-b border-border/60">
-                <h3 className="text-sm font-extrabold text-foreground uppercase tracking-wider flex items-center gap-2">
-                  <Lucide.Clock size={16} className="text-primary" />
-                  {editingBlockId ? 'Edit Time Block' : 'Add Time Block'}
-                </h3>
-                <button onClick={() => setIsModalOpen(false)} className="p-1 rounded-lg text-muted-foreground hover:text-foreground">
-                  <Lucide.X size={16} />
-                </button>
-              </div>
-
-              <form onSubmit={handleSaveBlock} className="space-y-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase">Block Title</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Deep Work on API Refactor, Gym Session..."
-                    value={blockTitle}
-                    onChange={e => setBlockTitle(e.target.value)}
-                    className="w-full text-xs font-bold px-3.5 py-2.5 bg-secondary text-foreground rounded-xl border border-border/60 outline-none focus:border-primary"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase">Start Time</label>
-                    <input
-                      type="time"
-                      value={startTime}
-                      onChange={e => setStartTime(e.target.value)}
-                      className="w-full text-xs font-mono font-bold px-3 py-2 bg-secondary text-foreground rounded-xl border border-border/60 outline-none"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase">End Time</label>
-                    <input
-                      type="time"
-                      value={endTime}
-                      onChange={e => setEndTime(e.target.value)}
-                      className="w-full text-xs font-mono font-bold px-3 py-2 bg-secondary text-foreground rounded-xl border border-border/60 outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase">Category</label>
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {(Object.keys(CATEGORY_COLORS) as Array<TimeBlock['category']>).map(cat => (
-                      <button
-                        key={cat}
-                        type="button"
-                        onClick={() => setCategory(cat)}
-                        className={`p-2 rounded-xl text-[11px] font-bold transition-all cursor-pointer border ${
-                          category === cat
-                            ? 'bg-primary text-primary-foreground border-primary shadow-xs'
-                            : 'bg-secondary text-foreground border-border/60 hover:bg-surface'
-                        }`}
-                      >
-                        {CATEGORY_COLORS[cat].label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase">Link Task (Optional)</label>
-                  <select
-                    value={taggedTaskId}
-                    onChange={e => {
-                      setTaggedTaskId(e.target.value);
-                      if (!blockTitle && e.target.value) {
-                        const t = tasks.find(item => item.id === e.target.value);
-                        if (t) setBlockTitle(t.title);
-                      }
-                    }}
-                    className="w-full text-xs font-bold px-3 py-2.5 bg-secondary text-foreground rounded-xl border border-border/60 outline-none cursor-pointer"
-                  >
-                    <option value="">No Linked Task</option>
-                    {tasks.filter(t => !t.isCompleted).map(t => (
-                      <option key={t.id} value={t.id}>{t.title}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex justify-end gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="px-4 py-2 bg-secondary text-foreground text-xs font-bold rounded-xl"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2 bg-primary text-primary-foreground text-xs font-black rounded-xl shadow-md hover:bg-primary/90"
-                  >
-                    {editingBlockId ? 'Save Changes' : 'Create Block'}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
+      {/* Add / Edit Block Modal (Portal & Centered Static Modal) */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={editingBlockId ? 'Edit Time Block' : 'Add Time Block'}
+        size="sm"
+      >
+        <form onSubmit={handleSaveBlock} className="space-y-4">
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase">Block Title</label>
+            <input
+              type="text"
+              required
+              placeholder="e.g. Deep Work on API Refactor, Gym Session..."
+              value={blockTitle}
+              onChange={e => setBlockTitle(e.target.value)}
+              className="w-full text-xs font-bold px-3.5 py-2.5 bg-secondary text-foreground rounded-xl border border-border/60 outline-none focus:border-primary"
+            />
           </div>
-        )}
-      </AnimatePresence>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase">Start Time</label>
+              <input
+                type="time"
+                value={startTime}
+                onChange={e => setStartTime(e.target.value)}
+                className="w-full text-xs font-mono font-bold px-3 py-2 bg-secondary text-foreground rounded-xl border border-border/60 outline-none"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase">End Time</label>
+              <input
+                type="time"
+                value={endTime}
+                onChange={e => setEndTime(e.target.value)}
+                className="w-full text-xs font-mono font-bold px-3 py-2 bg-secondary text-foreground rounded-xl border border-border/60 outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase">Category</label>
+            <div className="grid grid-cols-3 gap-1.5">
+              {(Object.keys(CATEGORY_COLORS) as Array<TimeBlock['category']>).map(cat => (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setCategory(cat)}
+                  className={`p-2 rounded-xl text-[11px] font-bold transition-all cursor-pointer border ${
+                    category === cat
+                      ? 'bg-primary text-primary-foreground border-primary shadow-xs'
+                      : 'bg-secondary text-foreground border-border/60 hover:bg-surface'
+                  }`}
+                >
+                  {CATEGORY_COLORS[cat].label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-muted-foreground uppercase">Link Task (Optional)</label>
+            <select
+              value={taggedTaskId}
+              onChange={e => {
+                setTaggedTaskId(e.target.value);
+                if (!blockTitle && e.target.value) {
+                  const t = tasks.find(item => item.id === e.target.value);
+                  if (t) setBlockTitle(t.title);
+                }
+              }}
+              className="w-full text-xs font-bold px-3 py-2.5 bg-secondary text-foreground rounded-xl border border-border/60 outline-none cursor-pointer"
+            >
+              <option value="">No Linked Task</option>
+              {tasks.filter(t => !t.isCompleted).map(t => (
+                <option key={t.id} value={t.id}>{t.title}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(false)}
+              className="px-4 py-2 bg-secondary hover:bg-secondary/80 text-foreground text-xs font-bold rounded-xl cursor-pointer transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-5 py-2 bg-primary text-primary-foreground text-xs font-black rounded-xl shadow-md hover:bg-primary/90 cursor-pointer transition-all"
+            >
+              {editingBlockId ? 'Save Changes' : 'Create Block'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };
