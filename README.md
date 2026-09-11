@@ -9,7 +9,7 @@
 <p align="center">
   <a href="https://hub.docker.com/r/vibishnathang/shadow-tracker"><img src="https://img.shields.io/docker/pulls/vibishnathang/shadow-tracker?style=flat-square&logo=docker&label=Docker%20Pulls&color=0db7ed" alt="Docker Pulls" /></a>
   <a href="https://hub.docker.com/r/vibishnathang/shadow-tracker"><img src="https://img.shields.io/docker/v/vibishnathang/shadow-tracker?sort=semver&style=flat-square&logo=docker&label=Docker%20Hub&color=blue" alt="Docker Hub Version" /></a>
-  <a href="https://github.com/VibishnathanG/Shadow-Tracker/releases"><img src="https://img.shields.io/badge/Release-v1.4.0--beta.1-blue?style=flat-square&logo=github" alt="Release v1.4.0-beta.1" /></a>
+  <a href="https://github.com/VibishnathanG/Shadow-Tracker/releases"><img src="https://img.shields.io/badge/Release-v1.4.0--beta.2-blue?style=flat-square&logo=github" alt="Release v1.4.0-beta.2" /></a>
   <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20Android%20%7C%20Web%20%7C%20Docker-9cf?style=flat-square" alt="Supported Platforms" />
   <img src="https://img.shields.io/badge/Next.js-16.2-black?style=flat-square&logo=next.js" alt="Next.js 16" />
   <img src="https://img.shields.io/badge/React-19.2-61dafb?style=flat-square&logo=react" alt="React 19" />
@@ -192,11 +192,11 @@ Every release binary in the `release/` directory is standardized, compiled, cryp
 
 | Artifact Name | Target Platform | Package Type | Size | SHA256 Checksum | Reference Note |
 |---|---|---|---|---|---|
-| `Shadow-Tracker-Setup.exe` | Windows 10/11 (x64) | NSIS Executable Installer | 14.0 MB | `78d7ac982d358623a55ec2b694cd0b86646660c831999dd3082a41adc5fe0ac0` | |
-| `Shadow-Tracker-Portable.exe` | Windows 10/11 (x64) | Single Portable Executable | 30.6 MB | `4a3611143bca9884994489c7352acb0a7f83d5d30f8a11cf7f2a0acc4eca1f60` | |
-| `Shadow-Tracker-Release.apk` | Android 8.0+ (ARM64/x86) | Signed Mobile APK | 13.5 MB | `7bf7cff96e0c9ce3ca5ee9dff570a928b8dc99f873864ecb92c011932f3581ef` | |
-| `shadow-tracker-container.tar.gz` | Linux (x86_64 Docker) | Docker Image Tarball | 36.9 MB | `5e6742dfc8b0157ae5f5b3a5730ffeae9e85132511c787573f1f96d1185fdc43` | |
-| `shadow-tracker-web-export.tar.gz` | Any Static Web Host | Static HTML5/JS/CSS Bundle | 9.5 MB | `0eb59e91a5ea1e16265f8a852e60b1de3d44fdc4cce7fbfe6eb4f6df1261f202` | |
+| `Shadow-Tracker-Setup.exe` | Windows 10/11 (x64) | NSIS Executable Installer | 14.0 MB | `8d998c5933607ab1a1565f7bab8bb7e551b3dad26f4490f0c7f99d512d4ef5e7` | |
+| `Shadow-Tracker-Portable.exe` | Windows 10/11 (x64) | Single Portable Executable | 30.6 MB | `f9847dc012090fabf05b5d1b9ead0aa3d87edb4ec51548811d652ddc87cfbbe3` | |
+| `Shadow-Tracker-Release.apk` | Android 8.0+ (ARM64/x86) | Signed Mobile APK | 13.5 MB | `2cbc1dfc7584e189943e9669dee3de101a3cc22731f679c99566d8b53ecb51f0` | |
+| `shadow-tracker-container.tar.gz` | Linux (x86_64 Docker) | Docker Image Tarball | 36.9 MB | `1fb58c6338c2dd70e5e79023a06d565c6f1897379d7bf39b7162cef6bcc80819` | |
+| `shadow-tracker-web-export.tar.gz` | Any Static Web Host | Static HTML5/JS/CSS Bundle | 9.6 MB | `671450f34a5b1c488b59616e94c456a8b5849b58aaa4d91b5619786bb31faa35` | |
 | `Shadow-Tracker-Windows-Certificate.crt` | Windows OS | Trusted Root Signing Cert | 1.3 KB | `aabc149abd60a904878ebfc939611500ed636d22b61157cd891c3c2937ba4c98` | |
 
 ### Integrity-Verification

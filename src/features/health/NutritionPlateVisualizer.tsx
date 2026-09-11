@@ -214,7 +214,7 @@ export default function NutritionPlateVisualizer({
               {/* Concentric Ceramic Groove Ring */}
               <div className="absolute inset-4 rounded-full border border-border/40 pointer-events-none" />
 
-              {/* Progress Arc SVG with Gradient Fill (Clean outer perimeter rim - zero badge collision) */}
+              {/* Progress Arc SVG - Doubled Stroke Size (Thick & Bold) */}
               <svg className="absolute inset-1.5 w-[calc(100%-12px)] h-[calc(100%-12px)] -rotate-90 pointer-events-none" viewBox="0 0 100 100">
                 <defs>
                   {/* Standard In-Budget Gradient (Mint Green -> Vibrant Emerald -> Gold Amber) */}
@@ -232,86 +232,77 @@ export default function NutritionPlateVisualizer({
                   </linearGradient>
                 </defs>
 
-                {/* Track Background */}
+                {/* Track Background - Doubled stroke width */}
                 <circle
                   cx="50"
                   cy="50"
-                  r="46"
+                  r="43"
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="4"
+                  strokeWidth="10"
                   className="text-muted/15"
                 />
 
-                {/* Dynamic Calorie Arc */}
+                {/* Dynamic Calorie Arc - Doubled stroke width (12px) */}
                 <motion.circle
                   cx="50"
                   cy="50"
-                  r="46"
+                  r="43"
                   fill="none"
-                  strokeWidth="5"
+                  strokeWidth="12"
                   strokeLinecap="round"
-                  strokeDasharray="289.02"
-                  initial={{ strokeDashoffset: 289.02 }}
+                  strokeDasharray="270.18"
+                  initial={{ strokeDashoffset: 270.18 }}
                   animate={{
-                    strokeDashoffset: 289.02 - (289.02 * clampedRingPct) / 100,
+                    strokeDashoffset: 270.18 - (270.18 * clampedRingPct) / 100,
                   }}
                   transition={{ duration: 0.8, ease: 'easeOut' }}
                   stroke={isOverBudget ? 'url(#overlimitGradient)' : 'url(#healthyGradient)'}
                 />
               </svg>
 
-              {/* Four Meal Quadrants: Morning (Top) -> Afternoon (Right) -> Evening (Bottom) -> Night (Left) */}
-              {/* 1. Morning (Breakfast) at 12 o'clock */}
-              <button
-                type="button"
-                onClick={() => onOpenAddModal('breakfast')}
-                className="absolute top-6 sm:top-7 left-1/2 -translate-x-1/2 select-none z-20 group cursor-pointer"
-                title="Morning (Breakfast) - Click to log food"
-              >
-                <div className="w-8 h-8 rounded-full bg-surface-elevated/95 border-2 border-amber-500/50 text-amber-400 shadow-md flex items-center justify-center group-hover:scale-110 group-hover:border-amber-400 group-hover:bg-amber-500/20 transition-all">
-                  <Lucide.Sunrise size={14} />
-                </div>
-              </button>
+              {/* Inner Meal Quadrants: Morning (Top) & Evening (Bottom) - Inside ring, perfectly centered */}
+              <div className="absolute inset-8 sm:inset-9 pointer-events-none flex flex-col justify-between items-center py-0.5 select-none z-10">
+                <button
+                  type="button"
+                  onClick={() => onOpenAddModal('breakfast')}
+                  className="pointer-events-auto p-1.5 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-400 shadow-xs hover:scale-110 active:scale-95 transition-all cursor-pointer"
+                  title="Morning (Breakfast) - Click to log food"
+                >
+                  <Lucide.Sunrise size={13} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onOpenAddModal('dinner')}
+                  className="pointer-events-auto p-1.5 rounded-lg bg-indigo-500/20 border border-indigo-500/40 text-indigo-400 shadow-xs hover:scale-110 active:scale-95 transition-all cursor-pointer"
+                  title="Evening (Dinner) - Click to log food"
+                >
+                  <Lucide.MoonStar size={13} />
+                </button>
+              </div>
 
-              {/* 2. Afternoon (Lunch) at 3 o'clock */}
-              <button
-                type="button"
-                onClick={() => onOpenAddModal('lunch')}
-                className="absolute right-6 sm:right-7 top-1/2 -translate-y-1/2 select-none z-20 group cursor-pointer"
-                title="Afternoon (Lunch) - Click to log food"
-              >
-                <div className="w-8 h-8 rounded-full bg-surface-elevated/95 border-2 border-emerald-500/50 text-emerald-400 shadow-md flex items-center justify-center group-hover:scale-110 group-hover:border-emerald-400 group-hover:bg-emerald-500/20 transition-all">
-                  <Lucide.SunMedium size={14} />
-                </div>
-              </button>
+              {/* Inner Meal Quadrants: Night (Left) & Afternoon (Right) - Inside ring, perfectly centered */}
+              <div className="absolute inset-8 sm:inset-9 pointer-events-none flex justify-between items-center px-0.5 select-none z-10">
+                <button
+                  type="button"
+                  onClick={() => onOpenAddModal('snack')}
+                  className="pointer-events-auto p-1.5 rounded-lg bg-rose-500/20 border border-rose-500/40 text-rose-400 shadow-xs hover:scale-110 active:scale-95 transition-all cursor-pointer"
+                  title="Night (Snack / Chai) - Click to log food"
+                >
+                  <Lucide.Coffee size={13} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onOpenAddModal('lunch')}
+                  className="pointer-events-auto p-1.5 rounded-lg bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 shadow-xs hover:scale-110 active:scale-95 transition-all cursor-pointer"
+                  title="Afternoon (Lunch) - Click to log food"
+                >
+                  <Lucide.SunMedium size={13} />
+                </button>
+              </div>
 
-              {/* 3. Evening (Dinner) at 6 o'clock */}
-              <button
-                type="button"
-                onClick={() => onOpenAddModal('dinner')}
-                className="absolute bottom-6 sm:bottom-7 left-1/2 -translate-x-1/2 select-none z-20 group cursor-pointer"
-                title="Evening (Dinner) - Click to log food"
-              >
-                <div className="w-8 h-8 rounded-full bg-surface-elevated/95 border-2 border-indigo-500/50 text-indigo-400 shadow-md flex items-center justify-center group-hover:scale-110 group-hover:border-indigo-400 group-hover:bg-indigo-500/20 transition-all">
-                  <Lucide.MoonStar size={14} />
-                </div>
-              </button>
-
-              {/* 4. Night (Snack / Chai) at 9 o'clock */}
-              <button
-                type="button"
-                onClick={() => onOpenAddModal('snack')}
-                className="absolute left-6 sm:left-7 top-1/2 -translate-y-1/2 select-none z-20 group cursor-pointer"
-                title="Night (Snack / Chai) - Click to log food"
-              >
-                <div className="w-8 h-8 rounded-full bg-surface-elevated/95 border-2 border-rose-500/50 text-rose-400 shadow-md flex items-center justify-center group-hover:scale-110 group-hover:border-rose-400 group-hover:bg-rose-500/20 transition-all">
-                  <Lucide.Coffee size={14} />
-                </div>
-              </button>
-
-              {/* Center Porcelain Hub Display */}
-              <div className="relative z-10 w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-surface/95 backdrop-blur-md border border-border/80 shadow-xl flex flex-col items-center justify-center text-center p-2">
+              {/* Center Porcelain Hub Display - Dead center at the plate core */}
+              <div className="relative z-10 w-32 h-32 sm:w-36 sm:h-36 rounded-full bg-surface/95 backdrop-blur-md border border-border/80 shadow-xl flex flex-col items-center justify-center text-center p-2">
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">EATEN</span>
                 <div className="flex items-baseline gap-0.5 font-mono font-black text-foreground">
                   <span className="text-2xl sm:text-3xl leading-none">{totalCalories}</span>
