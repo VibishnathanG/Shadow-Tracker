@@ -140,6 +140,7 @@ const EditableCurrencyInput = ({
   return (
     <input
       type="text"
+      maxLength={12}
       value={localText}
       onFocus={handleFocus}
       onChange={handleChange}
@@ -569,26 +570,27 @@ export default function MoneyFeature() {
               </div>
               <div>
                 <h1 className="text-base sm:text-lg font-black tracking-tight text-foreground leading-tight">Wealth</h1>
-                {/* Clean Month Selector without Clunky Outer Box */}
-                <div className="flex items-center gap-1 mt-0.5">
+                {/* Unified Sleek Month Capsule */}
+                <div className="inline-flex items-center bg-surface/90 border border-border/70 rounded-xl p-0.5 mt-1 shadow-xs hover:border-primary/30 transition-all backdrop-blur-sm">
                   <button
                     type="button"
                     onClick={prevMonth}
-                    className="p-1 text-muted-foreground hover:text-foreground transition-colors cursor-pointer rounded-lg hover:bg-surface-elevated"
+                    className="p-1 text-muted-foreground hover:text-foreground hover:bg-surface-elevated transition-colors cursor-pointer rounded-lg"
                     title="Previous Month"
                     aria-label="Previous Month"
                   >
-                    <Lucide.ChevronLeft size={14} />
+                    <Lucide.ChevronLeft size={13} />
                   </button>
 
-                  <div className="relative inline-flex items-center">
+                  <div className="relative inline-flex items-center px-1.5 border-x border-border/40">
+                    <Lucide.Calendar size={11} className="text-primary/70 mr-1 shrink-0" />
                     <select
                       value={currentMonthStr}
                       onChange={(e) => {
                         const [y, m] = e.target.value.split('-').map(Number);
                         setCurrentDate(new Date(y, m - 1, 1));
                       }}
-                      className="appearance-none border-0 outline-none ring-0 shadow-none bg-transparent font-mono text-[11px] sm:text-xs font-black uppercase tracking-wider text-foreground cursor-pointer pr-4 hover:text-primary transition-colors"
+                      className="appearance-none border-0 outline-none ring-0 shadow-none bg-transparent font-mono text-[11px] font-black uppercase tracking-wider text-foreground cursor-pointer pr-3 hover:text-primary transition-colors"
                       title="Select Month"
                     >
                       {availableMonths.map(m => (
@@ -597,24 +599,25 @@ export default function MoneyFeature() {
                         </option>
                       ))}
                     </select>
-                    <Lucide.ChevronDown size={11} className="text-muted-foreground pointer-events-none -ml-3" />
+                    <Lucide.ChevronDown size={10} className="text-muted-foreground pointer-events-none -ml-2" />
                   </div>
 
                   <button
                     type="button"
                     onClick={nextMonth}
-                    className="p-1 text-muted-foreground hover:text-foreground transition-colors cursor-pointer rounded-lg hover:bg-surface-elevated"
+                    className="p-1 text-muted-foreground hover:text-foreground hover:bg-surface-elevated transition-colors cursor-pointer rounded-lg"
                     title="Next Month"
                     aria-label="Next Month"
                   >
-                    <Lucide.ChevronRight size={14} />
+                    <Lucide.ChevronRight size={13} />
                   </button>
 
                   {currentMonthStr !== `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}` && (
                     <button
                       type="button"
                       onClick={() => setCurrentDate(new Date())}
-                      className="ml-1 text-[9.5px] font-extrabold uppercase tracking-wider text-primary hover:underline cursor-pointer"
+                      className="ml-1 mr-0.5 px-1.5 py-0.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-[8.5px] font-black uppercase tracking-wider text-primary transition-colors cursor-pointer"
+                      title="Jump to Current Month"
                     >
                       Current
                     </button>
@@ -1179,6 +1182,7 @@ export default function MoneyFeature() {
                         <label className="text-[10px] font-bold text-muted-foreground uppercase">Note / Item Name</label>
                         <input 
                           type="text" 
+                          maxLength={100}
                           value={noteInput} 
                           onChange={e=>setNoteInput(e.target.value)} 
                           className="w-full bg-secondary border border-border/60 rounded-xl px-3 py-2 text-foreground text-xs font-medium focus:border-primary outline-none" 
@@ -1274,6 +1278,7 @@ export default function MoneyFeature() {
                           <input 
                             type="text" 
                             required 
+                            maxLength={60}
                             value={subNameInput} 
                             onChange={e=>setSubNameInput(e.target.value)} 
                             className="w-full bg-secondary border border-border/60 rounded-xl px-3 py-2 text-foreground text-xs font-bold focus:border-primary outline-none" 
@@ -1383,6 +1388,7 @@ export default function MoneyFeature() {
                                 <div className="flex items-center gap-1.5">
                                   <input
                                     type="text"
+                                    maxLength={4}
                                     placeholder="Icon"
                                     value={newPresetEmoji}
                                     onChange={(e) => setNewPresetEmoji(e.target.value)}
@@ -1390,6 +1396,7 @@ export default function MoneyFeature() {
                                   />
                                   <input
                                     type="text"
+                                    maxLength={50}
                                     placeholder="Service Name"
                                     value={newPresetName}
                                     onChange={(e) => setNewPresetName(e.target.value)}

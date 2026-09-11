@@ -734,6 +734,7 @@ export default function TodoFeature() {
             <Lucide.Search className="absolute left-3.5 top-3 text-muted-foreground pointer-events-none" size={16} />
             <input
               type="text"
+              maxLength={80}
               placeholder="Search ToDos..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
@@ -1215,10 +1216,14 @@ export default function TodoFeature() {
               <form onSubmit={handleSaveModal} className="space-y-4">
                 {/* Title */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Title *</label>
+                  <div className="flex justify-between items-center">
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Title *</label>
+                    <span className="text-[10px] text-muted-foreground font-mono">{formTitle.length}/120</span>
+                  </div>
                   <input
                     type="text"
                     required
+                    maxLength={120}
                     placeholder="What needs to be done?"
                     value={formTitle}
                     onChange={e => setFormTitle(e.target.value)}
@@ -1228,9 +1233,13 @@ export default function TodoFeature() {
 
                 {/* Description */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Notes / Description</label>
+                  <div className="flex justify-between items-center">
+                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Notes / Description</label>
+                    <span className="text-[10px] text-muted-foreground font-mono">{formDesc.length}/500</span>
+                  </div>
                   <textarea
                     rows={3}
+                    maxLength={500}
                     placeholder="Additional context or details..."
                     value={formDesc}
                     onChange={e => setFormDesc(e.target.value)}
@@ -1278,6 +1287,7 @@ export default function TodoFeature() {
                     <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Custom Category Name</label>
                     <input
                       type="text"
+                      maxLength={30}
                       placeholder="e.g. Project Alpha"
                       value={formCustomCategory}
                       onChange={e => setFormCustomCategory(e.target.value)}
@@ -1399,6 +1409,7 @@ export default function TodoFeature() {
                   <div className="flex items-center gap-2 pt-1">
                     <input
                       type="text"
+                      maxLength={80}
                       placeholder="Add sub-task item..."
                       value={newSubtaskInput}
                       onChange={e => setNewSubtaskInput(e.target.value)}

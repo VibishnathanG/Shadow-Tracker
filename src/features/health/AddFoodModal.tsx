@@ -385,6 +385,7 @@ export default function AddFoodModal({
                 <Lucide.Search className="absolute left-3 top-3 text-muted-foreground" size={15} />
                 <input
                   type="text"
+                  maxLength={80}
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   placeholder="Search foods (e.g. keerai, roti, dosa, chicken, egg, oats, salmon)..."
@@ -570,6 +571,7 @@ export default function AddFoodModal({
                   </label>
                   <input
                     type="text"
+                    maxLength={50}
                     value={customServing}
                     onChange={e => setCustomServing(e.target.value)}
                     className="w-full bg-secondary border border-border/60 rounded-xl px-3 py-2 text-foreground text-xs font-medium outline-none focus:border-emerald-400"

@@ -713,6 +713,7 @@ export default function CustomDietPlanModal({
                     <label className="text-[10px] font-bold text-muted-foreground uppercase">Meal Name *</label>
                     <input
                       type="text"
+                      maxLength={80}
                       value={mealName}
                       onChange={e => setMealName(e.target.value)}
                       placeholder="e.g. Kongu Style Paneer & Thinai Upma"
@@ -725,6 +726,7 @@ export default function CustomDietPlanModal({
                     <label className="text-[10px] font-bold text-muted-foreground uppercase">Portion</label>
                     <input
                       type="text"
+                      maxLength={40}
                       value={mealPortion}
                       onChange={e => setMealPortion(e.target.value)}
                       placeholder="e.g. 1 plate (250g)"
@@ -739,6 +741,7 @@ export default function CustomDietPlanModal({
                   </label>
                   <textarea
                     rows={2}
+                    maxLength={400}
                     value={mealItems}
                     onChange={e => setMealItems(e.target.value)}
                     placeholder="2 Foxtail Millet Idlis with Sambar&#10;1 boiled egg white&#10;1 glass tender coconut water"

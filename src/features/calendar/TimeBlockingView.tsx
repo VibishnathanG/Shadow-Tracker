@@ -324,10 +324,14 @@ export const TimeBlockingView: React.FC<{
       >
         <form onSubmit={handleSaveBlock} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase">Block Title</label>
+            <div className="flex justify-between items-center">
+              <label className="text-[10px] font-bold text-muted-foreground uppercase">Block Title</label>
+              <span className="text-[9px] text-muted-foreground font-mono">{blockTitle.length}/80</span>
+            </div>
             <input
               type="text"
               required
+              maxLength={80}
               placeholder="e.g. Deep Work on API Refactor, Gym Session..."
               value={blockTitle}
               onChange={e => setBlockTitle(e.target.value)}

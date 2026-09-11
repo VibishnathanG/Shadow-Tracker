@@ -198,7 +198,7 @@ export const TaskKanbanView: React.FC<TaskKanbanViewProps> = ({
           <div>
             <h3 className="text-base sm:text-lg font-black tracking-tight text-foreground flex items-center gap-2">
               <span>{boardMode === 'columns' ? 'Kanban Board' : 'Eisenhower Matrix'}</span>
-              <span className="text-[7.5px] font-bold uppercase px-1.5 py-0.2 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20 tracking-wider">
+              <span className="text-[6.5px] font-black uppercase px-1.5 py-[1px] rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/25 tracking-wider leading-none">
                 {boardMode === 'columns' ? 'Workflow' : '4 Quadrants'}
               </span>
             </h3>

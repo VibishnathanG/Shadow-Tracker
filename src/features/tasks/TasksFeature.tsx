@@ -306,6 +306,7 @@ export const TasksFeature: React.FC = () => {
               <Lucide.Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-hover:text-primary transition-colors pointer-events-none z-10" size={17} />
               <input
             type="text"
+            maxLength={80}
             placeholder="Search tasks..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -715,15 +716,15 @@ export const TasksFeature: React.FC = () => {
             <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Description (Optional)</label>
             <textarea
               placeholder="Provide a quick action summary..."
-              maxLength={1000}
+              maxLength={500}
               value={formDesc}
               onChange={(e) => setFormDesc(e.target.value)}
               rows={2}
               className="w-full text-sm px-4 py-2.5 bg-surface-elevated rounded-xl text-foreground placeholder:text-muted-foreground border border-border/40 focus:border-primary outline-none resize-none focus:ring-2 focus:ring-primary/20 transition-all"
             />
-            {formDesc.length >= 1000 && (
+            {formDesc.length >= 500 && (
               <span className="text-xs text-amber-500 font-medium px-1 block animate-fadeIn">
-                Description character limit reached (1000/1000)
+                Description character limit reached (500/500)
               </span>
             )}
           </div>

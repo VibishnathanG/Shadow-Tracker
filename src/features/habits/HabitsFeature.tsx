@@ -1028,6 +1028,7 @@ export const HabitsFeature: React.FC = () => {
                 <label className="text-xs font-bold text-foreground block">Reflection Notes (Optional):</label>
                 <textarea
                   rows={3}
+                  maxLength={300}
                   placeholder="Why was this habit uncompleted? Write an optional reflection..."
                   value={customReasonText}
                   onChange={e => setCustomReasonText(e.target.value)}

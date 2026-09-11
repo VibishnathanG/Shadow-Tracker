@@ -1046,6 +1046,7 @@ export const SettingsFeature: React.FC = () => {
                   <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Operator Alias</span>
                   <input 
                     type="text" 
+                    maxLength={30}
                     value={settings.alias !== undefined ? settings.alias : ''} 
                     onChange={(e) => updateSettings({ alias: e.target.value })}
                     placeholder="Enter your alias..."
@@ -2022,6 +2023,7 @@ export const SettingsFeature: React.FC = () => {
             <input
               type="text"
               required
+              maxLength={30}
               placeholder="e.g. Creative Hobbies"
               value={catName}
               onChange={(e) => setCatName(e.target.value)}
@@ -2181,6 +2183,7 @@ export const SettingsFeature: React.FC = () => {
               <label className="text-xs font-bold text-foreground ml-1 uppercase tracking-wider">Quote</label>
               <textarea
                 placeholder="Enter a powerful quote..."
+                maxLength={250}
                 value={newSlideQuote}
                 onChange={(e) => setNewSlideQuote(e.target.value)}
                 rows={3}

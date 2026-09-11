@@ -95,6 +95,7 @@ export const NotesFeature: React.FC = () => {
   });
 
   const MAX_TITLE_CHARS = 120;
+  const MAX_JOURNAL_LINES = 500;
   const [titleLimitNotice, setTitleLimitNotice] = useState(false);
   const [visibleCount, setVisibleCount] = useState(25);
 
@@ -104,6 +105,8 @@ export const NotesFeature: React.FC = () => {
     if (!noteContent) return 0;
     return noteContent.split('\n').length;
   }, [noteContent]);
+
+  const isLineLimitExceeded = currentLines > MAX_JOURNAL_LINES;
 
   useEffect(() => {
     setVisibleCount(25);
@@ -143,6 +146,10 @@ export const NotesFeature: React.FC = () => {
 
   const handleSave = useCallback(async () => {
     if (!noteContent.trim() && !noteTitle.trim()) return;
+    if (isLineLimitExceeded) {
+      alert(`Daily reflection exceeds the maximum limit of 500 lines (${currentLines}/${MAX_JOURNAL_LINES} lines). Please shorten your entry before saving.`);
+      return;
+    }
     await saveNote(noteDate, noteContent.trim(), noteTitle.trim() || undefined);
     
     if (noteDate !== selectedNoteId) {
@@ -151,7 +158,7 @@ export const NotesFeature: React.FC = () => {
 
     setIsSavedIndicator(true);
     setTimeout(() => setIsSavedIndicator(false), 2000);
-  }, [noteContent, noteTitle, noteDate, selectedNoteId, saveNote]);
+  }, [noteContent, noteTitle, noteDate, selectedNoteId, saveNote, isLineLimitExceeded, currentLines]);
 
   const handleDelete = useCallback(async () => {
     await deleteNote(selectedNoteId);
@@ -250,6 +257,7 @@ export const NotesFeature: React.FC = () => {
           <motion.input
             whileFocus={{ scale: 1.01 }}
             type="text"
+            maxLength={80}
             placeholder="Search reflections..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -449,11 +457,16 @@ export const NotesFeature: React.FC = () => {
                 ) : (
                   <motion.button
                     key="save-btn"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={!isLineLimitExceeded ? { scale: 1.05 } : {}}
+                    whileTap={!isLineLimitExceeded ? { scale: 0.95 } : {}}
                     onClick={handleSave}
-                    disabled={!noteContent.trim() && !noteTitle.trim()}
-                    className="px-4 py-2 text-xs font-bold text-primary-foreground bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:pointer-events-none rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+                    disabled={(!noteContent.trim() && !noteTitle.trim()) || isLineLimitExceeded}
+                    className={`px-4 py-2 text-xs font-bold rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer ${
+                      isLineLimitExceeded
+                        ? 'bg-red-500/20 text-red-400 border border-red-500/30 cursor-not-allowed opacity-60'
+                        : 'text-primary-foreground bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:pointer-events-none'
+                    }`}
+                    title={isLineLimitExceeded ? `Cannot save: ${currentLines}/${MAX_JOURNAL_LINES} lines (exceeds limit)` : 'Save Reflection'}
                   >
                     <Lucide.Save size={14} />
                     <span>Save</span>
@@ -516,6 +529,21 @@ export const NotesFeature: React.FC = () => {
                     </span>
                   )}
                 </div>
+
+                {/* 500-Line Limit Warning Banner */}
+                {isLineLimitExceeded && (
+                  <div className="p-3 bg-red-500/15 border border-red-500/40 rounded-2xl text-xs text-red-400 font-bold flex items-center justify-between gap-3 animate-fadeIn shadow-xs">
+                    <div className="flex items-center gap-2">
+                      <Lucide.AlertTriangle size={16} className="text-red-400 shrink-0" />
+                      <span>
+                        Daily reflection exceeds 500 lines ({currentLines}/{MAX_JOURNAL_LINES} lines). Save is disabled until shortened.
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-red-500/25 text-red-300 shrink-0">
+                      +{currentLines - MAX_JOURNAL_LINES} over
+                    </span>
+                  </div>
+                )}
 
                 {/* Markdown Formatting Helper Toolbar & Line Limit Indicator */}
                 <div className="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar scrollbar-none p-1.5 bg-secondary/40 border border-border/60 rounded-xl backdrop-blur-md shrink-0 text-xs text-muted-foreground">
@@ -597,11 +625,17 @@ export const NotesFeature: React.FC = () => {
 
                   {/* Dedicated Journal Line Counter */}
                   <div
-                    className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-bold border transition-colors bg-background/80 text-muted-foreground border-border/60"
-                    title="Daily reflection line count"
+                    className={`shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono font-bold border transition-colors ${
+                      isLineLimitExceeded
+                        ? 'bg-red-500/20 text-red-400 border-red-500/50 animate-pulse'
+                        : currentLines > 450
+                        ? 'bg-amber-500/15 text-amber-400 border-amber-500/40'
+                        : 'bg-background/80 text-muted-foreground border-border/60'
+                    }`}
+                    title={isLineLimitExceeded ? `Exceeds 500-line limit (${currentLines}/${MAX_JOURNAL_LINES})` : `Daily reflection line count (${currentLines}/${MAX_JOURNAL_LINES})`}
                   >
                     <Lucide.AlignLeft size={12} />
-                    <span>Lines: {currentLines}</span>
+                    <span>Lines: {currentLines} / {MAX_JOURNAL_LINES}</span>
                   </div>
                 </div>
 

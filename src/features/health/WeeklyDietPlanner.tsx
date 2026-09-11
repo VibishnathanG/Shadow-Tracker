@@ -195,7 +195,7 @@ export default function WeeklyDietPlanner({ onCopyDayToPlate }: WeeklyDietPlanne
             <h2 className="text-lg sm:text-xl font-black text-foreground tracking-tight">
               Weekly Diet Plans
             </h2>
-            <span className="text-[8.5px] font-bold uppercase px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 tracking-wider">
+            <span className="text-[6.5px] font-black uppercase px-1.5 py-[1px] rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 tracking-wider leading-none">
               7-Day Schedules
             </span>
           </div>

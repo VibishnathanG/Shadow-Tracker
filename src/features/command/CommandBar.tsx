@@ -152,6 +152,7 @@ export const CommandBar: React.FC<CommandBarProps> = ({
               <input
                 ref={inputRef}
                 type="text"
+                maxLength={120}
                 placeholder="Search commands, navigate tabs, or type to add tasks..."
                 value={query}
                 onChange={(e) => {

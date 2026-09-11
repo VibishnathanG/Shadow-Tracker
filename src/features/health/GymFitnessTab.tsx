@@ -1268,6 +1268,7 @@ export default function GymFitnessTab({
             <input
               type="text"
               required
+              maxLength={60}
               placeholder="e.g. Barbell Bench Press"
               value={exerciseName}
               onChange={e => setExerciseName(e.target.value)}
