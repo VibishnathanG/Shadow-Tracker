@@ -335,34 +335,34 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }}
-          className="flex flex-wrap items-center gap-3"
+          className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 -mx-1 px-1 sm:mx-0 sm:px-0 sm:flex-wrap sm:pb-0 w-full sm:w-auto shrink-0"
         >
           <button
             type="button"
             onClick={() => setShowExplorerGuide(true)}
-            className="btn-glass-pill cursor-pointer transition-all flex items-center gap-2 text-xs font-bold hover:scale-[1.02] active:scale-[0.98]"
+            className="btn-glass-pill cursor-pointer transition-all flex items-center gap-1.5 text-xs font-bold hover:scale-[1.02] active:scale-[0.98] shrink-0 !py-1.5 !px-3"
             title="Open System Explorer & Feature Guide"
           >
-            <Lucide.Compass size={15} className="text-primary animate-spin-slow" />
-            <span>Explorer Hub</span>
-            <Lucide.ChevronRight size={14} className="text-secondary" />
+            <Lucide.Compass size={14} className="text-primary animate-spin-slow shrink-0" />
+            <span className="whitespace-nowrap">Explorer Hub</span>
+            <Lucide.ChevronRight size={13} className="text-secondary shrink-0 hidden sm:inline" />
           </button>
 
-          <div className="flex items-center gap-4 px-4 py-1.5 rounded-full bg-secondary/30 border border-border/80 backdrop-blur-sm shadow-sm">
-            <div className="flex items-center gap-2" title="Tasks Completed / Total Today">
-              <Lucide.CheckSquare size={14} className="text-blue-400" />
-              <span className="text-sm font-bold text-foreground">{completedTasksCount}/{todayTasks.length}</span>
+          <div className="flex items-center gap-2 sm:gap-3 px-3 py-1.5 rounded-full bg-secondary/30 border border-border/80 backdrop-blur-sm shadow-sm shrink-0">
+            <div className="flex items-center gap-1.5" title="Tasks Completed / Total Today">
+              <Lucide.CheckSquare size={13} className="text-blue-400 shrink-0" />
+              <span className="text-xs sm:text-sm font-bold text-foreground">{completedTasksCount}/{todayTasks.length}</span>
             </div>
-            <div className="w-[1px] h-4 bg-border" />
-            <div className="flex items-center gap-2" title="Habits Completed / Total Active">
-              <Lucide.Repeat size={14} className="text-emerald-400" />
-              <span className="text-sm font-bold text-foreground">{completedHabitsToday}/{activeHabitsCount}</span>
+            <div className="w-[1px] h-3.5 bg-border shrink-0" />
+            <div className="flex items-center gap-1.5" title="Habits Completed / Total Active">
+              <Lucide.Repeat size={13} className="text-emerald-400 shrink-0" />
+              <span className="text-xs sm:text-sm font-bold text-foreground">{completedHabitsToday}/{activeHabitsCount}</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 px-3.5 py-1.5 bg-secondary/40 border border-border rounded-full text-base font-medium shadow-sm backdrop-blur-sm">
-            <Lucide.Flame className="text-orange-400" size={16} />
-            <span className="text-foreground">{highestStreak} day streak</span>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary/40 border border-border rounded-full text-xs sm:text-sm font-medium shadow-sm backdrop-blur-sm shrink-0">
+            <Lucide.Flame className="text-orange-400 shrink-0" size={14} />
+            <span className="text-foreground whitespace-nowrap">{highestStreak} day streak</span>
           </div>
         </motion.div>
       </div>

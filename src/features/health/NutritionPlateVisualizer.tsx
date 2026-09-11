@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import { calculateNutrientsForGrams } from './indianFoodDatabase';
@@ -39,8 +40,43 @@ export default function NutritionPlateVisualizer({
   onRemoveFood,
   onOpenAddModal,
 }: NutritionPlateVisualizerProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [editingItem, setEditingItem] = useState<LoggedFood | null>(null);
   const [activeMealTab, setActiveMealTab] = useState<MealType | 'all'>('all');
+
+  // Lock body scroll when editingItem modal is open
+  useEffect(() => {
+    if (editingItem) {
+      const scrollY = window.scrollY;
+      const prevOverflow = document.body.style.overflow;
+      const prevPos = document.body.style.position;
+      const prevTop = document.body.style.top;
+      const prevWidth = document.body.style.width;
+
+      document.body.classList.add('modal-open');
+      document.documentElement.classList.add('modal-open');
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+
+      return () => {
+        document.body.classList.remove('modal-open');
+        document.documentElement.classList.remove('modal-open');
+        document.body.style.overflow = prevOverflow;
+        document.documentElement.style.overflow = '';
+        document.body.style.position = prevPos;
+        document.body.style.top = prevTop;
+        document.body.style.width = prevWidth;
+        window.scrollTo(0, scrollY);
+      };
+    }
+  }, [editingItem]);
 
   // Edit form state
   const [editName, setEditName] = useState('');
@@ -514,186 +550,187 @@ export default function NutritionPlateVisualizer({
         )}
       </div>
 
-      {/* Interactive Pop-Edit Modal */}
-      <AnimatePresence>
-        {editingItem && (
-          <div 
-            onClick={() => setEditingItem(null)}
-            onTouchMove={(e) => { e.preventDefault(); e.stopPropagation(); }}
-            style={{ touchAction: 'none' }}
-            className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm cursor-pointer"
-          >
-            <motion.div
-              onClick={(e) => e.stopPropagation()}
-              initial={{ scale: 0.85, opacity: 0, y: 15 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.85, opacity: 0, y: 15 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-              style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}
-              className="w-full max-w-md bg-surface-elevated border border-border/80 rounded-3xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto overscroll-contain touch-pan-y cursor-default"
+      {/* Interactive Pop-Edit Modal rendered via Portal to escape parent container transforms */}
+      {mounted && typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {editingItem && (
+            <div 
+              onClick={() => setEditingItem(null)}
+              className="fixed inset-0 z-[100000] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm cursor-pointer overflow-y-auto"
             >
-              <div className="flex items-center justify-between border-b border-border/60 pb-3">
-                <div className="flex items-center gap-3">
-                  <span className="text-3xl p-2 bg-secondary rounded-2xl">{editingItem.icon}</span>
-                  <div>
-                    <h3 className="text-sm font-black text-foreground">Edit Logged Food</h3>
-                    <p className="text-[11px] text-muted-foreground font-medium">Change grams, meal, or exact macros</p>
+              <motion.div
+                onClick={(e) => e.stopPropagation()}
+                initial={{ scale: 0.9, opacity: 0, y: 15 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 15 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+                style={{ WebkitOverflowScrolling: 'touch' }}
+                className="w-full max-w-md bg-surface-elevated border border-border/80 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 my-auto max-h-[88vh] overflow-y-auto overscroll-contain touch-pan-y cursor-default"
+              >
+                <div className="flex items-center justify-between border-b border-border/60 pb-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl p-2 bg-secondary rounded-2xl">{editingItem.icon}</span>
+                    <div>
+                      <h3 className="text-sm font-black text-foreground">Edit Logged Food</h3>
+                      <p className="text-[11px] text-muted-foreground font-medium">Change grams, meal, or exact macros</p>
+                    </div>
                   </div>
-                </div>
-                <button
-                  onClick={() => setEditingItem(null)}
-                  className="text-muted-foreground hover:text-foreground p-1 cursor-pointer"
-                >
-                  <Lucide.X size={18} />
-                </button>
-              </div>
-
-              <form onSubmit={handleSaveEdit} className="space-y-4">
-                {/* Food Name */}
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase">Dish Name</label>
-                  <input
-                    type="text"
-                    required
-                    maxLength={80}
-                    value={editName}
-                    onChange={e => setEditName(e.target.value)}
-                    className="w-full bg-secondary border border-border/60 rounded-xl px-3 py-2 text-foreground text-xs font-bold outline-none focus:border-primary"
-                  />
-                  {editName.length >= 80 && (
-                    <span className="text-[10px] text-amber-500 font-semibold block animate-fadeIn">
-                      Dish name limit reached (80/80)
-                    </span>
-                  )}
+                  <button
+                    onClick={() => setEditingItem(null)}
+                    className="text-muted-foreground hover:text-foreground p-1 cursor-pointer"
+                  >
+                    <Lucide.X size={18} />
+                  </button>
                 </div>
 
-                {/* Grams & Multiplier */}
-                <div className="grid grid-cols-2 gap-3">
+                <form onSubmit={handleSaveEdit} className="space-y-4">
+                  {/* Food Name */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase">
-                      Portion Grams (g)
-                    </label>
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase">Dish Name</label>
                     <input
-                      type="number"
-                      step="1"
-                      value={editGrams}
-                      onChange={e => handleEditGramsChange(e.target.value)}
-                      className="w-full bg-secondary border border-border/60 rounded-xl px-3 py-2 text-foreground text-xs font-mono font-bold outline-none focus:border-primary"
-                      placeholder="e.g. 150"
+                      type="text"
+                      required
+                      maxLength={80}
+                      value={editName}
+                      onChange={e => setEditName(e.target.value)}
+                      className="w-full bg-secondary border border-border/60 rounded-xl px-3 py-2 text-foreground text-xs font-bold outline-none focus:border-primary"
                     />
+                    {editName.length >= 80 && (
+                      <span className="text-[10px] text-amber-500 font-semibold block animate-fadeIn">
+                        Dish name limit reached (80/80)
+                      </span>
+                    )}
                   </div>
 
+                  {/* Grams & Multiplier */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase">
+                        Portion Grams (g)
+                      </label>
+                      <input
+                        type="number"
+                        step="1"
+                        value={editGrams}
+                        onChange={e => handleEditGramsChange(e.target.value)}
+                        className="w-full bg-secondary border border-border/60 rounded-xl px-3 py-2 text-foreground text-xs font-mono font-bold outline-none focus:border-primary"
+                        placeholder="e.g. 150"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase">
+                        Multiplier ({editQuantity}x)
+                      </label>
+                      <div className="flex gap-1">
+                        {[0.5, 1, 1.5, 2].map(q => (
+                          <button
+                            key={q}
+                            type="button"
+                            onClick={() => setEditQuantity(q)}
+                            className={`flex-1 py-2 rounded-xl text-xs font-bold font-mono border transition-all cursor-pointer ${
+                              editQuantity === q
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'bg-secondary text-muted-foreground border-border/60 hover:text-foreground'
+                            }`}
+                          >
+                            {q}x
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Meal Slot Switcher */}
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-muted-foreground uppercase">
-                      Multiplier ({editQuantity}x)
-                    </label>
-                    <div className="flex gap-1">
-                      {[0.5, 1, 1.5, 2].map(q => (
+                    <label className="text-[10px] font-bold text-muted-foreground uppercase">Meal Slot</label>
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {(['breakfast', 'lunch', 'dinner', 'snack'] as const).map(m => (
                         <button
-                          key={q}
+                          key={m}
                           type="button"
-                          onClick={() => setEditQuantity(q)}
-                          className={`flex-1 py-2 rounded-xl text-xs font-bold font-mono border transition-all cursor-pointer ${
-                            editQuantity === q
-                              ? 'bg-primary text-primary-foreground border-primary'
-                              : 'bg-secondary text-muted-foreground border-border/60 hover:text-foreground'
+                          onClick={() => setEditMeal(m)}
+                          className={`p-2 rounded-xl text-[10px] font-bold capitalize transition-all cursor-pointer border ${
+                            editMeal === m
+                              ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                              : 'bg-secondary text-foreground border-border/60 hover:bg-surface'
                           }`}
                         >
-                          {q}x
+                          {m}
                         </button>
                       ))}
                     </div>
                   </div>
-                </div>
 
-                {/* Meal Slot Switcher */}
-                <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-muted-foreground uppercase">Meal Slot</label>
-                  <div className="grid grid-cols-4 gap-1.5">
-                    {(['breakfast', 'lunch', 'dinner', 'snack'] as const).map(m => (
-                      <button
-                        key={m}
-                        type="button"
-                        onClick={() => setEditMeal(m)}
-                        className={`p-2 rounded-xl text-[10px] font-bold capitalize transition-all cursor-pointer border ${
-                          editMeal === m
-                            ? 'bg-primary text-primary-foreground border-primary shadow-sm'
-                            : 'bg-secondary text-foreground border-border/60 hover:bg-surface'
-                        }`}
-                      >
-                        {m}
-                      </button>
-                    ))}
+                  {/* Editable Macros */}
+                  <div className="grid grid-cols-4 gap-2">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-muted-foreground uppercase">Calories</label>
+                      <input
+                        type="number"
+                        value={editCalories}
+                        onChange={e => setEditCalories(e.target.value)}
+                        className="w-full bg-secondary border border-border/60 rounded-xl px-2 py-1.5 text-foreground text-xs font-mono font-black outline-none focus:border-primary"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-muted-foreground uppercase">Protein</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={editProtein}
+                        onChange={e => setEditProtein(e.target.value)}
+                        className="w-full bg-secondary border border-border/60 rounded-xl px-2 py-1.5 text-foreground text-xs font-mono font-bold outline-none focus:border-sky-400"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-muted-foreground uppercase">Carbs</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={editCarbs}
+                        onChange={e => setEditCarbs(e.target.value)}
+                        className="w-full bg-secondary border border-border/60 rounded-xl px-2 py-1.5 text-foreground text-xs font-mono font-bold outline-none focus:border-amber-400"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-muted-foreground uppercase">Fats</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={editFats}
+                        onChange={e => setEditFats(e.target.value)}
+                        className="w-full bg-secondary border border-border/60 rounded-xl px-2 py-1.5 text-foreground text-xs font-mono font-bold outline-none focus:border-rose-400"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {/* Editable Macros */}
-                <div className="grid grid-cols-4 gap-2">
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-muted-foreground uppercase">Calories</label>
-                    <input
-                      type="number"
-                      value={editCalories}
-                      onChange={e => setEditCalories(e.target.value)}
-                      className="w-full bg-secondary border border-border/60 rounded-xl px-2 py-1.5 text-foreground text-xs font-mono font-black outline-none focus:border-primary"
-                    />
+                  {/* Actions */}
+                  <div className="flex gap-2 pt-2 border-t border-border/60">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onRemoveFood(editingItem.id);
+                        setEditingItem(null);
+                      }}
+                      className="px-4 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-xl font-bold text-xs cursor-pointer transition-all"
+                    >
+                      Delete
+                    </button>
+                    <button
+                      type="submit"
+                      className="flex-1 py-2.5 bg-primary text-primary-foreground font-black text-xs rounded-xl shadow-md hover:bg-primary/90 cursor-pointer transition-all"
+                    >
+                      Save Changes
+                    </button>
                   </div>
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-muted-foreground uppercase">Protein</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={editProtein}
-                      onChange={e => setEditProtein(e.target.value)}
-                      className="w-full bg-secondary border border-border/60 rounded-xl px-2 py-1.5 text-foreground text-xs font-mono font-bold outline-none focus:border-sky-400"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-muted-foreground uppercase">Carbs</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={editCarbs}
-                      onChange={e => setEditCarbs(e.target.value)}
-                      className="w-full bg-secondary border border-border/60 rounded-xl px-2 py-1.5 text-foreground text-xs font-mono font-bold outline-none focus:border-amber-400"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-muted-foreground uppercase">Fats</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={editFats}
-                      onChange={e => setEditFats(e.target.value)}
-                      className="w-full bg-secondary border border-border/60 rounded-xl px-2 py-1.5 text-foreground text-xs font-mono font-bold outline-none focus:border-rose-400"
-                    />
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-2 pt-2 border-t border-border/60">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      onRemoveFood(editingItem.id);
-                      setEditingItem(null);
-                    }}
-                    className="px-4 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-xl font-bold text-xs cursor-pointer transition-all"
-                  >
-                    Delete
-                  </button>
-                  <button
-                    type="submit"
-                    className="flex-1 py-2.5 bg-primary text-primary-foreground font-black text-xs rounded-xl shadow-md hover:bg-primary/90 cursor-pointer transition-all"
-                  >
-                    Save Changes
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+                </form>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 }

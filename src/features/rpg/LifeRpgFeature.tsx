@@ -282,9 +282,9 @@ export default function LifeRpgFeature() {
   ];
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-3 duration-500 pb-20 select-none font-sans">
+    <div className="space-y-8 pb-20 select-none font-sans">
       {/* 1. Hero Holographic Character Crest */}
-      <div className="tile p-6 sm:p-8 rounded-3xl relative overflow-hidden border border-border/80 shadow-xl">
+      <div className="tile p-5 sm:p-8 rounded-3xl relative overflow-hidden border border-border/80 shadow-xl">
         {/* Background glow animation (disabled in Eco Mode) */}
         {!isEco && (
           <div className="absolute -top-20 -right-20 w-96 h-96 bg-primary/20 rounded-full blur-[100px] pointer-events-none animate-pulse" />
@@ -295,8 +295,8 @@ export default function LifeRpgFeature() {
 
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
           {/* Character Identity */}
-          <div className="flex items-center gap-5">
-            <div className="relative">
+          <div className="flex items-center gap-4 sm:gap-5">
+            <div className="relative shrink-0">
               {/* Hologram Rings (disabled in eco mode) */}
               {!isEco && (
                 <motion.div
@@ -305,37 +305,37 @@ export default function LifeRpgFeature() {
                   transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
                 />
               )}
-              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-surface-elevated border-2 border-primary/40 flex items-center justify-center text-primary shadow-2xl relative overflow-hidden group">
-                <Lucide.Crown size={42} className={!isEco ? "animate-bounce-subtle" : ""} />
+              <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-3xl bg-surface-elevated border-2 border-primary/40 flex items-center justify-center text-primary shadow-2xl relative overflow-hidden group shrink-0">
+                <Lucide.Crown size={34} className={!isEco ? "animate-bounce-subtle" : ""} />
                 <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded-md bg-primary text-primary-foreground text-[9px] font-black uppercase tracking-wider">
                   Lv.{currentLevel}
                 </div>
               </div>
             </div>
 
-            <div className="space-y-1">
-              <div className="flex flex-wrap items-center gap-2.5">
-                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground capitalize">
+            <div className="space-y-1.5 min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-xl sm:text-3xl font-black tracking-tight text-foreground capitalize">
                   {settings.alias || 'Shadow'}
                 </h1>
-                <span className="filter-pill text-xs font-black text-primary border-primary/40 bg-primary/10 shadow-xs">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black text-primary border border-primary/40 bg-primary/10 shadow-xs shrink-0">
                   Level {currentLevel} / 100
                 </span>
                 <button
                   type="button"
                   onClick={() => setShowAscensionModal(true)}
-                  className="btn-glass-pill text-[11px] font-bold text-amber-400 border-amber-500/30 hover:border-amber-400 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold text-amber-400 border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 hover:border-amber-400 transition-all cursor-pointer shrink-0 shadow-xs"
                 >
-                  <Lucide.Sparkles size={13} className="text-amber-400" />
+                  <Lucide.Sparkles size={12} className="text-amber-400 shrink-0" />
                   <span>Ascension Perks</span>
                 </button>
               </div>
 
-              <p className="text-sm font-extrabold text-primary/90 tracking-wide">
+              <p className="text-xs sm:text-sm font-extrabold text-primary/90 tracking-wide">
                 {characterTitle}
               </p>
 
-              <p className="text-xs text-muted-foreground font-medium">
+              <p className="text-[11px] sm:text-xs text-muted-foreground font-medium">
                 Lifetime XP: <strong className="text-foreground font-mono">{lifetimeXp.toLocaleString()}</strong> • 4-Pillar Life OS
               </p>
             </div>

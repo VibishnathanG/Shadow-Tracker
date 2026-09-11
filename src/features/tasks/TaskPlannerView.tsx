@@ -197,11 +197,11 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
           </div>
 
           {/* Navigation Button Group - No Outer Rectangle */}
-          <div className="flex items-center shrink-0">
+          <div className="flex items-center gap-1 shrink-0">
             <button
               type="button"
               onClick={handlePrev}
-              className="p-1 text-muted-foreground hover:text-foreground rounded-xl hover:bg-secondary/60 transition-colors cursor-pointer border-0 outline-none ring-0 focus:outline-none"
+              className="p-1.5 text-muted-foreground hover:text-foreground rounded-full hover:bg-secondary/60 transition-colors cursor-pointer border-0 outline-none ring-0 focus:outline-none"
               title="Previous period"
             >
               <Lucide.ChevronLeft size={15} />
@@ -209,14 +209,14 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
             <button
               type="button"
               onClick={handleToday}
-              className="px-2.5 py-0.5 text-[10.5px] font-black uppercase tracking-wider text-foreground hover:text-primary transition-colors cursor-pointer border-0 outline-none ring-0 focus:outline-none"
+              className="filter-pill text-xs py-1 px-3.5 rounded-full font-bold uppercase cursor-pointer"
             >
               Today
             </button>
             <button
               type="button"
               onClick={handleNext}
-              className="p-1 text-muted-foreground hover:text-foreground rounded-xl hover:bg-secondary/60 transition-colors cursor-pointer border-0 outline-none ring-0 focus:outline-none"
+              className="p-1.5 text-muted-foreground hover:text-foreground rounded-full hover:bg-secondary/60 transition-colors cursor-pointer border-0 outline-none ring-0 focus:outline-none"
               title="Next period"
             >
               <Lucide.ChevronRight size={15} />

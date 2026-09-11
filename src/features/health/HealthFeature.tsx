@@ -578,7 +578,17 @@ export default function HealthFeature() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleAddWater(-250)}
+                  disabled={currentData.waterIntakeMl <= 0}
+                  className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-elevated/90 border border-border/80 text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-secondary transition-all cursor-pointer disabled:opacity-30 disabled:pointer-events-none shadow-xs"
+                  title="Undo last drink (-250 ml)"
+                >
+                  <Lucide.Undo2 size={12} className="text-sky-400" />
+                  <span>Undo</span>
+                </button>
                 <span className="text-xs font-black font-mono px-3 py-1 rounded-full bg-sky-500/15 text-sky-400 border border-sky-500/30">
                   {waterPct}% Reached
                 </span>
@@ -648,34 +658,39 @@ export default function HealthFeature() {
 
                 {/* Custom ml input with quick-fill chips */}
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
                     <input
                       type="number"
                       placeholder="Add custom ml (e.g. 350)..."
                       value={customWaterMl}
                       onChange={(e) => setCustomWaterMl(e.target.value)}
-                      className="flex-1 text-xs font-bold px-3 py-2 bg-secondary text-foreground rounded-xl border border-border/60 outline-none focus:border-sky-400"
+                      className="flex-1 min-w-[130px] text-xs font-bold px-3 py-2 bg-secondary text-foreground rounded-xl border border-border/60 outline-none focus:border-sky-400"
                     />
-                    <button
-                      onClick={() => {
-                        const amt = parseInt(customWaterMl, 10);
-                        if (!isNaN(amt) && amt > 0) {
-                          handleAddWater(amt);
-                          setCustomWaterMl('');
-                        }
-                      }}
-                      className="px-4 py-2 bg-sky-500 text-white text-xs font-black rounded-xl shadow-sm hover:bg-sky-600 transition-all cursor-pointer"
-                    >
-                      Add Water
-                    </button>
-                    <button
-                      onClick={() => handleAddWater(-250)}
-                      disabled={currentData.waterIntakeMl <= 0}
-                      className="px-3 py-2 bg-secondary hover:bg-secondary/80 text-muted-foreground text-xs font-bold rounded-xl border border-border/60 transition-all cursor-pointer disabled:opacity-40"
-                      title="Undo last sip (-250 ml)"
-                    >
-                      <Lucide.Undo2 size={14} />
-                    </button>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const amt = parseInt(customWaterMl, 10);
+                          if (!isNaN(amt) && amt > 0) {
+                            handleAddWater(amt);
+                            setCustomWaterMl('');
+                          }
+                        }}
+                        className="px-3.5 py-2 bg-sky-500 text-white text-xs font-black rounded-xl shadow-sm hover:bg-sky-600 transition-all cursor-pointer"
+                      >
+                        Add Water
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleAddWater(-250)}
+                        disabled={currentData.waterIntakeMl <= 0}
+                        className="flex items-center gap-1 px-3 py-2 bg-secondary hover:bg-secondary/80 text-muted-foreground hover:text-foreground text-xs font-bold rounded-xl border border-border/60 transition-all cursor-pointer disabled:opacity-40"
+                        title="Undo last sip (-250 ml)"
+                      >
+                        <Lucide.Undo2 size={14} />
+                        <span className="sm:hidden">Undo</span>
+                      </button>
+                    </div>
                   </div>
 
                   {/* Quick-fill chips */}

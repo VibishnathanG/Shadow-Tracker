@@ -578,14 +578,10 @@ export default function MoneyFeature() {
 
   return (
     <>
-      <motion.div 
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="space-y-6 relative pb-16"
-      >
+      <div className="space-y-6 relative pb-16">
         {/* Header Tile */}
-        <div className="tile settings-tile p-3.5 sm:p-5 rounded-3xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative overflow-hidden">
-          <div className="flex flex-wrap items-center gap-3 sm:gap-4 relative z-10 w-full sm:w-auto">
+        <div className="tile settings-tile p-3.5 sm:p-5 rounded-3xl flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 relative overflow-hidden">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4 relative z-10">
             <div className="flex items-center gap-2.5 shrink-0">
               <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-500 shadow-sm shrink-0">
                 <Lucide.Wallet size={18} />
@@ -612,16 +608,7 @@ export default function MoneyFeature() {
                     const [y, m] = e.target.value.split('-').map(Number);
                     setCurrentDate(new Date(y, m - 1, 1));
                   }}
-                  style={{
-                    WebkitAppearance: 'none',
-                    MozAppearance: 'none',
-                    appearance: 'none',
-                    background: 'transparent',
-                    border: 'none',
-                    outline: 'none',
-                    boxShadow: 'none'
-                  }}
-                  className="pl-2 pr-6 py-1 font-mono text-xs font-black uppercase tracking-wider text-foreground cursor-pointer hover:text-primary transition-colors text-center"
+                  className="pl-2 pr-6 py-1 font-mono text-xs font-black uppercase tracking-wider text-foreground cursor-pointer hover:text-primary transition-colors text-center appearance-none bg-transparent border-none outline-none shadow-none"
                   title="Select Month"
                 >
                   {availableMonths.map(m => (
@@ -643,35 +630,20 @@ export default function MoneyFeature() {
                 <Lucide.ChevronRight size={13} />
               </button>
             </div>
-
-            {/* Subscriptions button on mobile */}
-            <div className="sm:hidden">
-              <button 
-                onClick={() => setActiveSubModal('subscriptions')}
-                className="px-2.5 py-1.5 bg-purple-500/15 hover:bg-purple-500/25 border border-purple-500/30 text-purple-400 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
-                title="Subscriptions"
-              >
-                <Lucide.Repeat size={13} />
-                <span>Subs</span>
-                {(stats.subscriptions || []).length > 0 && (
-                  <span className="bg-purple-500 text-white px-1.5 py-0.2 text-[9px] font-mono rounded-full">
-                    {(stats.subscriptions || []).length}
-                  </span>
-                )}
-              </button>
-            </div>
           </div>
 
-          {/* Desktop Subscriptions button */}
-          <div className="hidden sm:flex items-center gap-2 relative z-10">
+          {/* Unified Subscription button (Mobile & Desktop) */}
+          <div className="flex items-center gap-2 relative z-10 shrink-0">
             <button 
+              type="button"
               onClick={() => setActiveSubModal('subscriptions')}
-              className="px-3.5 py-1.5 bg-purple-500/15 hover:bg-purple-500/25 border border-purple-500/30 text-purple-400 text-xs font-extrabold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+              className="px-3 py-1.5 bg-purple-500/15 hover:bg-purple-500/25 border border-purple-500/30 text-purple-400 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shrink-0 shadow-xs"
+              title="Subscription"
             >
-              <Lucide.Repeat size={14} />
-              <span>Subscriptions</span>
+              <Lucide.Repeat size={13} className="shrink-0" />
+              <span>Subscription</span>
               {(stats.subscriptions || []).length > 0 && (
-                <span className="bg-purple-500 text-white px-1.5 py-0.2 text-[10px] rounded-full">
+                <span className="bg-purple-500 text-white px-1.5 py-0.2 text-[9px] font-mono rounded-full shrink-0">
                   {(stats.subscriptions || []).length}
                 </span>
               )}
@@ -1141,7 +1113,7 @@ export default function MoneyFeature() {
             </ResponsiveContainer>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Modals Portal */}
       {mounted && typeof window !== 'undefined' && createPortal(

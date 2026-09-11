@@ -398,7 +398,7 @@ button.bg-sky-500,
 .btn-primary-glass {
   background: linear-gradient(135deg, color-mix(in srgb, var(--accent-primary) 90%, white 10%) 0%, var(--accent-primary) 100%) !important;
   border: 1px solid color-mix(in srgb, var(--accent-primary) 65%, rgba(255, 255, 255, 0.35)) !important;
-  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.35), 0 4px 16px -2px color-mix(in srgb, var(--accent-primary) 40%, transparent) !important;
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.35), 0 2px 8px -1px color-mix(in srgb, var(--accent-primary) 20%, transparent) !important;
   color: #ffffff !important;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
@@ -407,7 +407,7 @@ button.bg-primary:hover,
 button.bg-sky-500:hover,
 .btn-primary-glass:hover {
   background: linear-gradient(135deg, color-mix(in srgb, var(--accent-primary-hover) 88%, white 12%) 0%, var(--accent-primary-hover) 100%) !important;
-  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.45), 0 6px 20px -2px color-mix(in srgb, var(--accent-primary) 55%, transparent) !important;
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.45), 0 3px 10px -1px color-mix(in srgb, var(--accent-primary) 28%, transparent) !important;
   transform: translateY(-1px);
 }
 
@@ -465,31 +465,31 @@ button.bg-sky-500:hover,
 .theme-purple .domain-power,
 .theme-purple [data-domain="power"] {
   border-color: rgba(249, 115, 22, 0.38) !important;
-  box-shadow: inset 0 1px 0 0 rgba(249, 115, 22, 0.2), 0 4px 20px -2px rgba(249, 115, 22, 0.15) !important;
+  box-shadow: inset 0 1px 0 0 rgba(249, 115, 22, 0.15), 0 2px 10px -1px rgba(249, 115, 22, 0.08) !important;
 }
 
 .theme-purple .domain-wisdom,
 .theme-purple [data-domain="wisdom"] {
   border-color: rgba(168, 85, 247, 0.38) !important;
-  box-shadow: inset 0 1px 0 0 rgba(168, 85, 247, 0.2), 0 4px 20px -2px rgba(168, 85, 247, 0.15) !important;
+  box-shadow: inset 0 1px 0 0 rgba(168, 85, 247, 0.15), 0 2px 10px -1px rgba(168, 85, 247, 0.08) !important;
 }
 
 .theme-purple .domain-wealth,
 .theme-purple [data-domain="wealth"] {
   border-color: rgba(245, 158, 11, 0.38) !important;
-  box-shadow: inset 0 1px 0 0 rgba(245, 158, 11, 0.2), 0 4px 20px -2px rgba(245, 158, 11, 0.15) !important;
+  box-shadow: inset 0 1px 0 0 rgba(245, 158, 11, 0.15), 0 2px 10px -1px rgba(245, 158, 11, 0.08) !important;
 }
 
 .theme-purple .domain-tech,
 .theme-purple [data-domain="tech"] {
   border-color: rgba(6, 182, 212, 0.38) !important;
-  box-shadow: inset 0 1px 0 0 rgba(6, 182, 212, 0.2), 0 4px 20px -2px rgba(6, 182, 212, 0.15) !important;
+  box-shadow: inset 0 1px 0 0 rgba(6, 182, 212, 0.15), 0 2px 10px -1px rgba(6, 182, 212, 0.08) !important;
 }
 
 .theme-purple .domain-vitality,
 .theme-purple [data-domain="vitality"] {
   border-color: rgba(16, 185, 129, 0.38) !important;
-  box-shadow: inset 0 1px 0 0 rgba(16, 185, 129, 0.2), 0 4px 20px -2px rgba(16, 185, 129, 0.15) !important;
+  box-shadow: inset 0 1px 0 0 rgba(16, 185, 129, 0.15), 0 2px 10px -1px rgba(16, 185, 129, 0.08) !important;
 }
 
 
@@ -1098,7 +1098,7 @@ html.theme-cyberpunk body {
   color: #ffffff !important;
   border-left: 3.5px solid var(--accent-primary) !important;
   border-radius: 0 var(--radius-md) var(--radius-md) 0 !important;
-  box-shadow: 0 4px 14px -3px color-mix(in srgb, var(--accent-primary) 30%, transparent) !important;
+  box-shadow: 0 2px 7px -2px color-mix(in srgb, var(--accent-primary) 15%, transparent) !important;
   font-weight: 700;
 }
 .nav-item.active svg,
@@ -1106,7 +1106,7 @@ html.theme-cyberpunk body {
   color: #ffffff !important;
   stroke: #ffffff !important;
   opacity: 1 !important;
-  filter: drop-shadow(0 0 6px var(--accent-primary));
+  filter: drop-shadow(0 0 3px var(--accent-primary));
 }
 .nav-item.active span,
 .nav-item[data-active="true"] span {
@@ -1174,7 +1174,7 @@ html.theme-light .filter-pill.active {
   background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
   color: #ffffff !important;
   border-color: #1d4ed8 !important;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25) !important;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.12) !important;
   text-shadow: none !important;
 }
 
@@ -1236,7 +1236,7 @@ html[data-theme="cyberpunk"] .text-muted-foreground {
   background-color: color-mix(in srgb, var(--bg-surface-elevated) 85%, transparent);
   color: var(--text-primary);
   border-color: var(--border-focus);
-  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.22), 0 4px 12px rgba(0, 0, 0, 0.20);
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.22), 0 2px 6px rgba(0, 0, 0, 0.10);
   transform: translateY(-1px);
 }
 .filter-pill.active,
@@ -1246,7 +1246,7 @@ html[data-theme="cyberpunk"] .text-muted-foreground {
   background: linear-gradient(135deg, color-mix(in srgb, var(--accent-primary) 90%, white 10%) 0%, var(--accent-primary) 100%) !important;
   color: #ffffff !important;
   border-color: color-mix(in srgb, var(--accent-primary) 70%, rgba(255, 255, 255, 0.35)) !important;
-  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.42), 0 4px 16px -2px color-mix(in srgb, var(--accent-primary) 45%, transparent) !important;
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.42), 0 2px 8px -1px color-mix(in srgb, var(--accent-primary) 22%, transparent) !important;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
   transform: translateY(-1px);
 }
@@ -1291,7 +1291,7 @@ html.theme-cyberpunk button.active:not(.nav-item) {
   background-color: #fb7185 !important;
   color: #ffffff !important;
   border-color: #f43f5e !important;
-  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.35), 0 4px 14px -2px rgba(244, 63, 94, 0.35) !important;
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.35), 0 2px 7px -1px rgba(244, 63, 94, 0.18) !important;
 }
 
 /* 2. Form Controls, Inputs, Selects, and Switch Toggles */
@@ -1698,7 +1698,7 @@ body {
 .mobile-nav-btn.active {
   background: linear-gradient(135deg, color-mix(in srgb, var(--accent-primary) 28%, transparent) 0%, color-mix(in srgb, var(--accent-primary) 10%, transparent) 100%) !important;
   border: 1px solid color-mix(in srgb, var(--accent-primary) 55%, rgba(255, 255, 255, 0.25)) !important;
-  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.3), 0 4px 14px -2px color-mix(in srgb, var(--accent-primary) 40%, transparent) !important;
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.3), 0 2px 7px -1px color-mix(in srgb, var(--accent-primary) 20%, transparent) !important;
   color: #ffffff !important;
   transform: scale(1.02);
 }
@@ -1706,7 +1706,7 @@ body {
 .mobile-nav-btn.active svg {
   color: #ffffff !important;
   stroke: #ffffff !important;
-  filter: drop-shadow(0 0 6px var(--accent-primary));
+  filter: drop-shadow(0 0 3px var(--accent-primary));
 }
 
 .mobile-nav-btn.active span {
@@ -1780,7 +1780,7 @@ body.modal-open {
   align-items: center;
   justify-content: center;
   color: #ffffff;
-  box-shadow: 0 4px 16px -2px color-mix(in srgb, var(--accent-primary) 55%, transparent),
+  box-shadow: 0 2px 8px -1px color-mix(in srgb, var(--accent-primary) 28%, transparent),
               inset 0 1px 1px 0 rgba(255, 255, 255, 0.45);
   border: 1.5px solid color-mix(in srgb, var(--accent-primary) 50%, rgba(255, 255, 255, 0.4));
   transform: translateY(-8px);
@@ -1789,7 +1789,7 @@ body.modal-open {
 
 .mobile-nav-btn-center:hover .center-search-icon-wrapper {
   transform: translateY(-10px) scale(1.06);
-  box-shadow: 0 6px 20px -2px color-mix(in srgb, var(--accent-primary) 70%, transparent),
+  box-shadow: 0 3px 10px -1px color-mix(in srgb, var(--accent-primary) 35%, transparent),
               inset 0 1px 1px 0 rgba(255, 255, 255, 0.6);
 }
 

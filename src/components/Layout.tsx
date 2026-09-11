@@ -278,7 +278,7 @@ export const Layout: React.FC<LayoutProps> = ({
             <div>
               <h1 className="text-base sm:text-lg font-black tracking-tight leading-tight">
                 <span className="text-primary">{settings.alias ? settings.alias.charAt(0).toUpperCase() + settings.alias.slice(1) : 'Shadow'}</span>
-                <span className="text-white [html[data-theme='white']_&]:text-foreground [html[data-theme='light']_&]:text-foreground">-Tracker</span>
+                <span className="text-white [html[data-theme='white']_&]:text-foreground [html[data-theme='light']_&]:text-foreground"> Tracker</span>
               </h1>
               <span 
                 style={{ fontSize: '7px', lineHeight: '9px' }}
@@ -418,7 +418,7 @@ export const Layout: React.FC<LayoutProps> = ({
             <div className="flex flex-col">
               <span className="text-sm sm:text-base font-black tracking-tight leading-tight">
                 <span className="text-primary">{settings.alias ? settings.alias.charAt(0).toUpperCase() + settings.alias.slice(1) : 'Shadow'}</span>
-                <span className="text-white [html[data-theme='white']_&]:text-foreground [html[data-theme='light']_&]:text-foreground">-Tracker</span>
+                <span className="text-white [html[data-theme='white']_&]:text-foreground [html[data-theme='light']_&]:text-foreground"> Tracker</span>
               </span>
               <span 
                 style={{ fontSize: '6.5px', lineHeight: '8px' }}
