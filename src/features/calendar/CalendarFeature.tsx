@@ -190,11 +190,11 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
             <h2 className="text-lg sm:text-xl font-black tracking-tight min-w-[120px] text-center text-foreground">
               {format(currentViewDate, viewMode === 'month' ? 'MMMM yyyy' : 'MMM yyyy')}
             </h2>
-            <div className="flex items-center bg-surface-elevated border border-border/80 rounded-2xl p-0.5 shadow-xs shrink-0">
+            <div className="flex items-center shrink-0">
               <button
                 type="button"
                 onClick={handlePrev}
-                className="p-1.5 text-muted-foreground hover:text-foreground rounded-xl hover:bg-surface transition-colors cursor-pointer"
+                className="p-1.5 text-muted-foreground hover:text-foreground rounded-xl hover:bg-secondary/60 transition-colors cursor-pointer border-0 outline-none ring-0 focus:outline-none"
                 title="Previous period"
               >
                 <Lucide.ChevronLeft size={16} />
@@ -202,14 +202,14 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
               <button
                 type="button"
                 onClick={handleToday}
-                className="px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider text-foreground hover:text-primary transition-colors cursor-pointer"
+                className="px-2.5 py-1 text-[11px] font-extrabold uppercase tracking-wider text-foreground hover:text-primary transition-colors cursor-pointer border-0 outline-none ring-0 focus:outline-none"
               >
                 Today
               </button>
               <button
                 type="button"
                 onClick={handleNext}
-                className="p-1.5 text-muted-foreground hover:text-foreground rounded-xl hover:bg-surface transition-colors cursor-pointer"
+                className="p-1.5 text-muted-foreground hover:text-foreground rounded-xl hover:bg-secondary/60 transition-colors cursor-pointer border-0 outline-none ring-0 focus:outline-none"
                 title="Next period"
               >
                 <Lucide.ChevronRight size={16} />

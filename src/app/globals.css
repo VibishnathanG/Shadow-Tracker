@@ -112,14 +112,7 @@ html.low-gpu-mode .animate-pulse-slow {
   animation: none !important;
 }
 
-/* Completely unmount rendering tree from GPU & Chromium layout when minimized to system tray */
-html.is-hidden main, html.is-hidden #raw-critical-splash, html.is-hidden .tile {
-  display: none !important;
-  visibility: hidden !important;
-  opacity: 0 !important;
-  content-visibility: hidden !important;
-}
-/* Halt framer-motion GPU layers when hidden — prevents idle GPU compositing */
+/* Halt framer-motion GPU layers when hidden or in eco mode — prevents idle GPU compositing */
 html.is-hidden [style*="transform"], html.eco-mode [style*="transform"], html.low-gpu-mode [style*="transform"] {
   will-change: auto !important;
 }

@@ -11,7 +11,6 @@ static MINIMIZE_TO_TRAY: AtomicBool = AtomicBool::new(true);
 #[tauri::command]
 fn set_eco_mode(app: tauri::AppHandle, enabled: bool) -> Result<(), String> {
     ECO_MODE.store(enabled, Ordering::Relaxed);
-    let _ = app.emit("shadow-eco-mode", serde_json::json!({ "enabled": enabled }));
     let _ = app.emit("shadow-tray-eco-toggle", serde_json::json!({ "ecoMode": enabled }));
     Ok(())
 }
@@ -104,7 +103,6 @@ pub fn run() {
                         let next_val = !current;
                         ECO_MODE.store(next_val, Ordering::Relaxed);
                         let _ = app.emit("shadow-tray-eco-toggle", serde_json::json!({ "ecoMode": next_val }));
-                        let _ = app.emit("shadow-eco-mode", serde_json::json!({ "enabled": next_val }));
                     }
                     "quit" => {
                         app.exit(0);

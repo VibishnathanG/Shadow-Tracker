@@ -196,12 +196,12 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
             </button>
           </div>
 
-          {/* Navigation Pill Group - Single Enclosing Capsule */}
-          <div className="flex items-center bg-surface-elevated px-1 py-0.5 rounded-2xl border border-border/80 shadow-xs shrink-0">
+          {/* Navigation Button Group - No Outer Rectangle */}
+          <div className="flex items-center shrink-0">
             <button
               type="button"
               onClick={handlePrev}
-              className="p-1 text-muted-foreground hover:text-foreground rounded-xl hover:bg-surface transition-colors cursor-pointer"
+              className="p-1 text-muted-foreground hover:text-foreground rounded-xl hover:bg-secondary/60 transition-colors cursor-pointer border-0 outline-none ring-0 focus:outline-none"
               title="Previous period"
             >
               <Lucide.ChevronLeft size={15} />
@@ -209,14 +209,14 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
             <button
               type="button"
               onClick={handleToday}
-              className="px-2.5 py-0.5 text-[10.5px] font-black uppercase tracking-wider text-foreground hover:text-primary transition-colors cursor-pointer"
+              className="px-2.5 py-0.5 text-[10.5px] font-black uppercase tracking-wider text-foreground hover:text-primary transition-colors cursor-pointer border-0 outline-none ring-0 focus:outline-none"
             >
               Today
             </button>
             <button
               type="button"
               onClick={handleNext}
-              className="p-1 text-muted-foreground hover:text-foreground rounded-xl hover:bg-surface transition-colors cursor-pointer"
+              className="p-1 text-muted-foreground hover:text-foreground rounded-xl hover:bg-secondary/60 transition-colors cursor-pointer border-0 outline-none ring-0 focus:outline-none"
               title="Next period"
             >
               <Lucide.ChevronRight size={15} />

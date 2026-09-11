@@ -615,17 +615,6 @@ export const ThemeAmbientBackground: React.FC<ThemeAmbientBackgroundProps> = Rea
     // Listen for Tauri native window backgrounding / eco mode event
     if (typeof window !== 'undefined' && ((window as any).__TAURI__ || (window as any).__TAURI_INTERNALS__)) {
       import('@tauri-apps/api/event').then(({ listen }) => {
-        listen<{ enabled: boolean }>('shadow-eco-mode', (e) => {
-          if (e.payload && typeof e.payload.enabled === 'boolean') {
-            setIsHidden(e.payload.enabled);
-            if (e.payload.enabled) {
-              document.documentElement.classList.add('is-hidden');
-            } else {
-              document.documentElement.classList.remove('is-hidden');
-            }
-          }
-        }).catch(() => {});
-
         listen<{ ecoMode: boolean }>('shadow-tray-eco-toggle', (e) => {
           if (e.payload && typeof e.payload.ecoMode === 'boolean') {
             useShadowTrackerStore.getState().updateSettings({
