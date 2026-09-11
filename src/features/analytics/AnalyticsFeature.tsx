@@ -570,30 +570,33 @@ const HabitsMonthlyGridCard: React.FC = () => {
             </select>
           </div>
 
-          <div className="flex items-center bg-surface-elevated border border-border/80 rounded-2xl p-0.5 shadow-xs shrink-0">
+          <div className="flex items-center gap-1 bg-surface-elevated/90 border border-border/80 rounded-2xl p-1 shadow-xs shrink-0">
             <button
+              type="button"
               onClick={prevMonth}
-              className="p-1.5 hover:bg-secondary text-muted-foreground hover:text-foreground rounded-xl transition-all cursor-pointer"
+              className="p-1.5 hover:bg-secondary text-muted-foreground hover:text-foreground rounded-full transition-all cursor-pointer border-0 outline-none ring-0 focus:outline-none"
               title="Previous Month"
             >
-              <Lucide.ChevronLeft size={16} />
+              <Lucide.ChevronLeft size={15} />
             </button>
             <button
+              type="button"
               onClick={resetToToday}
-              className="px-2.5 py-1 text-xs font-black text-foreground hover:text-primary transition-all uppercase tracking-wider cursor-pointer"
+              className="filter-pill text-xs py-1 px-3.5 rounded-full font-bold uppercase cursor-pointer"
               title="Jump to Today"
             >
               Today
             </button>
-            <span className="text-xs font-extrabold px-3 text-foreground tracking-wider uppercase border-l border-border/60">
+            <span className="text-xs font-extrabold px-2.5 text-foreground tracking-wider uppercase border-l border-border/60">
               {format(currentMonthDate, 'MMMM yyyy')}
             </span>
             <button
+              type="button"
               onClick={nextMonth}
-              className="p-1.5 hover:bg-secondary text-muted-foreground hover:text-foreground rounded-xl transition-all cursor-pointer"
+              className="p-1.5 hover:bg-secondary text-muted-foreground hover:text-foreground rounded-full transition-all cursor-pointer border-0 outline-none ring-0 focus:outline-none"
               title="Next Month"
             >
-              <Lucide.ChevronRight size={16} />
+              <Lucide.ChevronRight size={15} />
             </button>
           </div>
         </div>
