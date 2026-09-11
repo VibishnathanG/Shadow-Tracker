@@ -589,27 +589,28 @@ export default function MoneyFeature() {
               <h1 className="text-base sm:text-lg font-black tracking-tight text-foreground leading-tight">Wealth</h1>
             </div>
 
-            {/* Month Switcher Segment - Sleek Circular Pill Style */}
-            <div className="flex items-center gap-1.5 p-1 bg-surface-elevated/90 border border-border/70 rounded-full shadow-xs shrink-0">
+            {/* Month Switcher Segment - 1 Neat and Clean Outer Rectangle */}
+            <div className="flex items-center gap-1 px-1.5 py-1 bg-surface-elevated/90 border border-border/80 rounded-xl shadow-xs shrink-0">
               <button
                 type="button"
                 onClick={prevMonth}
-                className="w-7 h-7 rounded-full bg-secondary/80 hover:bg-secondary border border-border/60 hover:border-primary/40 text-muted-foreground hover:text-foreground flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95 shrink-0"
+                className="w-7 h-7 rounded-lg hover:bg-secondary/70 text-muted-foreground hover:text-foreground flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
                 title="Previous Month"
                 aria-label="Previous Month"
               >
-                <Lucide.ChevronLeft size={13} />
+                <Lucide.ChevronLeft size={14} />
               </button>
 
-              <div className="relative flex items-center px-3 py-1 bg-secondary/80 hover:bg-secondary border border-border/60 hover:border-primary/40 rounded-full transition-all shadow-xs cursor-pointer group">
-                <Lucide.Calendar size={11} className="text-primary mr-1.5 shrink-0" />
+              <div className="relative flex items-center px-1.5 py-0.5 cursor-pointer group">
+                <Lucide.Calendar size={13} className="text-primary mr-1.5 shrink-0 pointer-events-none" />
                 <select
                   value={currentMonthStr}
                   onChange={(e) => {
                     const [y, m] = e.target.value.split('-').map(Number);
                     setCurrentDate(new Date(y, m - 1, 1));
                   }}
-                  className="pr-4 py-0.5 font-mono text-xs font-black uppercase tracking-wider text-foreground cursor-pointer group-hover:text-primary transition-colors text-center appearance-none bg-transparent border-none outline-none shadow-none"
+                  className="pr-4 py-0.5 font-mono text-xs font-black uppercase tracking-wider text-foreground cursor-pointer group-hover:text-primary transition-colors appearance-none bg-transparent border-0 outline-none shadow-none ring-0 focus:ring-0 focus:outline-none"
+                  style={{ border: 'none', outline: 'none', boxShadow: 'none', background: 'transparent' }}
                   title="Select Month"
                 >
                   {availableMonths.map(m => (
@@ -618,17 +619,17 @@ export default function MoneyFeature() {
                     </option>
                   ))}
                 </select>
-                <Lucide.ChevronDown size={11} className="text-muted-foreground pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 group-hover:text-primary transition-colors" />
+                <Lucide.ChevronDown size={11} className="text-muted-foreground pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 group-hover:text-primary transition-colors" />
               </div>
 
               <button
                 type="button"
                 onClick={nextMonth}
-                className="w-7 h-7 rounded-full bg-secondary/80 hover:bg-secondary border border-border/60 hover:border-primary/40 text-muted-foreground hover:text-foreground flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95 shrink-0"
+                className="w-7 h-7 rounded-lg hover:bg-secondary/70 text-muted-foreground hover:text-foreground flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
                 title="Next Month"
                 aria-label="Next Month"
               >
-                <Lucide.ChevronRight size={13} />
+                <Lucide.ChevronRight size={14} />
               </button>
             </div>
           </div>

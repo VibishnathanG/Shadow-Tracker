@@ -575,6 +575,7 @@ const DEFAULT_SETTINGS: Settings = {
   ecoMode: false,
   minimizeToTray: true,
   habitGracePeriodDays: 3,
+  alias: 'Shadow',
 };
 
 export const settingsStorage = {
@@ -587,15 +588,22 @@ export const settingsStorage = {
         const parsed = JSON.parse(stored);
         const hasExplicitEco = typeof parsed.ecoMode === 'boolean';
         const finalEco = hasExplicitEco ? parsed.ecoMode : (isMobile ? true : false);
+        let rawAlias = typeof parsed.alias === 'string' ? parsed.alias.trim() : '';
+        if (!rawAlias || rawAlias === 'Shadow Legend') {
+          rawAlias = 'Shadow';
+        }
+        const finalAlias = rawAlias.slice(0, 10);
         return {
           ...DEFAULT_SETTINGS,
           ...parsed,
+          alias: finalAlias,
           ecoMode: finalEco,
           lowGpuMode: typeof parsed.lowGpuMode === 'boolean' ? parsed.lowGpuMode : finalEco,
         };
       } else {
         return {
           ...DEFAULT_SETTINGS,
+          alias: 'Shadow',
           ecoMode: isMobile,
           lowGpuMode: isMobile,
         };

@@ -215,7 +215,7 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
         xp: 0,
         level: 1,
         unlockedBadges: [],
-        alias: '',
+        alias: 'Shadow',
         savingsTarget: 0,
         investmentsTarget: 0,
         badgesResetTimestamp: new Date().toISOString(),
@@ -896,9 +896,14 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
       modeUpdates = { activeSyncMode: 'none' };
     }
 
+    const sanitizedUpdates = { ...updates };
+    if (typeof sanitizedUpdates.alias === 'string') {
+      sanitizedUpdates.alias = sanitizedUpdates.alias.slice(0, 10);
+    }
+
     const updatedSettings = {
       ...get().settings,
-      ...updates,
+      ...sanitizedUpdates,
       ...modeUpdates,
     };
     settingsStorage.set(updatedSettings);

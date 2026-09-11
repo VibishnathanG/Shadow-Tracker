@@ -1043,16 +1043,25 @@ export const SettingsFeature: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col gap-2 pt-4 border-t border-border">
-                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Operator Alias</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Operator Alias</span>
+                    <span className="text-[10px] font-mono text-muted-foreground">
+                      {(settings.alias !== undefined ? settings.alias : 'Shadow').length}/10
+                    </span>
+                  </div>
                   <input 
                     type="text" 
-                    maxLength={30}
-                    value={settings.alias !== undefined ? settings.alias : ''} 
-                    onChange={(e) => updateSettings({ alias: e.target.value })}
-                    placeholder="Enter your alias..."
-                    className="input-field"
+                    maxLength={10}
+                    value={settings.alias !== undefined ? settings.alias : 'Shadow'} 
+                    onChange={(e) => updateSettings({ alias: e.target.value.slice(0, 10) })}
+                    onBlur={(e) => {
+                      const trimmed = e.target.value.trim().slice(0, 10);
+                      updateSettings({ alias: trimmed || 'Shadow' });
+                    }}
+                    placeholder="Shadow"
+                    className="input-field font-medium"
                   />
-                  <p className="text-[11px] text-muted-foreground">Used across dashboard telemetry as <span className="text-primary font-bold">{settings.alias || 'Shadow'}</span>.</p>
+                  <p className="text-[11px] text-muted-foreground">Used across dashboard telemetry as <span className="text-primary font-bold">{settings.alias || 'Shadow'}</span> (max 10 chars).</p>
                 </div>
 
                 <div className="flex flex-col gap-2.5 pt-4 border-t border-border">

@@ -41,7 +41,7 @@ export function generateMassiveTwoYearData(): BackupData {
     xp: 78950,
     level: 25,
     unlockedBadges,
-    alias: "Shadow Legend",
+    alias: "Shadow",
     savingsTarget: 750000,
     investmentsTarget: 500000,
     ecoMode: false,

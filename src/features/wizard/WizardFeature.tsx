@@ -229,7 +229,7 @@ export default function WizardFeature() {
       id: `custom-${Date.now()}`,
       vibe: customQuoteVibe,
       quote: customQuoteText.trim(),
-      author: customQuoteAuthor.trim() || settings.alias || 'Shadow Seeker'
+      author: customQuoteAuthor.trim() || settings.alias || 'Shadow'
     };
 
     const updated = [newQuote, ...customQuotes];
@@ -738,7 +738,7 @@ export default function WizardFeature() {
                   <input
                     type="text"
                     maxLength={80}
-                    placeholder={settings.alias || 'Seeker'}
+                    placeholder={settings.alias || 'Shadow'}
                     value={customQuoteAuthor}
                     onChange={e => setCustomQuoteAuthor(e.target.value)}
                     className="w-full text-xs p-3 bg-secondary/30 rounded-xl border border-border/80 text-foreground placeholder:text-muted-foreground focus:bg-background focus:border-primary focus:outline-none font-medium"
