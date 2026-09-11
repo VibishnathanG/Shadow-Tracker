@@ -559,7 +559,7 @@ export const Layout: React.FC<LayoutProps> = ({
               type="button"
               onClick={() => setCommandBarOpen(true)}
               className="mobile-nav-btn-center group cursor-pointer shrink-0 border-0 outline-none ring-0 bg-transparent"
-              style={{ WebkitTapHighlightColor: 'transparent', outline: 'none', border: 'none', boxShadow: 'none', background: 'transparent' }}
+              style={{ WebkitTapHighlightColor: 'transparent', outline: 'none', border: 'none', boxShadow: 'none', background: 'transparent', backgroundColor: 'transparent', WebkitAppearance: 'none', appearance: 'none' }}
               aria-label="Search & Commands"
               title="Search Commands (⌘K)"
             >

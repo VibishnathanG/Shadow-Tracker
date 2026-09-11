@@ -147,18 +147,31 @@ export default function CustomDietPlanModal({
     };
     if (isOpen) {
       window.addEventListener('keydown', handleKeyDown);
+      const scrollY = window.scrollY;
       const prevBodyOverflow = document.body.style.overflow;
       const prevHtmlOverflow = document.documentElement.style.overflow;
+      const prevBodyPos = document.body.style.position;
+      const prevBodyTop = document.body.style.top;
+      const prevBodyWidth = document.body.style.width;
+
       document.body.classList.add('modal-open');
       document.documentElement.classList.add('modal-open');
       document.body.style.overflow = 'hidden';
       document.documentElement.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+
       return () => {
         window.removeEventListener('keydown', handleKeyDown);
         document.body.classList.remove('modal-open');
         document.documentElement.classList.remove('modal-open');
         document.body.style.overflow = prevBodyOverflow;
         document.documentElement.style.overflow = prevHtmlOverflow;
+        document.body.style.position = prevBodyPos;
+        document.body.style.top = prevBodyTop;
+        document.body.style.width = prevBodyWidth;
+        window.scrollTo(0, scrollY);
       };
     }
   }, [isOpen, onClose]);
@@ -549,7 +562,7 @@ export default function CustomDietPlanModal({
               </span>
             </div>
 
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none px-0.5">
               {days.map((day, idx) => {
                 const isActive = activeDayIdx === idx;
                 return (
@@ -560,7 +573,7 @@ export default function CustomDietPlanModal({
                       setActiveDayIdx(idx);
                       resetMealForm();
                     }}
-                    className={`flex-1 min-w-[90px] py-2 px-2 rounded-xl text-center border transition-all cursor-pointer ${
+                    className={`flex-1 min-w-[72px] sm:min-w-[90px] py-2 px-2 rounded-xl text-center border transition-all cursor-pointer ${
                       isActive
                         ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 font-black shadow-sm'
                         : 'bg-surface/60 border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
@@ -594,7 +607,7 @@ export default function CustomDietPlanModal({
               </div>
 
               {/* Day Macro Summary Pills */}
-              <div className="flex items-center gap-2 font-mono text-[10px] shrink-0">
+              <div className="flex flex-wrap items-center gap-1.5 font-mono text-[10px]">
                 <span className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20 font-bold">
                   {currentDay.totalCalories} kcal
                 </span>
@@ -649,7 +662,7 @@ export default function CustomDietPlanModal({
                       </div>
                     </div>
 
-                    <div className="flex sm:flex-col items-end justify-between sm:justify-center gap-1.5 shrink-0 border-t sm:border-t-0 border-border/40 pt-2 sm:pt-0">
+                    <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-1.5 shrink-0 border-t sm:border-t-0 border-border/40 pt-2 sm:pt-0 w-full sm:w-auto">
                       <div className="flex items-center gap-2 font-mono text-[11px]">
                         <span className="font-extrabold text-amber-400">{meal.calories} kcal</span>
                         <span className="text-[10px] text-muted-foreground">

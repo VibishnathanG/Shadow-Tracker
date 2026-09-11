@@ -73,18 +73,33 @@ export default function AddFoodModal({
     };
     if (isOpen) {
       window.addEventListener('keydown', handleKeyDown);
-      document.documentElement.classList.add('modal-open');
+      const scrollY = window.scrollY;
+      const prevBodyOverflow = document.body.style.overflow;
+      const prevHtmlOverflow = document.documentElement.style.overflow;
+      const prevBodyPos = document.body.style.position;
+      const prevBodyTop = document.body.style.top;
+      const prevBodyWidth = document.body.style.width;
+
       document.body.classList.add('modal-open');
+      document.documentElement.classList.add('modal-open');
       document.body.style.overflow = 'hidden';
       document.documentElement.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = '100%';
+
+      return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+        document.body.classList.remove('modal-open');
+        document.documentElement.classList.remove('modal-open');
+        document.body.style.overflow = prevBodyOverflow;
+        document.documentElement.style.overflow = prevHtmlOverflow;
+        document.body.style.position = prevBodyPos;
+        document.body.style.top = prevBodyTop;
+        document.body.style.width = prevBodyWidth;
+        window.scrollTo(0, scrollY);
+      };
     }
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      document.documentElement.classList.remove('modal-open');
-      document.body.classList.remove('modal-open');
-      document.body.style.overflow = '';
-      document.documentElement.style.overflow = '';
-    };
   }, [isOpen, onClose]);
 
   // Load foods and quick suggestions
@@ -300,16 +315,16 @@ export default function AddFoodModal({
           <div className="flex-1 overflow-y-auto overscroll-contain touch-pan-y space-y-4 pt-3 pr-1 min-h-0 custom-scrollbar">
 
           {/* Target Meal & Multiplier Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 bg-secondary/50 p-3 rounded-2xl border border-border/60">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-2.5 bg-secondary/50 p-3 rounded-2xl border border-border/60">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
               <span className="text-[10px] font-bold text-muted-foreground uppercase">Target Meal:</span>
-              <div className="flex items-center gap-1 bg-surface p-1 rounded-xl border border-border/60 text-[11px] font-bold">
+              <div className="grid grid-cols-4 gap-1 bg-surface p-1 rounded-xl border border-border/60 text-[11px] font-bold w-full sm:w-auto">
                 {(['breakfast', 'lunch', 'dinner', 'snack'] as const).map(m => (
                   <button
                     key={m}
                     type="button"
                     onClick={() => setTargetMeal(m)}
-                    className={`px-2.5 py-1 rounded-lg capitalize cursor-pointer transition-all ${
+                    className={`px-2 py-1 rounded-lg capitalize text-center cursor-pointer transition-all ${
                       targetMeal === m
                         ? 'bg-primary text-primary-foreground shadow-xs'
                         : 'text-muted-foreground hover:text-foreground'
@@ -321,15 +336,15 @@ export default function AddFoodModal({
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
               <span className="text-[10px] font-bold text-muted-foreground uppercase">Multiplier:</span>
-              <div className="flex items-center gap-1 bg-surface p-1 rounded-xl border border-border/60 text-[10px] font-mono font-bold">
+              <div className="grid grid-cols-4 gap-1 bg-surface p-1 rounded-xl border border-border/60 text-[10px] font-mono font-bold w-full sm:w-auto">
                 {[0.5, 1, 1.5, 2].map(mult => (
                   <button
                     key={mult}
                     type="button"
                     onClick={() => setSelectedMultiplier(mult)}
-                    className={`px-2 py-0.5 rounded-lg cursor-pointer transition-all ${
+                    className={`px-2 py-1 rounded-lg text-center cursor-pointer transition-all ${
                       selectedMultiplier === mult
                         ? 'bg-emerald-500 text-white shadow-xs'
                         : 'text-muted-foreground hover:text-foreground'
@@ -347,13 +362,13 @@ export default function AddFoodModal({
             <span className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1">
               <span>⚡ Quick One-Tap Suggestions:</span>
             </span>
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[10px] font-bold no-scrollbar">
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-[10px] font-bold no-scrollbar px-0.5">
               {quickSuggestions.map(s => (
                 <button
                   key={s.id || s.name}
                   type="button"
                   onClick={() => applyQuickSuggestion(s)}
-                  className="px-2.5 py-1 bg-secondary/80 hover:bg-emerald-500/20 text-muted-foreground hover:text-emerald-400 border border-border/60 rounded-xl transition-all cursor-pointer flex items-center gap-1 whitespace-nowrap shadow-xs"
+                  className="px-2.5 py-1 bg-secondary/80 hover:bg-emerald-500/20 text-muted-foreground hover:text-emerald-400 border border-border/60 rounded-xl transition-all cursor-pointer flex items-center gap-1 whitespace-nowrap shrink-0 shadow-xs"
                 >
                   <span>{s.icon}</span>
                   <span>{s.name}</span>
@@ -364,11 +379,11 @@ export default function AddFoodModal({
           </div>
 
           {/* Tab Switcher: Library vs Custom Food */}
-          <div className="flex rounded-xl bg-secondary/80 p-1 border border-border/60 text-xs font-bold">
+          <div className="flex rounded-xl bg-secondary/80 p-1 border border-border/60 text-xs font-bold gap-1">
             <button
               type="button"
               onClick={() => setActiveTab('library')}
-              className={`flex-1 py-2 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-2 px-2 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 text-center truncate ${
                 activeTab === 'library'
                   ? 'bg-surface-elevated text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
@@ -379,13 +394,13 @@ export default function AddFoodModal({
             <button
               type="button"
               onClick={() => setActiveTab('custom')}
-              className={`flex-1 py-2 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-2 px-2 rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1.5 text-center truncate ${
                 activeTab === 'custom'
                   ? 'bg-surface-elevated text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <span>✍️ Create Custom Food (+Auto Save to Library)</span>
+              <span>✍️ Custom Food <span className="hidden sm:inline">(+Auto Save)</span></span>
             </button>
           </div>
 
@@ -476,12 +491,12 @@ export default function AddFoodModal({
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-3 shrink-0">
+                      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                         <div className="text-right">
                           <span className="font-mono font-black text-xs text-foreground">
                             {Math.round(item.calories * selectedMultiplier)}
                           </span>
-                          <span className="text-[9px] text-muted-foreground block font-bold">kcal</span>
+                          <span className="text-[9px] text-muted-foreground block font-bold leading-none">kcal</span>
                         </div>
 
                         {/* Adjust Grams Button */}
@@ -491,16 +506,17 @@ export default function AddFoodModal({
                             setSelectedLibraryItem(item);
                             setLibraryGramsInput(String(item.standardGrams || 100));
                           }}
-                          className="px-2.5 py-1.5 bg-secondary hover:bg-surface text-muted-foreground hover:text-foreground text-[10px] font-bold rounded-xl border border-border/60 transition-all cursor-pointer"
+                          className="px-2 sm:px-2.5 py-1.5 bg-secondary hover:bg-surface text-muted-foreground hover:text-foreground text-[10px] font-bold rounded-xl border border-border/60 transition-all cursor-pointer flex items-center gap-1"
                           title="Custom grams"
                         >
-                          Set Grams
+                          <Lucide.Scale size={11} className="shrink-0" />
+                          <span className="hidden sm:inline">Set Grams</span>
                         </button>
 
                         {/* Quick Add Button */}
                         <button
                           onClick={() => handleAddDirect(item)}
-                          className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black rounded-xl shadow-sm transition-all cursor-pointer active:scale-95 flex items-center gap-1"
+                          className="px-2.5 sm:px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black rounded-xl shadow-sm transition-all cursor-pointer active:scale-95 flex items-center gap-1"
                         >
                           <Lucide.Plus size={12} /> Add
                         </button>

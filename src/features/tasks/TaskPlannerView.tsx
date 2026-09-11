@@ -248,10 +248,10 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
 
       {/* ── VIEW 1: WEEK PLANNER (SUPER PRODUCTIVITY COLUMNS) ── */}
       {plannerMode === 'week' && (
-        <div className="overflow-x-auto pb-4 no-scrollbar md:custom-scrollbar">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3.5 min-w-[1050px]">
+        <div className="w-full overflow-x-hidden md:overflow-x-auto pb-4 no-scrollbar md:custom-scrollbar">
+          <div className="flex flex-col gap-3.5 w-full md:grid md:grid-cols-4 lg:grid-cols-8 md:min-w-[1050px]">
             {/* COLUMN 0: OVERDUE COLUMN */}
-            <div className="flex flex-col bg-rose-500/[0.04] border border-rose-500/20 rounded-2xl overflow-hidden shadow-xs">
+            <div className="flex flex-col w-full bg-rose-500/[0.04] border border-rose-500/20 rounded-2xl overflow-hidden shadow-xs">
               <div className="p-3 bg-rose-500/10 border-b border-rose-500/20 flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-rose-400">
                   <Lucide.AlertCircle size={14} />
@@ -267,12 +267,14 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
               </div>
 
               {/* Overdue Task List */}
-              <div className="p-2 space-y-2 flex-1 min-h-[300px] overflow-y-auto custom-scrollbar max-h-[550px]">
+              <div className="p-2 space-y-2 flex-1 min-h-0 md:min-h-[300px] overflow-y-auto custom-scrollbar max-h-[550px]">
                 {overdueTasks.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground/60">
-                    <Lucide.CheckCircle2 size={24} className="text-emerald-500/40 mb-1.5" />
-                    <p className="text-xs font-bold">Zero overdue tasks</p>
-                    <p className="text-[10px]">All scheduled on time!</p>
+                  <div className="flex items-center justify-center gap-2 py-3 md:py-12 text-center text-muted-foreground/60">
+                    <Lucide.CheckCircle2 size={18} className="text-emerald-500/60 shrink-0" />
+                    <div>
+                      <p className="text-xs font-bold">Zero overdue tasks</p>
+                      <p className="text-[10px] hidden md:block">All scheduled on time!</p>
+                    </div>
                   </div>
                 ) : (
                   overdueTasks.map(task => {
@@ -336,7 +338,7 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
                   onDragOver={(e) => handleDragOver(e, dateStr)}
                   onDragLeave={handleDragLeave}
                   onDrop={(e) => handleDrop(e, dateStr)}
-                  className={`flex flex-col rounded-2xl overflow-hidden border transition-all shadow-xs ${
+                  className={`flex flex-col w-full rounded-2xl overflow-hidden border transition-all shadow-xs ${
                     isDroppingHere
                       ? 'bg-primary/10 border-primary ring-2 ring-primary/40'
                       : isToday
@@ -375,14 +377,14 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
                   </div>
 
                   {/* Task Cards Droppable Body */}
-                  <div className="p-2 space-y-2 flex-1 min-h-[300px] overflow-y-auto custom-scrollbar max-h-[550px]">
+                  <div className="p-2 space-y-2 flex-1 min-h-0 md:min-h-[300px] overflow-y-auto custom-scrollbar max-h-[550px]">
                     {dayTasks.length === 0 ? (
-                      <div className="h-full flex flex-col items-center justify-center py-10 text-center text-muted-foreground/40 border border-dashed border-border/40 rounded-xl">
+                      <div className="h-full flex flex-col items-center justify-center py-3.5 md:py-10 text-center text-muted-foreground/40 border border-dashed border-border/40 rounded-xl">
                         <span className="text-[11px] font-bold">No tasks</span>
                         <button
                           type="button"
                           onClick={() => onOpenAddModal(dateStr)}
-                          className="mt-1 text-[10px] font-bold text-primary hover:underline cursor-pointer"
+                          className="mt-0.5 text-[10px] font-bold text-primary hover:underline cursor-pointer"
                         >
                           + Add
                         </button>
