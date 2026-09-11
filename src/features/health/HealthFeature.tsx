@@ -381,7 +381,7 @@ export default function HealthFeature() {
       const d = new Date(base);
       d.setDate(d.getDate() - i);
       const str = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      const dayName = d.toLocaleDateString('en-US', { weekday: 'narrow' });
+      const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
       const dayData = healthMap[str];
       const ml = dayData?.waterIntakeMl || 0;
       const sleep = dayData?.sleepHours || 0;
@@ -597,22 +597,52 @@ export default function HealthFeature() {
 
             {/* Water Graphic & Controls */}
             <div className="flex flex-col md:flex-row items-center gap-6 py-2">
-              {/* Animated Water Cylinder Vessel */}
-              <div className="relative w-32 h-44 bg-surface-elevated/90 border-2 border-sky-500/40 rounded-b-3xl rounded-t-xl overflow-hidden flex items-end justify-center shadow-inner shrink-0">
-                <motion.div
-                  initial={{ height: 0 }}
-                  animate={{ height: `${waterPct}%` }}
-                  transition={{ duration: 0.6, ease: 'easeOut' }}
-                  className="w-full bg-gradient-to-t from-sky-600 via-sky-500 to-cyan-400 opacity-85"
-                />
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none">
-                  <span className="text-xl font-black font-mono text-foreground drop-shadow-md">
-                    {currentData.waterIntakeMl}
-                  </span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-foreground/80">
-                    / {currentData.waterGoalMl} ml
+              {/* Animated Water Cylinder Vessel with Realistic Liquid Fill & Calibrated Markings */}
+              <div className="relative w-36 sm:w-40 h-52 sm:h-56 bg-surface-elevated/95 border-2 border-sky-500/40 rounded-b-3xl rounded-t-2xl overflow-hidden flex flex-col justify-end shadow-inner shrink-0 ring-1 ring-sky-400/20">
+                {/* Top Target ml indicator */}
+                <div className="absolute top-2.5 inset-x-0 flex flex-col items-center justify-center select-none pointer-events-none z-10">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-2 py-0.5 rounded-full bg-surface-elevated/90 border border-border/80 shadow-xs">
+                    Goal: {currentData.waterGoalMl} ml
                   </span>
                 </div>
+
+                {/* Animated Liquid Wave & Fill */}
+                <motion.div
+                  initial={{ height: 0 }}
+                  animate={{ height: `${Math.min(100, Math.max(currentData.waterIntakeMl > 0 ? 16 : 0, waterPct))}%` }}
+                  transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+                  className="w-full relative flex flex-col justify-end"
+                >
+                  {/* Organic Wave Surface */}
+                  {currentData.waterIntakeMl > 0 && (
+                    <div className="absolute -top-3 left-0 right-0 h-3.5 overflow-hidden pointer-events-none z-10">
+                      <svg viewBox="0 0 100 20" preserveAspectRatio="none" className="w-[200%] h-full text-cyan-400 fill-current opacity-90 animate-pulse">
+                        <path d="M0 10 C 25 0, 35 20, 50 10 C 65 0, 75 20, 100 10 L 100 20 L 0 20 Z" />
+                      </svg>
+                    </div>
+                  )}
+
+                  {/* Body of water with smooth gradient fill */}
+                  <div className="w-full h-full flex-1 bg-gradient-to-t from-sky-600 via-sky-500 to-cyan-400 relative flex flex-col items-center justify-center p-2">
+                    {/* Inside / Below water level: display current ml clearly centered */}
+                    <div className="flex flex-col items-center justify-center select-none drop-shadow-md pointer-events-none px-1 my-auto">
+                      <span className="text-xl sm:text-2xl font-black font-mono text-white tracking-tight leading-none">
+                        {currentData.waterIntakeMl}
+                      </span>
+                      <span className="text-[10px] font-extrabold text-sky-100 tracking-wider uppercase mt-0.5">
+                        ml
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Fallback empty state when intake is 0 */}
+                {currentData.waterIntakeMl === 0 && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none select-none text-center">
+                    <span className="text-xl font-black font-mono text-muted-foreground/60">0</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">ml logged</span>
+                  </div>
+                )}
               </div>
 
               {/* Quick Sips & Direct Input */}
@@ -710,25 +740,59 @@ export default function HealthFeature() {
               </div>
             </div>
 
-            {/* 7-Day Hydration Mini Chart */}
-            <div className="space-y-1.5 pt-2 border-t border-border/60">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                7-Day Hydration
-              </span>
-              <div className="flex items-end justify-between gap-1.5 h-12 pt-1">
+            {/* 7-Day Hydration Mini Chart with Numeric ML Display */}
+            <div className="space-y-2 pt-3 border-t border-border/60">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                  7-Day Hydration Volume
+                </span>
+                <span className="text-[10px] font-mono font-bold text-muted-foreground">
+                  Goal: {currentData.waterGoalMl} ml/day
+                </span>
+              </div>
+              <div className="flex items-end justify-between gap-1.5 sm:gap-2 h-20 pt-2 pb-1">
                 {past7Days.map((d) => {
                   const heightPct = Math.min(100, Math.round((d.ml / (currentData.waterGoalMl || 2500)) * 100));
                   const isGoalMet = d.ml >= (currentData.waterGoalMl || 2500);
+                  const isSelected = d.date === selectedDate;
+                  const displayMl = d.ml > 0
+                    ? (d.ml >= 1000 ? `${(d.ml / 1000).toFixed(1).replace('.0', '')}L` : `${d.ml}`)
+                    : '0';
+
                   return (
-                    <div key={d.date} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
-                      <div className="w-full bg-secondary/60 rounded-t-md relative h-full flex items-end overflow-hidden">
+                    <button
+                      key={d.date}
+                      type="button"
+                      onClick={() => setSelectedDate(d.date)}
+                      className={`flex-1 flex flex-col items-center gap-1 h-full justify-end cursor-pointer group transition-all p-1 rounded-xl ${
+                        isSelected ? 'bg-sky-500/15 ring-1 ring-sky-500/40' : 'hover:bg-secondary/60'
+                      }`}
+                      title={`${d.dayName}, ${d.date}: ${d.ml} ml`}
+                    >
+                      {/* Numeric Water Volume in ml/L displayed directly above the bar */}
+                      <span className={`text-[8.5px] sm:text-[9.5px] font-mono font-black transition-colors ${
+                        isSelected ? 'text-sky-400 font-black' : isGoalMet ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'
+                      }`}>
+                        {displayMl}
+                      </span>
+                      <div className="w-full bg-secondary/70 rounded-t-md relative h-full flex items-end overflow-hidden border-t border-x border-border/40">
                         <div
                           style={{ height: `${heightPct}%` }}
-                          className={`w-full rounded-t-md transition-all ${isGoalMet ? 'bg-sky-400' : 'bg-sky-500/40'}`}
+                          className={`w-full rounded-t-md transition-all ${
+                            isSelected
+                              ? 'bg-sky-400 shadow-xs shadow-sky-400/50'
+                              : isGoalMet
+                              ? 'bg-sky-500'
+                              : 'bg-sky-500/40 group-hover:bg-sky-500/60'
+                          }`}
                         />
                       </div>
-                      <span className="text-[9px] font-bold text-muted-foreground">{d.dayName}</span>
-                    </div>
+                      <span className={`text-[9px] sm:text-[10px] font-bold transition-colors ${
+                        isSelected ? 'text-sky-400 font-extrabold' : 'text-muted-foreground group-hover:text-foreground'
+                      }`}>
+                        {d.dayName}
+                      </span>
+                    </button>
                   );
                 })}
               </div>
@@ -846,29 +910,28 @@ export default function HealthFeature() {
 
               {/* Sleep Quality Selector */}
               <div className="space-y-2">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase">Sleep Quality Rating</label>
-                <div className="grid grid-cols-5 gap-1.5">
-                  {(['groggy', 'light', 'normal', 'energized', 'rested'] as const).map((q) => {
-                    const isSel = currentData.sleepQuality === q;
-                    const labels: Record<string, { label: string; icon: string }> = {
-                      groggy: { label: 'Groggy', icon: '😴' },
-                      light: { label: 'Light', icon: '🥱' },
-                      normal: { label: 'Normal', icon: '🙂' },
-                      energized: { label: 'Energized', icon: '⚡' },
-                      rested: { label: 'Rested', icon: '✨' },
-                    };
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Sleep Quality Rating</label>
+                <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
+                  {[
+                    { key: 'groggy', label: 'Groggy', icon: Lucide.Frown, activeCls: 'bg-rose-500 text-white border-rose-400 shadow-md shadow-rose-500/30', idleCls: 'bg-rose-500/10 text-rose-400 border-rose-500/25 hover:bg-rose-500/20' },
+                    { key: 'light', label: 'Light', icon: Lucide.Feather, activeCls: 'bg-amber-500 text-white border-amber-400 shadow-md shadow-amber-500/30', idleCls: 'bg-amber-500/10 text-amber-400 border-amber-500/25 hover:bg-amber-500/20' },
+                    { key: 'normal', label: 'Normal', icon: Lucide.Smile, activeCls: 'bg-sky-500 text-white border-sky-400 shadow-md shadow-sky-500/30', idleCls: 'bg-sky-500/10 text-sky-400 border-sky-500/25 hover:bg-sky-500/20' },
+                    { key: 'energized', label: 'Energized', icon: Lucide.Zap, activeCls: 'bg-emerald-500 text-white border-emerald-400 shadow-md shadow-emerald-500/30', idleCls: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25 hover:bg-emerald-500/20' },
+                    { key: 'rested', label: 'Rested', icon: Lucide.Sparkles, activeCls: 'bg-purple-600 text-white border-purple-400 shadow-md shadow-purple-500/30', idleCls: 'bg-purple-500/10 text-purple-400 border-purple-500/25 hover:bg-purple-500/20' },
+                  ].map((item) => {
+                    const isSel = currentData.sleepQuality === item.key;
+                    const IconComponent = item.icon;
                     return (
                       <button
-                        key={q}
-                        onClick={() => updateCurrentHealth(prev => ({ ...prev, sleepQuality: q }))}
-                        className={`flex flex-col items-center justify-center p-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
-                          isSel
-                            ? 'bg-indigo-500 text-white border-indigo-400 shadow-md shadow-indigo-500/25'
-                            : 'bg-secondary/40 text-muted-foreground border-border/60 hover:bg-secondary'
+                        key={item.key}
+                        type="button"
+                        onClick={() => updateCurrentHealth(prev => ({ ...prev, sleepQuality: item.key as any }))}
+                        className={`flex flex-col items-center justify-center p-2 sm:p-2.5 rounded-xl sm:rounded-2xl text-xs font-bold transition-all cursor-pointer border ${
+                          isSel ? item.activeCls : item.idleCls
                         }`}
                       >
-                        <span className="text-sm">{labels[q].icon}</span>
-                        <span className="text-[9px] mt-0.5 capitalize truncate max-w-full">{labels[q].label}</span>
+                        <IconComponent size={17} className={isSel ? 'text-white stroke-[2.5px]' : 'stroke-[2px]'} />
+                        <span className="text-[9.5px] mt-1 capitalize truncate max-w-full font-extrabold">{item.label}</span>
                       </button>
                     );
                   })}

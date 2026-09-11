@@ -19,11 +19,36 @@ interface CalendarFeatureProps {
 const dayOfWeekNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
 const moodEmojis = {
-  great: { icon: 'Smile', color: 'text-emerald-500 bg-emerald-500/15 border-emerald-500/30', label: 'Great' },
-  good: { icon: 'SmilePlus', color: 'text-blue-500 bg-blue-500/15 border-blue-500/30', label: 'Good' },
-  neutral: { icon: 'Meh', color: 'text-yellow-500 bg-yellow-500/15 border-yellow-500/30', label: 'Neutral' },
-  bad: { icon: 'Frown', color: 'text-orange-500 bg-orange-500/15 border-orange-500/30', label: 'Bad' },
-  terrible: { icon: 'Angry', color: 'text-red-500 bg-red-500/15 border-red-500/30', label: 'Terrible' },
+  great: {
+    icon: Lucide.SmilePlus,
+    label: 'Great',
+    activeCls: 'bg-emerald-500 text-white border-emerald-400 shadow-md shadow-emerald-500/30',
+    idleCls: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25 hover:bg-emerald-500/20',
+  },
+  good: {
+    icon: Lucide.Smile,
+    label: 'Good',
+    activeCls: 'bg-sky-500 text-white border-sky-400 shadow-md shadow-sky-500/30',
+    idleCls: 'bg-sky-500/10 text-sky-400 border-sky-500/25 hover:bg-sky-500/20',
+  },
+  neutral: {
+    icon: Lucide.Meh,
+    label: 'Okay',
+    activeCls: 'bg-amber-500 text-white border-amber-400 shadow-md shadow-amber-500/30',
+    idleCls: 'bg-amber-500/10 text-amber-400 border-amber-500/25 hover:bg-amber-500/20',
+  },
+  bad: {
+    icon: Lucide.Frown,
+    label: 'Down',
+    activeCls: 'bg-orange-500 text-white border-orange-400 shadow-md shadow-orange-500/30',
+    idleCls: 'bg-orange-500/10 text-orange-400 border-orange-500/25 hover:bg-orange-500/20',
+  },
+  terrible: {
+    icon: Lucide.Angry,
+    label: 'Rough',
+    activeCls: 'bg-rose-500 text-white border-rose-400 shadow-md shadow-rose-500/30',
+    idleCls: 'bg-rose-500/10 text-rose-400 border-rose-500/25 hover:bg-rose-500/20',
+  },
 } as const;
 
 export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
@@ -422,29 +447,28 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
             </div>
           </div>
 
-          <div className="space-y-3 pt-2">
+          <div className="space-y-2 pt-2">
             <label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-              <Lucide.Smile size={14} className="text-primary" /> Daily Mood
+              <Lucide.Smile size={14} className="text-primary" /> Daily Mood Rating
             </label>
-            <div className="flex justify-between gap-2">
-              {Object.entries(moodEmojis).map(([key, config]) => {
+            <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
+              {Object.entries(moodEmojis).map(([key, item]) => {
                 const isSelected = selectedMood === key;
-                const MoodIcon = (Lucide[config.icon as keyof typeof Lucide] || Lucide.Smile) as React.ElementType;
+                const IconComponent = item.icon;
 
                 return (
                   <motion.button
-                    whileHover={{ scale: 1.1, y: -2, transition: { type: 'spring', stiffness: 400, damping: 10 } }}
+                    whileHover={{ scale: 1.05, y: -2 }}
                     whileTap={{ scale: 0.95 }}
                     key={key}
                     onClick={() => handleMoodSelect(key)}
-                    className={`flex-1 aspect-square rounded-2xl flex items-center justify-center border-2 transition-all ${
-                      isSelected 
-                        ? config.color + ' border-current scale-[1.05] shadow-md shadow-current/20'
-                        : 'bg-secondary/50 border-border/60 hover:bg-secondary text-muted-foreground hover:text-foreground'
+                    className={`flex flex-col items-center justify-center p-2 sm:p-2.5 rounded-xl sm:rounded-2xl text-xs font-bold transition-all cursor-pointer border ${
+                      isSelected ? item.activeCls : item.idleCls
                     }`}
-                    title={config.label}
+                    title={item.label}
                   >
-                    <MoodIcon size={20} strokeWidth={isSelected ? 2.5 : 2} />
+                    <IconComponent size={17} className={isSelected ? 'text-white stroke-[2.5px]' : 'stroke-[2px]'} />
+                    <span className="text-[9.5px] mt-1 capitalize truncate max-w-full font-extrabold">{item.label}</span>
                   </motion.button>
                 );
               })}

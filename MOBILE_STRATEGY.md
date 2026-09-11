@@ -74,14 +74,14 @@ The Zustand store (`src/store/index.ts`) is designed in pure TypeScript, referen
 
 Web Tailwind v4 utilities correspond directly to **NativeWind** (Tailwind CSS engine for React Native).
 
-| Web Element (Next.js) | Mobile Equivalent (React Native + NativeWind) |
-| :--- | :--- |
-| `div` (layout) | `View` |
-| `p` / `span` / `h1` | `Text` |
-| `button` | `Pressable` / `TouchableOpacity` |
-| `input[type="text"]` | `TextInput` |
-| `framer-motion` | `react-native-reanimated` |
-| Lucide React | `lucide-react-native` |
+| Web Element (Next.js) | Mobile Equivalent (React Native + NativeWind) | Reference Note |
+| :--- | :--- |---|
+| `div` (layout) | `View` | |
+| `p` / `span` / `h1` | `Text` | |
+| `button` | `Pressable` / `TouchableOpacity` | |
+| `input[type="text"]` | `TextInput` | |
+| `framer-motion` | `react-native-reanimated` | |
+| Lucide React | `lucide-react-native` | |
 
 ### Custom SVG Charts
 The custom SVG lines plotted in `/features/analytics/AnalyticsFeature.tsx` will map directly to `react-native-svg` on mobile, keeping visual identity identical.

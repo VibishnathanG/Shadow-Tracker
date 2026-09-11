@@ -275,9 +275,9 @@ export const Layout: React.FC<LayoutProps> = ({
             <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/30 flex items-center justify-center shadow-lg shadow-primary/20 shrink-0 transition-colors">
               <AppLogo size={34} theme={settings.theme} />
             </div>
-            <div>
-              <h1 className="text-base sm:text-lg font-black tracking-tight leading-tight">
-                <span className="text-primary">{settings.alias ? settings.alias.charAt(0).toUpperCase() + settings.alias.slice(1) : 'Shadow'}</span>
+            <div className="min-w-0">
+              <h1 className="text-sm sm:text-base font-black tracking-tight leading-tight whitespace-nowrap">
+                <span className="text-primary truncate max-w-[140px] inline-block align-bottom">{settings.alias ? settings.alias.charAt(0).toUpperCase() + settings.alias.slice(1) : 'Shadow'}</span>
                 <span className="text-white [html[data-theme='white']_&]:text-foreground [html[data-theme='light']_&]:text-foreground"> Tracker</span>
               </h1>
               <span 
@@ -415,9 +415,9 @@ export const Layout: React.FC<LayoutProps> = ({
             <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center shrink-0">
               <AppLogo size={26} theme={settings.theme} />
             </div>
-            <div className="flex flex-col">
-              <span className="text-sm sm:text-base font-black tracking-tight leading-tight">
-                <span className="text-primary">{settings.alias ? settings.alias.charAt(0).toUpperCase() + settings.alias.slice(1) : 'Shadow'}</span>
+            <div className="flex flex-col min-w-0">
+              <span className="text-xs sm:text-sm font-black tracking-tight leading-tight whitespace-nowrap">
+                <span className="text-primary truncate max-w-[110px] inline-block align-bottom">{settings.alias ? settings.alias.charAt(0).toUpperCase() + settings.alias.slice(1) : 'Shadow'}</span>
                 <span className="text-white [html[data-theme='white']_&]:text-foreground [html[data-theme='light']_&]:text-foreground"> Tracker</span>
               </span>
               <span 

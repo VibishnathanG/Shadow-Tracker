@@ -186,9 +186,14 @@ const PremiumHabitCard: React.FC<PremiumHabitCardProps> = ({
          </motion.svg>
       </div>
       
+      {/* Top-Right Streak Prism / Crystal Artwork */}
+      <div className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 pointer-events-none drop-shadow-md z-10 transition-transform group-hover:scale-105">
+        {getArtwork(habit.streakCount)}
+      </div>
+
       <div className="relative z-10 space-y-3.5">
-        {/* TOP ROW: Check/X Actions + Vitality Base + Artwork & Edit/Delete */}
-        <div className="flex items-center justify-between gap-3">
+        {/* TOP ROW: Check/X Actions + Vitality + Edit/Delete */}
+        <div className="flex items-center justify-between gap-2.5">
           {/* Action Control: Complete Checkmark & Not Completed X */}
           <div className="flex items-center gap-1.5 shrink-0">
             {/* Complete Check Button (✓) */}
@@ -280,12 +285,12 @@ const PremiumHabitCard: React.FC<PremiumHabitCardProps> = ({
             </div>
           </div>
 
-          {/* Vitality Base in Top Row */}
-          <div className="flex-1 min-w-0 px-1 sm:px-2">
+          {/* Vitality in Top Row - Fully visible with dedicated clearance for the top-right prism logo */}
+          <div className="flex-1 min-w-0 px-2 sm:px-3 pr-12 sm:pr-14">
             <div className="flex justify-between items-center mb-1">
-              <span className="text-[11px] font-black text-secondary uppercase tracking-widest flex items-center gap-1 truncate">
+              <span className="text-[11px] font-black text-secondary uppercase tracking-wider flex items-center gap-1">
                 <Lucide.BatteryCharging size={13} className="text-primary shrink-0" /> 
-                <span className="truncate">Vitality Base</span>
+                <span className="font-extrabold text-foreground/90 whitespace-nowrap">Vitality</span>
               </span>
               <span className="text-xs font-black text-foreground font-mono ml-1 shrink-0">{energyLevel}%</span>
             </div>
@@ -305,12 +310,8 @@ const PremiumHabitCard: React.FC<PremiumHabitCardProps> = ({
             </div>
           </div>
           
-          {/* Artwork & Action Controls */}
+          {/* Action Controls (Edit/Delete) */}
           <div className="flex items-center shrink-0">
-            <div className="mr-1 pointer-events-none drop-shadow-lg">
-              {getArtwork(habit.streakCount)}
-            </div>
-
             <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity relative z-20">
               <button 
                 type="button" 

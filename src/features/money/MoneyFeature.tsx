@@ -589,8 +589,8 @@ export default function MoneyFeature() {
               <h1 className="text-base sm:text-lg font-black tracking-tight text-foreground leading-tight">Wealth</h1>
             </div>
 
-            {/* Month Switcher Segment */}
-            <div className="flex items-center gap-1 p-1 bg-surface-elevated/90 border border-border/70 rounded-2xl shadow-xs shrink-0">
+            {/* Month Switcher Segment - Sleek Circular Pill Style */}
+            <div className="flex items-center gap-1.5 p-1 bg-surface-elevated/90 border border-border/70 rounded-full shadow-xs shrink-0">
               <button
                 type="button"
                 onClick={prevMonth}
@@ -601,14 +601,15 @@ export default function MoneyFeature() {
                 <Lucide.ChevronLeft size={13} />
               </button>
 
-              <div className="relative flex items-center">
+              <div className="relative flex items-center px-3 py-1 bg-secondary/80 hover:bg-secondary border border-border/60 hover:border-primary/40 rounded-full transition-all shadow-xs cursor-pointer group">
+                <Lucide.Calendar size={11} className="text-primary mr-1.5 shrink-0" />
                 <select
                   value={currentMonthStr}
                   onChange={(e) => {
                     const [y, m] = e.target.value.split('-').map(Number);
                     setCurrentDate(new Date(y, m - 1, 1));
                   }}
-                  className="pl-2 pr-6 py-1 font-mono text-xs font-black uppercase tracking-wider text-foreground cursor-pointer hover:text-primary transition-colors text-center appearance-none bg-transparent border-none outline-none shadow-none"
+                  className="pr-4 py-0.5 font-mono text-xs font-black uppercase tracking-wider text-foreground cursor-pointer group-hover:text-primary transition-colors text-center appearance-none bg-transparent border-none outline-none shadow-none"
                   title="Select Month"
                 >
                   {availableMonths.map(m => (
@@ -617,7 +618,7 @@ export default function MoneyFeature() {
                     </option>
                   ))}
                 </select>
-                <Lucide.ChevronDown size={11} className="text-muted-foreground pointer-events-none absolute right-1 top-1/2 -translate-y-1/2" />
+                <Lucide.ChevronDown size={11} className="text-muted-foreground pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 group-hover:text-primary transition-colors" />
               </div>
 
               <button

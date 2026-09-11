@@ -4,12 +4,12 @@
   <img src="./public/app_logo_master.png" alt="Shadow Tracker Logo" width="120" />
 </p>
 
-<h3 align="center">Sovereign • Local-First • Privacy-First • Gamified Personal Operating System</h3>
+<h3 align="center">Local-First • Privacy-First • Gamified Personal Productivity &amp; Habit Tracker</h3>
 
 <p align="center">
   <a href="https://hub.docker.com/r/vibishnathang/shadow-tracker"><img src="https://img.shields.io/docker/pulls/vibishnathang/shadow-tracker?style=flat-square&logo=docker&label=Docker%20Pulls&color=0db7ed" alt="Docker Pulls" /></a>
   <a href="https://hub.docker.com/r/vibishnathang/shadow-tracker"><img src="https://img.shields.io/docker/v/vibishnathang/shadow-tracker?sort=semver&style=flat-square&logo=docker&label=Docker%20Hub&color=blue" alt="Docker Hub Version" /></a>
-  <a href="https://github.com/VibishnathanG/Shadow-Tracker/releases"><img src="https://img.shields.io/badge/Release-v1.1.0-success?style=flat-square&logo=github" alt="Release v1.1.0" /></a>
+  <a href="https://github.com/VibishnathanG/Shadow-Tracker/releases"><img src="https://img.shields.io/badge/Release-v1.4.0--beta.1-blue?style=flat-square&logo=github" alt="Release v1.4.0-beta.1" /></a>
   <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20Android%20%7C%20Web%20%7C%20Docker-9cf?style=flat-square" alt="Supported Platforms" />
   <img src="https://img.shields.io/badge/Next.js-16.2-black?style=flat-square&logo=next.js" alt="Next.js 16" />
   <img src="https://img.shields.io/badge/React-19.2-61dafb?style=flat-square&logo=react" alt="React 19" />
@@ -21,19 +21,19 @@
 
 ## Project-Overview
 
-**Shadow Tracker** is an all-in-one sovereign personal operating system designed to elevate productivity, sustain unbreakable atomic habit streaks, optimize physical vitality, govern personal finances, and gamify daily progress. 
+**Shadow Tracker** is a local-first personal dashboard built to track daily habits, manage tasks, log nutrition and workouts, plan finances, and stay consistent with an RPG-style leveling system. 
 
-Engineered with a **local-first, privacy-first philosophy**, all sensitive personal telemetry, habit logs, financial ledgers, and reflections remain 100% on your local machine. No tracking, no mandatory cloud subscriptions, and no telemetry eavesdropping.
+All your data stays completely on your device — stored locally in IndexedDB and LocalStorage. There are no mandatory accounts, no cloud dependencies, and zero analytics tracking.
 
 ---
 
 ## Visual-Showcase
 
-Explore the dark, glassy aesthetic and high-density telemetry dashboards captured directly from live desktop execution.
+A quick tour of the dark, glassy desktop UI.
 
 ### 1-Life-OS-Command-Dashboard
 
-The central command dashboard aggregates morning briefings, evening reviews, biological health telemetry, real-time focus indices, and the Level 20 Life RPG progression engine into a single unified workspace.
+The central dashboard brings together morning briefings, evening reviews, daily health logs, focus scores, and character leveling in a unified workspace.
 
 ![Shadow Tracker Dashboard](./public/app-looks/01-dashboard.png)
 
@@ -41,7 +41,7 @@ The central command dashboard aggregates morning briefings, evening reviews, bio
 
 ### 2-Atomic-Habits-and-Consistency-Matrix
 
-Build enduring personal discipline through atomic daily milestones, categorized routine cards, dynamic vitality meters, and a continuous 15-week matrix consistency heatmap.
+Build lasting daily routines with categorized habit cards, streaks, vitality indicators, and a 15-week consistency heatmap.
 
 ![Atomic Habit Routines](./public/app-looks/02-habits.png)
 
@@ -49,7 +49,7 @@ Build enduring personal discipline through atomic daily milestones, categorized 
 
 ### 3-Health-and-Vitality-Suite
 
-A full biological OS featuring interactive hydration tracking with 7-day volume velocity, daily calorie limits, a dynamic macronutrient plate visualizer (Protein, Carbs, Fats), and scheduled gym training splits.
+Track daily hydration with quick-add logging and a 7-day history chart, set calorie targets, visualize meals with the interactive nutrition plate (Protein, Carbs, Fats), and log workout routines.
 
 ![Health and Vitality Suite](./public/app-looks/03-health.png)
 
@@ -57,7 +57,7 @@ A full biological OS featuring interactive hydration tracking with 7-day volume 
 
 ### 4-Command-Center-and-Monthly-Habit-Telemetry
 
-A 5-week monthly habit matrix providing granular completion checkboxes, past date lock-in protection, unbroken streak records, and real-time focus velocity metrics.
+A 5-week monthly habit grid with daily check-offs, past-date lock-in protection, streak counters, and focus metrics.
 
 ![Command Center Telemetry](./public/app-looks/04-analytics.png)
 
@@ -86,7 +86,7 @@ A 5-week monthly habit matrix providing granular completion checkboxes, past dat
 - [System-Architecture](#System-Architecture)
 - [Application-Lifecycle](#Application-Lifecycle)
   - [1-Boot-and-Hydration](#1-Boot-and-Hydration)
-  - [2-Zero-CPU-Idle-Freeze](#2-Zero-CPU-Idle-Freeze)
+  - [2-Resource-Optimization-and-Idle](#2-Resource-Optimization-and-Idle)
   - [3-Background-Workers-and-Notifications](#3-Background-Workers-and-Notifications)
 - [Life-RPG-and-XP-Internals](#Life-RPG-and-XP-Internals)
   - [XP-Calculation-Formulas](#XP-Calculation-Formulas)
@@ -126,16 +126,16 @@ A 5-week monthly habit matrix providing granular completion checkboxes, past dat
 
 ## Docker-Container-Deployment
 
-Shadow Tracker is fully containerized with a hardened multi-stage Nginx Alpine container image published on Docker Hub under [`vibishnathang/shadow-tracker`](https://hub.docker.com/r/vibishnathang/shadow-tracker).
+Shadow Tracker is containerized with a lightweight multi-stage Nginx Alpine image published on Docker Hub under [`vibishnathang/shadow-tracker`](https://hub.docker.com/r/vibishnathang/shadow-tracker).
 
 ### Pull-from-Docker-Hub
 
 ```bash
-# Pull latest stable release
-docker pull vibishnathang/shadow-tracker:latest
+# Pull latest beta release
+docker pull vibishnathang/shadow-tracker:beta
 
-# Or pull specific version release
-docker pull vibishnathang/shadow-tracker:v1.0.0
+# Or pull latest stable release
+docker pull vibishnathang/shadow-tracker:latest
 ```
 
 ### Run-with-Docker-CLI
@@ -192,11 +192,11 @@ Every release binary in the `release/` directory is standardized, compiled, cryp
 
 | Artifact Name | Target Platform | Package Type | Size | SHA256 Checksum | Reference Note |
 |---|---|---|---|---|---|
-| `Shadow-Tracker-Setup.exe` | Windows 10/11 (x64) | NSIS Executable Installer | 8.3 MB | `28adb83c43c5487081c9692aa4a1ee88ea7ef0cabb2a71512df1e083088e1bec` | |
-| `Shadow-Tracker-Portable.exe` | Windows 10/11 (x64) | Single Portable Executable | 25.7 MB | `ef32fbada49e6ef619e50a205944fb0fba0ca0c1018d42eab084351f4ddf8de7` | |
-| `Shadow-Tracker-Release.apk` | Android 8.0+ (ARM64/x86) | Signed Mobile APK | 14.1 MB | `40dd4e40fce908e67b0a5cc886424f163fac011a3e1f867d0ceb3613001e4bfd` | |
-| `shadow-tracker-container.tar.gz` | Linux (x86_64 Docker) | Docker Image Tarball | 37.0 MB | `8a72bd7db23534db35499cdb5b3cfa1232be34abf2753bb5aa35073fcfef8e9f` | |
-| `shadow-tracker-web-export.tar.gz` | Any Static Web Host | Static HTML5/JS/CSS Bundle | 9.5 MB | `9969dd2e8dfc599c620abacbe9d46ec9efc73033ad70d44b95d4c493734b7300` | |
+| `Shadow-Tracker-Setup.exe` | Windows 10/11 (x64) | NSIS Executable Installer | 14.0 MB | `78d7ac982d358623a55ec2b694cd0b86646660c831999dd3082a41adc5fe0ac0` | |
+| `Shadow-Tracker-Portable.exe` | Windows 10/11 (x64) | Single Portable Executable | 30.6 MB | `4a3611143bca9884994489c7352acb0a7f83d5d30f8a11cf7f2a0acc4eca1f60` | |
+| `Shadow-Tracker-Release.apk` | Android 8.0+ (ARM64/x86) | Signed Mobile APK | 13.5 MB | `7bf7cff96e0c9ce3ca5ee9dff570a928b8dc99f873864ecb92c011932f3581ef` | |
+| `shadow-tracker-container.tar.gz` | Linux (x86_64 Docker) | Docker Image Tarball | 36.9 MB | `5e6742dfc8b0157ae5f5b3a5730ffeae9e85132511c787573f1f96d1185fdc43` | |
+| `shadow-tracker-web-export.tar.gz` | Any Static Web Host | Static HTML5/JS/CSS Bundle | 9.5 MB | `0eb59e91a5ea1e16265f8a852e60b1de3d44fdc4cce7fbfe6eb4f6df1261f202` | |
 | `Shadow-Tracker-Windows-Certificate.crt` | Windows OS | Trusted Root Signing Cert | 1.3 KB | `aabc149abd60a904878ebfc939611500ed636d22b61157cd891c3c2937ba4c98` | |
 
 ### Integrity-Verification
@@ -271,32 +271,31 @@ Shadow Tracker is architected upon an offline-first foundation where local clien
 
 ## Application-Lifecycle
 
-The application lifecycle guarantees zero battery drain, zero idle CPU consumption, and resilient offline-first data integrity.
+Shadow Tracker is built for fast startup, low battery impact, and reliable offline data storage.
 
 ### 1-Boot-and-Hydration
-1. **HTML Bootstrap**: Critical layout CSS and theme attributes are read synchronously from `localStorage` to eliminate flashing unstyled content (FOUC).
-2. **IndexedDB Initialization**: The database service opens `shadow_tracker_db` (version 2) with transactional object stores:
+1. **HTML Bootstrap**: Theme and layout tokens are read synchronously from `localStorage` to avoid flash-of-unstyled-content.
+2. **IndexedDB Initialization**: The local database service opens `shadow_tracker_db` with stores for:
    - `tasks`
    - `habits`
    - `dailyLogs`
    - `notes`
    - `reminders`
    - `categories`
-3. **Zustand Hydration**: Asynchronous load initializes in-memory state. If the store is empty, defaults are seeded gracefully without blocking the UI thread.
+3. **Zustand Store Hydration**: State loads asynchronously from local storage without freezing the UI.
 4. **Platform Event Listeners**:
-   - Page Visibility API listens for `visibilitychange`.
-   - Native Tauri IPC listens for `shadow-eco-mode` and tray minimize events.
+   - Page Visibility API listens for tab and window visibility changes.
+   - Desktop Tauri IPC listens for Eco Mode and system tray minimize events.
 
-### 2-Zero-CPU-Idle-Freeze
-When Shadow Tracker is minimized, sent to the background tray, or hidden behind another window:
-- Framer Motion animation loops (`requestAnimationFrame`) are unmounted immediately.
-- Global ambient canvas backgrounds suspend rendering.
-- DOM nodes receive `content-visibility: hidden` to free GPU texture memory and compositing pipelines.
-- Transitions and CSS keyframe animations are paused globally via the `.is-hidden` root rule.
+### 2-Resource-Optimization-and-Idle
+When Shadow Tracker is minimized or sent to the system tray:
+- Framer Motion animation loops unmount cleanly.
+- Ambient canvas backgrounds pause rendering to save battery and GPU cycles.
+- Background tabs idle and suspend CSS animations using the `.is-hidden` root state.
 
 ### 3-Background-Workers-and-Notifications
-- **Capacitor Alarms (Android)**: Exact scheduled triggers invoke `@capacitor/local-notifications` with sticky action buttons (Yes/No completion).
-- **Web Worker Timer**: In desktop and web environments, Web Audio API synthesizers play subtle arpeggiated tones upon timer completion without requiring external media assets.
+- **Capacitor Alarms (Android)**: Exact scheduled triggers invoke `@capacitor/local-notifications` with quick action buttons.
+- **Web Worker Audio Timer**: Subtle arpeggiated tones play via Web Audio API when timers finish, without downloading external audio files.
 
 [↑ Back to contents](#Table-of-Contents)
 
@@ -304,7 +303,7 @@ When Shadow Tracker is minimized, sent to the background tray, or hidden behind 
 
 ## Life-RPG-and-XP-Internals
 
-Shadow Tracker treats personal discipline as a role-playing progression system. Every positive habit, completed task, workout, and logged meal awards Experience Points (XP), leveling up your character from a wandering seeker to an immortal sovereign.
+Shadow Tracker turns daily discipline into an RPG progression system. Every completed task, habit check-off, workout, and logged meal awards Experience Points (XP) to level up your character.
 
 ### XP-Calculation-Formulas
 
@@ -479,7 +478,7 @@ For battery conservation and ultra-low-spec hardware:
 
 ## Backup-Restore-and-Cloud-Sync
 
-Shadow Tracker guarantees that you own 100% of your data without reliance on proprietary cloud databases.
+You own 100% of your data without relying on third-party cloud servers.
 
 ### 1-Local-JSON-Backup-and-Restore
 - **Export**: Generates a unified, timestamped `shadow-tracker-full-backup-YYYY-MM-DD.json` file via the browser File System Access API.

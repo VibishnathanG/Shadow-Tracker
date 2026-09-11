@@ -639,7 +639,7 @@ html.theme-purple {
   --theme-border: 1px solid var(--border-subtle);
   --theme-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.65), 0 2px 8px -1px rgba(253, 251, 247, 0.04);
   --theme-blur: 16px;
-  --theme-glow: 0 0 24px rgba(99, 102, 241, 0.22);
+  --theme-glow: 0 0 12px rgba(99, 102, 241, 0.10);
   --theme-noise-opacity: 0.015;
 
   /* Glassy Dark & Creamy White Mixed Tiles with Refined Sheen */
@@ -650,8 +650,8 @@ html.theme-purple {
   --sheen-opacity-2: 0.04;
   --sheen-subtle: 0.08;
   --tile-hover-border: #818cf8;
-  --tile-hover-gradient: linear-gradient(135deg, rgba(253, 251, 247, 0.10) 0%, rgba(99, 102, 241, 0.14) 50%, rgba(6, 182, 212, 0.08) 100%);
-  --tile-hover-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.5), 0 0 20px rgba(99, 102, 241, 0.25);
+  --tile-hover-gradient: linear-gradient(135deg, rgba(253, 251, 247, 0.06) 0%, rgba(99, 102, 241, 0.08) 50%, rgba(6, 182, 212, 0.05) 100%);
+  --tile-hover-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.5), 0 0 10px rgba(99, 102, 241, 0.11);
   --primary-pill-bg: rgba(99, 102, 241, 0.22);
   --primary-pill-text: #818cf8;
   color-scheme: dark !important;
@@ -677,7 +677,7 @@ html.theme-purple body {
   background-size: 24px 24px, 100% 100% !important;
 }
 
-/* Spectrum Theme: Dynamic Per-Page Color Shades */
+/* Spectrum Theme: Dynamic Per-Page Color Shades (Reduced Glow by 55-60%) */
 html[data-theme="midnight"][data-active-tab="dashboard"],
 html[data-theme="purple"][data-active-tab="dashboard"],
 html[data-theme="spectrum"][data-active-tab="dashboard"],
@@ -689,7 +689,7 @@ html.theme-pine[data-active-tab="dashboard"] {
   --border-focus: #818cf8;
   --primary: #6366f1;
   --tile-hover-border: #818cf8;
-  --tile-hover-shadow: 0 14px 36px -4px rgba(99, 102, 241, 0.35), 0 0 1px 1px rgba(253, 251, 247, 0.22);
+  --tile-hover-shadow: 0 14px 36px -4px rgba(99, 102, 241, 0.15), 0 0 1px 1px rgba(253, 251, 247, 0.10);
 }
 
 html[data-theme="midnight"][data-active-tab="tasks"],
@@ -703,7 +703,7 @@ html.theme-pine[data-active-tab="tasks"] {
   --border-focus: #fb923c;
   --primary: #f97316;
   --tile-hover-border: #fb923c;
-  --tile-hover-shadow: 0 14px 36px -4px rgba(249, 115, 22, 0.35), 0 0 1px 1px rgba(253, 251, 247, 0.22);
+  --tile-hover-shadow: 0 14px 36px -4px rgba(249, 115, 22, 0.15), 0 0 1px 1px rgba(253, 251, 247, 0.10);
 }
 
 html[data-theme="midnight"][data-active-tab="todo"],
@@ -717,7 +717,7 @@ html.theme-pine[data-active-tab="todo"] {
   --border-focus: #34d399;
   --primary: #10b981;
   --tile-hover-border: #34d399;
-  --tile-hover-shadow: 0 14px 36px -4px rgba(16, 185, 129, 0.35), 0 0 1px 1px rgba(253, 251, 247, 0.22);
+  --tile-hover-shadow: 0 14px 36px -4px rgba(16, 185, 129, 0.15), 0 0 1px 1px rgba(253, 251, 247, 0.10);
 }
 
 html[data-theme="midnight"][data-active-tab="habits"],
@@ -731,7 +731,7 @@ html.theme-pine[data-active-tab="habits"] {
   --border-focus: #22d3ee;
   --primary: #06b6d4;
   --tile-hover-border: #22d3ee;
-  --tile-hover-shadow: 0 14px 36px -4px rgba(6, 182, 212, 0.35), 0 0 1px 1px rgba(253, 251, 247, 0.22);
+  --tile-hover-shadow: 0 14px 36px -4px rgba(6, 182, 212, 0.15), 0 0 1px 1px rgba(253, 251, 247, 0.10);
 }
 
 html[data-theme="midnight"][data-active-tab="calendar"],
@@ -745,7 +745,7 @@ html.theme-pine[data-active-tab="calendar"] {
   --border-focus: #60a5fa;
   --primary: #3b82f6;
   --tile-hover-border: #60a5fa;
-  --tile-hover-shadow: 0 14px 36px -4px rgba(59, 130, 246, 0.35), 0 0 1px 1px rgba(253, 251, 247, 0.22);
+  --tile-hover-shadow: 0 14px 36px -4px rgba(59, 130, 246, 0.15), 0 0 1px 1px rgba(253, 251, 247, 0.10);
 }
 
 html[data-theme="midnight"][data-active-tab="health"],
@@ -759,7 +759,7 @@ html.theme-pine[data-active-tab="health"] {
   --border-focus: #fb7185;
   --primary: #f43f5e;
   --tile-hover-border: #fb7185;
-  --tile-hover-shadow: 0 14px 36px -4px rgba(244, 63, 94, 0.35), 0 0 1px 1px rgba(253, 251, 247, 0.22);
+  --tile-hover-shadow: 0 14px 36px -4px rgba(244, 63, 94, 0.15), 0 0 1px 1px rgba(253, 251, 247, 0.10);
 }
 
 html[data-theme="midnight"][data-active-tab="analytics"],
@@ -773,7 +773,7 @@ html.theme-pine[data-active-tab="analytics"] {
   --border-focus: #e879f9;
   --primary: #d946ef;
   --tile-hover-border: #e879f9;
-  --tile-hover-shadow: 0 14px 36px -4px rgba(217, 70, 239, 0.35), 0 0 1px 1px rgba(253, 251, 247, 0.22);
+  --tile-hover-shadow: 0 14px 36px -4px rgba(217, 70, 239, 0.15), 0 0 1px 1px rgba(253, 251, 247, 0.10);
 }
 
 html[data-theme="midnight"][data-active-tab="notes"],
@@ -787,7 +787,7 @@ html.theme-pine[data-active-tab="notes"] {
   --border-focus: #fbbf24;
   --primary: #f59e0b;
   --tile-hover-border: #fbbf24;
-  --tile-hover-shadow: 0 14px 36px -4px rgba(245, 158, 11, 0.35), 0 0 1px 1px rgba(253, 251, 247, 0.22);
+  --tile-hover-shadow: 0 14px 36px -4px rgba(245, 158, 11, 0.15), 0 0 1px 1px rgba(253, 251, 247, 0.10);
 }
 
 html[data-theme="midnight"][data-active-tab="money"],
@@ -801,7 +801,7 @@ html.theme-pine[data-active-tab="money"] {
   --border-focus: #34d399;
   --primary: #10b981;
   --tile-hover-border: #34d399;
-  --tile-hover-shadow: 0 14px 36px -4px rgba(16, 185, 129, 0.35), 0 0 1px 1px rgba(253, 251, 247, 0.22);
+  --tile-hover-shadow: 0 14px 36px -4px rgba(16, 185, 129, 0.15), 0 0 1px 1px rgba(253, 251, 247, 0.10);
 }
 
 html[data-theme="midnight"][data-active-tab="rpg"],
@@ -815,7 +815,7 @@ html.theme-pine[data-active-tab="rpg"] {
   --border-focus: #a78bfa;
   --primary: #8b5cf6;
   --tile-hover-border: #a78bfa;
-  --tile-hover-shadow: 0 14px 36px -4px rgba(139, 92, 246, 0.35), 0 0 1px 1px rgba(253, 251, 247, 0.22);
+  --tile-hover-shadow: 0 14px 36px -4px rgba(139, 92, 246, 0.15), 0 0 1px 1px rgba(253, 251, 247, 0.10);
 }
 
 html[data-theme="midnight"][data-active-tab="wizard"],
@@ -829,7 +829,7 @@ html.theme-pine[data-active-tab="wizard"] {
   --border-focus: #22d3ee;
   --primary: #06b6d4;
   --tile-hover-border: #22d3ee;
-  --tile-hover-shadow: 0 14px 36px -4px rgba(6, 182, 212, 0.35), 0 0 1px 1px rgba(253, 251, 247, 0.22);
+  --tile-hover-shadow: 0 14px 36px -4px rgba(6, 182, 212, 0.15), 0 0 1px 1px rgba(253, 251, 247, 0.10);
 }
 
 html[data-theme="midnight"][data-active-tab="settings"],
@@ -843,7 +843,7 @@ html.theme-pine[data-active-tab="settings"] {
   --border-focus: #ffffff;
   --primary: #818cf8;
   --tile-hover-border: #ffffff;
-  --tile-hover-shadow: 0 14px 36px -4px rgba(253, 251, 247, 0.18), 0 0 1px 1px rgba(253, 251, 247, 0.3);
+  --tile-hover-shadow: 0 14px 36px -4px rgba(253, 251, 247, 0.08), 0 0 1px 1px rgba(253, 251, 247, 0.12);
 }
 
 /* ---------------------------------------------------------
@@ -892,21 +892,21 @@ html.theme-obsidian {
   --theme-heading-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --theme-radius: var(--radius-lg);
   --theme-border: 1px solid var(--border-subtle);
-  --theme-shadow: 0 12px 36px rgba(0, 0, 0, 0.65), 0 0 15px rgba(168, 85, 247, 0.12);
+  --theme-shadow: 0 12px 36px rgba(0, 0, 0, 0.65), 0 0 10px rgba(168, 85, 247, 0.08);
   --theme-blur: 16px;
-  --theme-glow: 0 0 20px rgba(168, 85, 247, 0.25);
+  --theme-glow: 0 0 14px rgba(168, 85, 247, 0.16);
   --theme-noise-opacity: 0.015;
 
   /* Frosted Glassy Black-Purple gradient on pitch black */
   --tile-bg: linear-gradient(145deg, rgba(23, 14, 40, 0.65) 0%, rgba(9, 6, 18, 0.75) 100%);
-  --tile-border: rgba(168, 85, 247, 0.28);
-  --tile-highlight: rgba(255, 255, 255, 0.18);
-  --sheen-opacity-1: 0.12;
-  --sheen-opacity-2: 0.035;
-  --sheen-subtle: 0.06;
+  --tile-border: rgba(168, 85, 247, 0.24);
+  --tile-highlight: rgba(255, 255, 255, 0.16);
+  --sheen-opacity-1: 0.10;
+  --sheen-opacity-2: 0.03;
+  --sheen-subtle: 0.05;
   --tile-hover-border: #ffffff;
-  --tile-hover-gradient: linear-gradient(135deg, rgba(168, 85, 247, 0.2) 0%, rgba(255, 255, 255, 0.08) 100%);
-  --tile-hover-shadow: 0 10px 32px rgba(168, 85, 247, 0.25), 0 0 1px 1px rgba(255, 255, 255, 0.25);
+  --tile-hover-gradient: linear-gradient(135deg, rgba(168, 85, 247, 0.14) 0%, rgba(255, 255, 255, 0.06) 100%);
+  --tile-hover-shadow: 0 10px 28px rgba(168, 85, 247, 0.16), 0 0 1px 1px rgba(255, 255, 255, 0.18);
   --primary-pill-bg: rgba(168, 85, 247, 0.25);
   --primary-pill-text: #ffffff;
   color-scheme: dark !important;
@@ -1035,9 +1035,9 @@ html.theme-cyberpunk {
   --theme-heading-font: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --theme-radius: var(--radius-md);
   --theme-border: 1px solid var(--border-subtle);
-  --theme-shadow: 0 12px 32px rgba(0, 0, 0, 0.55), 0 0 14px rgba(251, 113, 133, 0.18);
+  --theme-shadow: 0 12px 32px rgba(0, 0, 0, 0.55), 0 0 10px rgba(251, 113, 133, 0.12);
   --theme-blur: 16px;
-  --theme-glow: 0 0 10px rgba(251, 113, 133, 0.15);
+  --theme-glow: 0 0 8px rgba(251, 113, 133, 0.10);
   --theme-noise-opacity: 0;
 
   --tile-bg: linear-gradient(145deg, rgba(25, 30, 43, 0.65) 0%, rgba(16, 19, 27, 0.75) 100%);

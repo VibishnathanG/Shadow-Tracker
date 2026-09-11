@@ -28,7 +28,15 @@ export const CommandBar: React.FC<CommandBarProps> = ({
     if (isOpen) {
       setQuery('');
       setSelectedIndex(0);
-      setTimeout(() => inputRef.current?.focus(), 50);
+      // On mobile devices / APK, do not auto-focus so the virtual keyboard doesn't open immediately on tap
+      const isMobile = typeof window !== 'undefined' && (
+        window.innerWidth < 768 ||
+        /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) ||
+        ('ontouchstart' in window && window.innerWidth < 1024)
+      );
+      if (!isMobile) {
+        setTimeout(() => inputRef.current?.focus(), 50);
+      }
     }
   }, [isOpen]);
 

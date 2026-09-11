@@ -48,35 +48,55 @@ export default function NutritionPlateVisualizer({
   const [editingItem, setEditingItem] = useState<LoggedFood | null>(null);
   const [activeMealTab, setActiveMealTab] = useState<MealType | 'all'>('all');
 
-  // Lock body scroll when editingItem modal is open
+  // Single, robust scroll lock & escape listener when editingItem is open
   useEffect(() => {
-    if (editingItem) {
-      const scrollY = window.scrollY;
-      const prevOverflow = document.body.style.overflow;
-      const prevPos = document.body.style.position;
-      const prevTop = document.body.style.top;
-      const prevWidth = document.body.style.width;
+    if (!editingItem) return;
 
-      document.body.classList.add('modal-open');
-      document.documentElement.classList.add('modal-open');
-      document.body.style.overflow = 'hidden';
-      document.documentElement.style.overflow = 'hidden';
-      document.body.style.position = 'fixed';
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = '100%';
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setEditingItem(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
 
-      return () => {
-        document.body.classList.remove('modal-open');
-        document.documentElement.classList.remove('modal-open');
-        document.body.style.overflow = prevOverflow;
-        document.documentElement.style.overflow = '';
-        document.body.style.position = prevPos;
-        document.body.style.top = prevTop;
-        document.body.style.width = prevWidth;
-        window.scrollTo(0, scrollY);
-      };
-    }
+    const scrollY = window.scrollY;
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    const prevBodyPos = document.body.style.position;
+    const prevBodyTop = document.body.style.top;
+    const prevBodyWidth = document.body.style.width;
+
+    document.body.classList.add('modal-open');
+    document.documentElement.classList.add('modal-open');
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.classList.remove('modal-open');
+      document.documentElement.classList.remove('modal-open');
+      document.body.style.overflow = prevBodyOverflow;
+      document.documentElement.style.overflow = prevHtmlOverflow;
+      document.body.style.position = prevBodyPos;
+      document.body.style.top = prevBodyTop;
+      document.body.style.width = prevBodyWidth;
+      window.scrollTo(0, scrollY);
+    };
   }, [editingItem]);
+
+  // Safety cleanup on unmount in case component unmounts while modal is open
+  useEffect(() => {
+    return () => {
+      document.body.classList.remove('modal-open');
+      document.documentElement.classList.remove('modal-open');
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, []);
 
   // Edit form state
   const [editName, setEditName] = useState('');
@@ -87,23 +107,6 @@ export default function NutritionPlateVisualizer({
   const [editFats, setEditFats] = useState('');
   const [editMeal, setEditMeal] = useState<MealType>('lunch');
   const [editQuantity, setEditQuantity] = useState(1);
-
-  // Lock body scroll when editing item modal is open
-  useEffect(() => {
-    if (!editingItem) return;
-    const prevBodyOverflow = document.body.style.overflow;
-    const prevHtmlOverflow = document.documentElement.style.overflow;
-    document.body.classList.add('modal-open');
-    document.documentElement.classList.add('modal-open');
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
-    return () => {
-      document.body.classList.remove('modal-open');
-      document.documentElement.classList.remove('modal-open');
-      document.body.style.overflow = prevBodyOverflow;
-      document.documentElement.style.overflow = prevHtmlOverflow;
-    };
-  }, [editingItem]);
 
   // Meal Totals
   const mealTotals = useMemo(() => {
@@ -211,8 +214,8 @@ export default function NutritionPlateVisualizer({
               {/* Concentric Ceramic Groove Ring */}
               <div className="absolute inset-4 rounded-full border border-border/40 pointer-events-none" />
 
-              {/* Progress Arc SVG with Gradient Fill (Light Green -> Amber -> Red Overflow) */}
-              <svg className="absolute inset-3 w-[calc(100%-24px)] h-[calc(100%-24px)] -rotate-90" viewBox="0 0 100 100">
+              {/* Progress Arc SVG with Gradient Fill (Clean outer perimeter rim - zero badge collision) */}
+              <svg className="absolute inset-1.5 w-[calc(100%-12px)] h-[calc(100%-12px)] -rotate-90 pointer-events-none" viewBox="0 0 100 100">
                 <defs>
                   {/* Standard In-Budget Gradient (Mint Green -> Vibrant Emerald -> Gold Amber) */}
                   <linearGradient id="healthyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -233,10 +236,10 @@ export default function NutritionPlateVisualizer({
                 <circle
                   cx="50"
                   cy="50"
-                  r="41"
+                  r="46"
                   fill="none"
                   stroke="currentColor"
-                  strokeWidth="6"
+                  strokeWidth="4"
                   className="text-muted/15"
                 />
 
@@ -244,40 +247,71 @@ export default function NutritionPlateVisualizer({
                 <motion.circle
                   cx="50"
                   cy="50"
-                  r="41"
+                  r="46"
                   fill="none"
-                  strokeWidth="7"
+                  strokeWidth="5"
                   strokeLinecap="round"
-                  strokeDasharray="257.6"
-                  initial={{ strokeDashoffset: 257.6 }}
+                  strokeDasharray="289.02"
+                  initial={{ strokeDashoffset: 289.02 }}
                   animate={{
-                    strokeDashoffset: 257.6 - (257.6 * clampedRingPct) / 100,
+                    strokeDashoffset: 289.02 - (289.02 * clampedRingPct) / 100,
                   }}
                   transition={{ duration: 0.8, ease: 'easeOut' }}
                   stroke={isOverBudget ? 'url(#overlimitGradient)' : 'url(#healthyGradient)'}
                 />
               </svg>
 
-              {/* Inner Meal Quadrants with Colorized Icon Boxes (No clipping) */}
-              <div className="absolute inset-8 pointer-events-none flex flex-col justify-between items-center py-1 select-none">
-                <div className="p-1.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-400 shadow-xs" title="Breakfast Section">
-                  <Lucide.Sunrise size={13} />
+              {/* Four Meal Quadrants: Morning (Top) -> Afternoon (Right) -> Evening (Bottom) -> Night (Left) */}
+              {/* 1. Morning (Breakfast) at 12 o'clock */}
+              <button
+                type="button"
+                onClick={() => onOpenAddModal('breakfast')}
+                className="absolute top-6 sm:top-7 left-1/2 -translate-x-1/2 select-none z-20 group cursor-pointer"
+                title="Morning (Breakfast) - Click to log food"
+              >
+                <div className="w-8 h-8 rounded-full bg-surface-elevated/95 border-2 border-amber-500/50 text-amber-400 shadow-md flex items-center justify-center group-hover:scale-110 group-hover:border-amber-400 group-hover:bg-amber-500/20 transition-all">
+                  <Lucide.Sunrise size={14} />
                 </div>
-                <div className="p-1.5 rounded-lg bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 shadow-xs" title="Dinner Section">
-                  <Lucide.MoonStar size={13} />
+              </button>
+
+              {/* 2. Afternoon (Lunch) at 3 o'clock */}
+              <button
+                type="button"
+                onClick={() => onOpenAddModal('lunch')}
+                className="absolute right-6 sm:right-7 top-1/2 -translate-y-1/2 select-none z-20 group cursor-pointer"
+                title="Afternoon (Lunch) - Click to log food"
+              >
+                <div className="w-8 h-8 rounded-full bg-surface-elevated/95 border-2 border-emerald-500/50 text-emerald-400 shadow-md flex items-center justify-center group-hover:scale-110 group-hover:border-emerald-400 group-hover:bg-emerald-500/20 transition-all">
+                  <Lucide.SunMedium size={14} />
                 </div>
-              </div>
-              <div className="absolute inset-8 pointer-events-none flex justify-between items-center px-1 select-none">
-                <div className="p-1.5 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 shadow-xs" title="Lunch Section">
-                  <Lucide.SunMedium size={13} />
+              </button>
+
+              {/* 3. Evening (Dinner) at 6 o'clock */}
+              <button
+                type="button"
+                onClick={() => onOpenAddModal('dinner')}
+                className="absolute bottom-6 sm:bottom-7 left-1/2 -translate-x-1/2 select-none z-20 group cursor-pointer"
+                title="Evening (Dinner) - Click to log food"
+              >
+                <div className="w-8 h-8 rounded-full bg-surface-elevated/95 border-2 border-indigo-500/50 text-indigo-400 shadow-md flex items-center justify-center group-hover:scale-110 group-hover:border-indigo-400 group-hover:bg-indigo-500/20 transition-all">
+                  <Lucide.MoonStar size={14} />
                 </div>
-                <div className="p-1.5 rounded-lg bg-rose-500/15 border border-rose-500/30 text-rose-400 shadow-xs" title="Snacks Section">
-                  <Lucide.Coffee size={13} />
+              </button>
+
+              {/* 4. Night (Snack / Chai) at 9 o'clock */}
+              <button
+                type="button"
+                onClick={() => onOpenAddModal('snack')}
+                className="absolute left-6 sm:left-7 top-1/2 -translate-y-1/2 select-none z-20 group cursor-pointer"
+                title="Night (Snack / Chai) - Click to log food"
+              >
+                <div className="w-8 h-8 rounded-full bg-surface-elevated/95 border-2 border-rose-500/50 text-rose-400 shadow-md flex items-center justify-center group-hover:scale-110 group-hover:border-rose-400 group-hover:bg-rose-500/20 transition-all">
+                  <Lucide.Coffee size={14} />
                 </div>
-              </div>
+              </button>
 
               {/* Center Porcelain Hub Display */}
-              <div className="relative z-10 w-32 h-32 sm:w-36 sm:h-36 rounded-full bg-surface/95 backdrop-blur-md border border-border/80 shadow-xl flex flex-col items-center justify-center text-center p-2">
+              <div className="relative z-10 w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-surface/95 backdrop-blur-md border border-border/80 shadow-xl flex flex-col items-center justify-center text-center p-2">
                 <span className="text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">EATEN</span>
                 <div className="flex items-baseline gap-0.5 font-mono font-black text-foreground">
                   <span className="text-2xl sm:text-3xl leading-none">{totalCalories}</span>
@@ -299,23 +333,52 @@ export default function NutritionPlateVisualizer({
               </div>
             </div>
 
-            {/* Meal Calories Legend Bar (Below Plate with Vector Icons) */}
-            <div className="flex items-center gap-3 text-[10px] font-black text-muted-foreground pt-1">
-              <span className="flex items-center gap-1 text-amber-400">
-                <Lucide.Sunrise size={12} /> {mealTotals.breakfast}
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-1 text-emerald-400">
-                <Lucide.SunMedium size={12} /> {mealTotals.lunch}
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-1 text-indigo-400">
-                <Lucide.MoonStar size={12} /> {mealTotals.dinner}
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-1 text-rose-400">
-                <Lucide.Coffee size={12} /> {mealTotals.snack} kcal
-              </span>
+            {/* Meal Calories Legend Bar (Interactive filter pills) */}
+            <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] font-black text-muted-foreground pt-1 flex-wrap justify-center">
+              <button
+                type="button"
+                onClick={() => setActiveMealTab(activeMealTab === 'breakfast' ? 'all' : 'breakfast')}
+                className={`flex items-center gap-1 px-2 py-0.5 rounded-full border transition-all cursor-pointer ${
+                  activeMealTab === 'breakfast'
+                    ? 'bg-amber-500/25 text-amber-300 border-amber-500/60 shadow-xs'
+                    : 'bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20'
+                }`}
+              >
+                <Lucide.Sunrise size={11} /> Morning {mealTotals.breakfast}
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveMealTab(activeMealTab === 'lunch' ? 'all' : 'lunch')}
+                className={`flex items-center gap-1 px-2 py-0.5 rounded-full border transition-all cursor-pointer ${
+                  activeMealTab === 'lunch'
+                    ? 'bg-emerald-500/25 text-emerald-300 border-emerald-500/60 shadow-xs'
+                    : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20'
+                }`}
+              >
+                <Lucide.SunMedium size={11} /> Afternoon {mealTotals.lunch}
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveMealTab(activeMealTab === 'dinner' ? 'all' : 'dinner')}
+                className={`flex items-center gap-1 px-2 py-0.5 rounded-full border transition-all cursor-pointer ${
+                  activeMealTab === 'dinner'
+                    ? 'bg-indigo-500/25 text-indigo-300 border-indigo-500/60 shadow-xs'
+                    : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/30 hover:bg-indigo-500/20'
+                }`}
+              >
+                <Lucide.MoonStar size={11} /> Evening {mealTotals.dinner}
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveMealTab(activeMealTab === 'snack' ? 'all' : 'snack')}
+                className={`flex items-center gap-1 px-2 py-0.5 rounded-full border transition-all cursor-pointer ${
+                  activeMealTab === 'snack'
+                    ? 'bg-rose-500/25 text-rose-300 border-rose-500/60 shadow-xs'
+                    : 'bg-rose-500/10 text-rose-400 border-rose-500/30 hover:bg-rose-500/20'
+                }`}
+              >
+                <Lucide.Coffee size={11} /> Night {mealTotals.snack}
+              </button>
             </div>
           </div>
 
@@ -409,10 +472,10 @@ export default function NutritionPlateVisualizer({
             {/* Quick Meal Slot Cards with Vector Icon Boxes */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
               {[
-                { type: 'breakfast' as MealType, label: 'Breakfast', icon: Lucide.Sunrise, bg: 'bg-amber-500/15 border-amber-500/30 text-amber-400', kcal: mealTotals.breakfast },
-                { type: 'lunch' as MealType, label: 'Lunch', icon: Lucide.SunMedium, bg: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400', kcal: mealTotals.lunch },
-                { type: 'dinner' as MealType, label: 'Dinner', icon: Lucide.MoonStar, bg: 'bg-indigo-500/15 border-indigo-500/30 text-indigo-400', kcal: mealTotals.dinner },
-                { type: 'snack' as MealType, label: 'Snack / Chai', icon: Lucide.Coffee, bg: 'bg-rose-500/15 border-rose-500/30 text-rose-400', kcal: mealTotals.snack },
+                { type: 'breakfast' as MealType, label: 'Morning (Breakfast)', icon: Lucide.Sunrise, bg: 'bg-amber-500/15 border-amber-500/30 text-amber-400', kcal: mealTotals.breakfast },
+                { type: 'lunch' as MealType, label: 'Afternoon (Lunch)', icon: Lucide.SunMedium, bg: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400', kcal: mealTotals.lunch },
+                { type: 'dinner' as MealType, label: 'Evening (Dinner)', icon: Lucide.MoonStar, bg: 'bg-indigo-500/15 border-indigo-500/30 text-indigo-400', kcal: mealTotals.dinner },
+                { type: 'snack' as MealType, label: 'Night (Snack / Chai)', icon: Lucide.Coffee, bg: 'bg-rose-500/15 border-rose-500/30 text-rose-400', kcal: mealTotals.snack },
               ].map(m => {
                 const IconComp = m.icon;
                 return (
