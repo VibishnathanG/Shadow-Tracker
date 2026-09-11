@@ -8,21 +8,30 @@ import Layout from '@/components/Layout';
 import Onboarding from '@/features/onboarding/Onboarding';
 import { MotionConfig } from 'framer-motion';
 
-import Dashboard from '@/features/dashboard/Dashboard';
-import ExplorerFeature from '@/features/explorer/ExplorerFeature';
-import TasksFeature from '@/features/tasks/TasksFeature';
-import HabitsFeature from '@/features/habits/HabitsFeature';
-import CalendarFeature from '@/features/calendar/CalendarFeature';
-import AnalyticsFeature from '@/features/analytics/AnalyticsFeature';
-import NotesFeature from '@/features/notes/NotesFeature';
-import MoneyFeature from '@/features/money/MoneyFeature';
-import SettingsFeature from '@/features/settings/SettingsFeature';
-import TodoFeature from '@/features/todo/TodoFeature';
-import HealthFeature from '@/features/health/HealthFeature';
-import LifeRpgFeature from '@/features/rpg/LifeRpgFeature';
-import WizardFeature from '@/features/wizard/WizardFeature';
+import dynamic from 'next/dynamic';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useViewPreference } from '@/lib/viewPreferences';
+
+const PageFallback = () => (
+  <div className="min-h-[50vh] flex flex-col items-center justify-center p-8">
+    <div className="w-10 h-10 border-2 border-primary/20 border-t-primary rounded-full animate-spin mb-3"></div>
+    <span className="text-xs font-mono uppercase tracking-widest text-muted-foreground animate-pulse">Loading Workspace...</span>
+  </div>
+);
+
+const Dashboard = dynamic(() => import('@/features/dashboard/Dashboard'), { ssr: false, loading: PageFallback });
+const ExplorerFeature = dynamic(() => import('@/features/explorer/ExplorerFeature'), { ssr: false, loading: PageFallback });
+const TasksFeature = dynamic(() => import('@/features/tasks/TasksFeature'), { ssr: false, loading: PageFallback });
+const HabitsFeature = dynamic(() => import('@/features/habits/HabitsFeature'), { ssr: false, loading: PageFallback });
+const CalendarFeature = dynamic(() => import('@/features/calendar/CalendarFeature'), { ssr: false, loading: PageFallback });
+const AnalyticsFeature = dynamic(() => import('@/features/analytics/AnalyticsFeature'), { ssr: false, loading: PageFallback });
+const NotesFeature = dynamic(() => import('@/features/notes/NotesFeature'), { ssr: false, loading: PageFallback });
+const MoneyFeature = dynamic(() => import('@/features/money/MoneyFeature'), { ssr: false, loading: PageFallback });
+const SettingsFeature = dynamic(() => import('@/features/settings/SettingsFeature'), { ssr: false, loading: PageFallback });
+const TodoFeature = dynamic(() => import('@/features/todo/TodoFeature'), { ssr: false, loading: PageFallback });
+const HealthFeature = dynamic(() => import('@/features/health/HealthFeature'), { ssr: false, loading: PageFallback });
+const LifeRpgFeature = dynamic(() => import('@/features/rpg/LifeRpgFeature'), { ssr: false, loading: PageFallback });
+const WizardFeature = dynamic(() => import('@/features/wizard/WizardFeature'), { ssr: false, loading: PageFallback });
 
 export default function Home() {
   const { settings, init, isLoading } = useShadowTrackerStore();

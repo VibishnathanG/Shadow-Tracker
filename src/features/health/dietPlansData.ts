@@ -63,6 +63,7 @@ export function saveCustomDietPlan(plan: WeeklyDietPlan): WeeklyDietPlan[] {
     const filtered = existing.filter(p => p.id !== plan.id);
     const updated = [plan, ...filtered];
     localStorage.setItem(STORAGE_CUSTOM_DIETS_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('shadow_health_updated'));
     return updated;
   } catch (e) {
     console.error('Error saving custom diet plan:', e);
@@ -76,6 +77,7 @@ export function deleteCustomDietPlan(planId: string): WeeklyDietPlan[] {
     const existing = getCustomDietPlans();
     const updated = existing.filter(p => p.id !== planId);
     localStorage.setItem(STORAGE_CUSTOM_DIETS_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('shadow_health_updated'));
     return updated;
   } catch (e) {
     console.error('Error deleting custom diet plan:', e);

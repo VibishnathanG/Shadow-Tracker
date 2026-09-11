@@ -81,10 +81,10 @@ function mergeHealthData(local?: any, cloud?: any): any {
   (local.customFoods || []).forEach((f: any) => customFoodMap.set(f.id || f.name, f));
   (cloud.customFoods || []).forEach((f: any) => customFoodMap.set(f.id || f.name, f));
 
-  // 4. Custom Diets (union by id or title)
+  // 4. Custom Diets (union by id or name/title)
   const dietMap = new Map<string, any>();
-  (local.customDiets || []).forEach((d: any) => dietMap.set(d.id || d.title, d));
-  (cloud.customDiets || []).forEach((d: any) => dietMap.set(d.id || d.title, d));
+  (local.customDiets || []).forEach((d: any) => dietMap.set(d.id || d.name || d.title, d));
+  (cloud.customDiets || []).forEach((d: any) => dietMap.set(d.id || d.name || d.title, d));
 
   // 5. Today's Exercises
   const todayExerciseMap = new Map<string, any>();

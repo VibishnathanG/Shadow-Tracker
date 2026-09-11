@@ -78,6 +78,7 @@ export function saveUserBiometrics(biometrics: Partial<UserBiometrics>): UserBio
     const current = getUserBiometrics();
     const updated = { ...current, ...biometrics };
     localStorage.setItem(BIOMETRICS_STORAGE_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('shadow_health_updated'));
     return updated;
   } catch (e) {
     console.error('Failed to save user biometrics:', e);

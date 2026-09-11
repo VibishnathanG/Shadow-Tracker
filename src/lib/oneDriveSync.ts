@@ -360,7 +360,6 @@ export function mergeBackupDatasets(local: BackupData, remote: BackupData): Back
 }
 
 /**
-/**
  * Record current state of app with ALL data and update/rewrite the sync file to match.
  */
 export async function performExportSyncToFile(currentSettings: any): Promise<BackupData | null> {
@@ -377,10 +376,41 @@ export async function performExportSyncToFile(currentSettings: any): Promise<Bac
 }
 
 /**
- * Perform a complete sync: exports current state with all data and rewrites the sync file.
+ * Perform a true bidirectional sync:
+ * 1. Reads remote sync file.
+ * 2. Merges local and remote data deeply across all domains (health, custom diets, workouts, habits, tasks, money, notes, rpg)
+ *    while preserving strict local-first ToDos.
+ * 3. Applies merged updates locally and dispatches domain sync events.
+ * 4. Rewrites the updated merged dataset to the single sync file.
  */
 export async function performFullBidirectionalSync(currentSettings: any): Promise<BackupData | null> {
-  return performExportSyncToFile(currentSettings);
+  if (!isFileSyncSupported()) return null;
+
+  try {
+    const localData = await dbService.exportAllData(currentSettings);
+    const remoteData = await readFromFile();
+
+    if (remoteData && (Array.isArray(remoteData.tasks) || Array.isArray(remoteData.habits) || remoteData.healthData || remoteData.moneyData)) {
+      const mergedData = smartMergeBackupData(localData as any, remoteData as any) as any;
+      await dbService.importAllData(mergedData);
+
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('shadow_data_imported'));
+        window.dispatchEvent(new CustomEvent('shadow_health_updated'));
+        window.dispatchEvent(new CustomEvent('shadow_money_updated'));
+        window.dispatchEvent(new CustomEvent('shadow_rpg_updated'));
+      }
+
+      await syncToFile(mergedData);
+      return mergedData;
+    }
+
+    await syncToFile(localData);
+    return localData;
+  } catch (err) {
+    console.warn('[OneDriveSync] Bidirectional sync failed, falling back to local export:', err);
+    return performExportSyncToFile(currentSettings);
+  }
 }
 
 

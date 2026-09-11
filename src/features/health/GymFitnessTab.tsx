@@ -181,6 +181,7 @@ export default function GymFitnessTab({
     if (typeof window !== 'undefined') {
       try {
         localStorage.setItem('shadow_logged_exercises_today', JSON.stringify(newList));
+        window.dispatchEvent(new CustomEvent('shadow_health_updated'));
       } catch (e) {}
     }
   };

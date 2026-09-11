@@ -7,14 +7,22 @@ import { Lucide } from '@/components/icons';
 import { useShadowTrackerStore } from '@/store';
 import { getTodayDateString } from '@/lib/dateUtils';
 import confetti from 'canvas-confetti';
+import dynamic from 'next/dynamic';
 import NutritionPlateVisualizer, { LoggedFood, MealType } from './NutritionPlateVisualizer';
-import AddFoodModal from './AddFoodModal';
-import GymFitnessTab from './GymFitnessTab';
-import HealthCalendarModal from './HealthCalendarModal';
-import HealthDashboardTab from './HealthDashboardTab';
-import WeeklyDietPlanner from './WeeklyDietPlanner';
 import { DietMeal } from './dietPlansData';
 import { useViewPreference } from '@/lib/viewPreferences';
+
+const TabSpinner = () => (
+  <div className="p-12 flex justify-center items-center">
+    <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+  </div>
+);
+
+const GymFitnessTab = dynamic(() => import('./GymFitnessTab'), { ssr: false, loading: TabSpinner });
+const HealthDashboardTab = dynamic(() => import('./HealthDashboardTab'), { ssr: false, loading: TabSpinner });
+const WeeklyDietPlanner = dynamic(() => import('./WeeklyDietPlanner'), { ssr: false, loading: TabSpinner });
+const HealthCalendarModal = dynamic(() => import('./HealthCalendarModal'), { ssr: false });
+const AddFoodModal = dynamic(() => import('./AddFoodModal'), { ssr: false });
 
 export interface HydrationLog {
   id: string;
@@ -101,11 +109,18 @@ export default function HealthFeature() {
     return { [todayStr]: getDefaultHealthData(todayStr) };
   });
 
+  const isExternalSyncRef = React.useRef(false);
+
   // Persist changes
   useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(healthMap));
+        if (isExternalSyncRef.current) {
+          isExternalSyncRef.current = false;
+        } else {
+          window.dispatchEvent(new CustomEvent('shadow_health_local_changed'));
+        }
       } catch (e) {
         console.error('Error saving health data:', e);
       }
@@ -119,6 +134,7 @@ export default function HealthFeature() {
         try {
           const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('shadow_health_data_v1');
           if (saved) {
+            isExternalSyncRef.current = true;
             setHealthMap(JSON.parse(saved));
           }
         } catch (e) {

@@ -10,6 +10,9 @@ export interface SyncData {
   reminders?: any[];
   settings?: any;
   moneyData?: any;
+  healthData?: any;
+  rpgQuests?: any[];
+  wizardScrolls?: any[];
   unlockedBadges?: string[];
   version?: string;
   exportedAt?: string;
@@ -152,6 +155,9 @@ export async function pushToCloud(pat: string, data: SyncData): Promise<void> {
             reminders: data.reminders || [],
             settings: sanitizeSettingsForCloud(data.settings),
             moneyData: data.moneyData || null,
+            healthData: data.healthData || null,
+            rpgQuests: data.rpgQuests || [],
+            wizardScrolls: data.wizardScrolls || [],
             unlockedBadges: data.unlockedBadges || [],
             version: data.version || '1.0.0',
             exportedAt: new Date().toISOString(),

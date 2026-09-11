@@ -563,82 +563,63 @@ export default function MoneyFeature() {
       >
         {/* Header Tile */}
         <div className="tile settings-tile p-3.5 sm:p-5 rounded-3xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative overflow-hidden">
-          <div className="flex items-center justify-between sm:justify-start gap-3 relative z-10 w-full sm:w-auto">
-            <div className="flex items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4 relative z-10 w-full sm:w-auto">
+            <div className="flex items-center gap-2.5 shrink-0">
               <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-500 shadow-sm shrink-0">
                 <Lucide.Wallet size={18} />
               </div>
-              <div>
-                <h1 className="text-base sm:text-lg font-black tracking-tight text-foreground leading-tight">Wealth</h1>
-                {/* Separate Clean Month Selector and Calendar Action */}
-                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                  {/* Month Switcher Segment */}
-                  <div className="flex items-center gap-1 p-1 bg-surface-elevated/90 border border-border/70 rounded-2xl shadow-xs">
-                    <button
-                      type="button"
-                      onClick={prevMonth}
-                      className="w-7 h-7 rounded-full bg-secondary/80 hover:bg-secondary border border-border/60 hover:border-primary/40 text-muted-foreground hover:text-foreground flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95 shrink-0"
-                      title="Previous Month"
-                      aria-label="Previous Month"
-                    >
-                      <Lucide.ChevronLeft size={13} />
-                    </button>
+              <h1 className="text-base sm:text-lg font-black tracking-tight text-foreground leading-tight">Wealth</h1>
+            </div>
 
-                    <div className="relative flex items-center">
-                      <select
-                        value={currentMonthStr}
-                        onChange={(e) => {
-                          const [y, m] = e.target.value.split('-').map(Number);
-                          setCurrentDate(new Date(y, m - 1, 1));
-                        }}
-                        style={{
-                          WebkitAppearance: 'none',
-                          MozAppearance: 'none',
-                          appearance: 'none',
-                          background: 'transparent',
-                          border: 'none',
-                          outline: 'none',
-                          boxShadow: 'none'
-                        }}
-                        className="pl-2 pr-6 py-1 font-mono text-xs font-black uppercase tracking-wider text-foreground cursor-pointer hover:text-primary transition-colors text-center"
-                        title="Select Month"
-                      >
-                        {availableMonths.map(m => (
-                          <option key={m.key} value={m.key} className="bg-surface text-foreground font-semibold text-xs capitalize">
-                            {m.label}
-                          </option>
-                        ))}
-                      </select>
-                      <Lucide.ChevronDown size={11} className="text-muted-foreground pointer-events-none absolute right-1 top-1/2 -translate-y-1/2" />
-                    </div>
+            {/* Month Switcher Segment */}
+            <div className="flex items-center gap-1 p-1 bg-surface-elevated/90 border border-border/70 rounded-2xl shadow-xs shrink-0">
+              <button
+                type="button"
+                onClick={prevMonth}
+                className="w-7 h-7 rounded-full bg-secondary/80 hover:bg-secondary border border-border/60 hover:border-primary/40 text-muted-foreground hover:text-foreground flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95 shrink-0"
+                title="Previous Month"
+                aria-label="Previous Month"
+              >
+                <Lucide.ChevronLeft size={13} />
+              </button>
 
-                    <button
-                      type="button"
-                      onClick={nextMonth}
-                      className="w-7 h-7 rounded-full bg-secondary/80 hover:bg-secondary border border-border/60 hover:border-primary/40 text-muted-foreground hover:text-foreground flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95 shrink-0"
-                      title="Next Month"
-                      aria-label="Next Month"
-                    >
-                      <Lucide.ChevronRight size={13} />
-                    </button>
-                  </div>
-
-                  {/* Separate Dedicated Calendar / Jump to Today Button (Icon-Only) */}
-                  <button
-                    type="button"
-                    onClick={() => setCurrentDate(new Date())}
-                    className={`w-8 h-8 sm:w-9 sm:h-9 rounded-2xl border flex items-center justify-center transition-all cursor-pointer shadow-xs shrink-0 active:scale-95 ${
-                      currentMonthStr === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
-                        ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/40 shadow-emerald-500/10'
-                        : 'bg-surface-elevated/90 hover:bg-surface text-muted-foreground hover:text-foreground border-border/70'
-                    }`}
-                    title="View Current Month"
-                    aria-label="View Current Month"
-                  >
-                    <Lucide.Calendar size={15} className={currentMonthStr === `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}` ? 'text-emerald-400' : 'text-primary'} />
-                  </button>
-                </div>
+              <div className="relative flex items-center">
+                <select
+                  value={currentMonthStr}
+                  onChange={(e) => {
+                    const [y, m] = e.target.value.split('-').map(Number);
+                    setCurrentDate(new Date(y, m - 1, 1));
+                  }}
+                  style={{
+                    WebkitAppearance: 'none',
+                    MozAppearance: 'none',
+                    appearance: 'none',
+                    background: 'transparent',
+                    border: 'none',
+                    outline: 'none',
+                    boxShadow: 'none'
+                  }}
+                  className="pl-2 pr-6 py-1 font-mono text-xs font-black uppercase tracking-wider text-foreground cursor-pointer hover:text-primary transition-colors text-center"
+                  title="Select Month"
+                >
+                  {availableMonths.map(m => (
+                    <option key={m.key} value={m.key} className="bg-surface text-foreground font-semibold text-xs capitalize">
+                      {m.label}
+                    </option>
+                  ))}
+                </select>
+                <Lucide.ChevronDown size={11} className="text-muted-foreground pointer-events-none absolute right-1 top-1/2 -translate-y-1/2" />
               </div>
+
+              <button
+                type="button"
+                onClick={nextMonth}
+                className="w-7 h-7 rounded-full bg-secondary/80 hover:bg-secondary border border-border/60 hover:border-primary/40 text-muted-foreground hover:text-foreground flex items-center justify-center transition-all cursor-pointer shadow-xs active:scale-95 shrink-0"
+                title="Next Month"
+                aria-label="Next Month"
+              >
+                <Lucide.ChevronRight size={13} />
+              </button>
             </div>
 
             {/* Subscriptions button on mobile */}

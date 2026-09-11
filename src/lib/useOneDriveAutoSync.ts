@@ -9,7 +9,7 @@
  * Uses Page Visibility API to pause sync when app is in background.
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { useShadowTrackerStore } from '@/store';
 import { performFullBidirectionalSync } from '@/lib/oneDriveSync';
 
@@ -31,21 +31,18 @@ export function useOneDriveAutoSync() {
     };
   }, []);
 
-  useEffect(() => {
-    // Only sync if user has configured a sync file
-    if (!settings.oneDriveSyncEnabled || !settings.oneDriveSyncFile) return;
+  const triggerDebouncedSync = useCallback(() => {
+    const currentSettings = useShadowTrackerStore.getState().settings;
+    if (!currentSettings.oneDriveSyncEnabled || !currentSettings.oneDriveSyncFile) return;
 
-    // Clear pending debounce
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
     }
 
-    // Debounce 3 seconds after last change
     debounceTimer.current = setTimeout(async () => {
-      if (!isMounted.current) return;
-      if (!isVisible.current) return;
+      if (!isMounted.current || !isVisible.current) return;
       try {
-        const syncedBackup = await performFullBidirectionalSync(settings);
+        const syncedBackup = await performFullBidirectionalSync(useShadowTrackerStore.getState().settings);
         if (syncedBackup) {
           useShadowTrackerStore.getState().updateSettings({
             lastOneDriveSyncTimestamp: Date.now(),
@@ -55,10 +52,33 @@ export function useOneDriveAutoSync() {
         console.warn('[OneDriveSync] Auto-sync failed:', err);
       }
     }, 3000);
+  }, []);
+
+  // 1. Sync on Zustand Store domain updates
+  useEffect(() => {
+    triggerDebouncedSync();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tasks, habits, dailyLogs, notes, categories, settings.oneDriveSyncEnabled, settings.oneDriveSyncFile, triggerDebouncedSync]);
+
+  // 2. Sync on External Local/Health/Diet/Money/RPG updates
+  useEffect(() => {
+    const handleDomainEvent = () => {
+      triggerDebouncedSync();
+    };
+
+    window.addEventListener('shadow_health_updated', handleDomainEvent);
+    window.addEventListener('shadow_health_local_changed', handleDomainEvent);
+    window.addEventListener('shadow_money_updated', handleDomainEvent);
+    window.addEventListener('shadow_rpg_updated', handleDomainEvent);
+    window.addEventListener('storage', handleDomainEvent);
 
     return () => {
+      window.removeEventListener('shadow_health_updated', handleDomainEvent);
+      window.removeEventListener('shadow_health_local_changed', handleDomainEvent);
+      window.removeEventListener('shadow_money_updated', handleDomainEvent);
+      window.removeEventListener('shadow_rpg_updated', handleDomainEvent);
+      window.removeEventListener('storage', handleDomainEvent);
       if (debounceTimer.current) clearTimeout(debounceTimer.current);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tasks, habits, dailyLogs, notes, categories, settings.oneDriveSyncEnabled, settings.oneDriveSyncFile]);
+  }, [triggerDebouncedSync]);
 }

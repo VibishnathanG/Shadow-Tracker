@@ -326,24 +326,57 @@ export function generateMassiveTwoYearData(): BackupData {
     },
   ];
 
-  // 10. Health & Vitality Suite Data (365 Days of Detailed Biological Telemetry)
+  // 10. Health & Vitality Suite Data (730 Days = 2 Full Years of Detailed Biological Telemetry)
   const healthDailyLogs: Record<string, any> = {};
-  for (let d = 365; d >= 0; d--) {
+  for (let d = 730; d >= 0; d--) {
     const logDate = new Date(now.getTime() - d * 86400000);
     const dStr = logDate.toISOString().split("T")[0];
     
-    // Healthy weight progression: dropping from 78.5 kg down to 73.5 kg
-    const simulatedWeight = 78.5 - ((365 - d) / 365) * 5.0 + Math.sin(d / 7) * 0.3;
+    // Healthy weight progression across 2 years: dropping from 79.5 kg down to 73.2 kg
+    const simulatedWeight = 79.5 - ((730 - d) / 730) * 6.3 + Math.sin(d / 7) * 0.3;
+    const hasWorkout = (d % 2 === 0 || d % 3 === 0);
+    const workoutsList = hasWorkout ? [
+      {
+        id: `w-${dStr}`,
+        type: (d % 4 === 0 ? 'gym' : d % 4 === 1 ? 'cardio' : d % 4 === 2 ? 'walk' : 'yoga') as any,
+        duration: 45 + (d % 3) * 15,
+        calories: 320 + (d % 4) * 60,
+        intensity: (d % 3 === 0 ? 'high' : 'medium') as any,
+        notes: 'Athletic hypertrophy & strength session',
+        time: '07:30'
+      }
+    ] : [];
 
     healthDailyLogs[dStr] = {
       date: dStr,
+      waterIntakeMl: 2600 + (d % 4) * 200,
+      waterGoalMl: 3000,
       waterGlasses: 9 + (d % 3),
       sleepHours: 7.2 + ((d % 4) * 0.3),
+      sleepGoalHours: 8,
+      sleepQuality: d % 5 === 0 ? 'energized' : 'normal',
       weightKg: Math.round(simulatedWeight * 10) / 10,
+      weightUnit: 'kg',
+      calorieGoal: 2350,
       calories: 2280 + (d % 3) * 80,
       protein: 152 + (d % 4) * 6,
       carbs: 215 + (d % 5) * 8,
       fat: 64 + (d % 3) * 3,
+      energyLevel: ((d % 3) + 3) as any,
+      workouts: workoutsList,
+      workoutGoalMinutes: 45,
+      hydrationLogs: [
+        { id: `h1-${dStr}`, amount: 500, time: "07:30" },
+        { id: `h2-${dStr}`, amount: 750, time: "11:00" },
+        { id: `h3-${dStr}`, amount: 750, time: "15:30" },
+        { id: `h4-${dStr}`, amount: 600, time: "19:00" },
+      ],
+      loggedFoods: [
+        { id: `m1-${dStr}`, name: "Organic Greek Yogurt & Berry Chia Bowl", meal: "breakfast", time: "08:15", calories: 390, protein: 30, carbs: 44, fats: 8, quantity: 1 },
+        { id: `m2-${dStr}`, name: "Grilled Paneer & Quinoa Power Bowl", meal: "lunch", time: "13:00", calories: 680, protein: 42, carbs: 65, fats: 22, quantity: 1 },
+        { id: `m3-${dStr}`, name: "Whey Protein Isolate & Almond Crunch", meal: "snack", time: "17:00", calories: 330, protein: 36, carbs: 14, fats: 11, quantity: 1 },
+        { id: `m4-${dStr}`, name: "Spiced Dal Makhani & Brown Basmati Pilaf", meal: "dinner", time: "20:30", calories: 690, protein: 38, carbs: 85, fats: 17, quantity: 1 },
+      ],
       meals: [
         { id: `m1-${dStr}`, name: "Organic Greek Yogurt & Berry Chia Bowl", time: "08:15", calories: 390, protein: 30, carbs: 44, fat: 8 },
         { id: `m2-${dStr}`, name: "Grilled Paneer & Quinoa Power Bowl", time: "13:00", calories: 680, protein: 42, carbs: 65, fat: 22 },
@@ -353,12 +386,74 @@ export function generateMassiveTwoYearData(): BackupData {
     };
   }
 
+  const generate7Days = (planName: string, cal: number, pro: number, carb: number, fat: number) => {
+    const daysList = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    return daysList.map(dName => ({
+      dayName: dName,
+      focus: `${planName} - ${dName} Protocol`,
+      totalCalories: cal,
+      totalProtein: pro,
+      totalCarbs: carb,
+      totalFats: fat,
+      meals: [
+        {
+          mealType: 'breakfast' as const,
+          name: 'High-Protein Oats & Chia Elixir',
+          items: ['Rolled Oats 60g', 'Whey Isolate 30g', 'Chia Seeds 10g', 'Almonds 15g'],
+          portion: '1 Large Bowl',
+          calories: Math.round(cal * 0.25),
+          protein: Math.round(pro * 0.28),
+          carbs: Math.round(carb * 0.30),
+          fats: Math.round(fat * 0.22),
+          icon: 'Sun',
+          tips: 'Hydrate with 500ml water 15 minutes before consumption.'
+        },
+        {
+          mealType: 'lunch' as const,
+          name: 'Sovereign Macro Power Bowl',
+          items: ['Grilled Paneer/Tofu 150g', 'Quinoa/Brown Rice 100g', 'Steamed Broccoli & Spinach', 'Cold-Pressed Olive Oil 10ml'],
+          portion: '1 Generous Plate',
+          calories: Math.round(cal * 0.38),
+          protein: Math.round(pro * 0.36),
+          carbs: Math.round(carb * 0.38),
+          fats: Math.round(fat * 0.40),
+          icon: 'Activity',
+          tips: 'Include fermented vegetables or curd for optimal gut microbiome balance.'
+        },
+        {
+          mealType: 'snack_evening' as const,
+          name: 'Athletic Recovery Snack',
+          items: ['Roasted Makhana 40g', 'Greek Yogurt 150g', 'Walnuts 10g'],
+          portion: '1 Bowl',
+          calories: Math.round(cal * 0.15),
+          protein: Math.round(pro * 0.16),
+          carbs: Math.round(carb * 0.12),
+          fats: Math.round(fat * 0.18),
+          icon: 'Coffee',
+          tips: 'Ideal 60 minutes prior to evening workout sprint.'
+        },
+        {
+          mealType: 'dinner' as const,
+          name: 'Lean Recovery Protein & Greens',
+          items: ['Spiced Dal / Tempeh 150g', 'Millet Roti / Steamed Sweet Potato', 'Zucchini Salad'],
+          portion: '1 Balanced Plate',
+          calories: Math.round(cal * 0.22),
+          protein: Math.round(pro * 0.20),
+          carbs: Math.round(carb * 0.20),
+          fats: Math.round(fat * 0.20),
+          icon: 'Moon',
+          tips: 'Finish dinner 3 hours before sleep to ensure deep recovery REM cycles.'
+        }
+      ]
+    }));
+  };
+
   const healthData = {
     dailyLogs: healthDailyLogs,
     biometrics: {
       heightCm: 178,
-      currentWeightKg: 73.5,
-      targetWeightKg: 72,
+      currentWeightKg: 73.2,
+      targetWeightKg: 72.0,
       activityLevel: "moderate",
       targetCalories: 2350,
       targetProtein: 155,
@@ -371,26 +466,81 @@ export function generateMassiveTwoYearData(): BackupData {
       {
         id: "plan-push-pull-legs",
         name: "Shadow Iron Hypertrophy (Push / Pull / Legs)",
-        description: "Elite 3-day progressive overload split focusing on structural strength.",
-        targetDaysPerWeek: 4,
-        exercises: [
-          { name: "Barbell Incline Bench Press", sets: 4, reps: "8-10", targetMuscle: "Chest / Triceps" },
-          { name: "Weighted Wide-Grip Pull-Ups", sets: 4, reps: "6-8", targetMuscle: "Lats / Biceps" },
-          { name: "Barbell Romanian Deadlifts", sets: 3, reps: "10-12", targetMuscle: "Hamstrings / Glutes" },
-          { name: "Standing Overhead Military Press", sets: 4, reps: "8-10", targetMuscle: "Deltoids" },
-          { name: "Dumbbell Incline Lateral Raises", sets: 3, reps: "12-15", targetMuscle: "Lateral Delts" }
+        tagline: "Elite 3-day progressive overload split focusing on structural hypertrophy.",
+        level: "Advanced" as const,
+        daysPerWeek: 4,
+        badge: "Hypertrophy",
+        icon: "Dumbbell",
+        colorClass: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
+        borderClass: "border-emerald-500/30",
+        isCustom: true,
+        days: [
+          {
+            dayName: "Day 1: Push (Chest, Delts & Triceps)",
+            focus: "Upper Body Horizontal & Vertical Pressing",
+            estimatedMinutes: 55,
+            exercises: [
+              { name: "Barbell Incline Bench Press", muscle: "Upper Chest", sets: "4", reps: "8-10", emoji: "🏋️", notes: "2-second eccentric phase on every repetition." },
+              { name: "Standing Overhead Military Press", muscle: "Front Delts", sets: "4", reps: "8-10", emoji: "💪", notes: "Maintain tight core and neutral spine." },
+              { name: "Dumbbell Incline Lateral Raises", muscle: "Side Delts", sets: "3", reps: "12-15", emoji: "🎯", notes: "Slight forward lean with thumb-neutral grip." },
+              { name: "Overhead Rope Cable Triceps Extension", muscle: "Triceps Long Head", sets: "3", reps: "12-15", emoji: "⚡", notes: "Full elbow lockout and deep stretch." }
+            ]
+          },
+          {
+            dayName: "Day 2: Pull (Lats, Upper Back & Biceps)",
+            focus: "Vertical & Horizontal Pulling Velocity",
+            estimatedMinutes: 55,
+            exercises: [
+              { name: "Weighted Wide-Grip Pull-Ups", muscle: "Lats", sets: "4", reps: "6-8", emoji: "🧗", notes: "Pause 1 second at chest-to-bar peak contraction." },
+              { name: "Barbell Pendlay Rows", muscle: "Upper Back", sets: "4", reps: "8-10", emoji: "🚣", notes: "Explosive concentric from dead stop floor." },
+              { name: "Dumbbell Incline Biceps Curls", muscle: "Biceps Long Head", sets: "3", reps: "10-12", emoji: "💪", notes: "Maximum bicep stretch angle on 45° bench." },
+              { name: "Rear Delt Face Pulls", muscle: "Rear Delts", sets: "3", reps: "15-20", emoji: "🎯", notes: "Pull towards eyes with external shoulder rotation." }
+            ]
+          },
+          {
+            dayName: "Day 3: Legs & Posterior Chain",
+            focus: "Quad Hypertrophy & Hamstring Hinges",
+            estimatedMinutes: 60,
+            exercises: [
+              { name: "Barbell Back Squats", muscle: "Quadriceps / Glutes", sets: "4", reps: "6-8", emoji: "🦵", notes: "Full depth below parallel with active foot drive." },
+              { name: "Barbell Romanian Deadlifts", muscle: "Hamstrings / Glutes", sets: "4", reps: "8-10", emoji: "🏋️", notes: "Hinge at hips until hamstrings are fully loaded." },
+              { name: "Standing Single-Leg Calf Raises", muscle: "Calves", sets: "4", reps: "15-20", emoji: "🦶", notes: "3-second bottom pause to eliminate Achilles rebound." },
+              { name: "Hanging Leg Raises", muscle: "Lower Abs", sets: "3", reps: "15-20", emoji: "🔥", notes: "Controlled posterior pelvic tilt at top." }
+            ]
+          }
         ]
       },
       {
         id: "plan-upper-lower",
         name: "Upper / Lower Athletic Power Protocol",
-        description: "High-frequency dual split for functional hypertrophy and explosive power.",
-        targetDaysPerWeek: 4,
-        exercises: [
-          { name: "Flat Barbell Bench Press", sets: 4, reps: "5-8", targetMuscle: "Chest" },
-          { name: "Barbell Pendlay Rows", sets: 4, reps: "6-8", targetMuscle: "Upper Back" },
-          { name: "Barbell Back Squats", sets: 4, reps: "6-8", targetMuscle: "Quadriceps" },
-          { name: "Hanging Leg Raises", sets: 3, reps: "15-20", targetMuscle: "Core" }
+        tagline: "High-frequency dual split for functional hypertrophy and explosive power.",
+        level: "Intermediate" as const,
+        daysPerWeek: 4,
+        badge: "Strength",
+        icon: "Flame",
+        colorClass: "text-amber-400 bg-amber-500/10 border-amber-500/30",
+        borderClass: "border-amber-500/30",
+        isCustom: true,
+        days: [
+          {
+            dayName: "Day 1: Upper Power",
+            focus: "Heavy Compound Pushes & Pulls",
+            estimatedMinutes: 50,
+            exercises: [
+              { name: "Flat Barbell Bench Press", muscle: "Chest", sets: "4", reps: "5-8", emoji: "🏋️", notes: "Drive feet through floor for maximum kinetic force." },
+              { name: "Barbell Pendlay Rows", muscle: "Upper Back", sets: "4", reps: "6-8", emoji: "🚣", notes: "Strict torso angle parallel to ground." },
+              { name: "Dumbbell Arnold Press", muscle: "Shoulders", sets: "3", reps: "10-12", emoji: "💪", notes: "Full 180° forearm rotation." }
+            ]
+          },
+          {
+            dayName: "Day 2: Lower Power",
+            focus: "Squat Mechanics & Chain Drive",
+            estimatedMinutes: 50,
+            exercises: [
+              { name: "Barbell Back Squats", muscle: "Quadriceps", sets: "4", reps: "6-8", emoji: "🦵", notes: "Focus on knee tracking over second toe." },
+              { name: "Dumbbell Bulgarian Split Squats", muscle: "Quads / Glutes", sets: "3", reps: "10-12", emoji: "🔥", notes: "Elevate rear foot 6 inches only." }
+            ]
+          }
         ]
       }
     ],
@@ -398,21 +548,62 @@ export function generateMassiveTwoYearData(): BackupData {
       {
         id: "diet-lean-hypertrophy",
         name: "Lean Hypertrophy Athletic Diet",
-        description: "High-protein whole food plan calibrated for lean muscle retention and energy.",
-        dailyTargetCalories: 2350,
-        dailyTargetProtein: 155,
-        dailyTargetCarbs: 240,
-        dailyTargetFat: 68,
+        tagline: "High-protein whole food plan calibrated for lean muscle retention and clean energy.",
+        locality: "custom" as const,
+        localityLabel: "Custom Athletic",
+        targetWeightLossRate: "0.4 kg / week",
+        weeklyLossKg: 0.4,
+        avgDailyCalories: 2350,
+        avgDailyProtein: 155,
+        avgDailyCarbs: 240,
+        avgDailyFats: 68,
+        dietType: "Non-Veg" as const,
+        icon: "Flame",
+        colorClass: "text-emerald-400 bg-emerald-500/10 border-emerald-500/30",
+        borderClass: "border-emerald-500/30",
+        isCustom: true,
+        days: generate7Days("Lean Hypertrophy", 2350, 155, 240, 68)
       },
       {
         id: "diet-plant-protein-os",
         name: "Sovereign High-Protein Vegetarian OS",
-        description: "Plant-forward clean fuel balancing lentils, paneer, tofu, and complex grains.",
-        dailyTargetCalories: 2250,
-        dailyTargetProtein: 145,
-        dailyTargetCarbs: 230,
-        dailyTargetFat: 64,
+        tagline: "Plant-forward clean fuel balancing lentils, paneer, tofu, and complex whole grains.",
+        locality: "custom" as const,
+        localityLabel: "Custom Vegetarian",
+        targetWeightLossRate: "0.5 kg / week",
+        weeklyLossKg: 0.5,
+        avgDailyCalories: 2250,
+        avgDailyProtein: 145,
+        avgDailyCarbs: 230,
+        avgDailyFats: 64,
+        dietType: "Veg" as const,
+        icon: "Activity",
+        colorClass: "text-sky-400 bg-sky-500/10 border-sky-500/30",
+        borderClass: "border-sky-500/30",
+        isCustom: true,
+        days: generate7Days("Sovereign Vegetarian", 2250, 145, 230, 64)
       }
+    ],
+    customFoods: [
+      { id: "cf-1", name: "Sattu Plant Protein Elixir", calories: 320, protein: 28, carbs: 36, fats: 6, servingSize: "1 Large Glass (350ml)", standardGrams: 350, category: "veg" },
+      { id: "cf-2", name: "Sprouted Moong & Paneer Salad", calories: 280, protein: 22, carbs: 24, fats: 9, servingSize: "1 Bowl (200g)", standardGrams: 200, category: "veg" },
+      { id: "cf-3", name: "Overnight Chia Steel-Cut Oats", calories: 410, protein: 24, carbs: 58, fats: 10, servingSize: "1 Jar (250g)", standardGrams: 250, category: "veg" },
+      { id: "cf-4", name: "Grilled Herb Tofu & Quinoa", calories: 440, protein: 34, carbs: 48, fats: 12, servingSize: "1 Plate (300g)", standardGrams: 300, category: "vegan" },
+      { id: "cf-5", name: "Whey Isolate Double Rich Chocolate", calories: 140, protein: 30, carbs: 3, fats: 1, servingSize: "1 Scoop (34g)", standardGrams: 34, category: "veg" },
+      { id: "cf-6", name: "Roasted Makhana & Almond Mix", calories: 190, protein: 6, carbs: 22, fats: 8, servingSize: "1 Cup (50g)", standardGrams: 50, category: "veg" },
+    ],
+    quickSuggestions: [
+      { id: "qs-1", name: "Whey Protein Shake", calories: 140, protein: 30, carbs: 3, fats: 1, servingSize: "1 Scoop", category: "veg" },
+      { id: "qs-2", name: "Boiled Eggs (3 Large)", calories: 210, protein: 18, carbs: 2, fats: 15, servingSize: "3 Eggs", category: "egg" },
+      { id: "qs-3", name: "Greek Yogurt Bowl", calories: 190, protein: 18, carbs: 12, fats: 5, servingSize: "200g", category: "veg" },
+      { id: "qs-4", name: "Paneer Tikka (150g)", calories: 380, protein: 26, carbs: 10, fats: 26, servingSize: "150g", category: "veg" },
+      { id: "qs-5", name: "Sprouted Green Moong", calories: 150, protein: 12, carbs: 24, fats: 1, servingSize: "1 Cup", category: "veg" },
+      { id: "qs-6", name: "Sattu Drink (2 scoops)", calories: 240, protein: 20, carbs: 30, fats: 4, servingSize: "1 Glass", category: "veg" },
+    ],
+    todayExercises: [
+      { id: "te-1", name: "Incline Barbell Bench Press", sets: 4, reps: "8-10", weightKg: 85, completed: true },
+      { id: "te-2", name: "Weighted Pull-Ups", sets: 4, reps: "6-8", weightKg: 15, completed: true },
+      { id: "te-3", name: "Romanian Deadlifts", sets: 3, reps: "10-12", weightKg: 105, completed: true },
     ]
   };
 

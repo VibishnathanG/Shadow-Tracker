@@ -48,6 +48,7 @@ export function saveCustomWorkoutPlan(plan: WorkoutRoutinePlan): WorkoutRoutineP
     const filtered = existing.filter(p => p.id !== plan.id);
     const updated = [plan, ...filtered];
     localStorage.setItem(STORAGE_CUSTOM_PLANS_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('shadow_health_updated'));
     return updated;
   } catch (e) {
     console.error('Error saving custom workout plan:', e);
@@ -61,6 +62,7 @@ export function deleteCustomWorkoutPlan(planId: string): WorkoutRoutinePlan[] {
     const existing = getCustomWorkoutPlans();
     const updated = existing.filter(p => p.id !== planId);
     localStorage.setItem(STORAGE_CUSTOM_PLANS_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('shadow_health_updated'));
     return updated;
   } catch (e) {
     console.error('Error deleting custom workout plan:', e);

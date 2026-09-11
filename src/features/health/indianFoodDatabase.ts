@@ -657,6 +657,7 @@ export function saveCustomFoodToLibrary(food: FoodItem): FoodItem[] {
       ...existing.filter(f => f.id !== food.id && f.name.toLowerCase() !== food.name.toLowerCase()),
     ];
     localStorage.setItem(CUSTOM_FOODS_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('shadow_health_updated'));
     return updated;
   } catch (e) {
     return [];
@@ -701,6 +702,7 @@ export function saveQuickSuggestion(food: FoodItem): FoodItem[] {
     }
     const updated = [food, ...existing].slice(0, 15);
     localStorage.setItem(QUICK_SUGGESTIONS_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new CustomEvent('shadow_health_updated'));
     return updated;
   } catch (e) {
     return DEFAULT_QUICK_SUGGESTIONS;

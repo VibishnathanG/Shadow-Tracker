@@ -233,7 +233,7 @@ export const Layout: React.FC<LayoutProps> = ({
     { id: 'health', label: 'Health', icon: 'HeartPulse' },
     { id: 'analytics', label: 'Analytics', icon: 'TrendingUp' },
     { id: 'notes', label: 'Journal', icon: 'BookOpen' },
-    { id: 'money', label: 'Money', icon: 'DollarSign' },
+    { id: 'money', label: 'Wealth', icon: 'Wallet' },
     { id: 'rpg', label: 'Life RPG', icon: 'Crown' },
     { id: 'settings', label: 'Settings', icon: 'Settings' },
   ] as const;
