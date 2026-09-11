@@ -149,11 +149,16 @@ export default function EmojiPickerModal({
     };
     if (isOpen) {
       window.addEventListener('keydown', handleKeyDown);
-      const prevOverflow = document.body.style.overflow;
+      document.documentElement.classList.add('modal-open');
+      document.body.classList.add('modal-open');
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
       return () => {
         window.removeEventListener('keydown', handleKeyDown);
-        document.body.style.overflow = prevOverflow;
+        document.documentElement.classList.remove('modal-open');
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
       };
     }
   }, [isOpen, onClose]);
@@ -186,6 +191,8 @@ export default function EmojiPickerModal({
         exit={{ opacity: 0 }}
         transition={{ duration: 0.15 }}
         onClick={onClose}
+        onTouchMove={(e) => { e.preventDefault(); e.stopPropagation(); }}
+        style={{ touchAction: 'none' }}
         className="fixed inset-0 bg-black/85"
       />
 
@@ -194,6 +201,7 @@ export default function EmojiPickerModal({
         initial={{ scale: 0.94, opacity: 0, y: 10 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.94, opacity: 0, y: 10 }}
+        style={{ overscrollBehavior: 'contain', touchAction: 'pan-y' }}
         className="relative w-full max-w-md bg-surface-elevated border border-border/80 rounded-3xl p-4 sm:p-5 shadow-2xl space-y-3 flex flex-col max-h-[85vh] sm:max-h-[80vh] overflow-hidden my-auto z-10 cursor-default"
       >
         {/* Header */}
@@ -255,7 +263,7 @@ export default function EmojiPickerModal({
           )}
 
           {/* Emoji Grid */}
-          <div className="flex-1 overflow-y-auto grid grid-cols-6 gap-2 p-1 min-h-[220px]">
+          <div className="flex-1 overflow-y-auto overscroll-contain touch-pan-y grid grid-cols-6 gap-2 p-1 min-h-[220px]">
             {filteredEmojis.map((item, idx) => (
               <button
                 key={idx}

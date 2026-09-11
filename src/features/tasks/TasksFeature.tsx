@@ -33,7 +33,22 @@ export const TasksFeature: React.FC = () => {
   const [workspaceView, setWorkspaceView] = useViewPreference('tasksWorkspaceView') as ['list' | 'planner' | 'kanban', (v: 'list' | 'planner' | 'kanban') => void];
 
   const [activeTab, setActiveTab] = useViewPreference('tasksActiveTab') as ['pending' | 'completed' | 'all', (v: 'pending' | 'completed' | 'all') => void];
-  const [dateFilter, setDateFilter] = useViewPreference('tasksDateFilter') as ['all' | 'today' | 'tomorrow' | 'this-week' | 'overdue', (v: 'all' | 'today' | 'tomorrow' | 'this-week' | 'overdue') => void];
+  const [dateFilter, setDateFilter] = useViewPreference('tasksDateFilter') as ['all' | 'today' | 'tomorrow' | 'this-week' | 'overdue' | 'month', (v: 'all' | 'today' | 'tomorrow' | 'this-week' | 'overdue' | 'month') => void];
+  const [selectedMonth, setSelectedMonth] = useViewPreference('tasksSelectedMonth') as [string, (v: string) => void];
+
+  // Available months for direct month selector (covering 2-year history to +1 year forward)
+  const availableMonths = useMemo(() => {
+    const list: { key: string; label: string }[] = [];
+    const now = new Date();
+    for (let offset = -24; offset <= 12; offset++) {
+      const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const label = d.toLocaleString('default', { month: 'short', year: 'numeric' });
+      list.push({ key, label });
+    }
+    return list;
+  }, []);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [priorityFilter, setPriorityFilter] = useViewPreference('tasksPriorityFilter') as [string, (v: string) => void];
   const [categoryFilter, setCategoryFilter] = useViewPreference('tasksCategoryFilter') as [string, (v: string) => void];
@@ -187,6 +202,10 @@ export const TasksFeature: React.FC = () => {
       if (dateFilter === 'tomorrow' && task.dueDate !== tomorrowStr) return false;
       if (dateFilter === 'this-week' && (task.dueDate < todayStr || task.dueDate > weekEndStr)) return false;
       if (dateFilter === 'overdue' && (task.isCompleted || task.dueDate >= todayStr)) return false;
+      if (dateFilter === 'month') {
+        const targetMonth = selectedMonth || `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+        if (!task.dueDate || !task.dueDate.startsWith(targetMonth)) return false;
+      }
 
       if (searchQuery.trim() && !task.title.toLowerCase().includes(searchQuery.toLowerCase()) && !(task.description || '').toLowerCase().includes(searchQuery.toLowerCase())) {
         return false;
@@ -197,7 +216,7 @@ export const TasksFeature: React.FC = () => {
 
       return true;
     });
-  }, [tasks, activeTab, dateFilter, searchQuery, priorityFilter, categoryFilter]);
+  }, [tasks, activeTab, dateFilter, selectedMonth, searchQuery, priorityFilter, categoryFilter]);
 
   return (
     <div className="space-y-6 relative min-h-[600px]">
@@ -364,6 +383,45 @@ export const TasksFeature: React.FC = () => {
             {df.label}
           </button>
         ))}
+
+        {/* Specific Month Chooser Filter in same rounded glass theme */}
+        <div
+          className={`filter-pill relative flex items-center gap-1.5 cursor-pointer shrink-0 ${dateFilter === 'month' ? 'active' : ''}`}
+          title="Filter tasks by specific month"
+        >
+          <Lucide.CalendarDays size={13} className={dateFilter === 'month' ? 'text-white' : 'text-primary'} />
+          <span className="text-xs font-bold whitespace-nowrap">
+            {(() => {
+              const currentDefault = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+              const mVal = selectedMonth || currentDefault;
+              try {
+                return format(parseISO(`${mVal}-01`), 'MMM yyyy');
+              } catch {
+                return 'Choose Month';
+              }
+            })()}
+          </span>
+          <Lucide.ChevronDown size={11} className="opacity-70 shrink-0" />
+          <select
+            value={dateFilter === 'month' ? (selectedMonth || '') : ''}
+            onChange={(e) => {
+              if (e.target.value) {
+                setSelectedMonth(e.target.value);
+                setDateFilter('month');
+              }
+            }}
+            onClick={(e) => e.stopPropagation()}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            aria-label="Filter tasks by specific month"
+          >
+            <option value="" disabled>Select Specific Month</option>
+            {availableMonths.map(m => (
+              <option key={m.key} value={m.key} className="bg-surface text-foreground font-semibold text-xs">
+                {m.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Tabs & View Mode Switcher */}

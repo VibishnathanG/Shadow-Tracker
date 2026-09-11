@@ -15,7 +15,7 @@ import {
   pushToCloudGistFile,
   pullFromCloudGistFile,
 } from '@/lib/gistSync';
-import { generateMassiveOneYearData } from '@/lib/seedData';
+import { generateMassiveTwoYearData } from '@/lib/seedData';
 import { Task, Habit, DailyLog, Note } from '@/types';
 import { smartMergeBackupData } from '@/lib/smartMerge';
 import { JsonErrorModal } from '@/components/JsonErrorModal';
@@ -812,7 +812,7 @@ export const SettingsFeature: React.FC = () => {
         }
 
         await importBackup(validation.data);
-        alert('Data backup imported successfully! Reloading to apply all settings and money data...');
+        alert('Data backup imported successfully! Reloading to apply all settings and wealth data...');
         window.location.reload();
       } catch (err: any) {
         console.error('Import failed:', err);
@@ -833,7 +833,7 @@ export const SettingsFeature: React.FC = () => {
   const handleLoadDemoData = useCallback(async () => {
     if (window.confirm('Load 2-Year Extensive Masterclass Demo Dataset? This will populate 730 days of habits, daily logs, notes, 220+ tasks, 24 full months of financial data, 365 days of nutrition & health logs, and Level 25 Master rank.')) {
       try {
-        const demoData = generateMassiveOneYearData();
+        const demoData = generateMassiveTwoYearData();
         await importBackup(demoData);
         alert('2-Year Extensive Demo Dataset loaded successfully! Reloading app...');
         window.location.reload();

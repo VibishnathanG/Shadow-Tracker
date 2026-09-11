@@ -554,15 +554,19 @@ export const Layout: React.FC<LayoutProps> = ({
               <span className="text-[10px] font-bold tracking-tight leading-none truncate max-w-full">Habits</span>
             </button>
 
-            {/* 3. Search Center Button - Clean icon, no surrounding rectangle box */}
+            {/* 3. Search Center Button - Elevated pill with NO surrounding rectangular box */}
             <button
+              type="button"
               onClick={() => setCommandBarOpen(true)}
-              className="mobile-nav-btn flex-1 group cursor-pointer"
-              style={{ WebkitTapHighlightColor: 'transparent' }}
+              className="mobile-nav-btn-center group cursor-pointer shrink-0 border-0 outline-none ring-0 bg-transparent"
+              style={{ WebkitTapHighlightColor: 'transparent', outline: 'none', border: 'none', boxShadow: 'none', background: 'transparent' }}
               aria-label="Search & Commands"
               title="Search Commands (⌘K)"
             >
-              <Lucide.Search size={20} className="text-secondary group-hover:text-primary transition-transform group-hover:scale-110 group-active:scale-95" />
+              <div className="center-search-icon-wrapper">
+                <Lucide.Search size={20} className="transition-transform group-hover:scale-110 group-active:scale-95 text-white" />
+              </div>
+              <span className="text-[9px] font-extrabold tracking-tight leading-none text-muted-foreground mt-0.5">⌘K</span>
             </button>
 
             {/* 4. Tasks */}

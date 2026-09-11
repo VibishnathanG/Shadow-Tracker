@@ -340,13 +340,13 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
                     isDroppingHere
                       ? 'bg-primary/10 border-primary ring-2 ring-primary/40'
                       : isToday
-                      ? 'bg-surface/90 border-primary/60 ring-1 ring-primary/20'
+                      ? 'bg-surface/90 border-border/70'
                       : 'bg-surface/50 border-border/70 hover:border-border'
                   }`}
                 >
                   {/* Day Header */}
                   <div className={`p-3 border-b flex items-center justify-between ${
-                    isToday ? 'bg-primary/10 border-primary/30' : 'bg-surface-elevated/70 border-border/70'
+                    isToday ? 'bg-primary/10 border-border/70' : 'bg-surface-elevated/70 border-border/70'
                   }`}>
                     <div>
                       <div className="flex items-center gap-1.5">
@@ -492,7 +492,7 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
                     isDroppingHere
                       ? 'bg-primary/15 border-primary ring-2 ring-primary/40'
                       : isToday
-                      ? 'bg-primary/5 border-primary/60 shadow-xs'
+                      ? 'bg-surface/50 border-border/60 shadow-xs'
                       : isCurrentMonth
                       ? 'bg-surface/40 border-border/60 hover:border-border'
                       : 'bg-secondary/15 border-border/30 opacity-40'

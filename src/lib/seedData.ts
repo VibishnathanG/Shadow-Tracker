@@ -56,7 +56,7 @@ export function generateMassiveTwoYearData(): BackupData {
     { name: "HIIT Workout / Heavy Compound Lifting", catIdx: 1, streak: 92, longest: 154 },
     { name: "2 Hours Deep Focus Code Sprint", catIdx: 0, streak: 124, longest: 174 },
     { name: "10,000 Daily Steps & Sunlight Walk", catIdx: 1, streak: 79, longest: 138 },
-    { name: "Log Daily Expenses in Money Tracker", catIdx: 3, streak: 115, longest: 160 },
+    { name: "Log Daily Expenses in Wealth Tracker", catIdx: 3, streak: 115, longest: 160 },
     { name: "Zero Sugar & Clean Athletic Fuel", catIdx: 1, streak: 62, longest: 96 },
     { name: "Nightly Reflection & Stoic Journaling", catIdx: 4, streak: 95, longest: 140 },
     { name: "Cold Shower & Nervous System Reset", catIdx: 1, streak: 51, longest: 88 },
@@ -318,7 +318,7 @@ export function generateMassiveTwoYearData(): BackupData {
       isCompleted: false,
       dueDate: todayStr,
       subtasks: [
-        { id: "st-8", title: "Verify monthly income reconciliation in Money tab", isCompleted: true },
+        { id: "st-8", title: "Verify monthly income reconciliation in Wealth tab", isCompleted: true },
         { id: "st-9", title: "Execute SIP transfers for Nifty Index and AI ETFs", isCompleted: false },
       ],
       createdAt: nowStr,

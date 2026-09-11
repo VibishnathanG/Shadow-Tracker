@@ -286,6 +286,7 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
           }
         }
         window.dispatchEvent(new CustomEvent('shadow_data_imported'));
+        window.dispatchEvent(new CustomEvent('shadow_money_updated'));
         window.dispatchEvent(new CustomEvent('shadow_health_updated'));
         window.dispatchEvent(new CustomEvent('shadow_todos_updated'));
       }

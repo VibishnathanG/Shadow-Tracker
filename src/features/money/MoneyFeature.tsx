@@ -157,11 +157,11 @@ export default function MoneyFeature() {
   
   const currentMonthStr = useMemo(() => `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`, [currentDate]);
 
-  // Available months for direct month selector dropdown
+  // Available months for direct month selector dropdown (covers full 24-month 2-year dataset)
   const availableMonths = useMemo(() => {
     const list: { key: string; label: string }[] = [];
     const now = new Date();
-    for (let offset = -18; offset <= 12; offset++) {
+    for (let offset = -24; offset <= 12; offset++) {
       const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
       const label = d.toLocaleString('default', { month: 'short', year: 'numeric' });
@@ -227,26 +227,48 @@ export default function MoneyFeature() {
 
   useEffect(() => {
     if (selectedDay !== null || activeSubModal !== null) {
+      const prevBodyOverflow = document.body.style.overflow;
+      const prevHtmlOverflow = document.documentElement.style.overflow;
+      document.body.classList.add('modal-open');
+      document.documentElement.classList.add('modal-open');
       document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
+      document.documentElement.style.overflow = 'hidden';
+      return () => {
+        document.body.classList.remove('modal-open');
+        document.documentElement.classList.remove('modal-open');
+        document.body.style.overflow = prevBodyOverflow;
+        document.documentElement.style.overflow = prevHtmlOverflow;
+      };
     }
-    return () => {
-      document.body.style.overflow = '';
-    };
   }, [selectedDay, activeSubModal]);
 
-  // Load expenses
+  // Load expenses & monthly data map (reactive to demo data loads and imports)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedExp = localStorage.getItem('shadow_money_expenses_v4');
-      if (savedExp) {
-        try {
-          const parsed = JSON.parse(savedExp);
-          if (Array.isArray(parsed)) setExpenses(parsed);
-        } catch (e) {}
+    const loadFromStorage = () => {
+      if (typeof window !== 'undefined') {
+        const savedExp = localStorage.getItem('shadow_money_expenses_v4');
+        if (savedExp) {
+          try {
+            const parsed = JSON.parse(savedExp);
+            if (Array.isArray(parsed)) setExpenses(parsed);
+          } catch (e) {}
+        }
+        const savedMonths = localStorage.getItem('shadow_money_months_v4');
+        if (savedMonths) {
+          try {
+            const parsedMonths = JSON.parse(savedMonths);
+            if (parsedMonths && typeof parsedMonths === 'object') setMonthlyDataMap(parsedMonths);
+          } catch (e) {}
+        }
       }
-    }
+    };
+    loadFromStorage();
+    window.addEventListener('shadow_money_updated', loadFromStorage);
+    window.addEventListener('shadow_data_imported', loadFromStorage);
+    return () => {
+      window.removeEventListener('shadow_money_updated', loadFromStorage);
+      window.removeEventListener('shadow_data_imported', loadFromStorage);
+    };
   }, []);
 
   // Save expenses
@@ -1130,12 +1152,15 @@ export default function MoneyFeature() {
               <div 
                 className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
                 onClick={() => setSelectedDay(null)}
+                onTouchMove={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                style={{ touchAction: 'none' }}
               >
                 <div 
                   className="w-full max-w-md bg-surface-elevated border border-border/80 text-foreground rounded-3xl shadow-2xl overflow-hidden flex flex-col my-auto"
                   onClick={e => e.stopPropagation()}
+                  style={{ overscrollBehavior: 'contain' }}
                 >
-                  <div className="p-4 border-b border-border/60 flex justify-between items-center bg-surface/50">
+                  <div className="p-4 border-b border-border/60 flex justify-between items-center bg-surface/50 shrink-0">
                     <h3 className="font-extrabold text-foreground text-sm flex items-center gap-2">
                       <Lucide.Calendar size={16} className="text-primary"/> Log Expense • {monthYearStr} {selectedDay}
                     </h3>
@@ -1144,7 +1169,10 @@ export default function MoneyFeature() {
                     </button>
                   </div>
                   
-                  <div className="p-5 space-y-4 overflow-y-auto max-h-[75vh]">
+                  <div 
+                    className="p-5 space-y-4 overflow-y-auto max-h-[75vh] overscroll-contain touch-pan-y"
+                    style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}
+                  >
                     <form onSubmit={handleAddExpense} className="space-y-3">
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
@@ -1246,12 +1274,15 @@ export default function MoneyFeature() {
               <div 
                 className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
                 onClick={() => setActiveSubModal(null)}
+                onTouchMove={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                style={{ touchAction: 'none' }}
               >
                 <div 
                   className="w-full max-w-md bg-surface-elevated border border-border/80 text-foreground rounded-3xl shadow-2xl overflow-hidden flex flex-col my-auto"
                   onClick={e => e.stopPropagation()}
+                  style={{ overscrollBehavior: 'contain' }}
                 >
-                  <div className="p-4 border-b border-border/60 flex justify-between items-center bg-surface/50">
+                  <div className="p-4 border-b border-border/60 flex justify-between items-center bg-surface/50 shrink-0">
                     <h3 className="font-extrabold text-foreground text-sm flex items-center gap-2">
                       {activeSubModal === 'bigExpenses' ? <Lucide.CreditCard size={16} className="text-sky-400"/> : 
                        activeSubModal === 'investments' ? <Lucide.TrendingUp size={16} className="text-purple-400"/> :
@@ -1266,7 +1297,10 @@ export default function MoneyFeature() {
                     </button>
                   </div>
 
-                  <div className="p-5 space-y-4 overflow-y-auto max-h-[75vh]">
+                  <div 
+                    className="p-5 space-y-4 overflow-y-auto max-h-[75vh] overscroll-contain touch-pan-y"
+                    style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}
+                  >
                     <form onSubmit={handleAddSubItem} className="space-y-3">
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">

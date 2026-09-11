@@ -115,18 +115,25 @@ export default function CustomWorkoutPlanModal({
     setMounted(true);
   }, []);
 
-  // Lock body scroll and handle ESC key
+  // Lock body & html scroll and handle ESC key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
     if (isOpen) {
       window.addEventListener('keydown', handleKeyDown);
-      const prevOverflow = document.body.style.overflow;
+      const prevBodyOverflow = document.body.style.overflow;
+      const prevHtmlOverflow = document.documentElement.style.overflow;
+      document.body.classList.add('modal-open');
+      document.documentElement.classList.add('modal-open');
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
       return () => {
         window.removeEventListener('keydown', handleKeyDown);
-        document.body.style.overflow = prevOverflow;
+        document.body.classList.remove('modal-open');
+        document.documentElement.classList.remove('modal-open');
+        document.body.style.overflow = prevBodyOverflow;
+        document.documentElement.style.overflow = prevHtmlOverflow;
       };
     }
   }, [isOpen, onClose]);
@@ -253,6 +260,8 @@ export default function CustomWorkoutPlanModal({
         exit={{ opacity: 0 }}
         transition={{ duration: 0.15 }}
         onClick={onClose}
+        onTouchMove={(e) => { e.preventDefault(); e.stopPropagation(); }}
+        style={{ touchAction: 'none' }}
         className="fixed inset-0 bg-black/85"
       />
 
@@ -261,6 +270,7 @@ export default function CustomWorkoutPlanModal({
         initial={{ scale: 0.94, opacity: 0, y: 15 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.94, opacity: 0, y: 15 }}
+        style={{ overscrollBehavior: 'contain' }}
         className="relative w-full max-w-3xl bg-surface-elevated border border-border/80 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4 max-h-[88vh] sm:max-h-[85vh] flex flex-col overflow-hidden my-auto z-10 cursor-default"
       >
         {/* Header */}
@@ -288,7 +298,10 @@ export default function CustomWorkoutPlanModal({
         </div>
 
         {/* Form Body Scrollable */}
-        <div className="flex-1 overflow-y-auto space-y-5 pr-1.5 min-h-0">
+        <div 
+          className="flex-1 overflow-y-auto space-y-5 pr-1.5 min-h-0 overscroll-contain touch-pan-y"
+          style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}
+        >
           {/* Plan Basics */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="sm:col-span-2 space-y-1">

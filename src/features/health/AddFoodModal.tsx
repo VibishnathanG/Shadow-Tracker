@@ -66,18 +66,24 @@ export default function AddFoodModal({
     setMounted(true);
   }, []);
 
-  // Lock body scroll and handle ESC key
+  // Lock body & document scroll and handle ESC key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
     if (isOpen) {
       window.addEventListener('keydown', handleKeyDown);
+      document.documentElement.classList.add('modal-open');
+      document.body.classList.add('modal-open');
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
     }
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
+      document.documentElement.classList.remove('modal-open');
+      document.body.classList.remove('modal-open');
       document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     };
   }, [isOpen, onClose]);
 
@@ -253,6 +259,8 @@ export default function AddFoodModal({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
           onClick={onClose}
+          onTouchMove={(e) => { e.preventDefault(); e.stopPropagation(); }}
+          style={{ touchAction: 'none' }}
           className="fixed inset-0 bg-black/85"
         />
 
@@ -261,7 +269,8 @@ export default function AddFoodModal({
           initial={{ scale: 0.95, opacity: 0, y: 15 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 15 }}
-          className="relative w-full max-w-2xl bg-surface-elevated border border-border/80 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4 max-h-[88vh] sm:max-h-[85vh] flex flex-col overflow-hidden my-auto z-10 cursor-default"
+          style={{ overscrollBehavior: 'contain', touchAction: 'pan-y' }}
+          className="relative w-full max-w-2xl bg-surface-elevated border border-border/80 rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col overflow-hidden my-auto z-10 cursor-default max-h-[90vh] sm:max-h-[85vh]"
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-border/60 pb-3 shrink-0">
@@ -286,6 +295,9 @@ export default function AddFoodModal({
               <Lucide.X size={18} />
             </button>
           </div>
+
+          {/* Scrollable Popup Content Body */}
+          <div className="flex-1 overflow-y-auto overscroll-contain touch-pan-y space-y-4 pt-3 pr-1 min-h-0 custom-scrollbar">
 
           {/* Target Meal & Multiplier Bar */}
           <div className="flex flex-wrap items-center justify-between gap-3 bg-secondary/50 p-3 rounded-2xl border border-border/60">
@@ -379,7 +391,7 @@ export default function AddFoodModal({
 
           {/* TAB 1: FOOD LIBRARY */}
           {activeTab === 'library' && (
-            <div className="space-y-3 flex-1 overflow-hidden flex flex-col min-h-0">
+            <div className="space-y-3">
               {/* Search Bar */}
               <div className="relative">
                 <Lucide.Search className="absolute left-3 top-3 text-muted-foreground" size={15} />
@@ -420,7 +432,7 @@ export default function AddFoodModal({
               </div>
 
               {/* Food List */}
-              <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-48">
+              <div className="space-y-2">
                 {filteredFoods.length === 0 ? (
                   <div className="text-center py-8 text-xs text-muted-foreground font-medium space-y-2">
                     <p>No food matches "{searchQuery}".</p>
@@ -502,7 +514,7 @@ export default function AddFoodModal({
 
           {/* TAB 2: CREATE CUSTOM FOOD */}
           {activeTab === 'custom' && (
-            <form onSubmit={handleAddCustom} className="space-y-4 flex-1 overflow-y-auto pr-1">
+            <form onSubmit={handleAddCustom} className="space-y-4">
               <div className="p-3 bg-primary/10 border border-primary/20 rounded-2xl flex items-center justify-between text-xs text-primary font-bold">
                 <span>⭐ Any dish created here is automatically saved to your Food Library!</span>
               </div>
@@ -663,6 +675,7 @@ export default function AddFoodModal({
               </button>
             </form>
           )}
+          </div>
         </motion.div>
       </div>
 
@@ -670,12 +683,15 @@ export default function AddFoodModal({
       {selectedLibraryItem && (
         <div 
           onClick={() => setSelectedLibraryItem(null)}
+          onTouchMove={(e) => { e.preventDefault(); e.stopPropagation(); }}
+          style={{ touchAction: 'none' }}
           className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm cursor-pointer"
         >
           <motion.div
             onClick={(e) => e.stopPropagation()}
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
+            style={{ overscrollBehavior: 'contain', touchAction: 'pan-y' }}
             className="w-full max-w-sm bg-surface-elevated border border-border/80 rounded-3xl p-5 shadow-2xl space-y-4 cursor-default"
           >
             <div className="flex items-center justify-between border-b border-border/60 pb-2.5">

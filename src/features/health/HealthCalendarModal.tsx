@@ -142,6 +142,27 @@ export default function HealthCalendarModal({
     return days;
   }, [viewYear, viewMonth, healthMap, todayStr, selectedDate]);
 
+  // Lock body & document scroll and handle ESC key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      document.documentElement.classList.add('modal-open');
+      document.body.classList.add('modal-open');
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+        document.documentElement.classList.remove('modal-open');
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
+      };
+    }
+  }, [isOpen, onClose]);
+
   if (!isOpen || !mounted || typeof window === 'undefined') return null;
 
   const modalContent = (
@@ -154,6 +175,8 @@ export default function HealthCalendarModal({
         exit={{ opacity: 0 }}
         transition={{ duration: 0.15 }}
         onClick={onClose}
+        onTouchMove={(e) => { e.preventDefault(); e.stopPropagation(); }}
+        style={{ touchAction: 'none' }}
         className="fixed inset-0 bg-black/85"
       />
 
@@ -162,6 +185,7 @@ export default function HealthCalendarModal({
         initial={{ scale: 0.94, opacity: 0, y: 15 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.94, opacity: 0, y: 15 }}
+        style={{ overscrollBehavior: 'contain', touchAction: 'pan-y' }}
         className="relative w-full max-w-md bg-surface-elevated border border-border/80 rounded-3xl p-4 sm:p-5 shadow-2xl space-y-3 max-h-[88vh] sm:max-h-[85vh] flex flex-col overflow-hidden my-auto z-10 cursor-default"
       >
         {/* Calendar Header with Nav & Today Jump */}
@@ -208,7 +232,7 @@ export default function HealthCalendarModal({
         </div>
 
         {/* Scrollable Calendar Body */}
-        <div className="overflow-y-auto flex-1 min-h-0 space-y-2 pr-0.5">
+        <div className="overflow-y-auto overscroll-contain touch-pan-y flex-1 min-h-0 space-y-2 pr-0.5 custom-scrollbar">
           {/* Weekday Row */}
           <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-black text-muted-foreground uppercase pb-1">
             <span>Su</span>

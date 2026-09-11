@@ -282,7 +282,7 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
                             isSelected
                               ? 'text-primary-foreground border-transparent z-10'
                               : isTodayDate
-                              ? 'bg-secondary/40 border-primary/50 text-foreground shadow-[0_0_12px_rgba(var(--primary-rgb),0.15)]'
+                              ? 'bg-secondary/40 border-transparent text-foreground'
                               : isCurrentMonth
                               ? 'bg-secondary/20 border-transparent text-foreground hover:bg-secondary/60'
                               : 'bg-transparent border-transparent text-muted-foreground/60 hover:bg-secondary/40'
@@ -356,7 +356,7 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
                           isSelected
                             ? 'text-primary-foreground border-transparent shadow-lg shadow-primary/25'
                             : isTodayDate
-                            ? 'bg-secondary/40 border-primary/60 text-foreground'
+                            ? 'bg-secondary/40 border-border/60 text-foreground'
                             : 'bg-secondary/20 border-border/60 text-foreground hover:bg-secondary/60 hover:border-border'
                         }`}
                       >

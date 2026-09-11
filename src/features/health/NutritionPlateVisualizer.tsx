@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import { calculateNutrientsForGrams } from './indianFoodDatabase';
@@ -51,6 +51,23 @@ export default function NutritionPlateVisualizer({
   const [editFats, setEditFats] = useState('');
   const [editMeal, setEditMeal] = useState<MealType>('lunch');
   const [editQuantity, setEditQuantity] = useState(1);
+
+  // Lock body scroll when editing item modal is open
+  useEffect(() => {
+    if (!editingItem) return;
+    const prevBodyOverflow = document.body.style.overflow;
+    const prevHtmlOverflow = document.documentElement.style.overflow;
+    document.body.classList.add('modal-open');
+    document.documentElement.classList.add('modal-open');
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    return () => {
+      document.body.classList.remove('modal-open');
+      document.documentElement.classList.remove('modal-open');
+      document.body.style.overflow = prevBodyOverflow;
+      document.documentElement.style.overflow = prevHtmlOverflow;
+    };
+  }, [editingItem]);
 
   // Meal Totals
   const mealTotals = useMemo(() => {
@@ -502,7 +519,9 @@ export default function NutritionPlateVisualizer({
         {editingItem && (
           <div 
             onClick={() => setEditingItem(null)}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm cursor-pointer"
+            onTouchMove={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            style={{ touchAction: 'none' }}
+            className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm cursor-pointer"
           >
             <motion.div
               onClick={(e) => e.stopPropagation()}
@@ -510,7 +529,8 @@ export default function NutritionPlateVisualizer({
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.85, opacity: 0, y: 15 }}
               transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-              className="w-full max-w-md bg-surface-elevated border border-border/80 rounded-3xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto cursor-default"
+              style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}
+              className="w-full max-w-md bg-surface-elevated border border-border/80 rounded-3xl p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto overscroll-contain touch-pan-y cursor-default"
             >
               <div className="flex items-center justify-between border-b border-border/60 pb-3">
                 <div className="flex items-center gap-3">

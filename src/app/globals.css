@@ -1733,7 +1733,17 @@ html.theme-light .mobile-nav-btn.active {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18) !important;
 }
 
-/* Mobile Navigation Center Elevated Search (⌘K) Button */
+/* Modal Open Scroll Locking for Mobile / APK */
+html.modal-open,
+body.modal-open {
+  overflow: hidden !important;
+  height: 100% !important;
+  touch-action: none !important;
+  overscroll-behavior: none !important;
+  -webkit-overflow-scrolling: auto !important;
+}
+
+/* Mobile Navigation Center Elevated Search (⌘K) Button - Clean Icon, Zero Rectangular Box */
 .mobile-nav-btn-center {
   position: relative;
   display: flex;
@@ -1742,11 +1752,24 @@ html.theme-light .mobile-nav-btn.active {
   justify-content: center;
   padding: 2px 6px;
   min-width: 52px;
-  background: transparent;
-  border: none;
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
   cursor: pointer;
   user-select: none;
+  -webkit-tap-highlight-color: transparent !important;
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mobile-nav-btn-center:focus,
+.mobile-nav-btn-center:active,
+.mobile-nav-btn-center:focus-visible,
+.mobile-nav-btn-center:hover {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 .mobile-nav-btn-center .center-search-icon-wrapper {

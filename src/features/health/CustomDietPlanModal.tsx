@@ -140,18 +140,25 @@ export default function CustomDietPlanModal({
     setMounted(true);
   }, []);
 
-  // Lock body scroll and handle ESC key
+  // Lock body & html scroll and handle ESC key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
     };
     if (isOpen) {
       window.addEventListener('keydown', handleKeyDown);
-      const prevOverflow = document.body.style.overflow;
+      const prevBodyOverflow = document.body.style.overflow;
+      const prevHtmlOverflow = document.documentElement.style.overflow;
+      document.body.classList.add('modal-open');
+      document.documentElement.classList.add('modal-open');
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
       return () => {
         window.removeEventListener('keydown', handleKeyDown);
-        document.body.style.overflow = prevOverflow;
+        document.body.classList.remove('modal-open');
+        document.documentElement.classList.remove('modal-open');
+        document.body.style.overflow = prevBodyOverflow;
+        document.documentElement.style.overflow = prevHtmlOverflow;
       };
     }
   }, [isOpen, onClose]);
@@ -347,6 +354,8 @@ export default function CustomDietPlanModal({
         exit={{ opacity: 0 }}
         transition={{ duration: 0.15 }}
         onClick={onClose}
+        onTouchMove={(e) => { e.preventDefault(); e.stopPropagation(); }}
+        style={{ touchAction: 'none' }}
         className="fixed inset-0 bg-black/85"
       />
 
@@ -355,6 +364,7 @@ export default function CustomDietPlanModal({
         initial={{ scale: 0.94, opacity: 0, y: 15 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.94, opacity: 0, y: 15 }}
+        style={{ overscrollBehavior: 'contain' }}
         className="relative w-full max-w-4xl bg-surface-elevated border border-border/80 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4 max-h-[88vh] sm:max-h-[85vh] flex flex-col overflow-hidden my-auto z-10 cursor-default"
       >
         {/* Header */}
@@ -382,7 +392,10 @@ export default function CustomDietPlanModal({
         </div>
 
         {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto space-y-6 pr-1 min-h-0">
+        <div 
+          className="flex-1 overflow-y-auto space-y-6 pr-1 min-h-0 overscroll-contain touch-pan-y"
+          style={{ WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}
+        >
           {/* Preset quick starter */}
           {!initialPlan && (
             <div className="p-3 bg-secondary/30 rounded-2xl border border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2">

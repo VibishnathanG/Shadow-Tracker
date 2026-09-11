@@ -21,14 +21,15 @@ export interface ViewPreferences {
   tasksWorkspaceView: 'list' | 'planner' | 'kanban';
   tasksViewMode: 'list' | 'grid';
   tasksActiveTab: 'pending' | 'completed' | 'all';
-  tasksDateFilter: 'all' | 'today' | 'tomorrow' | 'this-week' | 'overdue';
+  tasksDateFilter: 'all' | 'today' | 'tomorrow' | 'this-week' | 'overdue' | 'month';
+  tasksSelectedMonth: string;
   tasksPriorityFilter: string;
   tasksCategoryFilter: string;
 
   // Health Feature
   healthActiveSubTab: 'vitality' | 'diet' | 'gym' | 'dashboard';
 
-  // Money Feature
+  // Wealth Feature
   moneyViewMode: 'month' | 'week';
 
   // Habits Feature
@@ -60,6 +61,7 @@ export const DEFAULT_VIEW_PREFERENCES: ViewPreferences = {
   tasksViewMode: 'list',
   tasksActiveTab: 'pending',
   tasksDateFilter: 'all',
+  tasksSelectedMonth: '',
   tasksPriorityFilter: 'all',
   tasksCategoryFilter: 'all',
 
