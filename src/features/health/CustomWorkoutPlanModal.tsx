@@ -115,7 +115,23 @@ export default function CustomWorkoutPlanModal({
     setMounted(true);
   }, []);
 
-  if (!isOpen || !mounted) return null;
+  // Lock body scroll and handle ESC key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      const prevOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+        document.body.style.overflow = prevOverflow;
+      };
+    }
+  }, [isOpen, onClose]);
+
+  if (!isOpen || !mounted || typeof window === 'undefined') return null;
 
   // Add Day
   const handleAddDay = () => {
@@ -229,18 +245,26 @@ export default function CustomWorkoutPlanModal({
 
   const modalContent = (
     <div 
-      onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-background/85 backdrop-blur-md overflow-y-auto cursor-pointer"
+      className="fixed inset-0 top-0 left-0 w-full h-full z-[99999] flex flex-col items-center justify-center p-3 sm:p-6 pointer-events-auto overflow-hidden"
     >
       <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.15 }}
+        onClick={onClose}
+        className="fixed inset-0 bg-black/85"
+      />
+
+      <motion.div
         onClick={(e) => e.stopPropagation()}
-        initial={{ scale: 0.92, opacity: 0, y: 15 }}
+        initial={{ scale: 0.94, opacity: 0, y: 15 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.92, opacity: 0, y: 15 }}
-        className="relative w-full max-w-3xl bg-surface-elevated border border-border/80 rounded-3xl p-5 sm:p-7 shadow-2xl space-y-5 max-h-[90vh] flex flex-col overflow-hidden my-auto cursor-default"
+        exit={{ scale: 0.94, opacity: 0, y: 15 }}
+        className="relative w-full max-w-3xl bg-surface-elevated border border-border/80 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4 max-h-[88vh] sm:max-h-[85vh] flex flex-col overflow-hidden my-auto z-10 cursor-default"
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border/60 pb-3">
+        <div className="flex items-center justify-between border-b border-border/60 pb-3 shrink-0">
           <div className="flex items-center gap-3">
             <span className="p-2.5 bg-amber-500/15 text-amber-400 rounded-2xl border border-amber-500/30 shrink-0 text-xl">
               {icon}
@@ -250,7 +274,7 @@ export default function CustomWorkoutPlanModal({
                 {initialPlan ? 'Edit Custom Workout Routine' : 'Create Custom Workout Routine'}
               </h3>
               <p className="text-xs text-muted-foreground font-medium">
-                Design custom splits, assign exercises, and save for future reusable training sessions.
+                Design custom splits, assign exercises &amp; save routine.
               </p>
             </div>
           </div>
@@ -502,7 +526,7 @@ export default function CustomWorkoutPlanModal({
         </div>
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-between border-t border-border/60 pt-3">
+        <div className="flex items-center justify-between border-t border-border/60 pt-3 shrink-0">
           <button
             type="button"
             onClick={onClose}

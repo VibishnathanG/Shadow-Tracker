@@ -13,6 +13,7 @@ import {
   lookupCommonFoodNutrition,
   FoodItem,
 } from './indianFoodDatabase';
+import { createPortal } from 'react-dom';
 import { MealType, LoggedFood } from './NutritionPlateVisualizer';
 import EmojiPickerModal from './EmojiPickerModal';
 
@@ -59,6 +60,26 @@ export default function AddFoodModal({
   const [customEmoji, setCustomEmoji] = useState('🥗');
   const [saveToQuickSuggestion, setSaveToQuickSuggestion] = useState(true);
   const [autoMatchedFood, setAutoMatchedFood] = useState<string | null>(null);
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Lock body scroll and handle ESC key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden';
+    }
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [isOpen, onClose]);
 
   // Load foods and quick suggestions
   useEffect(() => {
@@ -219,31 +240,41 @@ export default function AddFoodModal({
     handleAddDirect(item);
   };
 
-  return (
+  if (!isOpen || !mounted || typeof window === 'undefined') return null;
+
+  const modalContent = (
     <>
       <div 
-        onClick={onClose}
-        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-background/85 backdrop-blur-md cursor-pointer"
+        className="fixed inset-0 top-0 left-0 w-full h-full z-[99999] flex flex-col items-center justify-center p-3 sm:p-6 pointer-events-auto overflow-hidden"
       >
         <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
+          onClick={onClose}
+          className="fixed inset-0 bg-black/85"
+        />
+
+        <motion.div
           onClick={(e) => e.stopPropagation()}
-          initial={{ scale: 0.9, opacity: 0, y: 15 }}
+          initial={{ scale: 0.95, opacity: 0, y: 15 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.9, opacity: 0, y: 15 }}
-          className="w-full max-w-2xl bg-surface-elevated border border-border/80 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 max-h-[92vh] flex flex-col overflow-hidden cursor-default"
+          exit={{ scale: 0.95, opacity: 0, y: 15 }}
+          className="relative w-full max-w-2xl bg-surface-elevated border border-border/80 rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4 max-h-[88vh] sm:max-h-[85vh] flex flex-col overflow-hidden my-auto z-10 cursor-default"
         >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-border/60 pb-3">
+          <div className="flex items-center justify-between border-b border-border/60 pb-3 shrink-0">
             <div className="flex items-center gap-2.5">
               <span className="p-2.5 bg-emerald-500/15 text-emerald-400 rounded-2xl border border-emerald-500/30 shrink-0">
                 <Lucide.Utensils size={18} />
               </span>
               <div>
                 <h3 className="text-sm sm:text-base font-black text-foreground uppercase tracking-wider">
-                  Log Food &amp; Nutrition
+                  Log Food
                 </h3>
                 <p className="text-[11px] text-muted-foreground font-medium">
-                  Search South/North Indian &amp; foreign fitness foods with grams scaling
+                  Search fitness foods with grams scaling
                 </p>
               </div>
             </div>
@@ -637,7 +668,7 @@ export default function AddFoodModal({
       {selectedLibraryItem && (
         <div 
           onClick={() => setSelectedLibraryItem(null)}
-          className="fixed inset-0 z-55 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm cursor-pointer"
+          className="fixed inset-0 z-[100000] flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm cursor-pointer"
         >
           <motion.div
             onClick={(e) => e.stopPropagation()}
@@ -652,7 +683,7 @@ export default function AddFoodModal({
               </div>
               <button
                 onClick={() => setSelectedLibraryItem(null)}
-                className="text-muted-foreground hover:text-foreground p-1"
+                className="text-muted-foreground hover:text-foreground p-1 cursor-pointer"
               >
                 <Lucide.X size={16} />
               </button>
@@ -678,7 +709,7 @@ export default function AddFoodModal({
                     key={g}
                     type="button"
                     onClick={() => setLibraryGramsInput(String(g))}
-                    className={`flex-1 py-1 rounded-lg text-[10px] font-mono font-bold border ${
+                    className={`flex-1 py-1 rounded-lg text-[10px] font-mono font-bold border cursor-pointer ${
                       libraryGramsInput === String(g)
                         ? 'bg-emerald-500 text-white border-emerald-500'
                         : 'bg-secondary text-muted-foreground border-border/60 hover:text-foreground'
@@ -711,7 +742,7 @@ export default function AddFoodModal({
               <button
                 type="button"
                 onClick={() => setSelectedLibraryItem(null)}
-                className="px-3 py-2 bg-secondary text-muted-foreground text-xs font-bold rounded-xl"
+                className="px-3 py-2 bg-secondary text-muted-foreground text-xs font-bold rounded-xl cursor-pointer"
               >
                 Cancel
               </button>
@@ -722,7 +753,7 @@ export default function AddFoodModal({
                   handleAddDirect(selectedLibraryItem, g);
                   setSelectedLibraryItem(null);
                 }}
-                className="flex-1 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black rounded-xl shadow-sm"
+                className="flex-1 py-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-black rounded-xl shadow-sm cursor-pointer"
               >
                 Add to {targetMeal.toUpperCase()}
               </button>
@@ -740,4 +771,6 @@ export default function AddFoodModal({
       />
     </>
   );
+
+  return createPortal(modalContent, document.body);
 }

@@ -548,33 +548,66 @@ export default function MoneyFeature() {
         className="space-y-6 relative pb-16"
       >
         {/* Header Tile */}
-        <div className="tile settings-tile p-4 sm:p-5 rounded-3xl flex justify-between items-center relative overflow-hidden">
-          <div className="flex items-center gap-3 relative z-10">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-500 shadow-sm">
-              <Lucide.Wallet size={20} />
+        <div className="tile settings-tile p-3.5 sm:p-5 rounded-3xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative overflow-hidden">
+          <div className="flex items-center justify-between sm:justify-start gap-3 relative z-10 w-full sm:w-auto">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-500 shadow-sm shrink-0">
+                <Lucide.Wallet size={18} />
+              </div>
+              <div>
+                <h1 className="text-base sm:text-lg font-black tracking-tight text-foreground">Wealth</h1>
+                <div className="flex items-center gap-0.5 text-xs text-muted-foreground font-bold">
+                  <button
+                    onClick={prevMonth}
+                    className="p-1 text-muted-foreground hover:text-foreground transition-colors cursor-pointer rounded-lg hover:bg-surface-elevated"
+                    title="Previous Month"
+                  >
+                    <Lucide.ChevronLeft size={14} />
+                  </button>
+                  <span className="font-mono text-[11px] uppercase tracking-wider text-foreground px-1">{monthYearStr}</span>
+                  <button
+                    onClick={nextMonth}
+                    className="p-1 text-muted-foreground hover:text-foreground transition-colors cursor-pointer rounded-lg hover:bg-surface-elevated"
+                    title="Next Month"
+                  >
+                    <Lucide.ChevronRight size={14} />
+                  </button>
+                </div>
+              </div>
             </div>
-            <div>
-              <h1 className="text-lg sm:text-xl font-black tracking-tight text-foreground">Wealth &amp; Subscriptions OS</h1>
-              <p className="text-xs text-muted-foreground font-bold uppercase tracking-wider">{monthYearStr}</p>
+
+            {/* Subscriptions button on mobile */}
+            <div className="sm:hidden">
+              <button 
+                onClick={() => setActiveSubModal('subscriptions')}
+                className="px-2.5 py-1.5 bg-purple-500/15 hover:bg-purple-500/25 border border-purple-500/30 text-purple-400 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+                title="Subscriptions"
+              >
+                <Lucide.Repeat size={13} />
+                <span>Subs</span>
+                {(stats.subscriptions || []).length > 0 && (
+                  <span className="bg-purple-500 text-white px-1.5 py-0.2 text-[9px] font-mono rounded-full">
+                    {(stats.subscriptions || []).length}
+                  </span>
+                )}
+              </button>
             </div>
           </div>
-          <div className="flex items-center gap-2 relative z-10">
+
+          {/* Desktop Subscriptions button */}
+          <div className="hidden sm:flex items-center gap-2 relative z-10">
             <button 
               onClick={() => setActiveSubModal('subscriptions')}
-              className="px-3 py-1.5 bg-purple-500/15 hover:bg-purple-500/25 border border-purple-500/30 text-purple-400 text-xs font-extrabold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+              className="px-3.5 py-1.5 bg-purple-500/15 hover:bg-purple-500/25 border border-purple-500/30 text-purple-400 text-xs font-extrabold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <Lucide.Repeat size={14} />
-              <span className="hidden sm:inline">Subscriptions</span>
+              <span>Subscriptions</span>
               {(stats.subscriptions || []).length > 0 && (
                 <span className="bg-purple-500 text-white px-1.5 py-0.2 text-[10px] rounded-full">
                   {(stats.subscriptions || []).length}
                 </span>
               )}
             </button>
-            <div className="flex gap-1 bg-surface-elevated/80 border border-border/80 p-1 rounded-xl">
-              <button onClick={prevMonth} className="p-1 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"><Lucide.ChevronLeft size={16}/></button>
-              <button onClick={nextMonth} className="p-1 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"><Lucide.ChevronRight size={16}/></button>
-            </div>
           </div>
         </div>
 

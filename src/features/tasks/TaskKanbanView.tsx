@@ -192,26 +192,26 @@ export const TaskKanbanView: React.FC<TaskKanbanViewProps> = ({
       {/* ── HEADER & SUB-TAB SWITCHER ── */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-surface/70 border border-border/70 p-4 rounded-3xl backdrop-blur-xl shadow-xs">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-purple-500/15 text-purple-400 rounded-2xl border border-purple-500/30 shadow-xs">
+          <div className="p-2.5 bg-purple-500/15 text-purple-400 rounded-2xl border border-purple-500/30 shadow-xs shrink-0">
             <Lucide.Kanban size={22} />
           </div>
           <div>
-            <h3 className="text-lg font-black tracking-tight text-foreground flex items-center gap-2">
-              <span>{boardMode === 'columns' ? 'Interactive Kanban Board' : 'Eisenhower Decision Matrix'}</span>
-              <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-400 border border-purple-500/20">
+            <h3 className="text-base sm:text-lg font-black tracking-tight text-foreground flex items-center gap-2">
+              <span>{boardMode === 'columns' ? 'Kanban Board' : 'Eisenhower Matrix'}</span>
+              <span className="text-[8.5px] font-bold uppercase px-1.5 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20">
                 {boardMode === 'columns' ? 'Workflow' : '4 Quadrants'}
               </span>
             </h3>
             <p className="text-xs text-muted-foreground font-medium">
               {boardMode === 'columns'
-                ? 'Seamless drag-and-drop task progression: To Do → In Progress → Done'
-                : 'Prioritize by urgency and importance: Do First, Schedule, Delegate, or Eliminate'}
+                ? 'Drag tasks: To Do → In Progress → Done'
+                : 'Prioritize by urgency and importance'}
             </p>
           </div>
         </div>
 
         {/* Controls: Board Switcher & Quick Add */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <div className="pill-group">
             <button
               type="button"
@@ -219,7 +219,7 @@ export const TaskKanbanView: React.FC<TaskKanbanViewProps> = ({
               className={`filter-pill ${boardMode === 'columns' ? 'active' : ''}`}
             >
               <Lucide.Columns3 size={13} />
-              <span>Kanban Columns</span>
+              <span>Columns</span>
             </button>
             <button
               type="button"
@@ -227,7 +227,7 @@ export const TaskKanbanView: React.FC<TaskKanbanViewProps> = ({
               className={`filter-pill ${boardMode === 'matrix' ? 'active' : ''}`}
             >
               <Lucide.Grid2X2 size={13} />
-              <span>Eisenhower Matrix</span>
+              <span>Matrix</span>
             </button>
           </div>
 
@@ -243,10 +243,10 @@ export const TaskKanbanView: React.FC<TaskKanbanViewProps> = ({
           <button
             type="button"
             onClick={() => onOpenAddModal()}
-            className="btn-glass-pill active text-xs font-black py-2 px-3.5 flex items-center gap-1.5 cursor-pointer shadow-xs"
+            className="btn-glass-pill active text-xs font-black py-1.5 px-3 flex items-center gap-1.5 cursor-pointer shadow-xs ml-auto sm:ml-0"
           >
             <Lucide.Plus size={14} />
-            <span>Create Task</span>
+            <span>Add Task</span>
           </button>
         </div>
       </div>

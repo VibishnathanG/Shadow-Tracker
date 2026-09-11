@@ -172,26 +172,26 @@ export default function WeeklyDietPlanner({ onCopyDayToPlate }: WeeklyDietPlanne
   }, [selectedPlan]);
 
   return (
-    <div className="tile settings-tile p-6 sm:p-8 md:p-10 rounded-3xl space-y-8 border border-emerald-500/25 bg-gradient-to-b from-surface-elevated/90 to-surface/90 shadow-xl relative overflow-hidden">
+    <div className="tile settings-tile p-4 sm:p-6 md:p-8 rounded-3xl space-y-6 border border-emerald-500/25 bg-gradient-to-b from-surface-elevated/90 to-surface/90 shadow-xl relative overflow-hidden">
       {/* Subtle background glow */}
       <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
 
       {/* Top Header & Badges */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 border-b border-border/60 pb-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/60 pb-5">
         <div className="space-y-1.5">
           <div className="flex items-center gap-2.5 flex-wrap">
             <span className="p-2.5 bg-emerald-500/15 text-emerald-400 rounded-2xl border border-emerald-500/30 text-xl">
               🥗
             </span>
             <h2 className="text-lg sm:text-xl font-black text-foreground tracking-tight">
-              Weekly Diet Planner &amp; Regional Blueprints
+              Weekly Diet Plans
             </h2>
-            <span className="text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-              Standalone 7-Day Precision
+            <span className="text-[8.5px] font-bold uppercase px-1.5 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 tracking-wider">
+              7-Day Schedules
             </span>
           </div>
           <p className="text-xs text-muted-foreground font-medium max-w-2xl leading-relaxed">
-            Complete week-long regional diet presets tailored for Tamil Nadu, Telugu, Kannada, South Indian, North Indian, and Western nutrition. Independent from daily calorie tracking with zero comparison stress.
+            Week-long regional diet presets tailored for Indian and global nutrition.
           </p>
         </div>
 
@@ -221,7 +221,8 @@ export default function WeeklyDietPlanner({ onCopyDayToPlate }: WeeklyDietPlanne
             className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-600 text-black shadow-md hover:shadow-emerald-500/20 transition-all flex items-center gap-2 cursor-pointer shrink-0"
           >
             <Lucide.Plus size={15} />
-            <span>+ Create Custom Diet</span>
+            <span className="hidden sm:inline">+ Create Custom Diet</span>
+            <span className="sm:hidden">+ Custom</span>
           </button>
         </div>
       </div>

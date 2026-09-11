@@ -382,7 +382,7 @@ export default function GymFitnessTab({
   return (
     <div className="space-y-8">
       {/* MODULE 1: Target Weight & Personalized Biometric Feasibility Engine */}
-      <div className="tile settings-tile p-6 sm:p-8 rounded-3xl space-y-6 relative overflow-hidden">
+      <div className="tile settings-tile p-4 sm:p-6 md:p-8 rounded-3xl space-y-6 relative overflow-hidden">
         {/* Top Header */}
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-border/60 pb-5">
           <div className="flex items-center gap-3.5">
@@ -392,38 +392,38 @@ export default function GymFitnessTab({
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-lg sm:text-xl font-black tracking-tight text-foreground">
-                  Personalized Weight Goal &amp; Safety Engine
+                  Weight Goal &amp; Safety
                 </h2>
-                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-                  Mifflin-St Jeor Engine
+                <span className="text-[8.5px] font-bold px-1.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 tracking-wider">
+                  Mifflin-St Jeor
                 </span>
-                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  5-Level Safety Matrix
+                <span className="text-[8.5px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 tracking-wider">
+                  Safety Matrix
                 </span>
               </div>
               <p className="text-xs text-muted-foreground font-medium max-w-2xl mt-0.5 leading-relaxed">
-                Scientific clinical model using your Age, Sex, Height, and Weight to calculate true BMR &amp; TDEE, with interactive weekly loss selection without rigid ceilings.
+                Calculate BMR, TDEE, and safe caloric deficit based on your biometrics.
               </p>
             </div>
           </div>
 
           {/* Real-time Metabolic Quick Chips & Collapsible Toggle */}
-          <div className="flex items-center gap-2.5 flex-wrap shrink-0">
-            <div className={`px-3 py-1.5 rounded-xl bg-secondary border border-border/70 text-xs font-black font-mono flex items-center gap-1.5 ${feasibility.bmiColor}`}>
+          <div className="flex items-center gap-2 flex-wrap shrink-0">
+            <div className={`px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-secondary border border-border/70 text-[11px] sm:text-xs font-black font-mono flex items-center gap-1.5 ${feasibility.bmiColor}`}>
               <span>🩺 BMI {feasibility.bmi}</span>
-              <span className="opacity-70 font-semibold">• {feasibility.bmiCategory}</span>
+              <span className="opacity-70 font-semibold hidden xs:inline">• {feasibility.bmiCategory}</span>
             </div>
-            <div className="px-3 py-1.5 rounded-xl bg-secondary border border-border/70 text-xs font-black font-mono text-amber-400" title="Basal Metabolic Rate: calories burned at complete rest">
+            <div className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-secondary border border-border/70 text-[11px] sm:text-xs font-black font-mono text-amber-400" title="Basal Metabolic Rate: calories burned at complete rest">
               🔥 BMR: {feasibility.bmr} kcal
             </div>
-            <div className="px-3 py-1.5 rounded-xl bg-secondary border border-border/70 text-xs font-black font-mono text-emerald-400" title="Total Daily Energy Expenditure: daily maintenance calories">
+            <div className="px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl bg-secondary border border-border/70 text-[11px] sm:text-xs font-black font-mono text-emerald-400" title="Total Daily Energy Expenditure: daily maintenance calories">
               ⚡ TDEE: {feasibility.tdee} kcal
             </div>
 
             <button
               type="button"
               onClick={() => setIsFeasibilityOpen(prev => !prev)}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer ${
+              className={`px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 cursor-pointer ${
                 isFeasibilityOpen
                   ? 'bg-primary/20 text-primary border-primary/40 shadow-xs'
                   : 'bg-surface hover:bg-secondary text-secondary hover:text-foreground border-border'
@@ -431,7 +431,7 @@ export default function GymFitnessTab({
               title="Toggle Biometrics & Feasibility Calculator"
             >
               <Lucide.Sliders size={13} className="text-primary" />
-              <span>{isFeasibilityOpen ? 'Hide Calculator' : 'Biometric Calculator'}</span>
+              <span>{isFeasibilityOpen ? 'Hide' : 'Calculator'}</span>
               <Lucide.ChevronDown size={13} className={`transition-transform duration-200 ${isFeasibilityOpen ? 'rotate-180' : ''}`} />
             </button>
           </div>
@@ -617,11 +617,11 @@ export default function GymFitnessTab({
               <div className="flex items-center gap-2">
                 <span className="text-base">🎚️</span>
                 <h3 className="text-xs sm:text-sm font-extrabold text-foreground uppercase tracking-wider">
-                  2. Interactive Weekly Rate Choice — How much do you want to lose per week?
+                  2. Weekly Loss Target
                 </h3>
               </div>
               <p className="text-[11px] text-muted-foreground">
-                Don&apos;t blindly follow a rigid ceiling. Choose your comfortable pace or slide interactively to test feasibility for your body.
+                Choose your comfortable pace or adjust the slider to test feasibility.
               </p>
             </div>
 
@@ -888,7 +888,7 @@ export default function GymFitnessTab({
       </div>
 
       {/* MODULE 2: Workout Routine Plans Explorer */}
-      <div className="tile settings-tile p-6 sm:p-8 rounded-3xl space-y-6">
+      <div className="tile settings-tile p-4 sm:p-6 md:p-8 rounded-3xl space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-border/60 pb-3">
           <div className="flex items-center gap-3">
             <span className="p-2.5 bg-amber-500/15 text-amber-500 rounded-2xl border border-amber-500/30 shrink-0">
@@ -896,10 +896,10 @@ export default function GymFitnessTab({
             </span>
             <div>
               <h2 className="text-lg sm:text-xl font-black tracking-tight text-foreground">
-                Gym Workout Plans &amp; Splits
+                Workout Routines
               </h2>
               <p className="text-xs text-muted-foreground font-medium">
-                Proven bodybuilding, powerbuilding, and conditioning routines.
+                Custom and preset training splits &amp; conditioning routines.
               </p>
             </div>
           </div>
@@ -1205,7 +1205,7 @@ export default function GymFitnessTab({
       </div>
 
       {/* MODULE 3: Live Exercise & PR Lift Logger */}
-      <div id="exercise-pr-logger" className="tile settings-tile p-6 sm:p-8 rounded-3xl space-y-6">
+      <div id="exercise-pr-logger" className="tile settings-tile p-4 sm:p-6 md:p-8 rounded-3xl space-y-6">
         <div className="flex items-center justify-between border-b border-border/60 pb-3">
           <div className="flex items-center gap-3">
             <span className="p-2 bg-emerald-500/15 text-emerald-400 rounded-xl">
@@ -1213,15 +1213,15 @@ export default function GymFitnessTab({
             </span>
             <div>
               <h3 className="text-sm font-black text-foreground uppercase tracking-wider">
-                Exercise &amp; PR Logger (1RM Calculator)
+                Exercise &amp; PR Logger
               </h3>
               <p className="text-[11px] text-muted-foreground font-medium">
-                Log lifts with weight and reps; calculates estimated One-Rep Max.
+                Log sets, weights, and estimated 1RM.
               </p>
             </div>
           </div>
 
-          <span className="text-xs font-black font-mono px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+          <span className="text-[8.5px] font-bold font-mono px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
             {loggedExercises.length} Lifts Logged
           </span>
         </div>
@@ -1229,7 +1229,7 @@ export default function GymFitnessTab({
         {/* Quick Autocomplete Chips for Exercises */}
         <div className="space-y-1.5">
           <span className="text-[10px] font-bold text-muted-foreground uppercase">
-            ⚡ Fast Pick Exercise (Click to populate):
+            Quick Movements:
           </span>
           <div className="flex flex-wrap gap-1.5">
             {COMMON_EXERCISE_SUGGESTIONS.map(s => (

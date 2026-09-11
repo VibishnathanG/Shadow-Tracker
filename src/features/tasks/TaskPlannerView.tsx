@@ -159,20 +159,20 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
             <Lucide.CalendarRange size={22} />
           </div>
           <div>
-            <h3 className="text-lg font-black tracking-tight text-foreground flex items-center gap-2">
+            <h3 className="text-base sm:text-lg font-black tracking-tight text-foreground flex items-center gap-2">
               <span>Super Planner</span>
-              <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20">
+              <span className="text-[8.5px] font-bold uppercase px-1.5 py-0.5 rounded bg-primary/10 text-primary border border-primary/20">
                 Pro Schedule
               </span>
             </h3>
             <p className="text-xs text-muted-foreground font-medium">
-              Time-blocked daily sprints, duration estimation &amp; drag-to-schedule calendar
+              Time-blocked daily sprints &amp; calendar schedule
             </p>
           </div>
         </div>
 
         {/* Controls: Week/Month Switcher & Period Navigation */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           {/* Sub-mode Toggle (Week vs Month) */}
           <div className="pill-group">
             <button
@@ -181,7 +181,7 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
               className={`filter-pill ${plannerMode === 'week' ? 'active' : ''}`}
             >
               <Lucide.Columns3 size={13} />
-              <span>Week Planner</span>
+              <span>Week</span>
             </button>
             <button
               type="button"
@@ -189,45 +189,45 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
               className={`filter-pill ${plannerMode === 'month' ? 'active' : ''}`}
             >
               <Lucide.CalendarDays size={13} />
-              <span>Month Schedule</span>
+              <span>Month</span>
             </button>
           </div>
 
           {/* Navigation Pill Group */}
-          <div className="flex items-center gap-1.5 bg-surface-elevated px-2 py-1 rounded-2xl border border-border/80 shadow-xs">
+          <div className="flex items-center gap-1 bg-surface-elevated px-1.5 py-1 rounded-2xl border border-border/80 shadow-xs">
             <button
               type="button"
               onClick={handlePrev}
-              className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-surface transition-colors cursor-pointer"
+              className="p-1 text-muted-foreground hover:text-foreground rounded-lg hover:bg-surface transition-colors cursor-pointer"
               title="Previous period"
             >
-              <Lucide.ChevronLeft size={16} />
+              <Lucide.ChevronLeft size={15} />
             </button>
             <button
               type="button"
               onClick={handleToday}
-              className="px-2.5 py-1 text-xs font-black text-foreground hover:bg-surface rounded-lg transition-colors cursor-pointer uppercase tracking-wider text-[11px]"
+              className="px-2 py-0.5 text-xs font-black text-foreground hover:bg-surface rounded-lg transition-colors cursor-pointer uppercase tracking-wider text-[10px]"
             >
               Today
             </button>
             <button
               type="button"
               onClick={handleNext}
-              className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-surface transition-colors cursor-pointer"
+              className="p-1 text-muted-foreground hover:text-foreground rounded-lg hover:bg-surface transition-colors cursor-pointer"
               title="Next period"
             >
-              <Lucide.ChevronRight size={16} />
+              <Lucide.ChevronRight size={15} />
             </button>
           </div>
 
           {/* Current Period Label */}
-          <div className="text-xs font-black px-3 py-1.5 bg-secondary/50 rounded-xl border border-border/60 text-foreground min-w-[140px] text-center">
+          <div className="text-xs font-black px-2.5 py-1 bg-secondary/50 rounded-xl border border-border/60 text-foreground text-center">
             {plannerMode === 'week' ? (
               <span>
-                {format(weekDays[0], 'd MMM')} – {format(weekDays[6], 'd MMM, yyyy')}
+                {format(weekDays[0], 'd MMM')} – {format(weekDays[6], 'd MMM')}
               </span>
             ) : (
-              <span>{format(anchorDate, 'MMMM yyyy')}</span>
+              <span>{format(anchorDate, 'MMM yyyy')}</span>
             )}
           </div>
 
@@ -235,7 +235,7 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
           <button
             type="button"
             onClick={() => onOpenAddModal(todayStr)}
-            className="btn-glass-pill active text-xs font-black py-2 px-3.5 flex items-center gap-1.5 cursor-pointer shadow-xs"
+            className="btn-glass-pill active text-xs font-black py-1.5 px-3 flex items-center gap-1.5 cursor-pointer shadow-xs ml-auto sm:ml-0"
           >
             <Lucide.Plus size={14} />
             <span>Add Task</span>
@@ -556,9 +556,12 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
 
                   {/* Day Footer with Task Count Indicator */}
                   {dayTasks.length > 0 && (
-                    <div className="text-[9px] font-extrabold text-muted-foreground flex justify-between items-center border-t border-border/30 pt-0.5">
-                      <span>{dayTasks.filter(t => t.isCompleted).length}/{dayTasks.length} done</span>
-                      <span className="font-mono">{formatDuration(dayTasks.reduce((acc, t) => acc + (t.estimatedMinutes || 30), 0))}</span>
+                    <div className="text-[9px] font-extrabold text-muted-foreground flex justify-between items-center border-t border-border/30 pt-0.5 mt-auto">
+                      <span className="truncate">
+                        <span className="hidden sm:inline">{dayTasks.filter(t => t.isCompleted).length}/{dayTasks.length} done</span>
+                        <span className="sm:hidden">{dayTasks.filter(t => t.isCompleted).length}/{dayTasks.length}</span>
+                      </span>
+                      <span className="font-mono hidden sm:inline">{formatDuration(dayTasks.reduce((acc, t) => acc + (t.estimatedMinutes || 30), 0))}</span>
                     </div>
                   )}
                 </div>

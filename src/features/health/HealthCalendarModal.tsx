@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import { DailyHealthData } from './HealthFeature';
@@ -21,6 +22,27 @@ export default function HealthCalendarModal({
   onSelectDate,
   healthMap,
 }: HealthCalendarModalProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Lock body scroll and handle ESC key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      const prevOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+        document.body.style.overflow = prevOverflow;
+      };
+    }
+  }, [isOpen, onClose]);
+
   const todayStr = useMemo(() => getTodayDateString(), []);
 
   // Parse current viewing month/year from selectedDate
@@ -120,64 +142,73 @@ export default function HealthCalendarModal({
     return days;
   }, [viewYear, viewMonth, healthMap, todayStr, selectedDate]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted || typeof window === 'undefined') return null;
 
-  return (
-    <AnimatePresence>
-      <div 
+  const modalContent = (
+    <div 
+      className="fixed inset-0 top-0 left-0 w-full h-full z-[99999] flex flex-col items-center justify-center p-3 sm:p-4 pointer-events-auto overflow-hidden"
+    >
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.15 }}
         onClick={onClose}
-        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-background/80 backdrop-blur-md cursor-pointer"
-      >
-        <motion.div
-          onClick={(e) => e.stopPropagation()}
-          initial={{ scale: 0.9, opacity: 0, y: 15 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.9, opacity: 0, y: 15 }}
-          className="w-full max-w-md bg-surface-elevated border border-border/80 rounded-3xl p-5 shadow-2xl space-y-4 cursor-default"
-        >
-          {/* Calendar Header with Nav & Today Jump */}
-          <div className="flex items-center justify-between border-b border-border/60 pb-3">
-            <div className="flex items-center gap-2">
-              <span className="p-2 bg-primary/15 text-primary rounded-xl">
-                <Lucide.Calendar size={16} />
-              </span>
-              <span className="text-sm font-black text-foreground">{monthName}</span>
-            </div>
+        className="fixed inset-0 bg-black/85"
+      />
 
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={jumpToToday}
-                className="px-2.5 py-1 text-[10px] font-black bg-primary/15 text-primary hover:bg-primary/25 rounded-lg transition-colors cursor-pointer"
-              >
-                Today
-              </button>
-              <button
-                type="button"
-                onClick={prevMonth}
-                className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors cursor-pointer"
-                title="Previous Month"
-              >
-                <Lucide.ChevronLeft size={16} />
-              </button>
-              <button
-                type="button"
-                onClick={nextMonth}
-                className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors cursor-pointer"
-                title="Next Month"
-              >
-                <Lucide.ChevronRight size={16} />
-              </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors cursor-pointer ml-1"
-              >
-                <Lucide.X size={16} />
-              </button>
-            </div>
+      <motion.div
+        onClick={(e) => e.stopPropagation()}
+        initial={{ scale: 0.94, opacity: 0, y: 15 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.94, opacity: 0, y: 15 }}
+        className="relative w-full max-w-md bg-surface-elevated border border-border/80 rounded-3xl p-4 sm:p-5 shadow-2xl space-y-3 max-h-[88vh] sm:max-h-[85vh] flex flex-col overflow-hidden my-auto z-10 cursor-default"
+      >
+        {/* Calendar Header with Nav & Today Jump */}
+        <div className="flex items-center justify-between border-b border-border/60 pb-3 shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="p-2 bg-primary/15 text-primary rounded-xl">
+              <Lucide.Calendar size={16} />
+            </span>
+            <span className="text-sm font-black text-foreground">{monthName}</span>
           </div>
 
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={jumpToToday}
+              className="px-2.5 py-1 text-[10px] font-black bg-primary/15 text-primary hover:bg-primary/25 rounded-lg transition-colors cursor-pointer"
+            >
+              Today
+            </button>
+            <button
+              type="button"
+              onClick={prevMonth}
+              className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors cursor-pointer"
+              title="Previous Month"
+            >
+              <Lucide.ChevronLeft size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={nextMonth}
+              className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors cursor-pointer"
+              title="Next Month"
+            >
+              <Lucide.ChevronRight size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors cursor-pointer ml-1"
+            >
+              <Lucide.X size={16} />
+            </button>
+          </div>
+        </div>
+
+        {/* Scrollable Calendar Body */}
+        <div className="overflow-y-auto flex-1 min-h-0 space-y-2 pr-0.5">
           {/* Weekday Row */}
           <div className="grid grid-cols-7 gap-1 text-center text-[10px] font-black text-muted-foreground uppercase pb-1">
             <span>Su</span>
@@ -251,24 +282,26 @@ export default function HealthCalendarModal({
               );
             })}
           </div>
+        </div>
 
-          {/* Micro Legend Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border/60 text-[10px] font-bold text-muted-foreground px-1">
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-sky-400" /> Water Met
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-400" /> Calorie Target
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-rose-500" /> Over Limit
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-indigo-400" /> Sleep 7h+
-            </span>
-          </div>
-        </motion.div>
-      </div>
-    </AnimatePresence>
+        {/* Micro Legend Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border/60 text-[10px] font-bold text-muted-foreground px-1 shrink-0">
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-sky-400" /> Water Met
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-emerald-400" /> Calorie Target
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-rose-500" /> Over Limit
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-indigo-400" /> Sleep 7h+
+          </span>
+        </div>
+      </motion.div>
+    </div>
   );
+
+  return createPortal(modalContent, document.body);
 }

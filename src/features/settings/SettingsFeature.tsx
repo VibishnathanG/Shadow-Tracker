@@ -1510,12 +1510,12 @@ export const SettingsFeature: React.FC = () => {
                   </span>
                   Storage Sandbox
                 </h3>
-                <div className="flex items-center gap-2 bg-secondary border border-border px-3 py-1 rounded-xl">
-                  <span className="relative flex h-2 w-2">
+                <div className="flex items-center gap-1.5 bg-secondary/80 border border-border/80 px-2 py-0.5 rounded-md">
+                  <span className="relative flex h-1.5 w-1.5">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]"></span>
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500"></span>
                   </span>
-                  <span className="text-[11px] font-extrabold text-foreground uppercase tracking-wider">Local-First</span>
+                  <span className="text-[9px] font-bold text-foreground uppercase tracking-wider">Local-First</span>
                 </div>
               </div>
               <p className="text-xs font-medium text-foreground leading-relaxed">
@@ -1623,7 +1623,7 @@ export const SettingsFeature: React.FC = () => {
           <motion.div 
             variants={itemVariants}
             transition={{ type: "spring" as const, stiffness: 300 }}
-            className="lg:col-span-1 tile settings-tile p-6 sm:p-8 flex flex-col gap-5 relative overflow-hidden"
+            className="lg:col-span-1 tile settings-tile p-4 sm:p-6 md:p-8 flex flex-col gap-5 relative overflow-hidden"
           >
             <TileArtSync />
             <div className="flex items-center justify-between relative z-10">
@@ -1634,8 +1634,8 @@ export const SettingsFeature: React.FC = () => {
                 GitHub Cloud Sync
               </h3>
               {settings.githubSyncEnabled && (
-                <span className="px-2.5 py-1 rounded-full bg-primary/20 text-primary border border-primary/40 text-[10px] font-black uppercase tracking-wider">
-                  ONCE A DAY / MANUAL SYNC
+                <span className="px-2 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/40 text-[8.5px] font-bold uppercase tracking-wider">
+                  Once Daily / Manual
                 </span>
               )}
             </div>
@@ -1646,17 +1646,17 @@ export const SettingsFeature: React.FC = () => {
 
             <div className="space-y-3 relative z-10">
               <label className="text-xs font-bold uppercase tracking-[0.15em] text-foreground ml-1">GitHub PAT (Gist Scope Only)</label>
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2 w-full">
                 <input
                   type="password"
                   placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
                   value={githubPatInput}
                   onChange={(e) => setGithubPatInput(e.target.value)}
-                  className="input-field flex-1 text-sm !px-4 !py-3 font-semibold placeholder-foreground/40 outline-none"
+                  className="input-field flex-1 min-w-0 text-xs sm:text-sm !px-3 sm:!px-4 !py-2.5 sm:!py-3 font-semibold placeholder-foreground/40 outline-none"
                 />
                 <button
                   onClick={handleSavePat}
-                  className="filter-pill active !px-6 !py-3 text-xs font-bold rounded-xl shadow-md cursor-pointer"
+                  className="filter-pill active shrink-0 !px-4 sm:!px-6 !py-2.5 sm:!py-3 text-xs font-bold rounded-xl shadow-md cursor-pointer whitespace-nowrap"
                 >
                   Save
                 </button>

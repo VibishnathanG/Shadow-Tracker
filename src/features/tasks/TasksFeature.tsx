@@ -265,32 +265,32 @@ export const TasksFeature: React.FC = () => {
 
       {/* Workspace Sub-Tab Switcher */}
       <div className="w-full relative z-10">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
+        <div className="grid grid-cols-3 gap-1.5 sm:flex sm:items-center sm:gap-2 w-full sm:w-auto">
           <button
             type="button"
             onClick={() => setWorkspaceView('list')}
-            className={`filter-pill w-full sm:w-auto justify-center sm:justify-start gap-2.5 ${workspaceView === 'list' ? 'active' : ''}`}
+            className={`filter-pill w-full sm:w-auto justify-center sm:justify-start gap-1.5 sm:gap-2.5 !py-2 !px-2 sm:!px-4 text-xs ${workspaceView === 'list' ? 'active' : ''}`}
           >
-            <Lucide.ListFilter size={15} className={workspaceView === 'list' ? 'text-white shrink-0' : 'text-primary shrink-0'} />
-            <span className="font-bold">Workspace List</span>
+            <Lucide.ListFilter size={14} className={workspaceView === 'list' ? 'text-white shrink-0' : 'text-primary shrink-0'} />
+            <span className="font-bold truncate">List</span>
           </button>
 
           <button
             type="button"
             onClick={() => setWorkspaceView('planner')}
-            className={`filter-pill w-full sm:w-auto justify-center sm:justify-start gap-2.5 ${workspaceView === 'planner' ? 'active' : ''}`}
+            className={`filter-pill w-full sm:w-auto justify-center sm:justify-start gap-1.5 sm:gap-2.5 !py-2 !px-2 sm:!px-4 text-xs ${workspaceView === 'planner' ? 'active' : ''}`}
           >
-            <Lucide.CalendarRange size={15} className={workspaceView === 'planner' ? 'text-white shrink-0' : 'text-sky-400 shrink-0'} />
-            <span className="font-bold">Super Planner</span>
+            <Lucide.CalendarRange size={14} className={workspaceView === 'planner' ? 'text-white shrink-0' : 'text-sky-400 shrink-0'} />
+            <span className="font-bold truncate">Planner</span>
           </button>
 
           <button
             type="button"
             onClick={() => setWorkspaceView('kanban')}
-            className={`filter-pill w-full sm:w-auto justify-center sm:justify-start gap-2.5 ${workspaceView === 'kanban' ? 'active' : ''}`}
+            className={`filter-pill w-full sm:w-auto justify-center sm:justify-start gap-1.5 sm:gap-2.5 !py-2 !px-2 sm:!px-4 text-xs ${workspaceView === 'kanban' ? 'active' : ''}`}
           >
-            <Lucide.Kanban size={15} className={workspaceView === 'kanban' ? 'text-white shrink-0' : 'text-purple-400 shrink-0'} />
-            <span className="font-bold">Kanban &amp; Matrix</span>
+            <Lucide.Kanban size={14} className={workspaceView === 'kanban' ? 'text-white shrink-0' : 'text-purple-400 shrink-0'} />
+            <span className="font-bold truncate">Kanban</span>
           </button>
         </div>
       </div>

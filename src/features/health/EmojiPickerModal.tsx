@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 
@@ -136,6 +137,27 @@ export default function EmojiPickerModal({
   onSelectEmoji,
   currentEmoji,
 }: EmojiPickerModalProps) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Lock body scroll and handle ESC key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      const prevOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        window.removeEventListener('keydown', handleKeyDown);
+        document.body.style.overflow = prevOverflow;
+      };
+    }
+  }, [isOpen, onClose]);
+
   const [search, setSearch] = useState('');
   const [selectedCat, setSelectedCat] = useState<string>('all');
 
@@ -152,37 +174,44 @@ export default function EmojiPickerModal({
     return all.filter(e => e.keywords.includes(q) || e.emoji.includes(q));
   }, [search, selectedCat]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted || typeof window === 'undefined') return null;
 
-  return (
-    <AnimatePresence>
-      <div 
+  const modalContent = (
+    <div 
+      className="fixed inset-0 top-0 left-0 w-full h-full z-[100001] flex flex-col items-center justify-center p-3 sm:p-4 pointer-events-auto overflow-hidden"
+    >
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.15 }}
         onClick={onClose}
-        className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm cursor-pointer"
-      >
-        <motion.div
-          onClick={(e) => e.stopPropagation()}
-          initial={{ scale: 0.9, opacity: 0, y: 10 }}
-          animate={{ scale: 1, opacity: 1, y: 0 }}
-          exit={{ scale: 0.9, opacity: 0, y: 10 }}
-          className="w-full max-w-md bg-surface-elevated border border-border/80 rounded-3xl p-5 shadow-2xl space-y-3 flex flex-col max-h-[80vh] cursor-default"
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between border-b border-border/60 pb-2.5">
-            <div className="flex items-center gap-2">
-              <span className="text-xl">✨</span>
-              <h3 className="text-sm font-black text-foreground">Select Dish Icon / Emoji</h3>
-            </div>
-            <button
-              onClick={onClose}
-              className="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-secondary cursor-pointer"
-            >
-              <Lucide.X size={16} />
-            </button>
-          </div>
+        className="fixed inset-0 bg-black/85"
+      />
 
-          {/* Search Bar */}
-          <div className="relative">
+      <motion.div
+        onClick={(e) => e.stopPropagation()}
+        initial={{ scale: 0.94, opacity: 0, y: 10 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.94, opacity: 0, y: 10 }}
+        className="relative w-full max-w-md bg-surface-elevated border border-border/80 rounded-3xl p-4 sm:p-5 shadow-2xl space-y-3 flex flex-col max-h-[85vh] sm:max-h-[80vh] overflow-hidden my-auto z-10 cursor-default"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-border/60 pb-2.5 shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">✨</span>
+            <h3 className="text-sm font-black text-foreground">Select Dish Icon / Emoji</h3>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-muted-foreground hover:text-foreground p-1 rounded-lg hover:bg-secondary cursor-pointer"
+          >
+            <Lucide.X size={16} />
+          </button>
+        </div>
+
+        {/* Search Bar */}
+        <div className="relative shrink-0">
             <Lucide.Search className="absolute left-3 top-2.5 text-muted-foreground" size={14} />
             <input
               type="text"
@@ -247,6 +276,7 @@ export default function EmojiPickerModal({
           </div>
         </motion.div>
       </div>
-    </AnimatePresence>
   );
+
+  return createPortal(modalContent, document.body);
 }

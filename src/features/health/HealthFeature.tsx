@@ -367,51 +367,51 @@ export default function HealthFeature() {
               </span>
               <div>
                 <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground flex items-center gap-2">
-                  <span>Health &amp; Vitality Suite</span>
+                  <span>Health &amp; Fitness</span>
                 </h1>
                 <p className="text-xs text-muted-foreground font-medium">
-                  Complete biological OS: hydration, nutrition plate, gym training splits, and weight feasibility engine.
+                  Track nutrition, daily hydration, workouts, and wellness.
                 </p>
               </div>
             </div>
 
-            {/* Sub-tab Switcher: Vitality & Nutrition vs Gym & Pro Fitness vs Health Dashboard */}
+            {/* Sub-tab Switcher: Mobile responsive grid */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 pt-1 w-full sm:w-auto">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2 w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={() => setActiveSubTab('vitality')}
-                  className={`filter-pill w-full sm:w-auto justify-center sm:justify-start gap-2 ${activeSubTab === 'vitality' ? 'active' : ''}`}
+                  className={`filter-pill justify-center sm:justify-start gap-1.5 !px-2.5 !py-2 text-xs ${activeSubTab === 'vitality' ? 'active' : ''}`}
                 >
                   <span className="text-emerald-400 shrink-0">🌿</span>
-                  <span>Vitality &amp; Nutrition</span>
+                  <span className="truncate">Nutrition</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveSubTab('diet')}
-                  className={`filter-pill w-full sm:w-auto justify-center sm:justify-start gap-2 ${activeSubTab === 'diet' ? 'active' : ''}`}
+                  className={`filter-pill justify-center sm:justify-start gap-1.5 !px-2.5 !py-2 text-xs ${activeSubTab === 'diet' ? 'active' : ''}`}
                 >
                   <span className="text-orange-400 shrink-0">🥗</span>
-                  <span>Diet Planner</span>
+                  <span className="truncate">Diet Plans</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveSubTab('gym')}
-                  className={`filter-pill w-full sm:w-auto justify-center sm:justify-start gap-2 ${activeSubTab === 'gym' ? 'active' : ''}`}
+                  className={`filter-pill justify-center sm:justify-start gap-1.5 !px-2.5 !py-2 text-xs ${activeSubTab === 'gym' ? 'active' : ''}`}
                 >
                   <span className="text-amber-400 shrink-0">🏋️‍♂️</span>
-                  <span>Gym &amp; Fitness</span>
+                  <span className="truncate">Workouts</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveSubTab('dashboard')}
-                  className={`filter-pill w-full sm:w-auto justify-center sm:justify-start gap-2 ${activeSubTab === 'dashboard' ? 'active' : ''}`}
+                  className={`filter-pill justify-center sm:justify-start gap-1.5 !px-2.5 !py-2 text-xs ${activeSubTab === 'dashboard' ? 'active' : ''}`}
                 >
                   <span className="text-sky-400 shrink-0">📊</span>
-                  <span>Dashboard</span>
+                  <span className="truncate">Dashboard</span>
                 </button>
               </div>
 
@@ -496,7 +496,7 @@ export default function HealthFeature() {
                 </span>
                 <div>
                   <h3 className="text-sm font-extrabold text-foreground uppercase tracking-wider">
-                    Hydration OS &amp; Daily Water Level
+                    Daily Hydration
                   </h3>
                   <div className="flex items-center gap-2 text-[11px] text-muted-foreground font-medium">
                     <span>Target:</span>
@@ -656,10 +656,10 @@ export default function HealthFeature() {
               </div>
             </div>
 
-            {/* 7-Day Hydration Velocity Mini Chart */}
+            {/* 7-Day Hydration Mini Chart */}
             <div className="space-y-1.5 pt-2 border-t border-border/60">
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                7-Day Hydration Velocity
+                7-Day Hydration
               </span>
               <div className="flex items-end justify-between gap-1.5 h-12 pt-1">
                 {past7Days.map((d) => {
@@ -681,13 +681,13 @@ export default function HealthFeature() {
             </div>
           </div>
 
-          {/* Daily Nutrition & Calorie Calculator with Interactive Plate */}
+          {/* Daily Nutrition & Plate */}
           <div className="space-y-4">
             <div className="flex items-center justify-between px-1">
               <div className="flex items-center gap-2">
                 <span className="text-lg">🥗</span>
                 <h3 className="text-sm font-black text-foreground uppercase tracking-wider">
-                  Daily Calorie Calculator &amp; Plate Visualizer
+                  Daily Nutrition &amp; Plate
                 </h3>
               </div>
 
@@ -841,7 +841,7 @@ export default function HealthFeature() {
                     <Lucide.Sparkles size={18} />
                   </span>
                   <div>
-                    <h3 className="text-sm font-extrabold text-foreground uppercase tracking-wider">Vitality &amp; Energy</h3>
+                    <h3 className="text-sm font-extrabold text-foreground uppercase tracking-wider">Energy Check-in</h3>
                     <p className="text-[11px] text-muted-foreground font-medium">Daily subjective energy check-in</p>
                   </div>
                 </div>
