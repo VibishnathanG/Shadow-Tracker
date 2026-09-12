@@ -7,12 +7,52 @@ import { useShadowTrackerStore } from '@/store';
 import { getTodayDateString } from '@/lib/dateUtils';
 import confetti from 'canvas-confetti';
 
+import { updateJournalWithEveningReflection } from '@/lib/eveningReflection';
+
 interface DayReviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   mode: 'morning' | 'evening';
   onJumpToTask?: (taskId: string) => void;
 }
+
+const moodConfig = {
+  great: {
+    icon: Lucide.SmilePlus,
+    label: 'Great',
+    emoji: '😄',
+    activeCls: 'bg-emerald-500 text-white border-emerald-400 shadow-md shadow-emerald-500/30',
+    idleCls: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/25 hover:bg-emerald-500/20',
+  },
+  good: {
+    icon: Lucide.Smile,
+    label: 'Good',
+    emoji: '😊',
+    activeCls: 'bg-sky-500 text-white border-sky-400 shadow-md shadow-sky-500/30',
+    idleCls: 'bg-sky-500/10 text-sky-400 border-sky-500/25 hover:bg-sky-500/20',
+  },
+  neutral: {
+    icon: Lucide.Meh,
+    label: 'Okay',
+    emoji: '😐',
+    activeCls: 'bg-amber-500 text-white border-amber-400 shadow-md shadow-amber-500/30',
+    idleCls: 'bg-amber-500/10 text-amber-400 border-amber-500/25 hover:bg-amber-500/20',
+  },
+  bad: {
+    icon: Lucide.Frown,
+    label: 'Down',
+    emoji: '🙁',
+    activeCls: 'bg-orange-500 text-white border-orange-400 shadow-md shadow-orange-500/30',
+    idleCls: 'bg-orange-500/10 text-orange-400 border-orange-500/25 hover:bg-orange-500/20',
+  },
+  terrible: {
+    icon: Lucide.Angry,
+    label: 'Rough',
+    emoji: '😫',
+    activeCls: 'bg-rose-500 text-white border-rose-400 shadow-md shadow-rose-500/30',
+    idleCls: 'bg-rose-500/10 text-rose-400 border-rose-500/25 hover:bg-rose-500/20',
+  },
+} as const;
 
 export const DayReviewModal: React.FC<DayReviewModalProps> = ({
   isOpen,
@@ -48,8 +88,47 @@ export const DayReviewModal: React.FC<DayReviewModalProps> = ({
   const [gratitudeNote, setGratitudeNote] = useState<string>('');
   const [eveningMood, setEveningMood] = useState<'great' | 'good' | 'neutral' | 'bad' | 'terrible'>('good');
 
-  const todayTasks = useMemo(() => tasks.filter(t => t.dueDate === todayStr), [tasks, todayStr]);
-  const todayLog = useMemo(() => dailyLogs.find(l => l.date === todayStr), [dailyLogs, todayStr]);
+  const todayTasks = useMemo(() => tasks.filter(t => !t.isSoftDeleted && t.dueDate === todayStr), [tasks, todayStr]);
+  const activeHabits = useMemo(() => habits.filter(h => !h.isSoftDeleted), [habits]);
+  const todayLog = useMemo(() => dailyLogs.find(l => l.date === todayStr || l.id === todayStr), [dailyLogs, todayStr]);
+
+  const isMorningDoneToday = Boolean(todayLog?.morningReview?.completedAt);
+  const isEveningDoneToday = Boolean(todayLog?.eveningReview?.completedAt);
+
+  // Synchronize daily instance state from memory/storage when modal opens
+  const prevIsOpenRef = React.useRef(false);
+  React.useEffect(() => {
+    if (isOpen && !prevIsOpenRef.current) {
+      if (mode === 'morning') {
+        if (todayLog?.morningReview) {
+          setSelectedMitIds(todayLog.morningReview.mitIds || []);
+          setMorningEnergy(todayLog.morningReview.energy ?? 4);
+          setDailyIntention(todayLog.morningReview.intention || '');
+        } else {
+          const defaultMits = todayTasks
+            .filter(t => t.priority === 'high')
+            .slice(0, 3)
+            .map(t => t.id);
+          setSelectedMitIds(defaultMits);
+          setMorningEnergy(4);
+          setDailyIntention('');
+        }
+        setNewMitText('');
+      } else if (mode === 'evening') {
+        if (todayLog?.eveningReview) {
+          setBiggestWin(todayLog.eveningReview.biggestWin || '');
+          setGratitudeNote(todayLog.eveningReview.gratitude || '');
+          setEveningMood(todayLog.eveningReview.mood || todayLog.mood || 'good');
+        } else {
+          setBiggestWin('');
+          setGratitudeNote('');
+          setEveningMood(todayLog?.mood || 'good');
+        }
+      }
+      setStep(1);
+    }
+    prevIsOpenRef.current = isOpen;
+  }, [isOpen, mode, todayLog, todayTasks]);
 
   if (!isOpen) return null;
 
@@ -65,33 +144,67 @@ export const DayReviewModal: React.FC<DayReviewModalProps> = ({
       });
     }
 
-    // Save morning intention to note
-    if (dailyIntention.trim()) {
-      const existing = notes.find(n => n.id === todayStr);
-      const combined = `### 🌅 Morning Intention\n${dailyIntention.trim()}\n\n${existing?.content || ''}`;
-      await saveNote(todayStr, combined, existing?.title || 'Daily Journal');
+    // Keep morning review in memory/storage for the day (DO NOT add to journal)
+    const isFirstTime = !isMorningDoneToday;
+
+    await updateDailyLog(todayStr, {
+      morningReview: {
+        completedAt: new Date().toISOString(),
+        energy: morningEnergy,
+        intention: dailyIntention.trim(),
+        mitIds: selectedMitIds,
+      },
+    });
+
+    if (isFirstTime) {
+      await addXp(25);
+      confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
     }
 
-    await addXp(25);
-    confetti({ particleCount: 60, spread: 70, origin: { y: 0.6 } });
     onClose();
     setStep(1);
   };
 
   const handleEveningFinish = async () => {
-    // Update daily log mood
-    await updateDailyLog(todayStr, { mood: eveningMood });
+    const isFirstTime = !isEveningDoneToday;
 
-    // Save gratitude & win to notes
-    if (biggestWin.trim() || gratitudeNote.trim()) {
-      const existing = notes.find(n => n.id === todayStr);
-      const eveningText = `### 🌙 Evening Reflection\n- **Win of the Day**: ${biggestWin.trim() || 'N/A'}\n- **Gratitude**: ${gratitudeNote.trim() || 'N/A'}`;
-      const combined = `${existing?.content || ''}\n\n${eveningText}`.trim();
-      await saveNote(todayStr, combined, existing?.title || 'Daily Journal');
+    // 1. Update daily log with evening review memory and mood (one instance per day)
+    await updateDailyLog(todayStr, {
+      mood: eveningMood,
+      eveningReview: {
+        completedAt: new Date().toISOString(),
+        biggestWin: biggestWin.trim(),
+        gratitude: gratitudeNote.trim(),
+        mood: eveningMood,
+      },
+    });
+
+    // 2. Prepend cleanly formatted markdown reflection to top of journal (no duplicates)
+    const habitsCompletedToday = activeHabits.filter(h => h.completedDates.includes(todayStr)).length;
+    const tasksCompletedToday = todayTasks.filter(t => t.isCompleted).length;
+
+    const existingNote = notes.find(n => n.id === todayStr || n.date === todayStr);
+
+    const { content: updatedJournalContent } = updateJournalWithEveningReflection(
+      existingNote?.content,
+      {
+        mood: eveningMood,
+        biggestWin: biggestWin.trim(),
+        gratitude: gratitudeNote.trim(),
+        habitsCompletedCount: habitsCompletedToday,
+        habitsTotalCount: activeHabits.length,
+        tasksCompletedCount: tasksCompletedToday,
+        tasksTotalCount: todayTasks.length,
+      }
+    );
+
+    await saveNote(todayStr, updatedJournalContent, existingNote?.title || 'Daily Journal');
+
+    if (isFirstTime) {
+      await addXp(35);
+      confetti({ particleCount: 70, spread: 80, origin: { y: 0.6 } });
     }
 
-    await addXp(35);
-    confetti({ particleCount: 70, spread: 80, origin: { y: 0.6 } });
     onClose();
     setStep(1);
   };
@@ -295,7 +408,8 @@ export const DayReviewModal: React.FC<DayReviewModalProps> = ({
                       onClick={handleMorningFinish}
                       className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-black rounded-xl shadow-lg shadow-amber-500/25 flex items-center gap-1.5 cursor-pointer"
                     >
-                      <Lucide.CheckCircle2 size={15} /> Lock in Day (+25 XP)
+                      <Lucide.CheckCircle2 size={15} />
+                      <span>{isMorningDoneToday ? 'Update Morning Briefing' : 'Lock in Day (+25 XP)'}</span>
                     </button>
                   </div>
                 </div>
@@ -388,22 +502,30 @@ export const DayReviewModal: React.FC<DayReviewModalProps> = ({
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-muted-foreground uppercase">Evening Mood Check</label>
-                    <div className="grid grid-cols-5 gap-1.5">
-                      {(['terrible', 'bad', 'neutral', 'good', 'great'] as const).map(m => (
-                        <button
-                          key={m}
-                          type="button"
-                          onClick={() => setEveningMood(m)}
-                          className={`py-2 rounded-xl text-xs font-bold capitalize transition-all border ${
-                            eveningMood === m
-                              ? 'bg-indigo-500 text-white border-indigo-400 shadow-md shadow-indigo-500/30'
-                              : 'bg-secondary text-muted-foreground border-border/60 hover:bg-surface'
-                          }`}
-                        >
-                          {m}
-                        </button>
-                      ))}
+                    <label className="text-xs font-bold text-muted-foreground uppercase flex items-center gap-1.5">
+                      <Lucide.Smile size={14} className="text-indigo-400" /> Evening Mood Rating
+                    </label>
+                    <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
+                      {Object.entries(moodConfig).map(([key, item]) => {
+                        const isSelected = eveningMood === key;
+                        const IconComponent = item.icon;
+
+                        return (
+                          <button
+                            key={key}
+                            type="button"
+                            onClick={() => setEveningMood(key as keyof typeof moodConfig)}
+                            className={`flex flex-col items-center justify-center p-2 sm:p-2.5 rounded-xl sm:rounded-2xl text-xs font-bold transition-all cursor-pointer border ${
+                              isSelected ? item.activeCls : item.idleCls
+                            }`}
+                            title={item.label}
+                          >
+                            <span className="text-base leading-none mb-1">{item.emoji}</span>
+                            <IconComponent size={15} className={isSelected ? 'text-white stroke-[2.5px]' : 'stroke-[2px]'} />
+                            <span className="text-[9.5px] mt-1 capitalize truncate max-w-full font-extrabold">{item.label}</span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -418,7 +540,8 @@ export const DayReviewModal: React.FC<DayReviewModalProps> = ({
                       onClick={handleEveningFinish}
                       className="px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-xs font-black rounded-xl shadow-lg shadow-indigo-500/25 flex items-center gap-1.5 cursor-pointer"
                     >
-                      <Lucide.CheckCircle2 size={15} /> Complete Evening Review (+35 XP)
+                      <Lucide.CheckCircle2 size={15} />
+                      <span>{isEveningDoneToday ? 'Update Evening Review' : 'Complete Evening Review (+35 XP)'}</span>
                     </button>
                   </div>
                 </div>

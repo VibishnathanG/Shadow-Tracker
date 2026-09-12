@@ -58,6 +58,7 @@ const itemVariants: Variants = {
 function stripMarkdown(text: string): string {
   if (!text) return '';
   return text
+    .replace(/<!--[\s\S]*?-->/g, '')
     .replace(/```[\s\S]*?```/g, ' [Code Block] ')
     .replace(/^#{1,6}\s+/gm, '')
     .replace(/\*\*(.*?)\*\*/g, '$1')

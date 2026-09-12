@@ -55,6 +55,20 @@ export interface Habit {
   isSoftDeleted: boolean;
 }
 
+export interface MorningReviewState {
+  completedAt?: string;
+  energy?: number;
+  intention?: string;
+  mitIds?: string[];
+}
+
+export interface EveningReviewState {
+  completedAt?: string;
+  biggestWin?: string;
+  gratitude?: string;
+  mood?: 'great' | 'good' | 'neutral' | 'bad' | 'terrible';
+}
+
 export interface DailyLog {
   id: string; // YYYY-MM-DD
   date: string; // YYYY-MM-DD
@@ -62,6 +76,8 @@ export interface DailyLog {
   mood?: 'great' | 'good' | 'neutral' | 'bad' | 'terrible';
   completedTasksCount: number;
   completedHabitsCount: number;
+  morningReview?: MorningReviewState;
+  eveningReview?: EveningReviewState;
   createdAt: string;
   updatedAt: string;
 }

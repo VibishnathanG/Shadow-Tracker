@@ -236,6 +236,8 @@ export function smartMergeBackupData(localData: FullBackupData, cloudData: FullB
         completedHabitsCount: Math.max(existing.completedHabitsCount || 0, l.completedHabitsCount || 0),
         focusScore: Math.max(existing.focusScore || 0, l.focusScore || 0),
         mood: baseWinner.mood || existing.mood || l.mood,
+        morningReview: baseWinner.morningReview || existing.morningReview || l.morningReview,
+        eveningReview: baseWinner.eveningReview || existing.eveningReview || l.eveningReview,
         updatedAt: new Date(Math.max(existingTime, newTime, Date.now())).toISOString(),
       };
       logMap.set(l.date, mergedLog);
