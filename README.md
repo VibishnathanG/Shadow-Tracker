@@ -109,6 +109,8 @@ A 5-week monthly habit grid with daily check-offs, past-date lock-in protection,
   - [Eco-Mode-and-Low-GPU-Mode](#Eco-Mode-and-Low-GPU-Mode)
 - [Backup-Restore-and-Cloud-Sync](#Backup-Restore-and-Cloud-Sync)
   - [1-Local-JSON-Backup-and-Restore](#1-Local-JSON-Backup-and-Restore)
+  - [Cryptographic-Backup-Security-and-Tamper-Prevention](#Cryptographic-Backup-Security-and-Tamper-Prevention)
+  - [How-to-Edit-Backup-Files-Manually](#How-to-Edit-Backup-Files-Manually)
   - [2-Microsoft-OneDrive-Auto-Sync](#2-Microsoft-OneDrive-Auto-Sync)
   - [3-GitHub-Gist-Daily-Sync](#3-GitHub-Gist-Daily-Sync)
 - [Running-and-Deployment](#Running-and-Deployment)
@@ -192,11 +194,11 @@ Every release binary in the `release/` directory is standardized, compiled, cryp
 
 | Artifact Name | Target Platform | Package Type | Size | SHA256 Checksum | Reference Note |
 |---|---|---|---|---|---|
-| `Shadow-Tracker-Setup.exe` | Windows 10/11 (x64) | NSIS Executable Installer | 14.0 MB | `69c73ed7099b3166109088fe54b67287a96400e16f18872d828c92d06f723eba` | |
-| `Shadow-Tracker-Portable.exe` | Windows 10/11 (x64) | Single Portable Executable | 30.6 MB | `c7bf2c533f46ca851eb0661ac7347cae363d9debd2bfb864bc3053783e97388a` | |
-| `Shadow-Tracker-Release.apk` | Android 8.0+ (ARM64/x86) | Signed Mobile APK | 13.5 MB | `fa38d642421b4fbde76d492e675aeb06c9e38707cb27e6f3fd3b22c9b62f401f` | |
-| `shadow-tracker-container.tar.gz` | Linux (x86_64 Docker) | Docker Image Tarball | 36.9 MB | `43300843c8dc239b5c1440165ee0fe086f61166d3a01c70dc477342f74cdf2e0` | |
-| `shadow-tracker-web-export.tar.gz` | Any Static Web Host | Static HTML5/JS/CSS Bundle | 9.5 MB | `12c400126830ceda9bcb10e4045f4ea7cdcb7fc5e1bcb22c79dd8d565c0dcf00` | |
+| `Shadow-Tracker-Setup.exe` | Windows 10/11 (x64) | NSIS Executable Installer | 14.0 MB | `a7e58fe38e277e5effc617dbdc0e64d70666582db1e34f3e51e93a3a02885cc7` | |
+| `Shadow-Tracker-Portable.exe` | Windows 10/11 (x64) | Single Portable Executable | 30.6 MB | `a4588845bb6f33b34e55d6bd57f6a5fc293169cadda802fb7d34d7b275538f3f` | |
+| `Shadow-Tracker-Release.apk` | Android 8.0+ (ARM64/x86) | Signed Mobile APK | 13.5 MB | `890ce41280feddb3f4900d295d84fea7ae1e3a04511dc741bc2068f564479f9f` | |
+| `shadow-tracker-container.tar.gz` | Linux (x86_64 Docker) | Docker Image Tarball | 36.9 MB | `33f97beb9b108d171865e0bac94a6aa6fa17ad4f9cf58bd8cea1d63251ae7294` | |
+| `shadow-tracker-web-export.tar.gz` | Any Static Web Host | Static HTML5/JS/CSS Bundle | 9.6 MB | `32a50a18b6f135ad8fa54573c92994ced2e771c3936d5d701fdfa2d9e7d7515e` | |
 | `Shadow-Tracker-Windows-Certificate.crt` | Windows OS | Trusted Root Signing Cert | 1.3 KB | `aabc149abd60a904878ebfc939611500ed636d22b61157cd891c3c2937ba4c98` | |
 
 ### Integrity-Verification
@@ -481,9 +483,43 @@ For battery conservation and ultra-low-spec hardware:
 You own 100% of your data without relying on third-party cloud servers.
 
 ### 1-Local-JSON-Backup-and-Restore
-- **Export**: Generates a unified, timestamped `shadow-tracker-full-backup-YYYY-MM-DD.json` file via the browser File System Access API.
+- **Export**: Generates a unified, timestamped backup file via the browser File System Access API with selectable encryption and signing envelopes.
 - **Import**: Validates schema integrity, restores all IndexedDB stores and LocalStorage domains (Tasks, Habits, Daily Logs, Notes, Reminders, Categories, Money v4, Health daily logs, Biometrics, Workouts, Diets, Standalone ToDos, Quests, and Badges).
 - **Annual Archives**: Archive historical data by year to keep active workspace queries lightning fast.
+
+### Cryptographic-Backup-Security-and-Tamper-Prevention
+
+Shadow Tracker implements an offline-first cryptographic security subsystem to protect your exported telemetry, habit data, and financial ledger:
+
+1. **Client-Side AES-256-GCM Encryption (`.shadowbackup`)**:
+   - Password-protected exports use the browser's native Web Crypto API (`crypto.subtle`).
+   - Cryptographic keys are derived from your password using **PBKDF2 with SHA-256** across **100,000 iterations**, paired with a cryptographically secure 16-byte random salt and 12-byte initialization vector (IV) per export.
+   - The ciphertext is authenticated via a 128-bit Galois/Counter Mode (GCM) authentication tag and an envelope SHA-256 hash. The resulting file cannot be deciphered without the master password.
+2. **Tamper Prevention via Cryptographic Checksums**:
+   - Both signed JSON exports and encrypted backups wrap payloads in a standardized version 2 envelope containing a deterministic **SHA-256 integrity checksum**.
+   - On import, Shadow Tracker verifies the hash prior to parsing. If any byte was corrupted, modified, or altered in transit, the importer immediately aborts and flags a tamper warning.
+
+### How-to-Edit-Backup-Files-Manually
+
+If you need to inspect or manually edit your data records outside the application, follow these guidelines:
+
+- **Option A (Recommended — Raw Plain JSON Export)**:
+  - Open **Settings** → **Storage Sandbox** → click **Export Backup**.
+  - Choose **Raw Plain JSON** as the export format.
+  - This exports un-enveloped JSON (`shadow-tracker-raw-YYYY-MM-DD.json`) that you can directly edit in any text editor (VS Code, Sublime, Notepad).
+  - You can import this file back anytime; the importer automatically recognizes plain JSON schemas.
+
+- **Option B (Editing a Signed Envelope File)**:
+  - If editing a signed backup (`shadow-tracker-signed-YYYY-MM-DD.json`), you have two methods:
+    1. *Quick method*: Open the file, copy the object inside `"payload": { ... }`, save it as a standalone `.json` file, and import that directly.
+    2. *Checksum update*: If keeping the envelope wrapper, recompute the SHA-256 hash of the modified `"payload"` string and update the `"checksum"` field:
+       ```bash
+       python3 -c "import hashlib, json; data=json.load(open('backup.json'))['payload']; print(hashlib.sha256(json.dumps(data, separators=(',', ':')).encode()).hexdigest())"
+       ```
+
+- **Option C (Editing an Encrypted Backup)**:
+  - Encrypted bundles (`.shadowbackup`) cannot be modified with a text editor because ciphertext is authenticated with AES-GCM.
+  - To modify data from an encrypted backup, import it into Shadow Tracker with your password, make your changes directly in the UI, and export a fresh encrypted bundle.
 
 ### 2-Microsoft-OneDrive-Auto-Sync
 - Configure a dedicated sync file (e.g. `Documents/shadow-tracker-sync.json`).

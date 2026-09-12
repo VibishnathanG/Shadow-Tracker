@@ -266,6 +266,11 @@ export function validateAndParseBackupJSON(jsonStr: string): JsonDiagnosticResul
     };
   }
 
+  // Support Shadow Tracker envelope format (un-envelope payload if present)
+  if (parsed.format === 'shadow-tracker-backup' && parsed.payload && typeof parsed.payload === 'object') {
+    parsed = parsed.payload;
+  }
+
   // Step 3: Deep Key Traversal & Field Validation
   // Validate 'tasks'
   if (parsed.tasks !== undefined) {

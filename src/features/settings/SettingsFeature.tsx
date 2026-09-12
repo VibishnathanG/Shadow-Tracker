@@ -21,6 +21,12 @@ import { smartMergeBackupData } from '@/lib/smartMerge';
 import { JsonErrorModal } from '@/components/JsonErrorModal';
 import { validateAndParseBackupJSON, JsonDiagnosticIssue } from '@/lib/jsonDiagnostics';
 import {
+  exportSignedBackup,
+  exportEncryptedBackup,
+  parseAndVerifyBackup,
+  isEncryptedBackup,
+} from '@/lib/backupCrypto';
+import {
   pickSyncFile,
   createNewSyncFile,
   pickExistingSyncFile,
@@ -332,6 +338,23 @@ export const SettingsFeature: React.FC = () => {
   // Corrupted JSON Error Diagnostic Engine Modal State
   const [jsonDiagnosticError, setJsonDiagnosticError] = useState<JsonDiagnosticIssue | null>(null);
   const [corruptedFileName, setCorruptedFileName] = useState<string>('');
+
+  // Cryptographic Backup & Decryption Modal States
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [exportMode, setExportMode] = useState<'encrypted' | 'signed' | 'raw'>('encrypted');
+  const [exportPassword, setExportPassword] = useState('');
+  const [exportPasswordConfirm, setExportPasswordConfirm] = useState('');
+  const [showExportPassword, setShowExportPassword] = useState(false);
+  const [exportError, setExportError] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
+
+  const [isDecryptModalOpen, setIsDecryptModalOpen] = useState(false);
+  const [decryptPassword, setDecryptPassword] = useState('');
+  const [showDecryptPassword, setShowDecryptPassword] = useState(false);
+  const [decryptError, setDecryptError] = useState('');
+  const [pendingEncryptedContent, setPendingEncryptedContent] = useState('');
+  const [pendingEncryptedFileName, setPendingEncryptedFileName] = useState('');
+  const [isDecrypting, setIsDecrypting] = useState(false);
 
   // Dynamic Per-Year Archiving State
   const [availableYears, setAvailableYears] = useState<string[]>([]);
@@ -752,25 +775,63 @@ export const SettingsFeature: React.FC = () => {
     'Star', 'Coffee', 'Target', 'Music',
   ], []);
 
-  const handleExport = useCallback(async () => {
+  const handleExport = useCallback(() => {
+    setExportError('');
+    setIsExportModalOpen(true);
+  }, []);
+
+  const handleExecuteExport = useCallback(async () => {
+    setExportError('');
+    if (exportMode === 'encrypted') {
+      if (!exportPassword || exportPassword.length < 4) {
+        setExportError('Password must be at least 4 characters long.');
+        return;
+      }
+      if (exportPassword !== exportPasswordConfirm) {
+        setExportError('Passwords do not match.');
+        return;
+      }
+    }
+
     try {
+      setIsExporting(true);
       const backupData = await dbService.exportAllData(settings);
-      const jsonContent = JSON.stringify(backupData, null, 2);
-      const filename = `shadow-tracker-full-backup-${getTodayDateString()}.json`;
+      let content = '';
+      let filename = '';
+      let fileExt = '';
+
+      if (exportMode === 'encrypted') {
+        content = await exportEncryptedBackup(backupData, exportPassword);
+        filename = `shadow-tracker-encrypted-${getTodayDateString()}.shadowbackup`;
+        fileExt = '.shadowbackup';
+      } else if (exportMode === 'signed') {
+        content = await exportSignedBackup(backupData);
+        filename = `shadow-tracker-signed-${getTodayDateString()}.json`;
+        fileExt = '.json';
+      } else {
+        content = JSON.stringify(backupData, null, 2);
+        filename = `shadow-tracker-raw-${getTodayDateString()}.json`;
+        fileExt = '.json';
+      }
 
       if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
         try {
           const handle = await (window as any).showSaveFilePicker({
             suggestedName: filename,
             types: [{
-              description: 'JSON Backup File',
-              accept: { 'application/json': ['.json'] },
+              description: exportMode === 'encrypted' ? 'Encrypted Shadow Backup (.shadowbackup)' : 'JSON Backup File (.json)',
+              accept: {
+                [exportMode === 'encrypted' ? 'application/octet-stream' : 'application/json']: [fileExt, '.json'],
+              },
             }],
           });
           const writable = await handle.createWritable();
-          await writable.write(jsonContent);
+          await writable.write(content);
           await writable.close();
-          alert('Backup saved successfully! Selected file location updated.');
+          setIsExportModalOpen(false);
+          setExportPassword('');
+          setExportPasswordConfirm('');
+          alert(`Backup exported successfully as ${filename}!`);
           return;
         } catch (pickerErr: any) {
           if (pickerErr?.name === 'AbortError') return;
@@ -778,18 +839,28 @@ export const SettingsFeature: React.FC = () => {
       }
 
       // Fallback HTML5 anchor download
-      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(jsonContent);
+      const mimeType = exportMode === 'encrypted' ? 'application/octet-stream' : 'application/json';
+      const blob = new Blob([content], { type: `${mimeType};charset=utf-8` });
+      const url = URL.createObjectURL(blob);
       const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute('href', dataStr);
+      downloadAnchor.setAttribute('href', url);
       downloadAnchor.setAttribute('download', filename);
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
-    } catch (e) {
+      URL.revokeObjectURL(url);
+
+      setIsExportModalOpen(false);
+      setExportPassword('');
+      setExportPasswordConfirm('');
+      alert(`Backup exported successfully as ${filename}!`);
+    } catch (e: any) {
       console.error('Export failed:', e);
-      alert('Failed to export local data. Check console.');
+      setExportError(e?.message || 'Failed to export local data.');
+    } finally {
+      setIsExporting(false);
     }
-  }, [settings]);
+  }, [exportMode, exportPassword, exportPasswordConfirm, settings]);
 
   const handleImportClick = useCallback(() => {
     fileInputRef.current?.click();
@@ -802,8 +873,31 @@ export const SettingsFeature: React.FC = () => {
     const reader = new FileReader();
     reader.onload = async (event) => {
       try {
-        const jsonContent = event.target?.result as string;
-        const validation = validateAndParseBackupJSON(jsonContent);
+        const fileContent = event.target?.result as string;
+        if (!fileContent || !fileContent.trim()) {
+          setCorruptedFileName(file.name);
+          setJsonDiagnosticError({
+            type: 'syntax',
+            message: 'The selected backup file is completely empty.',
+            suggestion: 'Select a valid Shadow Tracker .shadowbackup or .json backup file.',
+            expectedStructure: '{\n  "version": 2,\n  "tasks": [],\n  "habits": []\n}',
+          });
+          return;
+        }
+
+        // Detect if file is an AES-256-GCM encrypted backup
+        if (isEncryptedBackup(fileContent)) {
+          setPendingEncryptedContent(fileContent);
+          setPendingEncryptedFileName(file.name);
+          setDecryptPassword('');
+          setDecryptError('');
+          setIsDecryptModalOpen(true);
+          return;
+        }
+
+        // Verify and parse signed or legacy backup
+        const result = await parseAndVerifyBackup(fileContent);
+        const validation = validateAndParseBackupJSON(JSON.stringify(result.data));
 
         if (!validation.isValid) {
           setCorruptedFileName(file.name);
@@ -812,16 +906,21 @@ export const SettingsFeature: React.FC = () => {
         }
 
         await importBackup(validation.data);
-        alert('Data backup imported successfully! Reloading to apply all settings and wealth data...');
+        const notice = result.wasSigned
+          ? 'Signed backup cryptographically verified & imported successfully! Reloading to apply all settings...'
+          : 'Data backup imported successfully! Reloading to apply all settings...';
+        alert(notice);
         window.location.reload();
       } catch (err: any) {
         console.error('Import failed:', err);
         setCorruptedFileName(file.name);
         setJsonDiagnosticError({
           type: 'syntax',
-          message: err?.message || 'Unexpected failure reading JSON backup file.',
-          suggestion: 'Ensure the file is uncorrupted standard JSON with valid UTF-8 encoding.',
-          expectedStructure: '{\n  "version": "1.0.0",\n  "tasks": [],\n  "habits": []\n}',
+          message: err?.message || 'Unexpected failure reading backup file.',
+          suggestion: err?.message?.includes('Tamper alert')
+            ? 'The cryptographic checksum indicates this file was modified or corrupted after export. If you edited this file manually, verify the envelope checksum or remove the envelope and import as raw JSON.'
+            : 'Ensure the file is uncorrupted standard JSON with valid UTF-8 encoding, or a valid .shadowbackup file.',
+          expectedStructure: '{\n  "format": "shadow-tracker-backup",\n  "version": 2,\n  "payload": { ... }\n}',
         });
       } finally {
         if (fileInputRef.current) fileInputRef.current.value = '';
@@ -829,6 +928,39 @@ export const SettingsFeature: React.FC = () => {
     };
     reader.readAsText(file);
   }, [importBackup]);
+
+  const handleExecuteDecrypt = useCallback(async () => {
+    if (!decryptPassword) {
+      setDecryptError('Please enter the decryption password.');
+      return;
+    }
+
+    try {
+      setIsDecrypting(true);
+      setDecryptError('');
+      const result = await parseAndVerifyBackup(pendingEncryptedContent, decryptPassword);
+      const validation = validateAndParseBackupJSON(JSON.stringify(result.data));
+
+      if (!validation.isValid) {
+        setIsDecryptModalOpen(false);
+        setCorruptedFileName(pendingEncryptedFileName);
+        setJsonDiagnosticError(validation.error || null);
+        return;
+      }
+
+      await importBackup(validation.data);
+      setIsDecryptModalOpen(false);
+      setPendingEncryptedContent('');
+      setDecryptPassword('');
+      alert('Encrypted backup successfully decrypted, verified, and imported! Reloading to apply all settings...');
+      window.location.reload();
+    } catch (err: any) {
+      console.error('Decryption failed:', err);
+      setDecryptError(err?.message || 'Decryption failed. Please check your password.');
+    } finally {
+      setIsDecrypting(false);
+    }
+  }, [decryptPassword, pendingEncryptedContent, pendingEncryptedFileName, importBackup]);
 
   const handleLoadDemoData = useCallback(async () => {
     if (window.confirm('Load 2-Year Extensive Masterclass Demo Dataset? This will populate 730 days of habits, daily logs, notes, 220+ tasks, 24 full months of financial data, 365 days of nutrition & health logs, and Level 25 Master rank.')) {
@@ -1538,9 +1670,10 @@ export const SettingsFeature: React.FC = () => {
                 whileTap={{ scale: 0.95 }}
                 onClick={handleExport}
                 className="flex items-center justify-center gap-2 px-3 py-3 bg-card hover:bg-secondary border border-border text-foreground font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
+                title="Export encrypted, signed, or raw backup"
               >
-                <Lucide.Download size={15} className="text-primary" />
-                Export JSON
+                <Lucide.ShieldCheck size={15} className="text-primary" />
+                Export Backup
               </motion.button>
 
               <motion.button
@@ -1548,9 +1681,10 @@ export const SettingsFeature: React.FC = () => {
                 whileTap={{ scale: 0.95 }}
                 onClick={handleImportClick}
                 className="flex items-center justify-center gap-2 px-3 py-3 bg-card hover:bg-secondary border border-border text-foreground font-bold text-xs rounded-xl shadow-xs transition-all cursor-pointer"
+                title="Import .shadowbackup or .json backup file"
               >
                 <Lucide.Upload size={15} className="text-primary" />
-                Import JSON
+                Import Backup
               </motion.button>
 
               <motion.button
@@ -1566,7 +1700,7 @@ export const SettingsFeature: React.FC = () => {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".json"
+                accept=".json,.shadowbackup,.enc"
                 onChange={handleFileChange}
                 className="hidden"
               />
@@ -2241,7 +2375,266 @@ export const SettingsFeature: React.FC = () => {
         </div>
       </Modal>
 
-      {/* Pinpoint Corrupted JSON Backup Error Diagnostics Modal (Only pops up on error) */}
+      {/* Secure Cryptographic Backup Export Modal */}
+      <Modal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        title="Export Tactical Backup"
+      >
+        <div className="space-y-5 pt-2">
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Select your preferred backup format. All cryptographic operations run 100% locally on your device via the native Web Crypto API.
+          </p>
+
+          <div className="space-y-2.5">
+            {/* Encrypted Option */}
+            <div
+              onClick={() => setExportMode('encrypted')}
+              className={`p-3.5 rounded-xl border-2 transition-all cursor-pointer flex flex-col gap-1.5 ${
+                exportMode === 'encrypted'
+                  ? 'bg-primary/10 border-primary shadow-sm'
+                  : 'bg-secondary/60 border-border hover:border-border/80'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className={`p-1.5 rounded-lg ${exportMode === 'encrypted' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground'}`}>
+                    <Lucide.ShieldCheck size={16} />
+                  </div>
+                  <span className="text-xs font-bold text-foreground">AES-256-GCM Encrypted</span>
+                </div>
+                <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-primary/20 text-primary border border-primary/30">
+                  Recommended
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground pl-8">
+                Password-protected with PBKDF2 (100k rounds) + SHA-256 integrity tag. Exported as a <code className="text-primary font-mono font-bold">.shadowbackup</code> bundle.
+              </p>
+            </div>
+
+            {/* Signed Option */}
+            <div
+              onClick={() => setExportMode('signed')}
+              className={`p-3.5 rounded-xl border-2 transition-all cursor-pointer flex flex-col gap-1.5 ${
+                exportMode === 'signed'
+                  ? 'bg-primary/10 border-primary shadow-sm'
+                  : 'bg-secondary/60 border-border hover:border-border/80'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className={`p-1.5 rounded-lg ${exportMode === 'signed' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground'}`}>
+                    <Lucide.CheckCheck size={16} />
+                  </div>
+                  <span className="text-xs font-bold text-foreground">Tamper-Evident Signed JSON</span>
+                </div>
+                <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-foreground border border-border">
+                  Envelope
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground pl-8">
+                Readable JSON wrapped in a security envelope with a cryptographic SHA-256 checksum to detect modification.
+              </p>
+            </div>
+
+            {/* Raw JSON Option */}
+            <div
+              onClick={() => setExportMode('raw')}
+              className={`p-3.5 rounded-xl border-2 transition-all cursor-pointer flex flex-col gap-1.5 ${
+                exportMode === 'raw'
+                  ? 'bg-primary/10 border-primary shadow-sm'
+                  : 'bg-secondary/60 border-border hover:border-border/80'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className={`p-1.5 rounded-lg ${exportMode === 'raw' ? 'bg-primary text-primary-foreground' : 'bg-secondary text-foreground'}`}>
+                    <Lucide.FileCode size={16} />
+                  </div>
+                  <span className="text-xs font-bold text-foreground">Raw Plain JSON</span>
+                </div>
+                <span className="text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded-full bg-secondary text-muted-foreground border border-border">
+                  Direct Edit
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground pl-8">
+                Un-enveloped plain JSON payload. Ideal if you plan to manually edit your records with an external text editor.
+              </p>
+            </div>
+          </div>
+
+          {/* Password fields for encrypted export */}
+          {exportMode === 'encrypted' && (
+            <div className="space-y-3 p-4 bg-secondary/40 border border-border rounded-xl">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center justify-between">
+                  <span>Encryption Password</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowExportPassword(prev => !prev)}
+                    className="text-[10px] text-primary hover:underline lowercase font-semibold"
+                  >
+                    {showExportPassword ? 'hide' : 'show'}
+                  </button>
+                </label>
+                <div className="relative">
+                  <input
+                    type={showExportPassword ? 'text' : 'password'}
+                    value={exportPassword}
+                    onChange={(e) => setExportPassword(e.target.value)}
+                    placeholder="Enter strong encryption password"
+                    className="w-full px-3.5 py-2.5 bg-secondary rounded-lg text-foreground font-semibold border border-border focus:border-primary outline-none text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-foreground">Confirm Password</label>
+                <input
+                  type={showExportPassword ? 'text' : 'password'}
+                  value={exportPasswordConfirm}
+                  onChange={(e) => setExportPasswordConfirm(e.target.value)}
+                  placeholder="Re-enter password"
+                  className="w-full px-3.5 py-2.5 bg-secondary rounded-lg text-foreground font-semibold border border-border focus:border-primary outline-none text-xs"
+                />
+              </div>
+
+              <p className="text-[10px] text-amber-400 font-medium flex items-center gap-1.5 pt-1">
+                <Lucide.AlertCircle size={12} className="shrink-0" />
+                Store this password safely. Without it, encrypted backups cannot be decrypted.
+              </p>
+            </div>
+          )}
+
+          {exportError && (
+            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs font-semibold text-red-400 flex items-center gap-2">
+              <Lucide.AlertTriangle size={14} className="shrink-0 text-red-500" />
+              <span>{exportError}</span>
+            </div>
+          )}
+
+          <div className="flex items-center justify-end gap-2.5 pt-2">
+            <button
+              type="button"
+              onClick={() => setIsExportModalOpen(false)}
+              className="px-4 py-2.5 rounded-xl border border-border text-foreground hover:bg-secondary text-xs font-bold transition-all"
+            >
+              Cancel
+            </button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              disabled={isExporting}
+              onClick={handleExecuteExport}
+              className="px-5 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-extrabold rounded-xl shadow-md transition-all flex items-center gap-2 disabled:opacity-50"
+            >
+              {isExporting ? (
+                <>
+                  <Lucide.RefreshCw size={14} className="animate-spin" />
+                  Generating Backup...
+                </>
+              ) : (
+                <>
+                  <Lucide.Download size={14} />
+                  Download {exportMode === 'encrypted' ? '.shadowbackup' : '.json'}
+                </>
+              )}
+            </motion.button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Decrypt Password Modal for Encrypted Imports */}
+      <Modal
+        isOpen={isDecryptModalOpen}
+        onClose={() => {
+          setIsDecryptModalOpen(false);
+          setPendingEncryptedContent('');
+          setDecryptPassword('');
+        }}
+        title="Encrypted Backup Detected"
+      >
+        <div className="space-y-4 pt-2">
+          <div className="p-3.5 bg-primary/10 border border-primary/30 rounded-xl flex items-start gap-3">
+            <div className="p-2 bg-primary/20 text-primary rounded-lg shrink-0">
+              <Lucide.Lock size={18} />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-foreground">Password-Protected Backup</p>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                The file <span className="font-mono text-primary font-bold">{pendingEncryptedFileName}</span> is protected with AES-256-GCM encryption. Enter your password to unlock and import.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-foreground flex items-center justify-between">
+              <span>Decryption Password</span>
+              <button
+                type="button"
+                onClick={() => setShowDecryptPassword(prev => !prev)}
+                className="text-[10px] text-primary hover:underline lowercase font-semibold"
+              >
+                {showDecryptPassword ? 'hide' : 'show'}
+              </button>
+            </label>
+            <input
+              type={showDecryptPassword ? 'text' : 'password'}
+              autoFocus
+              value={decryptPassword}
+              onChange={(e) => setDecryptPassword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleExecuteDecrypt();
+                }
+              }}
+              placeholder="Enter your backup password"
+              className="w-full px-4 py-3 bg-secondary rounded-xl text-foreground font-semibold border-2 border-border focus:border-primary outline-none text-xs"
+            />
+          </div>
+
+          {decryptError && (
+            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs font-semibold text-red-400 flex items-center gap-2">
+              <Lucide.AlertTriangle size={14} className="shrink-0 text-red-500" />
+              <span>{decryptError}</span>
+            </div>
+          )}
+
+          <div className="flex items-center justify-end gap-2.5 pt-2">
+            <button
+              type="button"
+              onClick={() => {
+                setIsDecryptModalOpen(false);
+                setPendingEncryptedContent('');
+                setDecryptPassword('');
+              }}
+              className="px-4 py-2.5 rounded-xl border border-border text-foreground hover:bg-secondary text-xs font-bold transition-all"
+            >
+              Cancel
+            </button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              disabled={isDecrypting}
+              onClick={handleExecuteDecrypt}
+              className="px-5 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-extrabold rounded-xl shadow-md transition-all flex items-center gap-2 disabled:opacity-50"
+            >
+              {isDecrypting ? (
+                <>
+                  <Lucide.RefreshCw size={14} className="animate-spin" />
+                  Decrypting &amp; Verifying...
+                </>
+              ) : (
+                <>
+                  <Lucide.Unlock size={14} />
+                  Decrypt &amp; Import
+                </>
+              )}
+            </motion.button>
+          </div>
+        </div>
+      </Modal>
       <JsonErrorModal
         isOpen={!!jsonDiagnosticError}
         onClose={() => setJsonDiagnosticError(null)}

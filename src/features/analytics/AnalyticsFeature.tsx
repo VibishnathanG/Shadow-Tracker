@@ -1264,6 +1264,9 @@ export const AnalyticsFeature = () => {
         </motion.div>
       </div>
 
+      {/* Habits Monthly Activity Grid */}
+      <HabitsMonthlyGridCard />
+
       {/* KPI Cards */}
       <motion.div 
         className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4"
@@ -1297,9 +1300,6 @@ export const AnalyticsFeature = () => {
           </motion.div>
         ))}
       </motion.div>
-
-      {/* NEW: Habits Monthly Activity Grid (Moved UP!) */}
-      <HabitsMonthlyGridCard />
 
       {/* Focus Timeline Chart & Peak execution cards (Moved DOWN!) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

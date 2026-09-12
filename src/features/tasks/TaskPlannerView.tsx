@@ -248,83 +248,10 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
 
       {/* ── VIEW 1: WEEK PLANNER (SUPER PRODUCTIVITY COLUMNS) ── */}
       {plannerMode === 'week' && (
-        <div className="w-full overflow-x-hidden md:overflow-x-auto pb-4 no-scrollbar md:custom-scrollbar">
-          <div className="flex flex-col gap-3.5 w-full md:grid md:grid-cols-4 lg:grid-cols-8 md:min-w-[1050px]">
-            {/* COLUMN 0: OVERDUE COLUMN */}
-            <div className="flex flex-col w-full bg-rose-500/[0.04] border border-rose-500/20 rounded-2xl overflow-hidden shadow-xs">
-              <div className="p-3 bg-rose-500/10 border-b border-rose-500/20 flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-rose-400">
-                  <Lucide.AlertCircle size={14} />
-                  <span className="text-xs font-black uppercase tracking-wider">Overdue</span>
-                </div>
-                <span className="text-[11px] font-black font-mono px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300">
-                  {overdueTasks.length}
-                </span>
-              </div>
-              <div className="px-3 py-1.5 bg-rose-500/[0.03] border-b border-rose-500/10 flex justify-between text-[11px] font-bold text-muted-foreground">
-                <span>Total planned:</span>
-                <span className="font-mono text-rose-300 font-bold">{formatDuration(overdueDurationMinutes)}</span>
-              </div>
-
-              {/* Overdue Task List */}
-              <div className="p-2 space-y-2 flex-1 min-h-0 md:min-h-[300px] overflow-y-auto custom-scrollbar max-h-[550px]">
-                {overdueTasks.length === 0 ? (
-                  <div className="flex items-center justify-center gap-2 py-3 md:py-12 text-center text-muted-foreground/60">
-                    <Lucide.CheckCircle2 size={18} className="text-emerald-500/60 shrink-0" />
-                    <div>
-                      <p className="text-xs font-bold">Zero overdue tasks</p>
-                      <p className="text-[10px] hidden md:block">All scheduled on time!</p>
-                    </div>
-                  </div>
-                ) : (
-                  overdueTasks.map(task => {
-                    const category = task.categoryId ? categoryMap.get(task.categoryId) : undefined;
-                    return (
-                      <div
-                        key={task.id}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, task)}
-                        onClick={() => onOpenEditModal(task)}
-                        className="group relative p-2.5 bg-surface-elevated/95 hover:bg-surface border border-rose-500/30 hover:border-rose-500/60 rounded-xl shadow-xs cursor-grab active:cursor-grabbing transition-all space-y-2"
-                      >
-                        <div className="flex items-start justify-between gap-1.5">
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <input
-                              type="checkbox"
-                              checked={task.isCompleted}
-                              onChange={() => handleCheckTask(task.id, task.isCompleted)}
-                              onClick={(e) => e.stopPropagation()}
-                              className="w-4 h-4 rounded text-primary border-border/80 focus:ring-primary cursor-pointer shrink-0"
-                            />
-                            <span className="text-xs font-bold text-foreground truncate leading-tight">
-                              {task.title}
-                            </span>
-                          </div>
-                          <span className="text-[10px] font-black text-rose-400 shrink-0 font-mono">
-                            {format(parseISO(task.dueDate), 'd MMM')}
-                          </span>
-                        </div>
-
-                        {/* Badges */}
-                        <div className="flex flex-wrap items-center gap-1.5 text-[10px]">
-                          {category && (
-                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface border border-border/60 text-muted-foreground font-semibold">
-                              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: category.color }} />
-                              <span className="truncate max-w-[70px]">{category.name}</span>
-                            </span>
-                          )}
-                          <span className="px-1.5 py-0.5 rounded bg-surface border border-border/60 text-muted-foreground font-mono font-bold">
-                            {formatDuration(task.estimatedMinutes || 30)}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-
-            {/* COLUMNS 1 TO 7: DAYS OF THE WEEK */}
+        <div className="w-full space-y-4 pb-4">
+          <div className="w-full overflow-x-hidden md:overflow-x-auto no-scrollbar md:custom-scrollbar">
+            <div className="flex flex-col gap-3.5 w-full md:grid md:grid-cols-4 lg:grid-cols-7 md:min-w-[1050px]">
+              {/* COLUMNS 1 TO 7: DAYS OF THE WEEK */}
             {weekDays.map((date) => {
               const dateStr = formatDateString(date);
               const isToday = dateStr === todayStr;
@@ -463,7 +390,81 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
             })}
           </div>
         </div>
-      )}
+
+        {/* Overdue Tasks Section (Dedicated Below Week Row) */}
+        <div className="bg-rose-500/[0.04] border border-rose-500/25 rounded-2xl overflow-hidden shadow-xs">
+          <div className="p-3 sm:px-4 bg-rose-500/10 border-b border-rose-500/20 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2 text-rose-400">
+              <Lucide.AlertCircle size={15} />
+              <span className="text-xs font-black uppercase tracking-wider">Overdue Tasks</span>
+              <span className="text-[11px] font-black font-mono px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300">
+                {overdueTasks.length}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
+              <span>Total planned:</span>
+              <span className="font-mono text-rose-300 font-bold">{formatDuration(overdueDurationMinutes)}</span>
+            </div>
+          </div>
+
+          {/* Overdue Task Cards */}
+          <div className="p-3">
+            {overdueTasks.length === 0 ? (
+              <div className="flex items-center gap-2.5 py-1 px-1 text-muted-foreground/70">
+                <Lucide.CheckCircle2 size={16} className="text-emerald-500 shrink-0" />
+                <span className="text-xs font-semibold">Zero overdue tasks — all scheduled work is on track!</span>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5">
+                {overdueTasks.map(task => {
+                  const category = task.categoryId ? categoryMap.get(task.categoryId) : undefined;
+                  return (
+                    <div
+                      key={task.id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, task)}
+                      onClick={() => onOpenEditModal(task)}
+                      className="group relative p-2.5 bg-surface-elevated/95 hover:bg-surface border border-rose-500/30 hover:border-rose-500/60 rounded-xl shadow-xs cursor-grab active:cursor-grabbing transition-all space-y-2"
+                    >
+                      <div className="flex items-start justify-between gap-1.5">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <input
+                            type="checkbox"
+                            checked={task.isCompleted}
+                            onChange={() => handleCheckTask(task.id, task.isCompleted)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-4 h-4 rounded text-primary border-border/80 focus:ring-primary cursor-pointer shrink-0"
+                          />
+                          <span className="text-xs font-bold text-foreground truncate leading-tight">
+                            {task.title}
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-black text-rose-400 shrink-0 font-mono">
+                          {format(parseISO(task.dueDate), 'd MMM')}
+                        </span>
+                      </div>
+
+                      {/* Badges */}
+                      <div className="flex flex-wrap items-center gap-1.5 text-[10px]">
+                        {category && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface border border-border/60 text-muted-foreground font-semibold">
+                            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: category.color }} />
+                            <span className="truncate max-w-[70px]">{category.name}</span>
+                          </span>
+                        )}
+                        <span className="px-1.5 py-0.5 rounded bg-surface border border-border/60 text-muted-foreground font-mono font-bold">
+                          {formatDuration(task.estimatedMinutes || 30)}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
 
       {/* ── VIEW 2: MONTH SCHEDULE GRID (SUPER PRODUCTIVITY SCHEDULE) ── */}
       {plannerMode === 'month' && (

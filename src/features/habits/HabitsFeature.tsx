@@ -668,17 +668,17 @@ export const HabitsFeature: React.FC = () => {
       </div>
 
       {habits.length > 0 && (
-        <div className="tile p-4 sm:p-6 relative overflow-hidden">
-          <div className="flex items-center justify-between mb-4">
+        <div className="tile p-3 sm:p-4 relative overflow-hidden shadow-xs">
+          <div className="flex items-center justify-between mb-2 sm:mb-2.5">
             <h3 className="text-xs font-black text-secondary uppercase tracking-widest flex items-center gap-1.5">
               <Lucide.Grid size={14} className="text-primary" /> Matrix Consistency (Last 15 Weeks)
             </h3>
-            <span className="text-xs font-black text-primary bg-primary/10 px-2.5 py-0.5 rounded-full border border-primary/30">
+            <span className="text-[11px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/30">
               30d Rate: {overallCompletionRate}%
             </span>
           </div>
 
-          <div className="overflow-x-auto no-scrollbar md:custom-scrollbar py-2">
+          <div className="overflow-x-auto no-scrollbar md:custom-scrollbar py-1">
             <div className="flex gap-1 items-center justify-start min-w-max">
               {globalHeatmapDays.map((date) => {
                 const dateStr = formatDateString(date);
@@ -694,7 +694,7 @@ export const HabitsFeature: React.FC = () => {
                 return (
                   <div
                     key={dateStr}
-                    className={`w-3.5 h-3.5 rounded-md border heatmap-cell ${bgClass}`}
+                    className={`w-3 h-3 rounded-[3px] border heatmap-cell ${bgClass}`}
                     title={`${completions} completions on ${format(date, 'MMM dd, yyyy')}`}
                   />
                 );
@@ -702,7 +702,7 @@ export const HabitsFeature: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-1.5 text-xs text-secondary mt-3 font-bold">
+          <div className="flex items-center justify-end gap-1.5 text-[10px] sm:text-xs text-secondary mt-2 font-bold">
             <span>Less</span>
             <div className="w-2.5 h-2.5 bg-surface-elevated/80 border border-border/80 rounded-xs" />
             <div className="w-2.5 h-2.5 bg-primary/25 border border-primary/10 rounded-xs" />
