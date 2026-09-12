@@ -20,136 +20,8 @@ import {
   isToday 
 } from 'date-fns';
 
-const HEX_POINTS = (() => {
-  const pts: { cx: number; cy: number }[] = [];
-  const size = 40;
-  const dx = size * 1.5;
-  const dy = size * Math.sqrt(3);
-  for (let row = 0; row < 12; row++) {
-    for (let col = 0; col < 12; col++) {
-      const x = col * dx + (row % 2 === 1 ? dx / 2 : 0);
-      const y = row * dy;
-      pts.push({ cx: x, cy: y });
-    }
-  }
-  return pts;
-})();
-
-const hexPath = (cx: number, cy: number, r: number) => {
-  const angles = [0, 60, 120, 180, 240, 300];
-  return (
-    angles
-      .map((a, i) => {
-        const rad = (Math.PI / 180) * a;
-        const x = cx + r * Math.cos(rad);
-        const y = cy + r * Math.sin(rad);
-        return `${i === 0 ? 'M' : 'L'} ${x.toFixed(2)} ${y.toFixed(2)}`;
-      })
-      .join(' ') + ' Z'
-  );
-};
-
-const BackgroundDecorations = () => {
-  const ecoMode = useShadowTrackerStore((s) => Boolean(s.settings.ecoMode || s.settings.lowGpuMode));
-  const particles = useMemo(() => Array.from({ length: 40 }).map((_, i) => ({
-    id: i,
-    left: `${(i * 13) % 100}%`,
-    top: `${(i * 29) % 100}%`,
-    width: `${(i % 4) + 1}px`,
-    height: `${(i % 4) + 1}px`,
-    xTarget: (i % 30) - 15,
-    duration: 3 + (i % 5),
-    delay: (i % 5),
-  })), []);
-
-  if (ecoMode) return null;
-
-  return (
-    <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden">
-      <motion.div 
-        className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-primary/20 rounded-full blur-[120px] mix-blend-screen dark:mix-blend-lighten"
-        animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3], x: [0, 50, 0] }}
-        transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' as const }}
-      />
-      <motion.div 
-        className="absolute bottom-[-20%] right-[-10%] w-[70%] h-[70%] bg-purple-500/20 rounded-full blur-[150px] mix-blend-screen dark:mix-blend-lighten"
-        animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0.5, 0.2], y: [0, -50, 0] }}
-        transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' as const, delay: 2 }}
-      />
-      
-      <motion.svg
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] opacity-[0.06] dark:opacity-[0.08]"
-        viewBox="0 0 720 720"
-        style={{ color: 'var(--text-primary, currentColor)' }}
-        animate={{ rotate: 360 }}
-        transition={{ duration: 180, repeat: Infinity, ease: 'linear' as const }}
-      >
-        {HEX_POINTS.map((p, i) => (
-          <motion.path
-            key={i}
-            d={hexPath(p.cx, p.cy, 18)}
-            fill="none"
-            stroke="var(--bg-surface-elevated, currentColor)"
-            strokeWidth={0.4}
-            className="text-primary"
-            style={{ stroke: 'currentColor' }}
-            animate={{ opacity: [0.3, 0.8, 0.3] }}
-            transition={{ duration: 6 + (i % 5) * 1.5, repeat: Infinity, ease: 'easeInOut' as const, delay: (i % 8) * 0.5 }}
-          />
-        ))}
-      </motion.svg>
-      <div className="absolute inset-0 opacity-[0.08] [mask-image:linear-gradient(to_bottom,transparent,black_20%,black_80%,transparent)]">
-        {Array.from({ length: 25 }).map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute top-0 w-[1px] bg-gradient-to-b from-transparent via-primary to-transparent"
-            style={{ 
-              left: `${(i + 1) * 4}%`, 
-              height: `${20 + (i % 5) * 10}%`,
-              opacity: 0.3 + (i % 3) * 0.2
-            }}
-            animate={{ 
-              y: ['-100vh', '150vh'],
-            }}
-            transition={{ 
-              duration: 8 + (i % 7) * 2, 
-              repeat: Infinity, 
-              ease: 'linear' as const,
-              delay: -(i % 10) * 2
-            }}
-          />
-        ))}
-      </div>
-      <div className="absolute inset-0 opacity-[0.05] [mask-image:radial-gradient(circle_at_center,black,transparent_80%)]">
-        {particles.map((p) => (
-          <motion.div
-            key={`particle-${p.id}`}
-            className="absolute rounded-full bg-primary mix-blend-screen"
-            style={{
-              left: p.left,
-              top: p.top,
-              width: p.width,
-              height: p.height,
-              boxShadow: '0 0 10px 2px var(--primary)',
-            }}
-            animate={{
-              y: [0, -40, 0],
-              x: [0, p.xTarget, 0],
-              opacity: [0, 0.8, 0],
-              scale: [0, 1.5, 0],
-            }}
-            transition={{
-              duration: p.duration,
-              repeat: Infinity,
-              ease: 'easeInOut' as const,
-              delay: p.delay,
-            }}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};
+const BackgroundDecorations = React.memo(() => null);
+BackgroundDecorations.displayName = 'BackgroundDecorations';
 
 const RadialChart = ({ value, label, color, size = 100, strokeWidth = 8 }: { value: number, label: string, color: string, size?: number, strokeWidth?: number }) => {
   const radius = (size - strokeWidth) / 2;
@@ -160,7 +32,7 @@ const RadialChart = ({ value, label, color, size = 100, strokeWidth = 8 }: { val
     <div className="relative flex flex-col items-center justify-center" style={{ width: size, height: size }}>
       <svg width={size} height={size} className="transform -rotate-90 filter drop-shadow-md">
         <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="currentColor" strokeWidth={strokeWidth} className="text-muted/20" />
-        <motion.circle
+        <circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
@@ -168,22 +40,15 @@ const RadialChart = ({ value, label, color, size = 100, strokeWidth = 8 }: { val
           stroke={color}
           strokeWidth={strokeWidth}
           strokeDasharray={circumference}
-          initial={{ strokeDashoffset: circumference }}
-          animate={{ strokeDashoffset: offset }}
-          transition={{ duration: 2, ease: "easeOut" as const, delay: 0.2 }}
+          strokeDashoffset={offset}
           strokeLinecap="round"
-          className="drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]"
+          className="drop-shadow-[0_0_8px_rgba(255,255,255,0.3)] transition-all duration-700 ease-out"
         />
       </svg>
       <div className="absolute flex flex-col items-center justify-center">
-        <motion.span 
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.5, duration: 0.5 }}
-          className="text-2xl font-black tracking-tighter leading-none text-foreground"
-        >
+        <span className="text-2xl font-black tracking-tighter leading-none text-foreground transition-transform duration-300">
           {value}%
-        </motion.span>
+        </span>
         <span className="text-xs text-muted-foreground uppercase tracking-widest font-bold mt-1">{label}</span>
       </div>
     </div>
@@ -503,12 +368,7 @@ const HabitsMonthlyGridCard: React.FC = () => {
   }, [dailyStats]);
 
   return (
-    <motion.div 
-      className="tile p-4 sm:p-6 relative overflow-hidden space-y-6"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.4 }}
-    >
+    <div className="tile p-4 sm:p-6 relative overflow-hidden space-y-6">
       {/* Month Header & Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
         <div>
@@ -740,16 +600,14 @@ const HabitsMonthlyGridCard: React.FC = () => {
                           className={`p-0.5 text-center align-middle relative group/cell border-r border-border/25 last:border-r-0 ${isCurrent ? 'bg-primary/5 border-x border-primary/20' : ''}`}
                         >
                           <div className="relative w-full h-full flex items-center justify-center py-0.5">
-                            <motion.button
+                            <button
                               disabled={!evalState.canToggle}
                               onClick={async () => {
                                 if (evalState.canToggle) {
                                   await toggleHabitCompletion(habit.id, dateStr);
                                 }
                               }}
-                              whileHover={evalState.canToggle ? { scale: 1.15 } : undefined}
-                              whileTap={evalState.canToggle ? { scale: 0.9 } : undefined}
-                              className={`w-4.5 h-4.5 sm:w-5.5 sm:h-5.5 rounded-md sm:rounded-lg flex items-center justify-center transition-all duration-200 ${
+                              className={`w-4.5 h-4.5 sm:w-5.5 sm:h-5.5 rounded-md sm:rounded-lg flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 ${
                                 evalState.isCompleted
                                   ? `${theme.fill} text-white shadow-xs ${theme.shadow} border ${theme.border} ${evalState.isPastGracePeriod ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`
                                   : evalState.isMissed
@@ -773,7 +631,7 @@ const HabitsMonthlyGridCard: React.FC = () => {
                               ) : (
                                 <Lucide.Check className="w-3 h-3 opacity-0" />
                               )}
-                            </motion.button>
+                            </button>
 
                             {/* Small Note Icon (📝) over the cell */}
                             {evalState.isScheduled && !evalState.isFuture && (
@@ -1010,7 +868,7 @@ const HabitsMonthlyGridCard: React.FC = () => {
           </motion.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 };
 
@@ -1039,12 +897,7 @@ const TasksHeatmapCard: React.FC = () => {
   }, [tasks]);
 
   return (
-    <motion.div 
-      className="tile p-6 relative overflow-hidden space-y-5"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.5 }}
-    >
+    <div className="tile p-6 relative overflow-hidden space-y-5">
       <div className="flex justify-between items-start">
         <div>
           <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
@@ -1060,7 +913,7 @@ const TasksHeatmapCard: React.FC = () => {
       </div>
 
       <div className="flex flex-wrap gap-1.5 md:gap-2 justify-center lg:justify-start">
-        {heatmapDays.map((day, i) => {
+        {heatmapDays.map((day) => {
           const intensity = day.count === 0 ? 0 : day.count <= 2 ? 1 : day.count <= 4 ? 2 : day.count <= 6 ? 3 : 4;
           const colors = [
             'bg-secondary/40 border border-border/40 text-muted-foreground/30', 
@@ -1072,30 +925,23 @@ const TasksHeatmapCard: React.FC = () => {
           
           return (
             <div key={day.dateStr} className="relative group/taskmap">
-              <motion.div
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.3, delay: i * 0.008 }}
-                className={`w-5 h-5 sm:w-6 sm:h-6 rounded-md ${colors[intensity]} cursor-pointer flex items-center justify-center select-none text-[9.5px] font-bold`}
-                whileHover={{ scale: 1.25, zIndex: 10 }}
-                whileTap={{ scale: 0.95 }}
+              <div
+                className={`w-5 h-5 sm:w-6 sm:h-6 rounded-md ${colors[intensity]} cursor-pointer flex items-center justify-center select-none text-[9.5px] font-bold transition-transform hover:scale-125 active:scale-95`}
               >
                 {day.count > 0 ? (
                   <span className="leading-none drop-shadow-xs">{day.count}</span>
                 ) : null}
-              </motion.div>
+              </div>
               <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover/taskmap:block z-50 pointer-events-none">
-                <motion.div 
-                  initial={{ opacity: 0, y: 5, scale: 0.8 }} 
-                  animate={{ opacity: 1, y: 0, scale: 1 }} 
-                  className="bg-surface-elevated border border-border px-3 py-1.5 rounded-xl shadow-2xl whitespace-nowrap flex items-center gap-2 text-xs font-bold text-foreground"
+                <div 
+                  className="bg-surface-elevated border border-border px-3 py-1.5 rounded-xl shadow-2xl whitespace-nowrap flex items-center gap-2 text-xs font-bold text-foreground animate-fadeIn"
                 >
                   <Lucide.CheckSquare size={14} className="text-blue-400" />
                   <div className="flex flex-col">
                     <span>{format(parseISO(day.dateStr), 'EEEE, MMM do')}</span>
                     <span className="text-muted-foreground">{day.count} {day.count === 1 ? 'task' : 'tasks'} completed</span>
                   </div>
-                </motion.div>
+                </div>
               </div>
             </div>
           );
@@ -1118,7 +964,7 @@ const TasksHeatmapCard: React.FC = () => {
           <Lucide.ShieldCheck size={14} /> Task Pipeline Active
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -1234,26 +1080,20 @@ export const AnalyticsFeature = () => {
   } = stats;
 
   return (
-    <motion.div 
-      className="relative space-y-8 pb-12"
-      layout
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.8 }}
-    >
+    <div className="space-y-6 animate-fadeIn pb-16 relative">
       <BackgroundDecorations />
       
       {/* Header */}
       <div className="flex items-end justify-between">
-        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }}>
+        <div>
           <h2 className="text-3xl md:text-4xl font-black tracking-tighter bg-gradient-to-br from-foreground to-foreground/50 bg-clip-text text-transparent">
             Command Center
           </h2>
           <p className="text-xs text-primary font-bold uppercase tracking-[0.2em] mt-2 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_var(--primary)] animate-pulse" /> Live Telemetry Active
           </p>
-        </motion.div>
-        <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.2 }}>
+        </div>
+        <div>
           <RadialChart 
             value={chartLogs[chartLogs.length - 1]?.focusScore || 0} 
             label="Today's Focus" 
@@ -1261,30 +1101,23 @@ export const AnalyticsFeature = () => {
             size={86} 
             strokeWidth={6} 
           />
-        </motion.div>
+        </div>
       </div>
 
       {/* Habits Monthly Activity Grid */}
       <HabitsMonthlyGridCard />
 
       {/* KPI Cards */}
-      <motion.div 
-        className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4"
-        layout
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
-      >
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
         {[
           { label: 'Avg Focus Index', value: `${averageFocusScore}%`, icon: Lucide.Target, color: 'text-sky-400', bg: 'bg-sky-500/15', border: 'border-sky-500/30', desc: '30-day average focus score across daily logs' },
           { label: 'Peak Streak', value: `${longestHabitStreak}d`, icon: Lucide.Flame, color: 'text-orange-400', bg: 'bg-orange-500/15', border: 'border-orange-500/30', desc: 'Highest unbroken streak across all habits' },
           { label: 'Task Velocity', value: `${taskVelocity}/d`, icon: Lucide.Zap, color: 'text-amber-400', bg: 'bg-amber-500/15', border: 'border-amber-500/30', desc: 'Average completed tasks per active day' },
           { label: 'Action Count', value: totalCompletedTasks + totalCompletedHabits, icon: Lucide.Activity, color: 'text-emerald-400', bg: 'bg-emerald-500/15', border: 'border-emerald-500/30', desc: 'Total tasks & habit check-ins completed' },
         ].map((stat, i) => (
-          <motion.div 
+          <div 
             key={i} 
-            className={`tile p-3.5 sm:p-5 relative overflow-hidden group flex flex-col justify-between border ${stat.border}`}
-            whileTap={{ scale: 0.95 }}
+            className={`tile p-3.5 sm:p-5 relative overflow-hidden group flex flex-col justify-between border ${stat.border} transition-transform active:scale-95`}
           >
             <div>
               <div className={`absolute -right-4 -top-4 w-24 h-24 ${stat.bg} rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700 opacity-60`} />
@@ -1297,19 +1130,13 @@ export const AnalyticsFeature = () => {
               </div>
             </div>
             <p className="text-[9.5px] sm:text-[10px] text-muted-foreground/80 font-medium leading-tight mt-2">{stat.desc}</p>
-          </motion.div>
+          </div>
         ))}
-      </motion.div>
+      </div>
 
       {/* Focus Timeline Chart & Peak execution cards (Moved DOWN!) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <motion.div 
-          className="md:col-span-2 tile p-6 relative overflow-hidden"
-          layout
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-        >
+        <div className="md:col-span-2 tile p-6 relative overflow-hidden">
           <div className="flex justify-between items-start mb-6">
             <div>
               <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
@@ -1353,15 +1180,14 @@ export const AnalyticsFeature = () => {
                 )
               ))}
               {areaPath && (
-                <motion.path
+                <path
                   d={areaPath} fill="url(#chartGradient)"
-                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.5 }}
+                  className="transition-opacity duration-500"
                 />
               )}
               {linePath && (
-                <motion.path
+                <path
                   d={linePath} className="stroke-primary fill-transparent" strokeWidth={2.5} filter="url(#glow)"
-                  initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.5, ease: "easeInOut" as const }}
                 />
               )}
               {/* Vertical Crosshair Line on Hover */}
@@ -1377,16 +1203,15 @@ export const AnalyticsFeature = () => {
                 />
               )}
 
-              {points.map((p, i) => (
+              {points.map((p) => (
                 <g key={p.date} 
                    onMouseEnter={() => setHoveredPoint(p)}
                    onMouseLeave={() => setHoveredPoint(null)}
                    className="cursor-crosshair group/point"
                 >
-                  <motion.circle
+                  <circle
                     cx={p.x} cy={p.y} r={hoveredPoint?.date === p.date ? 6 : 4}
-                    className="fill-card stroke-primary" strokeWidth={2} filter="url(#glow)"
-                    initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 1 + i * 0.05 }}
+                    className="fill-card stroke-primary transition-all duration-150" strokeWidth={2} filter="url(#glow)"
                   />
                   <circle cx={p.x} cy={p.y} r={20} fill="transparent" />
                 </g>
@@ -1400,7 +1225,7 @@ export const AnalyticsFeature = () => {
                   initial={{ opacity: 0, y: -14, scale: 0.96 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -10, scale: 0.96 }}
-                  transition={{ type: "spring" as const, stiffness: 400, damping: 28 }}
+                  transition={{ duration: 0.15 }}
                   className="absolute top-2 left-1/2 -translate-x-1/2 z-30 pointer-events-none w-[94%] max-w-lg tile p-3.5 rounded-2xl shadow-2xl flex flex-col space-y-2.5 border border-primary/30 bg-surface-elevated/95 backdrop-blur-xl"
                 >
                   <div className="flex items-center justify-between border-b border-border/50 pb-2 gap-2">
@@ -1459,16 +1284,10 @@ export const AnalyticsFeature = () => {
               )}
             </AnimatePresence>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div 
-          className="space-y-6"
-          layout
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-        >
-          <motion.div className="tile p-6 relative overflow-hidden">
+        <div className="space-y-6">
+          <div className="tile p-6 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
             <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-0.5">Prime Time</h3>
             <p className="text-[10px] text-muted-foreground/80 font-medium mb-4">Hour of the day when you complete the most tasks</p>
@@ -1481,9 +1300,9 @@ export const AnalyticsFeature = () => {
                 <div className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Peak execution window</div>
               </div>
             </div>
-          </motion.div>
+          </div>
 
-          <motion.div className="tile p-6">
+          <div className="tile p-6">
             <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-widest mb-0.5">Top Protocols</h3>
             <p className="text-[10px] text-muted-foreground/80 font-medium mb-4">Your top 3 most frequently completed habits</p>
             <div className="space-y-4">
@@ -1495,11 +1314,9 @@ export const AnalyticsFeature = () => {
                   <div className="flex-1 min-w-0">
                     <div className="text-xs font-bold truncate text-foreground">{h.name}</div>
                     <div className="w-full h-1.5 bg-secondary rounded-full mt-1.5 overflow-hidden">
-                      <motion.div 
-                        className="h-full bg-primary" 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${Math.min(100, (h.completedDates.length / 30) * 100)}%` }}
-                        transition={{ duration: 1.5, ease: "easeOut" as const, delay: 0.5 + i * 0.1 }}
+                      <div 
+                        className="h-full bg-primary transition-all duration-500 ease-out" 
+                        style={{ width: `${Math.min(100, (h.completedDates.length / 30) * 100)}%` }}
                       />
                     </div>
                   </div>
@@ -1509,13 +1326,13 @@ export const AnalyticsFeature = () => {
                 <p className="text-xs text-muted-foreground italic">No habit data available.</p>
               )}
             </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </div>
 
       {/* NEW: Tasks Contribution Heatmap Card */}
       <TasksHeatmapCard />
-    </motion.div>
+    </div>
   );
 };
 
