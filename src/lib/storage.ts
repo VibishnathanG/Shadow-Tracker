@@ -155,10 +155,16 @@ export const dbService = {
         const savedMoneyV4Expenses = localStorage.getItem('shadow_money_expenses_v4');
         const savedMoneyV4Months = localStorage.getItem('shadow_money_months_v4');
         const savedMoneyV3 = localStorage.getItem('shadow_money_data_v3');
-        if (savedMoneyV4Expenses || savedMoneyV4Months) {
+        const savedSubPresets = localStorage.getItem('shadow_custom_sub_presets_v1');
+        const savedInvPresets = localStorage.getItem('shadow_custom_investment_presets_v1');
+        const savedBigExpensePresets = localStorage.getItem('shadow_custom_big_expense_presets_v1');
+        if (savedMoneyV4Expenses || savedMoneyV4Months || savedSubPresets || savedInvPresets || savedBigExpensePresets) {
           moneyData = {
             expenses: savedMoneyV4Expenses ? JSON.parse(savedMoneyV4Expenses) : [],
             monthlyDataMap: savedMoneyV4Months ? JSON.parse(savedMoneyV4Months) : {},
+            customSubscriptionPresets: savedSubPresets ? JSON.parse(savedSubPresets) : (settings?.customSubscriptionPresets || []),
+            customInvestmentPresets: savedInvPresets ? JSON.parse(savedInvPresets) : (settings?.customInvestmentPresets || []),
+            customBigExpensePresets: savedBigExpensePresets ? JSON.parse(savedBigExpensePresets) : (settings?.customBigExpensePresets || []),
             ...(savedMoneyV3 ? JSON.parse(savedMoneyV3) : {})
           };
         } else if (savedMoneyV3) {
@@ -298,7 +304,28 @@ export const dbService = {
         if (data.moneyData.monthlyDataMap) {
           localStorage.setItem('shadow_money_months_v4', JSON.stringify(data.moneyData.monthlyDataMap));
         }
+        if (data.moneyData.customSubscriptionPresets) {
+          localStorage.setItem('shadow_custom_sub_presets_v1', JSON.stringify(data.moneyData.customSubscriptionPresets));
+        }
+        if (data.moneyData.customInvestmentPresets) {
+          localStorage.setItem('shadow_custom_investment_presets_v1', JSON.stringify(data.moneyData.customInvestmentPresets));
+        }
+        if (data.moneyData.customBigExpensePresets) {
+          localStorage.setItem('shadow_custom_big_expense_presets_v1', JSON.stringify(data.moneyData.customBigExpensePresets));
+        }
         localStorage.setItem('shadow_money_data_v3', JSON.stringify(data.moneyData));
+      }
+    }
+
+    if (data.settings) {
+      if (data.settings.customSubscriptionPresets) {
+        localStorage.setItem('shadow_custom_sub_presets_v1', JSON.stringify(data.settings.customSubscriptionPresets));
+      }
+      if (data.settings.customInvestmentPresets) {
+        localStorage.setItem('shadow_custom_investment_presets_v1', JSON.stringify(data.settings.customInvestmentPresets));
+      }
+      if (data.settings.customBigExpensePresets) {
+        localStorage.setItem('shadow_custom_big_expense_presets_v1', JSON.stringify(data.settings.customBigExpensePresets));
       }
     }
 
@@ -603,6 +630,9 @@ export const settingsStorage = {
           lowGpuMode: typeof parsed.lowGpuMode === 'boolean' ? parsed.lowGpuMode : finalEco,
           taskAssignees: Array.isArray(parsed.taskAssignees) && parsed.taskAssignees.length > 0 ? parsed.taskAssignees : DEFAULT_SETTINGS.taskAssignees,
           defaultAssignee: parsed.defaultAssignee || DEFAULT_SETTINGS.defaultAssignee,
+          customSubscriptionPresets: parsed.customSubscriptionPresets,
+          customInvestmentPresets: parsed.customInvestmentPresets,
+          customBigExpensePresets: parsed.customBigExpensePresets,
         };
       } else {
         return {

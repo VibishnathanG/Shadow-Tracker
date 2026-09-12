@@ -145,11 +145,23 @@ function mergeMoneyData(local?: any, cloud?: any): any {
     ...(local.monthlyDataMap || {}),
   };
 
+  const mergePresets = <T extends { name: string }>(a?: T[], b?: T[]): T[] | undefined => {
+    if (!a && !b) return undefined;
+    const map = new Map<string, T>();
+    for (const item of [...(b || []), ...(a || [])]) {
+      if (item && item.name) map.set(item.name.toLowerCase(), item);
+    }
+    return Array.from(map.values());
+  };
+
   return {
     ...cloud,
     ...local,
     expenses: Array.from(expenseMap.values()),
     monthlyDataMap: mergedMonthlyMap,
+    customSubscriptionPresets: mergePresets(local.customSubscriptionPresets, cloud.customSubscriptionPresets),
+    customInvestmentPresets: mergePresets(local.customInvestmentPresets, cloud.customInvestmentPresets),
+    customBigExpensePresets: mergePresets(local.customBigExpensePresets, cloud.customBigExpensePresets),
   };
 }
 
@@ -338,6 +350,15 @@ export function smartMergeBackupData(localData: FullBackupData, cloudData: FullB
         ...(cloudData.settings?.taskAssignees || [])
       ])),
       defaultAssignee: localData.settings?.defaultAssignee || cloudData.settings?.defaultAssignee || 'Shadow',
+      customSubscriptionPresets: (localData.settings?.customSubscriptionPresets || cloudData.settings?.customSubscriptionPresets) ? Array.from(
+        new Map([...(cloudData.settings?.customSubscriptionPresets || []), ...(localData.settings?.customSubscriptionPresets || [])].map(i => [i.name.toLowerCase(), i])).values()
+      ) : undefined,
+      customInvestmentPresets: (localData.settings?.customInvestmentPresets || cloudData.settings?.customInvestmentPresets) ? Array.from(
+        new Map([...(cloudData.settings?.customInvestmentPresets || []), ...(localData.settings?.customInvestmentPresets || [])].map(i => [i.name.toLowerCase(), i])).values()
+      ) : undefined,
+      customBigExpensePresets: (localData.settings?.customBigExpensePresets || cloudData.settings?.customBigExpensePresets) ? Array.from(
+        new Map([...(cloudData.settings?.customBigExpensePresets || []), ...(localData.settings?.customBigExpensePresets || [])].map(i => [i.name.toLowerCase(), i])).values()
+      ) : undefined,
     } as Settings) : undefined,
     moneyData: mergedMoney,
     rpgQuests: Array.from(questMap.values()),

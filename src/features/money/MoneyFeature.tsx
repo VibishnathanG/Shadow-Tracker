@@ -41,20 +41,17 @@ const DEFAULT_CATEGORY_BUDGETS: CategoryBudgets = {
   Other: 0,
 };
 
-const COMMON_SUBSCRIPTION_SUGGESTIONS = [
-  { name: 'Netflix', amount: 649, cycle: 'monthly' as const, emoji: '🍿' },
-  { name: 'Disney+ Hotstar', amount: 299, cycle: 'monthly' as const, emoji: '📺' },
-  { name: 'Spotify Premium', amount: 119, cycle: 'monthly' as const, emoji: '🎵' },
-  { name: 'YouTube Premium', amount: 149, cycle: 'monthly' as const, emoji: '▶️' },
-  { name: 'Amazon Prime', amount: 1499, cycle: 'yearly' as const, emoji: '📦' },
-  { name: 'ChatGPT Plus', amount: 1999, cycle: 'monthly' as const, emoji: '🤖' },
-  { name: 'GitHub Copilot', amount: 850, cycle: 'monthly' as const, emoji: '💻' },
-  { name: 'Apple One', amount: 365, cycle: 'monthly' as const, emoji: '🍎' },
-  { name: 'Gym Membership', amount: 2000, cycle: 'monthly' as const, emoji: '🏋️' },
-  { name: 'JioFiber / Wifi', amount: 999, cycle: 'monthly' as const, emoji: '📶' },
-  { name: 'Google One 100GB', amount: 130, cycle: 'monthly' as const, emoji: '☁️' },
-  { name: 'iCloud 50GB', amount: 75, cycle: 'monthly' as const, emoji: '☁️' },
-];
+import {
+  MoneyPresetItem,
+  DEFAULT_SUBSCRIPTION_PRESETS,
+  DEFAULT_INVESTMENT_PRESETS,
+  DEFAULT_BIG_EXPENSE_PRESETS,
+} from '@/lib/moneyPresets';
+
+export type { MoneyPresetItem };
+export { DEFAULT_SUBSCRIPTION_PRESETS, DEFAULT_INVESTMENT_PRESETS, DEFAULT_BIG_EXPENSE_PRESETS };
+
+const COMMON_SUBSCRIPTION_SUGGESTIONS = DEFAULT_SUBSCRIPTION_PRESETS;
 
 const COMMON_EXPENSE_SUGGESTIONS = [
   { name: 'Groceries', category: 'Shopping' as ExpenseCategory, emoji: '🛒' },
@@ -68,22 +65,6 @@ const COMMON_EXPENSE_SUGGESTIONS = [
 ];
 
 const COMMON_SUB_ITEM_SUGGESTIONS: Record<string, { name: string; emoji: string }[]> = {
-  bigExpenses: [
-    { name: 'MacBook / Laptop', emoji: '💻' },
-    { name: 'Smartphone / iPhone', emoji: '📱' },
-    { name: 'Vehicle Downpayment', emoji: '🚗' },
-    { name: 'Flight / Vacation', emoji: '✈️' },
-    { name: 'Home Renovation', emoji: '🏠' },
-    { name: 'Health Insurance', emoji: '🏥' },
-  ],
-  investments: [
-    { name: 'Nifty 50 Index Fund', emoji: '📈' },
-    { name: 'Parag Parikh Flexi Cap', emoji: '💼' },
-    { name: 'Sovereign Gold Bonds (SGB)', emoji: '🪙' },
-    { name: 'Public Provident Fund (PPF)', emoji: '🏛️' },
-    { name: 'Fixed Deposit (FD)', emoji: '🏦' },
-    { name: 'Tech Growth Stocks', emoji: '🚀' },
-  ],
   lentBorrowed: [
     { name: 'Lent to Friend', emoji: '🤝' },
     { name: 'Borrowed for Emergency', emoji: '🤝' },
@@ -152,6 +133,7 @@ const EditableCurrencyInput = ({
 };
 
 export default function MoneyFeature() {
+  const { settings, updateSettings } = useShadowTrackerStore();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [expenses, setExpenses] = useState<Expense[]>([]);
   
@@ -290,69 +272,149 @@ export default function MoneyFeature() {
   const [subRenewalDay, setSubRenewalDay] = useState('1');
   const [subBillingCycle, setSubBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
 
-  // Subscription Presets (Customizable & Editable)
-  const [subPresets, setSubPresets] = useState<typeof COMMON_SUBSCRIPTION_SUGGESTIONS>(() => {
+  const [saveAsPreset, setSaveAsPreset] = useState(false);
+
+  // 1. Subscription Presets (Customizable & Editable)
+  const [subPresets, setSubPresets] = useState<MoneyPresetItem[]>(() => {
+    if (settings?.customSubscriptionPresets && settings.customSubscriptionPresets.length > 0) {
+      return settings.customSubscriptionPresets as MoneyPresetItem[];
+    }
     if (typeof window !== 'undefined') {
       try {
         const stored = localStorage.getItem('shadow_custom_sub_presets_v1');
         if (stored) return JSON.parse(stored);
       } catch {}
     }
-    return COMMON_SUBSCRIPTION_SUGGESTIONS;
+    return DEFAULT_SUBSCRIPTION_PRESETS;
   });
+
+  // 2. Investment Presets (Customizable & Editable with Fixed Monthly Values)
+  const [invPresets, setInvPresets] = useState<MoneyPresetItem[]>(() => {
+    if (settings?.customInvestmentPresets && settings.customInvestmentPresets.length > 0) {
+      return settings.customInvestmentPresets as MoneyPresetItem[];
+    }
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('shadow_custom_investment_presets_v1');
+        if (stored) return JSON.parse(stored);
+      } catch {}
+    }
+    return DEFAULT_INVESTMENT_PRESETS;
+  });
+
+  // 3. Big Fixed Expense Presets (Customizable & Editable with Fixed Monthly Values)
+  const [bigExpensePresets, setBigExpensePresets] = useState<MoneyPresetItem[]>(() => {
+    if (settings?.customBigExpensePresets && settings.customBigExpensePresets.length > 0) {
+      return settings.customBigExpensePresets as MoneyPresetItem[];
+    }
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('shadow_custom_big_expense_presets_v1');
+        if (stored) return JSON.parse(stored);
+      } catch {}
+    }
+    return DEFAULT_BIG_EXPENSE_PRESETS;
+  });
+
+  // Sync state if settings update from external changes (cloud pull / backup import)
+  useEffect(() => {
+    if (settings?.customSubscriptionPresets && settings.customSubscriptionPresets.length > 0) {
+      setSubPresets(settings.customSubscriptionPresets as MoneyPresetItem[]);
+    }
+  }, [settings?.customSubscriptionPresets]);
+
+  useEffect(() => {
+    if (settings?.customInvestmentPresets && settings.customInvestmentPresets.length > 0) {
+      setInvPresets(settings.customInvestmentPresets as MoneyPresetItem[]);
+    }
+  }, [settings?.customInvestmentPresets]);
+
+  useEffect(() => {
+    if (settings?.customBigExpensePresets && settings.customBigExpensePresets.length > 0) {
+      setBigExpensePresets(settings.customBigExpensePresets as MoneyPresetItem[]);
+    }
+  }, [settings?.customBigExpensePresets]);
+
   const [isEditingPresets, setIsEditingPresets] = useState(false);
   const [newPresetName, setNewPresetName] = useState('');
   const [newPresetAmount, setNewPresetAmount] = useState('');
   const [newPresetEmoji, setNewPresetEmoji] = useState('🍿');
   const [newPresetCycle, setNewPresetCycle] = useState<'monthly' | 'yearly'>('monthly');
 
-  const handleUpdatePresetAmount = useCallback((presetName: string, newAmount: number) => {
-    setSubPresets(prev => {
-      const updated = prev.map(p => p.name === presetName ? { ...p, amount: newAmount } : p);
-      try {
-        localStorage.setItem('shadow_custom_sub_presets_v1', JSON.stringify(updated));
-      } catch {}
-      return updated;
-    });
-  }, []);
+  useEffect(() => {
+    setIsEditingPresets(false);
+    setSaveAsPreset(false);
+    setNewPresetName('');
+    setNewPresetAmount('');
+    if (activeSubModal === 'subscriptions') {
+      setNewPresetEmoji('🍿');
+    } else if (activeSubModal === 'investments') {
+      setNewPresetEmoji('📈');
+    } else if (activeSubModal === 'bigExpenses') {
+      setNewPresetEmoji('🏠');
+    }
+  }, [activeSubModal]);
 
-  const handleDeletePreset = useCallback((presetName: string) => {
-    setSubPresets(prev => {
-      const updated = prev.filter(p => p.name !== presetName);
+  // Unified updater for presets (syncs state, localStorage, and Settings file)
+  const updatePresetsForCategory = useCallback((
+    category: 'subscriptions' | 'investments' | 'bigExpenses',
+    newPresets: MoneyPresetItem[]
+  ) => {
+    if (category === 'subscriptions') {
+      setSubPresets(newPresets);
       try {
-        localStorage.setItem('shadow_custom_sub_presets_v1', JSON.stringify(updated));
+        localStorage.setItem('shadow_custom_sub_presets_v1', JSON.stringify(newPresets));
       } catch {}
-      return updated;
-    });
-  }, []);
+      updateSettings({ customSubscriptionPresets: newPresets });
+    } else if (category === 'investments') {
+      setInvPresets(newPresets);
+      try {
+        localStorage.setItem('shadow_custom_investment_presets_v1', JSON.stringify(newPresets));
+      } catch {}
+      updateSettings({ customInvestmentPresets: newPresets });
+    } else if (category === 'bigExpenses') {
+      setBigExpensePresets(newPresets);
+      try {
+        localStorage.setItem('shadow_custom_big_expense_presets_v1', JSON.stringify(newPresets));
+      } catch {}
+      updateSettings({ customBigExpensePresets: newPresets });
+    }
+  }, [updateSettings]);
 
-  const handleAddCustomPreset = useCallback((e: React.FormEvent) => {
+  const handleUpdatePresetAmount = useCallback((category: 'subscriptions' | 'investments' | 'bigExpenses', presetName: string, newAmount: number) => {
+    const list = category === 'subscriptions' ? subPresets : category === 'investments' ? invPresets : bigExpensePresets;
+    const updated = list.map(p => p.name.toLowerCase() === presetName.toLowerCase() ? { ...p, amount: newAmount } : p);
+    updatePresetsForCategory(category, updated);
+  }, [subPresets, invPresets, bigExpensePresets, updatePresetsForCategory]);
+
+  const handleDeletePreset = useCallback((category: 'subscriptions' | 'investments' | 'bigExpenses', presetName: string) => {
+    const list = category === 'subscriptions' ? subPresets : category === 'investments' ? invPresets : bigExpensePresets;
+    const updated = list.filter(p => p.name.toLowerCase() !== presetName.toLowerCase());
+    updatePresetsForCategory(category, updated);
+  }, [subPresets, invPresets, bigExpensePresets, updatePresetsForCategory]);
+
+  const handleAddCustomPreset = useCallback((category: 'subscriptions' | 'investments' | 'bigExpenses', e: React.FormEvent) => {
     e.preventDefault();
     if (!newPresetName.trim() || !newPresetAmount) return;
     const cleanAmount = parseFloat(newPresetAmount.replace(/,/g, '')) || 0;
-    const newP = {
+    const defaultEmoji = category === 'subscriptions' ? '🍿' : category === 'investments' ? '📈' : '🏠';
+    const newP: MoneyPresetItem = {
       name: newPresetName.trim(),
       amount: cleanAmount,
-      cycle: newPresetCycle,
-      emoji: newPresetEmoji.trim() || '⭐'
+      cycle: category === 'subscriptions' ? newPresetCycle : undefined,
+      emoji: newPresetEmoji.trim() || defaultEmoji
     };
-    setSubPresets(prev => {
-      const updated = [...prev, newP];
-      try {
-        localStorage.setItem('shadow_custom_sub_presets_v1', JSON.stringify(updated));
-      } catch {}
-      return updated;
-    });
+    const list = category === 'subscriptions' ? subPresets : category === 'investments' ? invPresets : bigExpensePresets;
+    const updated = [...list.filter(p => p.name.toLowerCase() !== newP.name.toLowerCase()), newP];
+    updatePresetsForCategory(category, updated);
     setNewPresetName('');
     setNewPresetAmount('');
-  }, [newPresetName, newPresetAmount, newPresetCycle, newPresetEmoji]);
+  }, [newPresetName, newPresetAmount, newPresetCycle, newPresetEmoji, subPresets, invPresets, bigExpensePresets, updatePresetsForCategory]);
 
-  const handleResetPresets = useCallback(() => {
-    setSubPresets(COMMON_SUBSCRIPTION_SUGGESTIONS);
-    try {
-      localStorage.removeItem('shadow_custom_sub_presets_v1');
-    } catch {}
-  }, []);
+  const handleResetPresets = useCallback((category: 'subscriptions' | 'investments' | 'bigExpenses') => {
+    const defaults = category === 'subscriptions' ? DEFAULT_SUBSCRIPTION_PRESETS : category === 'investments' ? DEFAULT_INVESTMENT_PRESETS : DEFAULT_BIG_EXPENSE_PRESETS;
+    updatePresetsForCategory(category, defaults);
+  }, [updatePresetsForCategory]);
 
   // Chart filters & View Mode (Persisted)
   const [chartFilters, setChartFilters] = useState({ spend: true, income: true, savings: true, investments: true });
@@ -426,6 +488,21 @@ export default function MoneyFeature() {
     const cleanAmt = parseFloat(subAmountInput.replace(/,/g, ''));
     if (!activeSubModal || !subNameInput.trim() || isNaN(cleanAmt) || cleanAmt <= 0) return;
 
+    // Save as preset if user checked the option (subscriptions, investments, or bigExpenses)
+    if (saveAsPreset && (activeSubModal === 'subscriptions' || activeSubModal === 'investments' || activeSubModal === 'bigExpenses')) {
+      const list = activeSubModal === 'subscriptions' ? subPresets : activeSubModal === 'investments' ? invPresets : bigExpensePresets;
+      const defaultEmoji = activeSubModal === 'subscriptions' ? '🍿' : activeSubModal === 'investments' ? '📈' : '🏠';
+      const existing = list.find(p => p.name.toLowerCase() === subNameInput.trim().toLowerCase());
+      const itemToSave: MoneyPresetItem = {
+        name: subNameInput.trim(),
+        amount: cleanAmt,
+        emoji: existing?.emoji || defaultEmoji,
+        cycle: activeSubModal === 'subscriptions' ? subBillingCycle : undefined,
+      };
+      const updated = [...list.filter(p => p.name.toLowerCase() !== itemToSave.name.toLowerCase()), itemToSave];
+      updatePresetsForCategory(activeSubModal, updated);
+    }
+
     if (activeSubModal === 'subscriptions') {
       const newSub: SubscriptionItem = {
         id: Math.random().toString(36).substring(2, 11),
@@ -462,7 +539,8 @@ export default function MoneyFeature() {
 
     setSubNameInput('');
     setSubAmountInput('');
-  }, [activeSubModal, subNameInput, subAmountInput, subRenewalDay, subBillingCycle, updateCurrentMonthData]);
+    setSaveAsPreset(false);
+  }, [activeSubModal, subNameInput, subAmountInput, subRenewalDay, subBillingCycle, saveAsPreset, subPresets, invPresets, bigExpensePresets, updatePresetsForCategory, updateCurrentMonthData]);
 
   const handleDeleteSubItem = useCallback((id: string, list: 'bigExpenses' | 'investments' | 'lentBorrowed' | 'subscriptions') => {
     updateCurrentMonthData(prev => ({
@@ -1278,7 +1356,9 @@ export default function MoneyFeature() {
                     <form onSubmit={handleAddSubItem} className="space-y-3">
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-muted-foreground uppercase">Name / Service</label>
+                          <label className="text-[10px] font-bold text-muted-foreground uppercase">
+                            {activeSubModal === 'subscriptions' ? 'Name / Service' : activeSubModal === 'investments' ? 'Name / Asset' : 'Name / Service'}
+                          </label>
                           <input 
                             type="text" 
                             required 
@@ -1286,11 +1366,18 @@ export default function MoneyFeature() {
                             value={subNameInput} 
                             onChange={e=>setSubNameInput(e.target.value)} 
                             className="w-full bg-secondary border border-border/60 rounded-xl px-3 py-2 text-foreground text-xs font-bold focus:border-primary outline-none" 
-                            placeholder={activeSubModal === 'subscriptions' ? 'Netflix, AWS, Gym...' : 'Rent, Car EMI...'} 
+                            placeholder={
+                              activeSubModal === 'subscriptions' ? 'Netflix, AWS, Gym...' :
+                              activeSubModal === 'investments' ? 'Nifty 50, Gold SGB, PPF...' :
+                              activeSubModal === 'bigExpenses' ? 'House Rent, Car EMI, Cook...' :
+                              'Lent to friend, deposit...'
+                            } 
                           />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[10px] font-bold text-muted-foreground uppercase">Amount (₹)</label>
+                          <label className="text-[10px] font-bold text-muted-foreground uppercase">
+                            {activeSubModal === 'investments' ? 'Monthly SIP / Value (₹)' : 'Amount (₹)'}
+                          </label>
                           <input 
                             type="number" 
                             required 
@@ -1302,137 +1389,173 @@ export default function MoneyFeature() {
                         </div>
                       </div>
 
-                      {/* Quick Suggestions Chips with Edit and Custom Add Options */}
-                      {activeSubModal === 'subscriptions' && (
-                        <div className="space-y-2 p-3 rounded-2xl bg-surface/60 border border-border/70">
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-[10px] font-extrabold text-foreground uppercase tracking-wider flex items-center gap-1.5">
-                              <Lucide.Sparkles size={12} className="text-primary" />
-                              Popular Services {isEditingPresets ? '(Edit Mode)' : '(Auto-Fill)'}:
-                            </span>
-                            <div className="flex items-center gap-1.5">
-                              <button
-                                type="button"
-                                onClick={() => setIsEditingPresets(prev => !prev)}
-                                className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border transition-all cursor-pointer ${
-                                  isEditingPresets
-                                    ? 'bg-primary text-primary-foreground border-primary shadow-xs'
-                                    : 'bg-surface text-muted-foreground hover:text-foreground border-border/80'
-                                }`}
-                              >
-                                {isEditingPresets ? 'Done' : '✏️ Edit / + Add'}
-                              </button>
-                              {isEditingPresets && (
+                      {/* Quick Suggestions / Presets with Auto-Fill and Custom Add Options */}
+                      {activeSubModal && activeSubModal !== 'lentBorrowed' && (() => {
+                        const activeCategory = activeSubModal as 'subscriptions' | 'investments' | 'bigExpenses';
+                        const currentPresets = activeCategory === 'subscriptions' ? subPresets : activeCategory === 'investments' ? invPresets : bigExpensePresets;
+                        const categoryLabel = activeCategory === 'subscriptions' ? 'Popular Services' : activeCategory === 'investments' ? 'Popular Assets' : 'Common Fixed Spends';
+
+                        return (
+                          <div className="space-y-2 p-3 rounded-2xl bg-surface/60 border border-border/70">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-[10px] font-extrabold text-foreground uppercase tracking-wider flex items-center gap-1.5">
+                                <Lucide.Sparkles size={12} className="text-primary" />
+                                {categoryLabel} {isEditingPresets ? '(Edit Mode)' : '(Auto-Fill)'}:
+                              </span>
+                              <div className="flex items-center gap-1.5">
                                 <button
                                   type="button"
-                                  onClick={handleResetPresets}
-                                  className="text-[10px] font-bold px-1.5 py-0.5 rounded-lg text-muted-foreground hover:text-rose-400 cursor-pointer"
-                                  title="Reset presets to default"
+                                  onClick={() => setIsEditingPresets(prev => !prev)}
+                                  className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border transition-all cursor-pointer ${
+                                    isEditingPresets
+                                      ? 'bg-primary text-primary-foreground border-primary shadow-xs'
+                                      : 'bg-surface text-muted-foreground hover:text-foreground border-border/80'
+                                  }`}
                                 >
-                                  Reset
+                                  {isEditingPresets ? 'Done' : '✏️ Edit / + Add'}
                                 </button>
-                              )}
-                            </div>
-                          </div>
-
-                          {!isEditingPresets ? (
-                            /* Read & Auto-Fill Mode */
-                            <div className="flex flex-wrap gap-1 max-h-28 overflow-y-auto custom-scrollbar pr-1">
-                              {subPresets.map(sub => (
-                                <button
-                                  key={sub.name}
-                                  type="button"
-                                  onClick={() => {
-                                    setSubNameInput(sub.name);
-                                    setSubAmountInput(String(sub.amount));
-                                    setSubBillingCycle(sub.cycle);
-                                  }}
-                                  className="text-[9.5px] font-bold px-2 py-0.5 rounded-lg bg-surface border border-border/60 text-muted-foreground hover:text-foreground hover:border-primary/50 transition-all cursor-pointer flex items-center gap-1 shadow-xs"
-                                >
-                                  <span>{sub.emoji}</span>
-                                  <span>{sub.name}</span>
-                                  <span className="text-[9px] text-primary font-mono font-bold">₹{sub.amount}</span>
-                                </button>
-                              ))}
-                            </div>
-                          ) : (
-                            /* Manage & Edit Presets Mode */
-                            <div className="space-y-2.5">
-                              <div className="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar pr-1">
-                                {subPresets.map(sub => (
-                                  <div key={sub.name} className="flex items-center justify-between gap-2 p-1.5 rounded-xl bg-surface border border-border/60 text-xs">
-                                    <span className="flex items-center gap-1.5 truncate font-medium text-foreground">
-                                      <span>{sub.emoji}</span>
-                                      <span className="truncate">{sub.name}</span>
-                                    </span>
-                                    <div className="flex items-center gap-1.5 shrink-0">
-                                      <span className="text-[10px] text-muted-foreground font-bold">₹</span>
-                                      <input
-                                        type="number"
-                                        value={sub.amount}
-                                        onChange={(e) => handleUpdatePresetAmount(sub.name, parseFloat(e.target.value) || 0)}
-                                        className="w-16 bg-surface-elevated border border-border rounded-lg px-1.5 py-0.5 text-xs font-mono font-bold text-foreground focus:border-primary outline-none"
-                                      />
-                                      <button
-                                        type="button"
-                                        onClick={() => handleDeletePreset(sub.name)}
-                                        className="p-1 text-muted-foreground hover:text-rose-500 rounded-md transition-colors cursor-pointer"
-                                        title="Delete preset"
-                                      >
-                                        <Lucide.Trash2 size={12} />
-                                      </button>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-
-                              {/* Add New Custom Preset Row */}
-                              <div className="pt-2 border-t border-border/60 space-y-1.5">
-                                <span className="text-[9.5px] font-bold text-muted-foreground uppercase">Add Custom Service Preset:</span>
-                                <div className="flex items-center gap-1.5">
-                                  <input
-                                    type="text"
-                                    maxLength={4}
-                                    placeholder="Icon"
-                                    value={newPresetEmoji}
-                                    onChange={(e) => setNewPresetEmoji(e.target.value)}
-                                    className="w-12 bg-surface border border-border/80 rounded-xl px-1.5 py-1 text-center text-xs outline-none focus:border-primary"
-                                  />
-                                  <input
-                                    type="text"
-                                    maxLength={50}
-                                    placeholder="Service Name"
-                                    value={newPresetName}
-                                    onChange={(e) => setNewPresetName(e.target.value)}
-                                    className="flex-1 bg-surface border border-border/80 rounded-xl px-2 py-1 text-xs outline-none focus:border-primary"
-                                  />
-                                  <input
-                                    type="number"
-                                    placeholder="₹ Price"
-                                    value={newPresetAmount}
-                                    onChange={(e) => setNewPresetAmount(e.target.value)}
-                                    className="w-20 bg-surface border border-border/80 rounded-xl px-2 py-1 text-xs font-mono font-bold outline-none focus:border-primary"
-                                  />
+                                {isEditingPresets && (
                                   <button
                                     type="button"
-                                    onClick={handleAddCustomPreset}
-                                    disabled={!newPresetName.trim() || !newPresetAmount}
-                                    className="bg-primary hover:bg-primary/90 disabled:opacity-40 text-primary-foreground font-bold text-xs rounded-xl px-2.5 py-1 cursor-pointer transition-all shadow-xs"
+                                    onClick={() => handleResetPresets(activeCategory)}
+                                    className="text-[10px] font-bold px-1.5 py-0.5 rounded-lg text-muted-foreground hover:text-rose-400 cursor-pointer"
+                                    title="Reset presets to default"
                                   >
-                                    Add
+                                    Reset
                                   </button>
-                                </div>
+                                )}
                               </div>
                             </div>
-                          )}
-                        </div>
+
+                            {!isEditingPresets ? (
+                              /* Read & Auto-Fill Mode */
+                              <div className="flex flex-wrap gap-1 max-h-28 overflow-y-auto custom-scrollbar pr-1">
+                                {currentPresets.map(preset => (
+                                  <button
+                                    key={preset.name}
+                                    type="button"
+                                    onClick={() => {
+                                      setSubNameInput(preset.name);
+                                      setSubAmountInput(String(preset.amount));
+                                      if (preset.cycle && activeCategory === 'subscriptions') {
+                                        setSubBillingCycle(preset.cycle);
+                                      }
+                                    }}
+                                    className="text-[9.5px] font-bold px-2 py-0.5 rounded-lg bg-surface border border-border/60 text-muted-foreground hover:text-foreground hover:border-primary/50 transition-all cursor-pointer flex items-center gap-1 shadow-xs"
+                                  >
+                                    <span>{preset.emoji}</span>
+                                    <span>{preset.name}</span>
+                                    <span className="text-[9px] text-primary font-mono font-bold">₹{preset.amount.toLocaleString()}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            ) : (
+                              /* Manage & Edit Presets Mode */
+                              <div className="space-y-2.5">
+                                <div className="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar pr-1">
+                                  {currentPresets.map(preset => (
+                                    <div key={preset.name} className="flex items-center justify-between gap-2 p-1.5 rounded-xl bg-surface border border-border/60 text-xs">
+                                      <span className="flex items-center gap-1.5 truncate font-medium text-foreground">
+                                        <span>{preset.emoji}</span>
+                                        <span className="truncate">{preset.name}</span>
+                                      </span>
+                                      <div className="flex items-center gap-1.5 shrink-0">
+                                        <span className="text-[10px] text-muted-foreground font-bold">₹</span>
+                                        <input
+                                          type="number"
+                                          value={preset.amount}
+                                          onChange={(e) => handleUpdatePresetAmount(activeCategory, preset.name, parseFloat(e.target.value) || 0)}
+                                          className="w-16 bg-surface-elevated border border-border rounded-lg px-1.5 py-0.5 text-xs font-mono font-bold text-foreground focus:border-primary outline-none"
+                                        />
+                                        <button
+                                          type="button"
+                                          onClick={() => handleDeletePreset(activeCategory, preset.name)}
+                                          className="p-1 text-muted-foreground hover:text-rose-500 rounded-md transition-colors cursor-pointer"
+                                          title="Delete preset"
+                                        >
+                                          <Lucide.Trash2 size={12} />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+
+                                {/* Add New Custom Preset Row */}
+                                <div className="pt-2 border-t border-border/60 space-y-1.5">
+                                  <span className="text-[9.5px] font-bold text-muted-foreground uppercase">
+                                    Add Custom {activeCategory === 'subscriptions' ? 'Service' : activeCategory === 'investments' ? 'Asset' : 'Fixed Spend'} Preset:
+                                  </span>
+                                  <div className="flex items-center gap-1.5">
+                                    <input
+                                      type="text"
+                                      maxLength={4}
+                                      placeholder="Icon"
+                                      value={newPresetEmoji}
+                                      onChange={(e) => setNewPresetEmoji(e.target.value)}
+                                      className="w-12 bg-surface border border-border/80 rounded-xl px-1.5 py-1 text-center text-xs outline-none focus:border-primary"
+                                    />
+                                    <input
+                                      type="text"
+                                      maxLength={50}
+                                      placeholder={activeCategory === 'subscriptions' ? 'Service Name' : activeCategory === 'investments' ? 'Asset Name' : 'Item Name'}
+                                      value={newPresetName}
+                                      onChange={(e) => setNewPresetName(e.target.value)}
+                                      className="flex-1 bg-surface border border-border/80 rounded-xl px-2 py-1 text-xs outline-none focus:border-primary"
+                                    />
+                                    <input
+                                      type="number"
+                                      placeholder="₹ Value"
+                                      value={newPresetAmount}
+                                      onChange={(e) => setNewPresetAmount(e.target.value)}
+                                      className="w-20 bg-surface border border-border/80 rounded-xl px-2 py-1 text-xs font-mono font-bold outline-none focus:border-primary"
+                                    />
+                                    {activeCategory === 'subscriptions' && (
+                                      <select
+                                        value={newPresetCycle}
+                                        onChange={e => setNewPresetCycle(e.target.value as any)}
+                                        className="bg-surface border border-border/80 rounded-xl px-1.5 py-1 text-xs font-bold outline-none cursor-pointer"
+                                      >
+                                        <option value="monthly">Mo</option>
+                                        <option value="yearly">Yr</option>
+                                      </select>
+                                    )}
+                                    <button
+                                      type="button"
+                                      onClick={(e) => handleAddCustomPreset(activeCategory, e)}
+                                      disabled={!newPresetName.trim() || !newPresetAmount}
+                                      className="bg-primary hover:bg-primary/90 disabled:opacity-40 text-primary-foreground font-bold text-xs rounded-xl px-2.5 py-1 cursor-pointer transition-all shadow-xs"
+                                    >
+                                      Add
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
+
+                      {/* Checkbox to optionally save newly added items to presets */}
+                      {activeSubModal && activeSubModal !== 'lentBorrowed' && (
+                        <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-muted-foreground hover:text-foreground select-none pt-0.5">
+                          <input
+                            type="checkbox"
+                            checked={saveAsPreset}
+                            onChange={e => setSaveAsPreset(e.target.checked)}
+                            className="rounded border-border text-primary focus:ring-primary h-3.5 w-3.5 cursor-pointer"
+                          />
+                          <span className="flex items-center gap-1.5">
+                            <Lucide.Sparkles size={12} className="text-primary" />
+                            Save to quick suggestions with fixed monthly value
+                          </span>
+                        </label>
                       )}
 
-                      {activeSubModal && activeSubModal !== 'subscriptions' && COMMON_SUB_ITEM_SUGGESTIONS[activeSubModal] && (
+                      {activeSubModal === 'lentBorrowed' && COMMON_SUB_ITEM_SUGGESTIONS.lentBorrowed && (
                         <div className="space-y-1">
                           <span className="text-[9.5px] font-bold text-muted-foreground uppercase">Common Suggestions:</span>
                           <div className="flex flex-wrap gap-1">
-                            {COMMON_SUB_ITEM_SUGGESTIONS[activeSubModal].map(item => (
+                            {COMMON_SUB_ITEM_SUGGESTIONS.lentBorrowed.map(item => (
                               <button
                                 key={item.name}
                                 type="button"

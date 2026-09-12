@@ -107,10 +107,84 @@ describe('smartMergeBackupData - Tasks & Settings Synchronization', () => {
 
     const merged = smartMergeBackupData(localData, cloudData);
 
-    expect(merged.settings).toBeDefined();
     expect(merged.settings?.taskAssignees).toEqual(
       expect.arrayContaining(['Shadow', 'Core Lead', 'Agent Zero', 'Operator', 'Ghost'])
     );
     expect(merged.settings?.defaultAssignee).toBe('Agent Zero');
+  });
+
+  it('should merge customSubscriptionPresets, customInvestmentPresets, and customBigExpensePresets without duplicate names', () => {
+    const localSettings: Settings = {
+      theme: 'spectrum',
+      backupReminderDays: 7,
+      soundEnabled: true,
+      showCompletedTasks: true,
+      isCompletedOnboarding: true,
+      xp: 0,
+      level: 1,
+      unlockedBadges: [],
+      customSubscriptionPresets: [
+        { name: 'Netflix', amount: 649, emoji: '🍿', cycle: 'monthly' },
+        { name: 'Custom Cloud VPS', amount: 1200, emoji: '☁️', cycle: 'monthly' },
+      ],
+      customInvestmentPresets: [
+        { name: 'Nifty 50 Index Fund', amount: 5000, emoji: '📈' },
+        { name: 'Gold ETF', amount: 3000, emoji: '🪙' },
+      ],
+      customBigExpensePresets: [
+        { name: 'House Rent', amount: 22000, emoji: '🏠' },
+      ],
+    };
+
+    const cloudSettings: Settings = {
+      theme: 'spectrum',
+      backupReminderDays: 7,
+      soundEnabled: true,
+      showCompletedTasks: true,
+      isCompletedOnboarding: true,
+      xp: 0,
+      level: 1,
+      unlockedBadges: [],
+      customSubscriptionPresets: [
+        { name: 'Netflix', amount: 799, emoji: '🍿', cycle: 'monthly' }, // newer or cloud price
+        { name: 'Spotify Premium', amount: 119, emoji: '🎵', cycle: 'monthly' },
+      ],
+      customInvestmentPresets: [
+        { name: 'Nifty 50 Index Fund', amount: 6000, emoji: '📈' },
+        { name: 'US Tech ETF', amount: 4000, emoji: '🚀' },
+      ],
+      customBigExpensePresets: [
+        { name: 'Car EMI', amount: 14000, emoji: '🚗' },
+      ],
+    };
+
+    const localData: FullBackupData = {
+      tasks: [], habits: [], dailyLogs: [], notes: [], categories: [],
+      settings: localSettings,
+    };
+
+    const cloudData: FullBackupData = {
+      tasks: [], habits: [], dailyLogs: [], notes: [], categories: [],
+      settings: cloudSettings,
+    };
+
+    const merged = smartMergeBackupData(localData, cloudData);
+
+    expect(merged.settings?.customSubscriptionPresets).toHaveLength(3);
+    const subNames = merged.settings?.customSubscriptionPresets?.map(s => s.name);
+    expect(subNames).toContain('Netflix');
+    expect(subNames).toContain('Custom Cloud VPS');
+    expect(subNames).toContain('Spotify Premium');
+
+    expect(merged.settings?.customInvestmentPresets).toHaveLength(3);
+    const invNames = merged.settings?.customInvestmentPresets?.map(i => i.name);
+    expect(invNames).toContain('Nifty 50 Index Fund');
+    expect(invNames).toContain('Gold ETF');
+    expect(invNames).toContain('US Tech ETF');
+
+    expect(merged.settings?.customBigExpensePresets).toHaveLength(2);
+    const bigNames = merged.settings?.customBigExpensePresets?.map(b => b.name);
+    expect(bigNames).toContain('House Rent');
+    expect(bigNames).toContain('Car EMI');
   });
 });

@@ -162,6 +162,9 @@ export interface Settings {
   habitGracePeriodDays?: number;
   taskAssignees?: string[];
   defaultAssignee?: string;
+  customSubscriptionPresets?: Array<{ name: string; amount: number; cycle?: 'monthly' | 'yearly'; emoji?: string }>;
+  customInvestmentPresets?: Array<{ name: string; amount: number; emoji?: string }>;
+  customBigExpensePresets?: Array<{ name: string; amount: number; emoji?: string }>;
 }
 
 export interface BackupData {
