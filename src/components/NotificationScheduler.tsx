@@ -148,6 +148,35 @@ export const NotificationScheduler = () => {
               isHabitReminder = true;
             }
 
+            if (reminder.date) {
+              const [dY, dM, dD] = reminder.date.split('-').map(Number);
+              const scheduledDate = new Date(dY, dM - 1, dD, targetH, targetM, 0, 0);
+              if (scheduledDate > now) {
+                const uniqueNumericId = Math.abs(
+                  (reminder.id
+                    .split('')
+                    .reduce((acc, char) => (acc << 5) - acc + char.charCodeAt(0), 0)) % 2147483647
+                );
+                const useSticky = isStickyEnabled;
+                const actionType = useSticky
+                  ? (isHabitReminder ? 'HABIT_STICKY_ACTIONS' : 'TASK_STICKY_ACTIONS')
+                  : '';
+                scheduledList.push({
+                  id: uniqueNumericId,
+                  title,
+                  body,
+                  schedule: { at: scheduledDate },
+                  channelId: 'reminders',
+                  actionTypeId: actionType,
+                  ongoing: useSticky,
+                  autoCancel: !useSticky,
+                  sound: isSoundEnabled ? 'default' : undefined,
+                  extra: { taskId: reminder.taskId, habitId: reminder.habitId },
+                });
+              }
+              return;
+            }
+
             for (let dayOffset = 0; dayOffset < 7; dayOffset++) {
               const scheduledDate = new Date(
                 now.getFullYear(),
@@ -230,7 +259,8 @@ export const NotificationScheduler = () => {
       reminders.forEach((reminder) => {
         if (!reminder.isEnabled) return;
         if (reminder.time !== currentHHmm) return;
-        if (reminder.days && reminder.days.length > 0 && !reminder.days.includes(currentDayOfWeek))
+        if (reminder.date && reminder.date !== todayStr) return;
+        if (!reminder.date && reminder.days && reminder.days.length > 0 && !reminder.days.includes(currentDayOfWeek))
           return;
 
         const triggerKey = `${reminder.id}_${todayStr}_${currentHHmm}`;

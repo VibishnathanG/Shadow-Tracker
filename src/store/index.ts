@@ -4,6 +4,7 @@ import { Task, Habit, DailyLog, Note, Reminder, Category, Settings, BackupData }
 import { dbService, STORES, settingsStorage, isMobileDevice } from '@/lib/storage';
 import { parseISO, format } from 'date-fns';
 import { calculateStreaks, calculateNextRecurrence, getTodayDateString, formatDateString, parseDateString, getHabitDateStatus, upsertHabitMissedNoteSection } from '@/lib/dateUtils';
+import { buildTaskReminders } from '@/lib/taskScheduling';
 import { getXpForLevel } from '@/features/rpg/rpgLevels';
 
 function generateUUID(): string {
@@ -315,7 +316,22 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
     };
 
     await dbService.put(STORES.TASKS, newTask);
-    set(state => ({ tasks: [newTask, ...state.tasks] }));
+
+    let updatedReminders = get().reminders;
+    if (newTask.notifyOnStart || newTask.notifyOnEnd) {
+      const { remindersToUpsert } = buildTaskReminders(newTask, updatedReminders);
+      for (const rem of remindersToUpsert) {
+        await dbService.put(STORES.REMINDERS, rem);
+      }
+      const remMap = new Map(updatedReminders.map(r => [r.id, r]));
+      remindersToUpsert.forEach(r => remMap.set(r.id, r));
+      updatedReminders = Array.from(remMap.values());
+    }
+
+    set(state => ({
+      tasks: [newTask, ...state.tasks],
+      reminders: updatedReminders,
+    }));
     await get().recalculateDailyLogStats(newTask.dueDate);
     return newTask;
   },
@@ -348,8 +364,23 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
     };
 
     await dbService.put(STORES.TASKS, updatedTask);
+
+    // If task has start or end notifications, sync reminders with new dates/timings
+    let updatedReminders = get().reminders;
+    const hasTaskReminders = updatedReminders.some(r => r.taskId === id && (r.reminderType === 'task_start' || r.reminderType === 'task_end'));
+    if (updatedTask.notifyOnStart || updatedTask.notifyOnEnd || hasTaskReminders) {
+      const { remindersToUpsert } = buildTaskReminders(updatedTask, updatedReminders);
+      for (const rem of remindersToUpsert) {
+        await dbService.put(STORES.REMINDERS, rem);
+      }
+      const remMap = new Map(updatedReminders.map(r => [r.id, r]));
+      remindersToUpsert.forEach(r => remMap.set(r.id, r));
+      updatedReminders = Array.from(remMap.values());
+    }
+
     set(state => ({
-      tasks: state.tasks.map(t => t.id === id ? updatedTask : t)
+      tasks: state.tasks.map(t => t.id === id ? updatedTask : t),
+      reminders: updatedReminders,
     }));
 
     if (updates.dueDate || updates.isCompleted !== undefined || updates.status !== undefined) {
@@ -387,6 +418,13 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
       );
 
       if (!isAlreadyScheduled) {
+        const nextStartDate = task.startDate 
+          ? calculateNextRecurrence(task.startDate, task.recurrencePattern) 
+          : nextDueDate;
+        const nextScheduledDate = task.scheduledDate 
+          ? calculateNextRecurrence(task.scheduledDate, task.recurrencePattern) 
+          : undefined;
+
         const nextTask: Task = {
           id: `task-${generateUUID()}`,
           title: task.title,
@@ -394,8 +432,11 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
           isCompleted: false,
           status: 'todo',
           matrixQuadrant: task.matrixQuadrant,
+          startDate: nextStartDate,
+          scheduledDate: nextScheduledDate,
           scheduledTime: task.scheduledTime,
           estimatedMinutes: task.estimatedMinutes,
+          estimatedHours: task.estimatedHours,
           dueDate: nextDueDate,
           priority: task.priority,
           categoryId: task.categoryId,
@@ -407,11 +448,27 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
           isSoftDeleted: false,
           assignee: task.assignee,
           additionalDetails: task.additionalDetails,
+          notifyOnStart: task.notifyOnStart,
+          notifyOnEnd: task.notifyOnEnd,
         };
         
         await dbService.put(STORES.TASKS, nextTask);
+
+        // Schedule next reminders for recurring task
+        let nextReminders = get().reminders;
+        if (task.notifyOnStart || task.notifyOnEnd) {
+          const { remindersToUpsert } = buildTaskReminders(nextTask, nextReminders);
+          for (const rem of remindersToUpsert) {
+            await dbService.put(STORES.REMINDERS, rem);
+          }
+          const remMap = new Map(nextReminders.map(r => [r.id, r]));
+          remindersToUpsert.forEach(r => remMap.set(r.id, r));
+          nextReminders = Array.from(remMap.values());
+        }
+
         set(state => ({
-          tasks: state.tasks.map(t => t.id === id ? updatedTask : t).concat(nextTask)
+          tasks: state.tasks.map(t => t.id === id ? updatedTask : t).concat(nextTask),
+          reminders: nextReminders,
         }));
         
         // Recalculate for the new task's due date too
@@ -443,8 +500,17 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
     };
 
     await dbService.put(STORES.TASKS, updatedTask);
+
+    // Also disable any reminders associated with this deleted task
+    const currentReminders = get().reminders;
+    const taskReminders = currentReminders.filter(r => r.taskId === id);
+    for (const rem of taskReminders) {
+      await dbService.put(STORES.REMINDERS, { ...rem, isEnabled: false });
+    }
+
     set(state => ({
-      tasks: state.tasks.filter(t => t.id !== id)
+      tasks: state.tasks.filter(t => t.id !== id),
+      reminders: state.reminders.map(r => r.taskId === id ? { ...r, isEnabled: false } : r),
     }));
     await get().recalculateDailyLogStats(task.dueDate);
   },

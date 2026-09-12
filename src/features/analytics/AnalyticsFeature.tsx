@@ -3,6 +3,7 @@
 import React, { useMemo, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from '@/components/icons';
+import Modal from '@/components/Modal';
 import { useShadowTrackerStore } from '@/store';
 import EmptyState from '@/components/EmptyState';
 import { useViewPreference } from '@/lib/viewPreferences';
@@ -757,117 +758,95 @@ const HabitsMonthlyGridCard: React.FC = () => {
       </AnimatePresence>
 
       {/* Missed Habit Reason Modal */}
-      <AnimatePresence>
+      <Modal
+        isOpen={Boolean(reasonModal)}
+        onClose={() => setReasonModal(null)}
+        title="Log Missed Habit Reason"
+        size="md"
+      >
         {reasonModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-md p-4"
-            onClick={() => setReasonModal(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md bg-surface-elevated border border-border rounded-3xl p-6 shadow-2xl space-y-5 relative overflow-hidden"
-            >
-              <div className="flex items-center justify-between border-b border-border/50 pb-3">
-                <div className="flex items-center gap-2">
-                  <Lucide.FileEdit className="text-amber-500" size={20} />
-                  <h3 className="text-base font-extrabold text-foreground">Log Missed Habit Reason</h3>
-                </div>
+          <div className="space-y-5">
+            <div className="space-y-2 bg-secondary/30 border border-border/40 p-3 rounded-2xl">
+              <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest block">Habit & Date</span>
+              <p className="text-sm font-black text-foreground">{reasonModal.habit.name}</p>
+              <p className="text-xs font-semibold text-muted-foreground">
+                Date: {format(parseISO(reasonModal.dateStr), 'EEEE, MMMM d, yyyy')}
+              </p>
+            </div>
+
+            {/* Preset Reason Chips */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-foreground block">Select Quick Preset Reason:</label>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  '⏰ High Workload / Time Constraint',
+                  '😴 Low Energy / Fatigue',
+                  '✈️ Travel / Out of Routine',
+                  '🧠 Forgot / Distracted',
+                  '🎯 Prioritized Other Goals'
+                ].map(chip => (
+                  <button
+                    key={chip}
+                    type="button"
+                    onClick={() => setPresetReason(chip)}
+                    className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all cursor-pointer ${
+                      presetReason === chip
+                        ? 'bg-amber-500/20 text-amber-500 border-amber-500/50 shadow-sm'
+                        : 'bg-secondary/40 text-muted-foreground border-border/60 hover:text-foreground'
+                    }`}
+                  >
+                    {chip}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Custom Text Area */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-foreground block">Or Write Custom Reason:</label>
+              <textarea
+                rows={3}
+                placeholder="Why was this habit missed today? Write your honest reflection..."
+                value={customReasonText}
+                onChange={e => setCustomReasonText(e.target.value)}
+                className="w-full text-xs p-3 bg-secondary/40 border border-border/80 rounded-2xl text-foreground placeholder:text-muted-foreground outline-none focus:border-amber-500 transition-all resize-none"
+              />
+            </div>
+
+            <div className="flex items-center justify-between gap-3 pt-3 border-t border-border/40">
+              <div>
+                {(reasonModal.habit.uncompletedDates?.includes(reasonModal.dateStr) || reasonModal.habit.missedReasons?.[reasonModal.dateStr]) && (
+                  <button
+                    type="button"
+                    onClick={handleClearMissedStatus}
+                    className="px-3 py-2 text-xs font-bold text-muted-foreground hover:text-rose-400 rounded-xl transition-all cursor-pointer"
+                    title="Reset uncompleted status back to neutral"
+                  >
+                    Reset Status
+                  </button>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
                 <button
+                  type="button"
                   onClick={() => setReasonModal(null)}
-                  className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary"
+                  className="px-4 py-2 text-xs font-bold text-muted-foreground hover:text-foreground rounded-xl cursor-pointer"
                 >
-                  <Lucide.X size={16} />
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveMissedReason}
+                  className="flex items-center gap-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-rose-600/20 transition-all cursor-pointer"
+                >
+                  <Lucide.BookOpen size={14} />
+                  <span>Save Reason to Journal</span>
                 </button>
               </div>
-
-              <div className="space-y-2 bg-secondary/30 border border-border/40 p-3 rounded-2xl">
-                <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest block">Habit & Date</span>
-                <p className="text-sm font-black text-foreground">{reasonModal.habit.name}</p>
-                <p className="text-xs font-semibold text-muted-foreground">
-                  Date: {format(parseISO(reasonModal.dateStr), 'EEEE, MMMM d, yyyy')}
-                </p>
-              </div>
-
-              {/* Preset Reason Chips */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-foreground block">Select Quick Preset Reason:</label>
-                <div className="flex flex-wrap gap-2">
-                  {[
-                    '⏰ High Workload / Time Constraint',
-                    '😴 Low Energy / Fatigue',
-                    '✈️ Travel / Out of Routine',
-                    '🧠 Forgot / Distracted',
-                    '🎯 Prioritized Other Goals'
-                  ].map(chip => (
-                    <button
-                      key={chip}
-                      type="button"
-                      onClick={() => setPresetReason(chip)}
-                      className={`text-xs font-bold px-3 py-1.5 rounded-xl border transition-all ${
-                        presetReason === chip
-                          ? 'bg-amber-500/20 text-amber-500 border-amber-500/50 shadow-sm'
-                          : 'bg-secondary/40 text-muted-foreground border-border/60 hover:text-foreground'
-                      }`}
-                    >
-                      {chip}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Custom Text Area */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-foreground block">Or Write Custom Reason:</label>
-                <textarea
-                  rows={3}
-                  placeholder="Why was this habit missed today? Write your honest reflection..."
-                  value={customReasonText}
-                  onChange={e => setCustomReasonText(e.target.value)}
-                  className="w-full text-xs p-3 bg-secondary/40 border border-border/80 rounded-2xl text-foreground placeholder:text-muted-foreground outline-none focus:border-amber-500 transition-all resize-none"
-                />
-              </div>
-
-              <div className="flex items-center justify-between gap-3 pt-2 border-t border-border/40">
-                <div>
-                  {(reasonModal.habit.uncompletedDates?.includes(reasonModal.dateStr) || reasonModal.habit.missedReasons?.[reasonModal.dateStr]) && (
-                    <button
-                      type="button"
-                      onClick={handleClearMissedStatus}
-                      className="px-3 py-2 text-xs font-bold text-muted-foreground hover:text-rose-400 rounded-xl transition-all"
-                      title="Reset uncompleted status back to neutral"
-                    >
-                      Reset Status
-                    </button>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setReasonModal(null)}
-                    className="px-4 py-2 text-xs font-bold text-muted-foreground hover:text-foreground rounded-xl"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSaveMissedReason}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-rose-600/20 transition-all cursor-pointer"
-                  >
-                    <Lucide.BookOpen size={14} />
-                    <span>Save Reason to Journal</span>
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         )}
-      </AnimatePresence>
+      </Modal>
     </div>
   );
 };

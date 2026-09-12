@@ -18,6 +18,7 @@ export interface Task {
   title: string;
   description?: string;
   isCompleted: boolean;
+  startDate?: string; // YYYY-MM-DD
   dueDate: string; // YYYY-MM-DD
   priority: Priority;
   categoryId?: string;
@@ -30,11 +31,15 @@ export interface Task {
   isSoftDeleted: boolean;
   status?: TaskStatus;
   matrixQuadrant?: EisenhowerQuadrant;
+  scheduledDate?: string; // YYYY-MM-DD
   scheduledTime?: string; // e.g. '14:30'
   estimatedMinutes?: number; // e.g. 60
+  estimatedHours?: number; // Integer custom hours
   spentMinutes?: number;
   assignee?: string; // e.g. 'Shadow', 'Operator'
   additionalDetails?: string; // Markdown supported with 500 lines limit
+  notifyOnStart?: boolean;
+  notifyOnEnd?: boolean;
 }
 
 
@@ -98,6 +103,8 @@ export interface Reminder {
   days: number[]; // 0 = Sunday, 1 = Monday, etc.
   isEnabled: boolean;
   type?: 'task' | 'habit';
+  reminderType?: 'task_start' | 'task_end' | 'habit' | 'general';
+  date?: string; // YYYY-MM-DD (optional exact date for task alarms)
   taskId?: string;
   habitId?: string;
   createdAt: string;

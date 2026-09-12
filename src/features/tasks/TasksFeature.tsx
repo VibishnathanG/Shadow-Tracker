@@ -13,6 +13,7 @@ import { ScheduleSelector } from '@/components/ScheduleSelector';
 import MarkdownRenderer from '@/components/MarkdownRenderer';
 import { format, addDays, parseISO } from 'date-fns';
 import type { Task, TaskStatus, EisenhowerQuadrant } from '@/types';
+import { calculateTaskExecutionTimes } from '@/lib/taskScheduling';
 import { TaskPlannerView } from './TaskPlannerView';
 import { TaskKanbanView } from './TaskKanbanView';
 import { useViewPreference } from '@/lib/viewPreferences';
@@ -75,22 +76,45 @@ export const TasksFeature: React.FC = () => {
 
   const [formTitle, setFormTitle] = useState('');
   const [formDesc, setFormDesc] = useState('');
+  const [formStartDate, setFormStartDate] = useState(getTodayDateString());
   const [formDueDate, setFormDueDate] = useState(getTodayDateString());
+  const [formScheduledDate, setFormScheduledDate] = useState('');
+  const [formScheduledTime, setFormScheduledTime] = useState('');
+  const [formEstimatedHours, setFormEstimatedHours] = useState<number | string>(1);
   const [formPriority, setFormPriority] = useState<'low' | 'medium' | 'high'>('medium');
   const [formCategoryId, setFormCategoryId] = useState('');
   const [formIsRecurring, setFormIsRecurring] = useState(false);
   const [formRecurrencePattern, setFormRecurrencePattern] = useState<'daily' | 'weekly' | 'monthly' | null>('daily');
   const [formStatus, setFormStatus] = useState<TaskStatus>('todo');
   const [formQuadrant, setFormQuadrant] = useState<EisenhowerQuadrant>('not_urgent_important');
-  const [formScheduledTime, setFormScheduledTime] = useState('');
-  const [formEstimatedMinutes, setFormEstimatedMinutes] = useState<number>(30);
   const [formAssignee, setFormAssignee] = useState(defaultAssignee);
   const [formAdditionalDetails, setFormAdditionalDetails] = useState('');
 
-  // Notification Reminder State
+  // Simple Task Notifications (Start & End)
+  const [formNotifyOnStart, setFormNotifyOnStart] = useState(false);
+  const [formNotifyOnEnd, setFormNotifyOnEnd] = useState(false);
+  const [spillError, setSpillError] = useState<string | null>(null);
+
+  // Daily Repeat Reminder State
   const [formEnableNotification, setFormEnableNotification] = useState(false);
   const [formNotifyTime, setFormNotifyTime] = useState('09:00');
   const [formNotifyDays, setFormNotifyDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
+
+  const parsedHours = useMemo(() => {
+    if (typeof formEstimatedHours === 'number') return Math.max(1, Math.round(formEstimatedHours));
+    const p = parseInt(formEstimatedHours, 10);
+    return isNaN(p) || p < 1 ? 1 : p;
+  }, [formEstimatedHours]);
+
+  const executionTimes = useMemo(() => {
+    return calculateTaskExecutionTimes({
+      startDate: formStartDate,
+      dueDate: formDueDate,
+      scheduledDate: formScheduledDate || formStartDate || formDueDate,
+      scheduledTime: formScheduledTime || '09:00',
+      estimatedHours: parsedHours,
+    });
+  }, [formStartDate, formDueDate, formScheduledDate, formScheduledTime, parsedHours]);
 
   // Keep viewingTask in sync with store tasks
   useEffect(() => {
@@ -146,23 +170,30 @@ export const TasksFeature: React.FC = () => {
   }, [updateSettings]);
 
   const openAddModal = useCallback((dueDate?: string, initialStatus?: TaskStatus, initialQuadrant?: EisenhowerQuadrant) => {
+    const today = getTodayDateString();
+    const initialDue = dueDate || today;
     setEditingTask(null);
     setFormTitle('');
     setFormDesc('');
-    setFormDueDate(dueDate || getTodayDateString());
+    setFormStartDate(today);
+    setFormDueDate(initialDue);
+    setFormScheduledDate(initialDue);
+    setFormScheduledTime('09:00');
+    setFormEstimatedHours(1);
     setFormPriority(initialQuadrant === 'urgent_important' ? 'high' : 'medium');
     setFormStatus(initialStatus || 'todo');
     setFormQuadrant(initialQuadrant || (initialStatus === 'done' ? 'not_urgent_important' : 'not_urgent_important'));
-    setFormScheduledTime('');
-    setFormEstimatedMinutes(30);
     setFormCategoryId('');
     setFormIsRecurring(false);
     setFormRecurrencePattern('daily');
     setFormAssignee(defaultAssignee);
     setFormAdditionalDetails('');
+    setFormNotifyOnStart(false);
+    setFormNotifyOnEnd(false);
     setFormEnableNotification(false);
     setFormNotifyTime('09:00');
     setFormNotifyDays([0, 1, 2, 3, 4, 5, 6]);
+    setSpillError(null);
     setIsModalOpen(true);
   }, [defaultAssignee]);
 
@@ -170,22 +201,29 @@ export const TasksFeature: React.FC = () => {
     setEditingTask(task);
     setFormTitle(task.title);
     setFormDesc(task.description || '');
+    const initialStart = task.startDate || task.scheduledDate || task.dueDate || getTodayDateString();
+    setFormStartDate(initialStart);
     setFormDueDate(task.dueDate);
+    setFormScheduledDate(task.scheduledDate || task.dueDate || '');
+    setFormScheduledTime(task.scheduledTime || '');
+    const hours = task.estimatedHours ?? (task.estimatedMinutes ? Math.max(1, Math.round(task.estimatedMinutes / 60)) : 1);
+    setFormEstimatedHours(hours);
     setFormPriority(task.priority);
     setFormStatus(task.status || (task.isCompleted ? 'done' : 'todo'));
     setFormQuadrant(
       task.matrixQuadrant || 
       (task.priority === 'high' ? 'urgent_important' : task.priority === 'medium' ? 'not_urgent_important' : 'urgent_not_important')
     );
-    setFormScheduledTime(task.scheduledTime || '');
-    setFormEstimatedMinutes(task.estimatedMinutes || 30);
     setFormCategoryId(task.categoryId || '');
     setFormIsRecurring(task.isRecurring);
     setFormRecurrencePattern(task.recurrencePattern || 'daily');
     setFormAssignee(task.assignee || defaultAssignee);
     setFormAdditionalDetails(task.additionalDetails || '');
+    setFormNotifyOnStart(Boolean(task.notifyOnStart));
+    setFormNotifyOnEnd(Boolean(task.notifyOnEnd));
+    setSpillError(null);
 
-    const existingReminder = reminders.find(r => r.taskId === task.id);
+    const existingReminder = reminders.find(r => r.taskId === task.id && r.reminderType !== 'task_start' && r.reminderType !== 'task_end');
     if (existingReminder) {
       setFormEnableNotification(existingReminder.isEnabled);
       setFormNotifyTime(existingReminder.time || '09:00');
@@ -203,6 +241,11 @@ export const TasksFeature: React.FC = () => {
     e.preventDefault();
     if (!formTitle.trim()) return;
 
+    if (executionTimes.isSpillover) {
+      setSpillError(`Cannot save: Task duration spills past Due Date into ${executionTimes.spillFormatted}. Please click "Extend Due Date" or adjust hours.`);
+      return;
+    }
+
     try {
       const lines = formAdditionalDetails.split('\n');
       const cappedDetails = lines.length > 500 ? lines.slice(0, 500).join('\n') : formAdditionalDetails;
@@ -210,18 +253,23 @@ export const TasksFeature: React.FC = () => {
       const taskPayload = {
         title: formTitle.trim(),
         description: formDesc.trim() || undefined,
+        startDate: formStartDate || undefined,
         dueDate: formDueDate,
+        scheduledDate: formScheduledDate || undefined,
+        scheduledTime: formScheduledTime.trim() || undefined,
+        estimatedHours: parsedHours,
+        estimatedMinutes: parsedHours * 60,
         priority: formPriority,
         categoryId: formCategoryId || undefined,
         isRecurring: formIsRecurring,
         recurrencePattern: formIsRecurring ? formRecurrencePattern : null,
         status: formStatus,
         matrixQuadrant: formQuadrant,
-        scheduledTime: formScheduledTime.trim() || undefined,
-        estimatedMinutes: formEstimatedMinutes > 0 ? formEstimatedMinutes : 30,
         isCompleted: formStatus === 'done',
         assignee: formAssignee.trim() || defaultAssignee,
         additionalDetails: cappedDetails.trim() ? cappedDetails : undefined,
+        notifyOnStart: formNotifyOnStart,
+        notifyOnEnd: formNotifyOnEnd,
       };
 
       let savedTaskId = editingTask?.id;
@@ -233,7 +281,7 @@ export const TasksFeature: React.FC = () => {
       }
 
       if (savedTaskId) {
-        const existing = reminders.find(r => r.taskId === savedTaskId);
+        const existing = reminders.find(r => r.taskId === savedTaskId && r.reminderType !== 'task_start' && r.reminderType !== 'task_end');
         if (formEnableNotification) {
           if (existing) {
             await updateReminder(existing.id, {
@@ -261,7 +309,7 @@ export const TasksFeature: React.FC = () => {
     } finally {
       setIsModalOpen(false);
     }
-  }, [formTitle, formDesc, formDueDate, formPriority, formCategoryId, formIsRecurring, formRecurrencePattern, formStatus, formQuadrant, formScheduledTime, formEstimatedMinutes, formAssignee, formAdditionalDetails, defaultAssignee, formEnableNotification, formNotifyTime, formNotifyDays, editingTask, updateTask, addTask, reminders, addReminder, updateReminder]);
+  }, [formTitle, formDesc, formStartDate, formDueDate, formScheduledDate, formScheduledTime, parsedHours, executionTimes, formPriority, formCategoryId, formIsRecurring, formRecurrencePattern, formStatus, formQuadrant, formAssignee, formAdditionalDetails, defaultAssignee, formNotifyOnStart, formNotifyOnEnd, formEnableNotification, formNotifyTime, formNotifyDays, editingTask, updateTask, addTask, reminders, addReminder, updateReminder]);
 
   const handleSnooze = useCallback(async (id: string, dateStr: string) => {
     const nextDate = formatDateString(addDays(parseISO(dateStr), 1));
@@ -967,100 +1015,173 @@ export const TasksFeature: React.FC = () => {
             )}
           </div>
 
+          {/* Start Date & Due Date */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Due Date</label>
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Lucide.Calendar size={13} className="text-primary" /> Start Date
+              </label>
+              <input
+                type="date"
+                required
+                value={formStartDate}
+                onChange={(e) => {
+                  setFormStartDate(e.target.value);
+                  if (!formScheduledDate) {
+                    setFormScheduledDate(e.target.value);
+                  }
+                  setSpillError(null);
+                }}
+                className="w-full text-sm px-4 py-2.5 bg-surface-elevated rounded-xl text-foreground border border-border/40 focus:border-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Lucide.CalendarCheck size={13} className="text-primary" /> Due Date
+              </label>
               <input
                 type="date"
                 required
                 value={formDueDate}
-                onChange={(e) => setFormDueDate(e.target.value)}
-                className="w-full text-sm px-4 py-3 bg-surface-elevated rounded-xl text-foreground border border-border/40 focus:border-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                onChange={(e) => {
+                  setFormDueDate(e.target.value);
+                  setSpillError(null);
+                }}
+                className="w-full text-sm px-4 py-2.5 bg-surface-elevated rounded-xl text-foreground border border-border/40 focus:border-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+              />
+            </div>
+          </div>
+
+          {/* Schedule Date & Time */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Lucide.Calendar size={13} className="text-primary" /> Schedule Date
+              </label>
+              <input
+                type="date"
+                value={formScheduledDate}
+                onChange={(e) => {
+                  setFormScheduledDate(e.target.value);
+                  setSpillError(null);
+                }}
+                className="w-full text-sm px-4 py-2.5 bg-surface-elevated rounded-xl text-foreground border border-border/40 focus:border-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
               />
             </div>
 
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Lucide.Clock size={13} className="text-primary" /> Schedule Time
+              </label>
+              <input
+                type="time"
+                value={formScheduledTime}
+                onChange={(e) => {
+                  setFormScheduledTime(e.target.value);
+                  setSpillError(null);
+                }}
+                className="w-full text-sm px-4 py-2.5 bg-surface-elevated rounded-xl text-foreground border border-border/40 focus:border-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+              />
+            </div>
+          </div>
+
+          {/* Priority & Estimated Duration (Integer Hours with hrs label and quick chips) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2 relative">
               <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Priority</label>
               <select 
                 value={formPriority}
                 onChange={(e) => setFormPriority(e.target.value as 'low' | 'medium' | 'high')}
-                className="w-full text-sm pl-4 pr-9 py-3 bg-secondary rounded-xl text-foreground font-semibold border border-border/60 focus:border-primary outline-none appearance-none cursor-pointer"
+                className="w-full text-sm pl-4 pr-9 py-2.5 bg-secondary rounded-xl text-foreground font-semibold border border-border/60 focus:border-primary outline-none appearance-none cursor-pointer"
               >
                 <option value="low">Low Priority</option>
                 <option value="medium">Medium Priority</option>
                 <option value="high">High Priority</option>
               </select>
-              <Lucide.ChevronDown className="absolute right-3.5 top-[35px] text-muted-foreground pointer-events-none" size={15} />
-            </div>
-          </div>
-
-          {/* Kanban Status & Eisenhower Quadrant */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2 relative">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Kanban Status</label>
-              <select
-                value={formStatus}
-                onChange={(e) => setFormStatus(e.target.value as TaskStatus)}
-                className="w-full text-sm pl-4 pr-9 py-3 bg-secondary rounded-xl text-foreground font-semibold border border-border/60 focus:border-primary outline-none appearance-none cursor-pointer"
-              >
-                <option value="todo">📌 To Do</option>
-                <option value="in_progress">⚡ In Progress</option>
-                <option value="done">✅ Done</option>
-              </select>
-              <Lucide.ChevronDown className="absolute right-3.5 top-[35px] text-muted-foreground pointer-events-none" size={15} />
+              <Lucide.ChevronDown className="absolute right-3.5 top-[34px] text-muted-foreground pointer-events-none" size={15} />
             </div>
 
-            <div className="space-y-2 relative">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Eisenhower Matrix</label>
-              <select
-                value={formQuadrant}
-                onChange={(e) => setFormQuadrant(e.target.value as EisenhowerQuadrant)}
-                className="w-full text-sm pl-4 pr-9 py-3 bg-secondary rounded-xl text-foreground font-semibold border border-border/60 focus:border-primary outline-none appearance-none cursor-pointer"
-              >
-                <option value="urgent_important">🔴 Q1: Do First</option>
-                <option value="not_urgent_important">🔵 Q2: Schedule</option>
-                <option value="urgent_not_important">🟡 Q3: Delegate / Quick</option>
-                <option value="neither">⚪ Q4: Eliminate / Backlog</option>
-              </select>
-              <Lucide.ChevronDown className="absolute right-3.5 top-[35px] text-muted-foreground pointer-events-none" size={15} />
-            </div>
-          </div>
-
-          {/* Planner Fields: Scheduled Time & Estimated Duration */}
-          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <Lucide.Clock size={13} className="text-primary" /> Scheduled Time (Optional)
-              </label>
-              <input
-                type="time"
-                value={formScheduledTime}
-                onChange={(e) => setFormScheduledTime(e.target.value)}
-                className="w-full text-sm px-4 py-2.5 bg-surface-elevated rounded-xl text-foreground border border-border/40 focus:border-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
-              />
-            </div>
-
-            <div className="space-y-2 relative">
               <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <Lucide.Timer size={13} className="text-primary" /> Estimated Duration
               </label>
-              <select
-                value={formEstimatedMinutes}
-                onChange={(e) => setFormEstimatedMinutes(Number(e.target.value))}
-                className="w-full text-sm pl-4 pr-9 py-2.5 bg-surface-elevated rounded-xl text-foreground font-bold border border-border/40 focus:border-primary outline-none appearance-none cursor-pointer"
-              >
-                <option value={15}>15 Minutes</option>
-                <option value={30}>30 Minutes</option>
-                <option value={45}>45 Minutes</option>
-                <option value={60}>1 Hour</option>
-                <option value={90}>1.5 Hours</option>
-                <option value={120}>2 Hours</option>
-                <option value={180}>3 Hours</option>
-                <option value={240}>4 Hours</option>
-              </select>
-              <Lucide.ChevronDown className="absolute right-3.5 top-[34px] text-muted-foreground pointer-events-none" size={15} />
+              <div className="relative flex items-center">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={formEstimatedHours}
+                  onChange={(e) => {
+                    const raw = e.target.value.replace(/[^0-9]/g, '');
+                    setFormEstimatedHours(raw === '' ? '' : parseInt(raw, 10));
+                    setSpillError(null);
+                  }}
+                  placeholder="1"
+                  className="w-full text-sm font-bold pl-4 pr-12 py-2.5 bg-surface-elevated rounded-xl text-foreground border border-border/40 focus:border-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                />
+                <span className="absolute right-4 text-xs font-black uppercase text-muted-foreground tracking-wider pointer-events-none">
+                  hrs
+                </span>
+              </div>
+
+              {/* Preconfigured Values Chips */}
+              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                {[1, 2, 3, 4, 6, 8, 12].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => {
+                      setFormEstimatedHours(preset);
+                      setSpillError(null);
+                    }}
+                    className={`px-2 py-0.5 text-[11px] font-bold rounded-lg transition-all cursor-pointer border ${
+                      parsedHours === preset && formEstimatedHours !== ''
+                        ? 'bg-primary text-primary-foreground border-primary shadow-xs'
+                        : 'bg-surface-elevated hover:bg-secondary text-muted-foreground hover:text-foreground border-border/40'
+                    }`}
+                  >
+                    {preset} {preset === 1 ? 'hr' : 'hrs'}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
+
+          {/* Spillover Warning Banner */}
+          {executionTimes.isSpillover && (
+            <div className="p-3.5 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs space-y-2.5 animate-fadeIn">
+              <div className="flex items-start gap-2.5">
+                <Lucide.AlertTriangle size={18} className="text-amber-400 shrink-0 mt-0.5" />
+                <div className="min-w-0 flex-1">
+                  <span className="font-bold block text-amber-200">Estimated Completion Exceeds Due Date Limit</span>
+                  <span className="text-[11px] text-amber-300/80 leading-relaxed block mt-0.5">
+                    Starting on {executionTimes.startDateStr} at {executionTimes.startTimeStr} + {parsedHours} hrs finishes on <strong className="text-amber-200">{executionTimes.spillFormatted}</strong>, which spills past the Due Date ({formDueDate}).
+                  </span>
+                </div>
+              </div>
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFormDueDate(executionTimes.spillDate);
+                    setSpillError(null);
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-xs transition-all shadow-sm cursor-pointer flex items-center gap-1.5"
+                >
+                  <Lucide.CalendarPlus size={14} />
+                  <span>Extend Due Date to {executionTimes.spillDate}</span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {spillError && (
+            <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2 animate-fadeIn">
+              <Lucide.AlertCircle size={16} className="text-rose-400 shrink-0" />
+              <span>{spillError}</span>
+            </div>
+          )}
 
           <div className="space-y-2 relative">
             <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Category</label>
@@ -1151,35 +1272,92 @@ export const TasksFeature: React.FC = () => {
             )}
           </div>
 
-          <div className="border-t border-border/40 pt-5 space-y-4">
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <input
-                type="checkbox"
-                checked={formEnableNotification}
-                onChange={(e) => setFormEnableNotification(e.target.checked)}
-                className="w-5 h-5 rounded text-primary focus:ring-primary bg-surface-elevated border-border/60 cursor-pointer"
-              />
-              <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
-                <Lucide.Bell size={16} className="text-primary" />
-                Enable Task Notification Alert
+          {/* Simple Task Notifications (Start & End) */}
+          <div className="border-t border-border/40 pt-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Lucide.Bell size={14} className="text-primary" /> Task Notifications
+              </label>
+              <span className="text-[10px] text-muted-foreground font-mono">
+                Auto-syncs on timing &amp; date updates
               </span>
-            </label>
+            </div>
 
-            {formEnableNotification && (
-              <div className="space-y-4 animate-fadeIn p-4 bg-secondary/30 rounded-2xl border border-border/40">
-                <NiceTimePicker
-                  value={formNotifyTime}
-                  onChange={setFormNotifyTime}
-                  label="Notification Time"
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
+                formNotifyOnStart 
+                  ? 'bg-primary/15 border-primary text-foreground' 
+                  : 'bg-surface-elevated/60 border-border/40 text-muted-foreground hover:text-foreground'
+              }`}>
+                <input
+                  type="checkbox"
+                  checked={formNotifyOnStart}
+                  onChange={(e) => setFormNotifyOnStart(e.target.checked)}
+                  className="w-4 h-4 mt-0.5 rounded text-primary focus:ring-primary bg-surface-elevated border-border/60 cursor-pointer"
                 />
+                <div className="min-w-0 flex-1">
+                  <span className="text-xs font-bold block text-foreground">
+                    🚀 Notify on Task Start
+                  </span>
+                  <span className="text-[11px] text-muted-foreground block mt-0.5 font-mono">
+                    {executionTimes.startDateStr} at {executionTimes.startTimeStr}
+                  </span>
+                </div>
+              </label>
 
-                <ScheduleSelector
-                  selectedDays={formNotifyDays}
-                  onChange={setFormNotifyDays}
-                  label="Notification Repeat Schedule"
+              <label className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
+                formNotifyOnEnd 
+                  ? 'bg-primary/15 border-primary text-foreground' 
+                  : 'bg-surface-elevated/60 border-border/40 text-muted-foreground hover:text-foreground'
+              }`}>
+                <input
+                  type="checkbox"
+                  checked={formNotifyOnEnd}
+                  onChange={(e) => setFormNotifyOnEnd(e.target.checked)}
+                  className="w-4 h-4 mt-0.5 rounded text-primary focus:ring-primary bg-surface-elevated border-border/60 cursor-pointer"
                 />
-              </div>
-            )}
+                <div className="min-w-0 flex-1">
+                  <span className="text-xs font-bold block text-foreground">
+                    🏁 Notify on Task End
+                  </span>
+                  <span className="text-[11px] text-muted-foreground block mt-0.5 font-mono">
+                    {executionTimes.endDateStr} at {executionTimes.endTimeStr}
+                  </span>
+                </div>
+              </label>
+            </div>
+
+            {/* Optional Daily Repeat Reminder */}
+            <div className="pt-2">
+              <label className="flex items-center gap-2 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={formEnableNotification}
+                  onChange={(e) => setFormEnableNotification(e.target.checked)}
+                  className="w-4 h-4 rounded text-primary focus:ring-primary bg-surface-elevated border-border/60 cursor-pointer"
+                />
+                <span className="text-xs font-semibold text-muted-foreground group-hover:text-foreground transition-colors flex items-center gap-1.5">
+                  <Lucide.Repeat size={12} />
+                  Add Recurring Daily Alarm Reminder
+                </span>
+              </label>
+
+              {formEnableNotification && (
+                <div className="space-y-4 animate-fadeIn p-4 mt-2 bg-secondary/30 rounded-2xl border border-border/40">
+                  <NiceTimePicker
+                    value={formNotifyTime}
+                    onChange={setFormNotifyTime}
+                    label="Notification Time"
+                  />
+
+                  <ScheduleSelector
+                    selectedDays={formNotifyDays}
+                    onChange={setFormNotifyDays}
+                    label="Notification Repeat Schedule"
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex justify-end gap-3.5 border-t border-border/40 pt-5 mt-6">
@@ -1426,16 +1604,44 @@ export const TasksFeature: React.FC = () => {
                     {viewingTask.priority} Priority
                   </span>
 
-                  {/* 5. Due Date */}
+                  {/* Start Date */}
+                  {viewingTask.startDate && (
+                    <span className="text-xs font-bold text-muted-foreground flex items-center gap-1.5 bg-secondary px-2.5 py-1 rounded-lg border border-border/40">
+                      <Lucide.Calendar size={13} className="text-emerald-400" />
+                      <span>Start: {format(new Date(viewingTask.startDate), 'MMM dd, yyyy')}</span>
+                    </span>
+                  )}
+
+                  {/* Due Date */}
                   <span className="text-xs font-bold text-muted-foreground flex items-center gap-1.5 bg-secondary px-2.5 py-1 rounded-lg border border-border/40">
-                    <Lucide.Calendar size={13} className="text-primary/80" />
+                    <Lucide.CalendarCheck size={13} className="text-primary/80" />
                     <span>Due: {format(new Date(viewingTask.dueDate), 'MMM dd, yyyy')}</span>
                   </span>
 
-                  {viewingTask.scheduledTime && (
+                  {/* Schedule Date & Time + Estimated Duration */}
+                  {(viewingTask.scheduledDate || viewingTask.scheduledTime || viewingTask.estimatedHours || viewingTask.estimatedMinutes) && (
                     <span className="text-xs font-bold text-muted-foreground flex items-center gap-1.5 bg-secondary px-2.5 py-1 rounded-lg border border-border/40">
                       <Lucide.Clock size={13} className="text-sky-400" />
-                      <span>{viewingTask.scheduledTime} ({viewingTask.estimatedMinutes || 30}m)</span>
+                      <span>
+                        {viewingTask.scheduledDate ? format(new Date(viewingTask.scheduledDate), 'MMM dd') + ' ' : ''}
+                        {viewingTask.scheduledTime || '09:00'} ({viewingTask.estimatedHours || Math.round((viewingTask.estimatedMinutes || 60) / 60)}h)
+                      </span>
+                    </span>
+                  )}
+
+                  {/* Start Notification Status */}
+                  {viewingTask.notifyOnStart && (
+                    <span className="text-xs font-bold text-sky-400 bg-sky-500/10 border border-sky-500/20 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+                      <Lucide.Bell size={12} />
+                      <span>Start Alert</span>
+                    </span>
+                  )}
+
+                  {/* End Notification Status */}
+                  {viewingTask.notifyOnEnd && (
+                    <span className="text-xs font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+                      <Lucide.Bell size={12} />
+                      <span>End Alert</span>
                     </span>
                   )}
 

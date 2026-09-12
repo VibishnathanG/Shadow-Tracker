@@ -53,7 +53,9 @@ export default function TodoFeature() {
   const [formCustomCategory, setFormCustomCategory] = useState('');
   const [formDueDate, setFormDueDate] = useState('');
   const [formDueTime, setFormDueTime] = useState('');
+  const [formEnableReminder, setFormEnableReminder] = useState(false);
   const [formReminderTime, setFormReminderTime] = useState('');
+  const [customReminderExpanded, setCustomReminderExpanded] = useState(false);
   const [formIsRecurring, setFormIsRecurring] = useState(false);
   const [formRecurrencePattern, setFormRecurrencePattern] = useState<'daily' | 'weekly' | 'monthly' | 'custom'>('daily');
   const [formCustomDays, setFormCustomDays] = useState<number[]>([1, 2, 3, 4, 5]);
@@ -127,7 +129,9 @@ export default function TodoFeature() {
     setFormCustomCategory('');
     setFormDueDate('');
     setFormDueTime('');
+    setFormEnableReminder(false);
     setFormReminderTime('');
+    setCustomReminderExpanded(false);
     setFormIsRecurring(false);
     setFormRecurrencePattern('daily');
     setFormCustomDays([1, 2, 3, 4, 5]);
@@ -152,7 +156,10 @@ export default function TodoFeature() {
 
     setFormDueDate(todo.dueDate || '');
     setFormDueTime(todo.dueTime || '');
+    const hasReminder = Boolean(todo.reminderTime);
+    setFormEnableReminder(hasReminder);
     setFormReminderTime(todo.reminderTime || '');
+    setCustomReminderExpanded(hasReminder);
     setFormIsRecurring(Boolean(todo.isRecurring));
     setFormRecurrencePattern(todo.recurrencePattern || 'daily');
     setFormCustomDays(todo.customDays || [1, 2, 3, 4, 5]);
@@ -186,6 +193,7 @@ export default function TodoFeature() {
 
     const finalCategory = formCategory === 'Custom' ? (formCustomCategory.trim() || 'General') : formCategory;
     const nowStr = new Date().toISOString();
+    const effectiveReminderTime = formEnableReminder && formReminderTime ? formReminderTime : undefined;
 
     if (editingTodo) {
       // Edit Existing ToDo
@@ -198,7 +206,7 @@ export default function TodoFeature() {
         category: finalCategory,
         dueDate: formDueDate || undefined,
         dueTime: formDueTime || undefined,
-        reminderTime: formReminderTime || undefined,
+        reminderTime: effectiveReminderTime,
         isRecurring: formIsRecurring,
         recurrencePattern: formIsRecurring ? formRecurrencePattern : undefined,
         customDays: formIsRecurring && formRecurrencePattern === 'custom' ? formCustomDays : undefined,
@@ -206,11 +214,11 @@ export default function TodoFeature() {
         updatedAt: nowStr,
       };
 
-      if (formReminderTime !== editingTodo.reminderTime) {
+      if (effectiveReminderTime !== editingTodo.reminderTime) {
         if (editingTodo.reminderNotificationId) {
           await cancelTodoNotification(editingTodo.reminderNotificationId);
         }
-        if (formReminderTime) {
+        if (effectiveReminderTime) {
           updatedNotifId = await scheduleTodoNotification(updatedTodo);
           updatedTodo.reminderNotificationId = updatedNotifId;
         } else {
@@ -232,7 +240,7 @@ export default function TodoFeature() {
         category: finalCategory,
         dueDate: formDueDate || undefined,
         dueTime: formDueTime || undefined,
-        reminderTime: formReminderTime || undefined,
+        reminderTime: effectiveReminderTime,
         isRecurring: formIsRecurring,
         recurrencePattern: formIsRecurring ? formRecurrencePattern : undefined,
         customDays: formIsRecurring && formRecurrencePattern === 'custom' ? formCustomDays : undefined,
@@ -241,7 +249,7 @@ export default function TodoFeature() {
         updatedAt: nowStr,
       };
 
-      if (formReminderTime) {
+      if (effectiveReminderTime) {
         const notifId = await scheduleTodoNotification(newTodo);
         newTodo.reminderNotificationId = notifId;
       }
@@ -1315,21 +1323,168 @@ export default function TodoFeature() {
                   />
                 </div>
 
-                {/* Reminder Alarm DateTime */}
-                <div className="space-y-1.5 bg-emerald-950/20 border border-emerald-500/30 p-3.5 rounded-2xl">
-                  <label className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-                    <Lucide.Bell size={14} />
-                    <span>Notification Alarm Time</span>
+                {/* Reminder Notification Alert */}
+                <div className="space-y-3 pt-2 border-t border-border/40">
+                  <label className="flex items-center gap-3 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      checked={formEnableReminder}
+                      onChange={e => {
+                        const checked = e.target.checked;
+                        setFormEnableReminder(checked);
+                        if (checked) {
+                          if (formDueDate) {
+                            setFormReminderTime(`${formDueDate}T${formDueTime || '09:00'}`);
+                          } else {
+                            setFormReminderTime(`${getTodayDateString()}T09:00`);
+                          }
+                        } else {
+                          setFormReminderTime('');
+                        }
+                      }}
+                      className="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-500 bg-secondary border-border cursor-pointer"
+                    />
+                    <span className="text-xs font-bold text-foreground group-hover:text-emerald-400 transition-colors flex items-center gap-1.5">
+                      <Lucide.Bell size={14} className="text-emerald-400" />
+                      Enable Notification Alert
+                    </span>
                   </label>
-                  <input
-                    type="datetime-local"
-                    value={formReminderTime}
-                    onChange={e => setFormReminderTime(e.target.value)}
-                    className="w-full text-sm px-4 py-2.5 bg-secondary rounded-xl text-foreground border border-border focus:border-emerald-500 outline-none"
-                  />
-                  <p className="text-[11px] text-muted-foreground leading-relaxed mt-1">
-                    Schedules a dedicated local alarm notification for this ToDo item.
-                  </p>
+
+                  {formEnableReminder && (
+                    <div className="space-y-3 animate-fadeIn bg-emerald-950/20 border border-emerald-500/30 p-3.5 rounded-2xl">
+                      {/* Derived from Due Date if set */}
+                      {formDueDate ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                              <Lucide.CalendarCheck size={13} />
+                              Derived Notification from Due Date
+                            </span>
+                            <span className="text-[10px] text-muted-foreground font-mono">
+                              Due: {formDueDate} {formDueTime || '(No time set)'}
+                            </span>
+                          </div>
+
+                          <div className="flex flex-wrap gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => setFormReminderTime(`${formDueDate}T${formDueTime || '09:00'}`)}
+                              className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                                formReminderTime === `${formDueDate}T${formDueTime || '09:00'}`
+                                  ? 'bg-emerald-500 text-black border-emerald-400 shadow-xs'
+                                  : 'bg-secondary/60 text-muted-foreground hover:text-foreground border-border/50'
+                              }`}
+                            >
+                              🔔 At Due Time ({formDueTime || '09:00'})
+                            </button>
+
+                            {formDueTime && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const [h, m] = formDueTime.split(':').map(Number);
+                                  const totalM = h * 60 + m - 60;
+                                  const prevH = Math.max(0, Math.floor(totalM / 60));
+                                  const prevM = Math.max(0, totalM % 60);
+                                  const timeStr = `${String(prevH).padStart(2, '0')}:${String(prevM).padStart(2, '0')}`;
+                                  setFormReminderTime(`${formDueDate}T${timeStr}`);
+                                }}
+                                className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                                  formReminderTime.startsWith(formDueDate) && formReminderTime !== `${formDueDate}T${formDueTime}` && formReminderTime !== `${formDueDate}T09:00`
+                                    ? 'bg-emerald-500 text-black border-emerald-400 shadow-xs'
+                                    : 'bg-secondary/60 text-muted-foreground hover:text-foreground border-border/50'
+                                }`}
+                              >
+                                ⏱️ 1 Hour Before
+                              </button>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => setFormReminderTime(`${formDueDate}T09:00`)}
+                              className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                                formReminderTime === `${formDueDate}T09:00`
+                                  ? 'bg-emerald-500 text-black border-emerald-400 shadow-xs'
+                                  : 'bg-secondary/60 text-muted-foreground hover:text-foreground border-border/50'
+                              }`}
+                            >
+                              🌅 Morning of Due Date (09:00)
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        /* Preconfigured daily reminders if no Due Date given */
+                        <div className="space-y-2">
+                          <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                            <Lucide.Clock size={13} />
+                            Preconfigured Reminder Options
+                          </span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {[
+                              { label: '🌅 Morning (09:00)', time: '09:00', daysAhead: 0 },
+                              { label: '☀️ Afternoon (14:00)', time: '14:00', daysAhead: 0 },
+                              { label: '🌙 Evening (20:00)', time: '20:00', daysAhead: 0 },
+                              { label: '⏭️ Tomorrow 09:00', time: '09:00', daysAhead: 1 },
+                            ].map(preset => {
+                              const targetDate = preset.daysAhead === 0 
+                                ? getTodayDateString() 
+                                : formatDateString(addDays(parseISO(getTodayDateString()), 1));
+                              const targetIso = `${targetDate}T${preset.time}`;
+                              const isSelected = formReminderTime === targetIso;
+                              return (
+                                <button
+                                  key={preset.label}
+                                  type="button"
+                                  onClick={() => setFormReminderTime(targetIso)}
+                                  className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                                    isSelected
+                                      ? 'bg-emerald-500 text-black border-emerald-400 shadow-xs'
+                                      : 'bg-secondary/60 text-muted-foreground hover:text-foreground border-border/50'
+                                  }`}
+                                >
+                                  {preset.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Expandable Custom Datetime Picker */}
+                      <div className="pt-2 border-t border-emerald-500/20 space-y-2">
+                        <button
+                          type="button"
+                          onClick={() => setCustomReminderExpanded(prev => !prev)}
+                          className="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1 cursor-pointer"
+                        >
+                          <span>{customReminderExpanded ? 'Hide Custom Alert Picker' : 'Set Custom Date & Time'}</span>
+                          <Lucide.ChevronDown size={13} className={`transition-transform duration-200 ${customReminderExpanded ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {customReminderExpanded && (
+                          <div className="animate-fadeIn space-y-1 pt-1">
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                              Custom Alert Datetime
+                            </label>
+                            <input
+                              type="datetime-local"
+                              value={formReminderTime}
+                              onChange={e => setFormReminderTime(e.target.value)}
+                              className="w-full text-xs px-3 py-2 bg-secondary rounded-xl text-foreground border border-border focus:border-emerald-500 outline-none"
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Active Alert Preview */}
+                      {formReminderTime && (
+                        <div className="text-[11px] font-mono text-emerald-300 bg-emerald-950/40 px-3 py-1.5 rounded-xl border border-emerald-500/20 flex items-center gap-1.5">
+                          <Lucide.BellRing size={12} className="shrink-0" />
+                          <span>Alert set for: <strong>{formReminderTime.replace('T', ' ')}</strong></span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Recurrence Schedule Selector */}
