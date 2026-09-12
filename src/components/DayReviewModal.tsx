@@ -11,12 +11,14 @@ interface DayReviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   mode: 'morning' | 'evening';
+  onJumpToTask?: (taskId: string) => void;
 }
 
 export const DayReviewModal: React.FC<DayReviewModalProps> = ({
   isOpen,
   onClose,
   mode,
+  onJumpToTask,
 }) => {
   const {
     tasks,
@@ -215,21 +217,55 @@ export const DayReviewModal: React.FC<DayReviewModalProps> = ({
                           <div
                             key={t.id}
                             onClick={() => {
-                              setSelectedMitIds(prev =>
-                                isSelected ? prev.filter(id => id !== t.id) : prev.length < 3 ? [...prev, t.id] : prev
-                              );
+                              if (isSelected) {
+                                if (onJumpToTask) {
+                                  onClose();
+                                  onJumpToTask(t.id);
+                                }
+                              } else {
+                                setSelectedMitIds(prev =>
+                                  prev.length < 3 ? [...prev, t.id] : prev
+                                );
+                              }
                             }}
                             className={`p-3 rounded-xl border text-xs flex items-center justify-between cursor-pointer transition-all ${
                               isSelected
-                                ? 'bg-amber-500/15 border-amber-500/50 text-foreground font-bold'
+                                ? 'bg-amber-500/15 border-amber-500/50 text-foreground font-bold hover:bg-amber-500/25'
                                 : 'bg-secondary/40 border-border/60 text-muted-foreground hover:bg-secondary'
                             }`}
                           >
-                            <span className="truncate">{t.title}</span>
+                            <span className="truncate flex-1 pr-2">{t.title}</span>
                             {isSelected && (
-                              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-amber-500 text-white">
-                                MIT #{selectedMitIds.indexOf(t.id) + 1}
-                              </span>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <span
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (onJumpToTask) {
+                                      onClose();
+                                      onJumpToTask(t.id);
+                                    }
+                                  }}
+                                  className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 hover:bg-amber-500 hover:text-white border border-amber-500/40 flex items-center gap-1 transition-all"
+                                  title="Jump to this task in Tasks Workspace"
+                                >
+                                  <Lucide.ExternalLink size={10} />
+                                  <span>Jump to Task</span>
+                                </span>
+                                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-amber-500 text-white">
+                                  MIT #{selectedMitIds.indexOf(t.id) + 1}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedMitIds(prev => prev.filter(id => id !== t.id));
+                                  }}
+                                  className="p-1 rounded-md text-muted-foreground hover:text-red-400 hover:bg-secondary transition-all"
+                                  title="Unselect MIT"
+                                >
+                                  <Lucide.X size={12} />
+                                </button>
+                              </div>
                             )}
                           </div>
                         );

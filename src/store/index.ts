@@ -223,6 +223,8 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
         lowGpuMode: isMobileDevice(),
         minimizeToTray: true,
         habitGracePeriodDays: 3,
+        taskAssignees: ['Shadow', 'Core Lead', 'Operator'],
+        defaultAssignee: 'Shadow',
       };
       settingsStorage.set(defaultSettings);
 
@@ -403,6 +405,8 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
           createdAt: nowStr,
           updatedAt: nowStr,
           isSoftDeleted: false,
+          assignee: task.assignee,
+          additionalDetails: task.additionalDetails,
         };
         
         await dbService.put(STORES.TASKS, nextTask);

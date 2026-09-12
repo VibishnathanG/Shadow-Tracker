@@ -194,11 +194,11 @@ Every release binary in the `release/` directory is standardized, compiled, cryp
 
 | Artifact Name | Target Platform | Package Type | Size | SHA256 Checksum | Reference Note |
 |---|---|---|---|---|---|
-| `Shadow-Tracker-Setup.exe` | Windows 10/11 (x64) | NSIS Executable Installer | 14.0 MB | `a7e58fe38e277e5effc617dbdc0e64d70666582db1e34f3e51e93a3a02885cc7` | |
-| `Shadow-Tracker-Portable.exe` | Windows 10/11 (x64) | Single Portable Executable | 30.6 MB | `a4588845bb6f33b34e55d6bd57f6a5fc293169cadda802fb7d34d7b275538f3f` | |
-| `Shadow-Tracker-Release.apk` | Android 8.0+ (ARM64/x86) | Signed Mobile APK | 13.5 MB | `890ce41280feddb3f4900d295d84fea7ae1e3a04511dc741bc2068f564479f9f` | |
-| `shadow-tracker-container.tar.gz` | Linux (x86_64 Docker) | Docker Image Tarball | 36.9 MB | `33f97beb9b108d171865e0bac94a6aa6fa17ad4f9cf58bd8cea1d63251ae7294` | |
-| `shadow-tracker-web-export.tar.gz` | Any Static Web Host | Static HTML5/JS/CSS Bundle | 9.6 MB | `32a50a18b6f135ad8fa54573c92994ced2e771c3936d5d701fdfa2d9e7d7515e` | |
+| `Shadow-Tracker-Setup.exe` | Windows 10/11 (x64) | NSIS Executable Installer | 14.0 MB | `81f6571c1c247202086c6f645218f2c286f8bb599204967d660204f7d3b82821` | |
+| `Shadow-Tracker-Portable.exe` | Windows 10/11 (x64) | Single Portable Executable | 30.6 MB | `e0c3c41325d1093ea435c89056e10e35c057dcc70f0c229cbd7744b47f94344b` | |
+| `Shadow-Tracker-Release.apk` | Android 8.0+ (ARM64/x86) | Signed Mobile APK | 13.5 MB | `a49fc87eaa51981ba6b152a5a1ff7720f0e86fe11981b9c1d734810bedf66a59` | |
+| `shadow-tracker-container.tar.gz` | Linux (x86_64 Docker) | Docker Image Tarball | 36.9 MB | `a003f2f88d26e8aed096ea12e7eb621792cb15de034d4afc778298b2e51e5de9` | |
+| `shadow-tracker-web-export.tar.gz` | Any Static Web Host | Static HTML5/JS/CSS Bundle | 9.6 MB | `8511030188b439b44b06f5fe63e24ec0650bfe1d7978ed78323a3d303a0866b3` | |
 | `Shadow-Tracker-Windows-Certificate.crt` | Windows OS | Trusted Root Signing Cert | 1.3 KB | `aabc149abd60a904878ebfc939611500ed636d22b61157cd891c3c2937ba4c98` | |
 
 ### Integrity-Verification

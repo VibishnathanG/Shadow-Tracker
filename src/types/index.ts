@@ -33,6 +33,8 @@ export interface Task {
   scheduledTime?: string; // e.g. '14:30'
   estimatedMinutes?: number; // e.g. 60
   spentMinutes?: number;
+  assignee?: string; // e.g. 'Shadow', 'Operator'
+  additionalDetails?: string; // Markdown supported with 500 lines limit
 }
 
 
@@ -135,6 +137,8 @@ export interface Settings {
   lowGpuMode?: boolean;
   minimizeToTray?: boolean;
   habitGracePeriodDays?: number;
+  taskAssignees?: string[];
+  defaultAssignee?: string;
 }
 
 export interface BackupData {

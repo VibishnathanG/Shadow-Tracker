@@ -576,6 +576,8 @@ const DEFAULT_SETTINGS: Settings = {
   minimizeToTray: true,
   habitGracePeriodDays: 3,
   alias: 'Shadow',
+  taskAssignees: ['Shadow', 'Core Lead', 'Operator'],
+  defaultAssignee: 'Shadow',
 };
 
 export const settingsStorage = {
@@ -599,6 +601,8 @@ export const settingsStorage = {
           alias: finalAlias,
           ecoMode: finalEco,
           lowGpuMode: typeof parsed.lowGpuMode === 'boolean' ? parsed.lowGpuMode : finalEco,
+          taskAssignees: Array.isArray(parsed.taskAssignees) && parsed.taskAssignees.length > 0 ? parsed.taskAssignees : DEFAULT_SETTINGS.taskAssignees,
+          defaultAssignee: parsed.defaultAssignee || DEFAULT_SETTINGS.defaultAssignee,
         };
       } else {
         return {
@@ -606,6 +610,8 @@ export const settingsStorage = {
           alias: 'Shadow',
           ecoMode: isMobile,
           lowGpuMode: isMobile,
+          taskAssignees: DEFAULT_SETTINGS.taskAssignees,
+          defaultAssignee: DEFAULT_SETTINGS.defaultAssignee,
         };
       }
     } catch (e) {

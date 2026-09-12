@@ -653,6 +653,13 @@ export const Layout: React.FC<LayoutProps> = ({
         isOpen={dayReviewModal !== null}
         mode={dayReviewModal || 'morning'}
         onClose={() => setDayReviewModal(null)}
+        onJumpToTask={(taskId) => {
+          setDayReviewModal(null);
+          setActiveTab('tasks');
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('openTaskDetail', { detail: { taskId } }));
+          }, 50);
+        }}
       />
     </div>
   );

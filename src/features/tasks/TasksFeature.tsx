@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import { fireConfetti } from '@/lib/confetti';
@@ -10,6 +10,7 @@ import EmptyState from '@/components/EmptyState';
 import Modal from '@/components/Modal';
 import { NiceTimePicker } from '@/components/NiceTimePicker';
 import { ScheduleSelector } from '@/components/ScheduleSelector';
+import MarkdownRenderer from '@/components/MarkdownRenderer';
 import { format, addDays, parseISO } from 'date-fns';
 import type { Task, TaskStatus, EisenhowerQuadrant } from '@/types';
 import { TaskPlannerView } from './TaskPlannerView';
@@ -21,12 +22,14 @@ export const TasksFeature: React.FC = () => {
     tasks,
     categories,
     reminders,
+    settings,
     addTask,
     updateTask,
     toggleTaskCompletion,
     deleteTask,
     addReminder,
     updateReminder,
+    updateSettings,
   } = useShadowTrackerStore();
 
   // Top Workspace Switcher: 'list' vs 'planner' vs 'kanban' (Persisted)
@@ -57,6 +60,19 @@ export const TasksFeature: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
+  // Assignees & Default Setup
+  const assignees = useMemo(() => {
+    return settings?.taskAssignees && settings.taskAssignees.length > 0
+      ? settings.taskAssignees
+      : ['Shadow', 'Core Lead', 'Operator'];
+  }, [settings?.taskAssignees]);
+
+  const defaultAssignee = settings?.defaultAssignee || 'Shadow';
+
+  const [isAssigneeModalOpen, setIsAssigneeModalOpen] = useState(false);
+  const [newAssigneeName, setNewAssigneeName] = useState('');
+  const [viewingTask, setViewingTask] = useState<Task | null>(null);
+
   const [formTitle, setFormTitle] = useState('');
   const [formDesc, setFormDesc] = useState('');
   const [formDueDate, setFormDueDate] = useState(getTodayDateString());
@@ -68,11 +84,66 @@ export const TasksFeature: React.FC = () => {
   const [formQuadrant, setFormQuadrant] = useState<EisenhowerQuadrant>('not_urgent_important');
   const [formScheduledTime, setFormScheduledTime] = useState('');
   const [formEstimatedMinutes, setFormEstimatedMinutes] = useState<number>(30);
+  const [formAssignee, setFormAssignee] = useState(defaultAssignee);
+  const [formAdditionalDetails, setFormAdditionalDetails] = useState('');
 
   // Notification Reminder State
   const [formEnableNotification, setFormEnableNotification] = useState(false);
   const [formNotifyTime, setFormNotifyTime] = useState('09:00');
   const [formNotifyDays, setFormNotifyDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
+
+  // Keep viewingTask in sync with store tasks
+  useEffect(() => {
+    if (viewingTask) {
+      const fresh = tasks.find(t => t.id === viewingTask.id);
+      if (fresh) {
+        setViewingTask(fresh);
+      } else {
+        setViewingTask(null);
+      }
+    }
+  }, [tasks]);
+
+  // Jump to task listener from Morning/Evening review
+  useEffect(() => {
+    const handleJump = (e: any) => {
+      const taskId = e.detail?.taskId;
+      if (taskId) {
+        const found = tasks.find(t => t.id === taskId);
+        if (found) {
+          setViewingTask(found);
+        }
+      }
+    };
+    window.addEventListener('openTaskDetail' as any, handleJump);
+    return () => window.removeEventListener('openTaskDetail' as any, handleJump);
+  }, [tasks]);
+
+  const handleAddAssignee = useCallback(() => {
+    const trimmed = newAssigneeName.trim();
+    if (!trimmed) return;
+    if (assignees.includes(trimmed)) {
+      setNewAssigneeName('');
+      return;
+    }
+    const updated = [...assignees, trimmed];
+    updateSettings({ taskAssignees: updated });
+    setNewAssigneeName('');
+  }, [assignees, newAssigneeName, updateSettings]);
+
+  const handleRemoveAssignee = useCallback((nameToRemove: string) => {
+    if (assignees.length <= 1) return;
+    const updated = assignees.filter(a => a !== nameToRemove);
+    const newDefault = defaultAssignee === nameToRemove ? (updated[0] || 'Shadow') : defaultAssignee;
+    updateSettings({
+      taskAssignees: updated,
+      defaultAssignee: newDefault,
+    });
+  }, [assignees, defaultAssignee, updateSettings]);
+
+  const handleSetDefaultAssignee = useCallback((name: string) => {
+    updateSettings({ defaultAssignee: name });
+  }, [updateSettings]);
 
   const openAddModal = useCallback((dueDate?: string, initialStatus?: TaskStatus, initialQuadrant?: EisenhowerQuadrant) => {
     setEditingTask(null);
@@ -87,11 +158,13 @@ export const TasksFeature: React.FC = () => {
     setFormCategoryId('');
     setFormIsRecurring(false);
     setFormRecurrencePattern('daily');
+    setFormAssignee(defaultAssignee);
+    setFormAdditionalDetails('');
     setFormEnableNotification(false);
     setFormNotifyTime('09:00');
     setFormNotifyDays([0, 1, 2, 3, 4, 5, 6]);
     setIsModalOpen(true);
-  }, []);
+  }, [defaultAssignee]);
 
   const openEditModal = useCallback((task: Task) => {
     setEditingTask(task);
@@ -109,6 +182,8 @@ export const TasksFeature: React.FC = () => {
     setFormCategoryId(task.categoryId || '');
     setFormIsRecurring(task.isRecurring);
     setFormRecurrencePattern(task.recurrencePattern || 'daily');
+    setFormAssignee(task.assignee || defaultAssignee);
+    setFormAdditionalDetails(task.additionalDetails || '');
 
     const existingReminder = reminders.find(r => r.taskId === task.id);
     if (existingReminder) {
@@ -122,13 +197,16 @@ export const TasksFeature: React.FC = () => {
     }
 
     setIsModalOpen(true);
-  }, [reminders]);
+  }, [reminders, defaultAssignee]);
 
   const handleSave = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formTitle.trim()) return;
 
     try {
+      const lines = formAdditionalDetails.split('\n');
+      const cappedDetails = lines.length > 500 ? lines.slice(0, 500).join('\n') : formAdditionalDetails;
+
       const taskPayload = {
         title: formTitle.trim(),
         description: formDesc.trim() || undefined,
@@ -142,6 +220,8 @@ export const TasksFeature: React.FC = () => {
         scheduledTime: formScheduledTime.trim() || undefined,
         estimatedMinutes: formEstimatedMinutes > 0 ? formEstimatedMinutes : 30,
         isCompleted: formStatus === 'done',
+        assignee: formAssignee.trim() || defaultAssignee,
+        additionalDetails: cappedDetails.trim() ? cappedDetails : undefined,
       };
 
       let savedTaskId = editingTask?.id;
@@ -181,7 +261,7 @@ export const TasksFeature: React.FC = () => {
     } finally {
       setIsModalOpen(false);
     }
-  }, [formTitle, formDesc, formDueDate, formPriority, formCategoryId, formIsRecurring, formRecurrencePattern, formStatus, formQuadrant, formScheduledTime, formEstimatedMinutes, formEnableNotification, formNotifyTime, formNotifyDays, editingTask, updateTask, addTask, reminders, addReminder, updateReminder]);
+  }, [formTitle, formDesc, formDueDate, formPriority, formCategoryId, formIsRecurring, formRecurrencePattern, formStatus, formQuadrant, formScheduledTime, formEstimatedMinutes, formAssignee, formAdditionalDetails, defaultAssignee, formEnableNotification, formNotifyTime, formNotifyDays, editingTask, updateTask, addTask, reminders, addReminder, updateReminder]);
 
   const handleSnooze = useCallback(async (id: string, dateStr: string) => {
     const nextDate = formatDateString(addDays(parseISO(dateStr), 1));
@@ -271,15 +351,27 @@ export const TasksFeature: React.FC = () => {
         <div>
           <h2 className="text-2xl md:text-3xl font-black tracking-tight text-foreground">Tasks Workspace</h2>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.96 }}
-          onClick={() => openAddModal()}
-          className="btn-glass-pill active text-xs font-black py-2.5 px-4 shadow-md flex items-center gap-1.5 cursor-pointer"
-        >
-          <Lucide.Plus size={16} />
-          <span>Create Task</span>
-        </motion.button>
+        <div className="flex items-center gap-2">
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.96 }}
+            onClick={() => setIsAssigneeModalOpen(true)}
+            className="btn-glass-pill text-xs font-black py-2.5 px-3.5 shadow-md flex items-center gap-1.5 cursor-pointer border border-border/70 hover:border-primary/50 text-foreground"
+            title="Manage Assignees & Default User"
+          >
+            <Lucide.Users size={16} className="text-primary" />
+            <span>Assignees</span>
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.96 }}
+            onClick={() => openAddModal()}
+            className="btn-glass-pill active text-xs font-black py-2.5 px-4 shadow-md flex items-center gap-1.5 cursor-pointer"
+          >
+            <Lucide.Plus size={16} />
+            <span>Create Task</span>
+          </motion.button>
+        </div>
       </div>
 
       {/* Workspace Sub-Tab Switcher */}
@@ -487,16 +579,18 @@ export const TasksFeature: React.FC = () => {
                   animate={{ opacity: 1, scale: 1 }}
                   whileHover={{ y: -2 }}
                   transition={{ duration: 0.15 }}
-                  className={`p-3.5 bg-surface border border-border/80 hover:border-primary/50 hover:shadow-lg rounded-2xl transition-all flex flex-col justify-between gap-3 ${
+                  onClick={() => setViewingTask(task)}
+                  className={`p-3.5 bg-surface border border-border/80 hover:border-primary/50 hover:shadow-lg rounded-2xl transition-all flex flex-col justify-between gap-3 cursor-pointer ${
                     task.isCompleted ? 'opacity-65 bg-surface-elevated/50 border-border/30' : ''
                   }`}
                 >
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <div className="flex items-center gap-1.5 flex-wrap min-w-0">
                         <button
                           type="button"
-                          onClick={async () => {
+                          onClick={async (e) => {
+                            e.stopPropagation();
                             const willComplete = !task.isCompleted;
                             const todayStr = getTodayDateString();
                             const prevFocus = useShadowTrackerStore.getState().dailyLogs.find(l => l.date === todayStr)?.focusScore ?? 0;
@@ -520,14 +614,43 @@ export const TasksFeature: React.FC = () => {
                           {task.isCompleted && <Lucide.Check size={12} className="stroke-[3.5]" />}
                         </button>
 
-                        {taskCategory && (
-                          <span className="text-[10px] font-bold text-muted-foreground flex items-center gap-1 bg-surface-elevated px-2 py-0.5 rounded-md truncate max-w-[120px]">
+                        {/* Label 1: Assignee */}
+                        <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md flex items-center gap-1 shrink-0 max-w-[110px]" title={`Assignee: ${task.assignee || defaultAssignee}`}>
+                          <Lucide.User size={10} className="shrink-0" />
+                          <span className="truncate">{task.assignee || defaultAssignee}</span>
+                        </span>
+
+                        {/* Label 2: Kanban Progress */}
+                        {(() => {
+                          const status = task.status || (task.isCompleted ? 'done' : 'todo');
+                          const statusConfig = {
+                            done: { label: 'Done', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+                            in_progress: { label: 'In Progress', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+                            todo: { label: 'To Do', color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' },
+                          }[status] || { label: 'To Do', color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' };
+
+                          return (
+                            <span className={`text-[9.5px] font-black uppercase px-2 py-0.5 rounded-md border ${statusConfig.color} shrink-0`}>
+                              {statusConfig.label}
+                            </span>
+                          );
+                        })()}
+
+                        {/* Label 3: Category */}
+                        {taskCategory ? (
+                          <span className="text-[10px] font-bold text-muted-foreground flex items-center gap-1 bg-surface-elevated px-2 py-0.5 rounded-md truncate max-w-[110px]" title={`Category: ${taskCategory.name}`}>
                             <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: taskCategory.color }} />
                             <span className="truncate">{taskCategory.name}</span>
+                          </span>
+                        ) : (
+                          <span className="text-[10px] font-bold text-muted-foreground/60 flex items-center gap-1 bg-surface-elevated/60 px-2 py-0.5 rounded-md truncate">
+                            <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-muted-foreground/40" />
+                            <span>General</span>
                           </span>
                         )}
                       </div>
 
+                      {/* Label 4: Priority / Severity */}
                       <span className={`text-[9.5px] font-black uppercase px-2 py-0.5 rounded-md shrink-0 ${
                         task.priority === 'high' 
                           ? 'text-red-500 bg-red-500/10' 
@@ -551,13 +674,18 @@ export const TasksFeature: React.FC = () => {
                   </div>
 
                   <div className="flex items-center justify-between pt-2 border-t border-border/40 text-xs mt-auto">
-                    <span className="text-[11px] font-bold text-muted-foreground flex items-center gap-1">
-                      <Lucide.Calendar size={12} /> {format(new Date(task.dueDate), 'MMM dd')}
+                    {/* Label 5: Due Date */}
+                    <span className="text-[10.5px] font-bold text-muted-foreground flex items-center gap-1 bg-surface-elevated px-2 py-0.5 rounded-md">
+                      <Lucide.Calendar size={11} className="text-primary/70" /> {format(new Date(task.dueDate), 'MMM dd')}
                     </span>
                     <div className="flex items-center gap-1">
                       {!task.isCompleted && (
                         <button
-                          onClick={() => handleSnooze(task.id, task.dueDate)}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSnooze(task.id, task.dueDate);
+                          }}
                           className="p-1 text-muted-foreground hover:text-foreground rounded-md hover:bg-surface-elevated transition-colors"
                           title="Snooze 1 Day"
                         >
@@ -565,14 +693,22 @@ export const TasksFeature: React.FC = () => {
                         </button>
                       )}
                       <button
-                        onClick={() => openEditModal(task)}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openEditModal(task);
+                        }}
                         className="p-1 text-muted-foreground hover:text-foreground rounded-md hover:bg-surface-elevated transition-colors"
                         title="Edit Task"
                       >
                         <Lucide.Edit2 size={13} />
                       </button>
                       <button
-                        onClick={() => deleteTask(task.id)}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteTask(task.id);
+                        }}
                         className="p-1 text-muted-foreground hover:text-red-500 rounded-md hover:bg-red-500/10 transition-colors"
                         title="Delete Task"
                       >
@@ -597,7 +733,8 @@ export const TasksFeature: React.FC = () => {
                   animate={{ opacity: 1, y: 0 }}
                   whileHover={{ y: -2, scale: 1.005 }}
                   transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
-                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-surface border border-border/80 hover:border-primary/50 hover:shadow-lg rounded-2xl transition-all duration-150 gap-4 ${
+                  onClick={() => setViewingTask(task)}
+                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-surface border border-border/80 hover:border-primary/50 hover:shadow-lg rounded-2xl transition-all duration-150 gap-4 cursor-pointer ${
                     task.isCompleted ? 'opacity-65 bg-surface-elevated/50 border-border/30' : ''
                   }`}
                 >
@@ -605,7 +742,8 @@ export const TasksFeature: React.FC = () => {
                     <motion.button
                       layout
                       whileTap={{ scale: 0.9 }}
-                      onClick={async () => {
+                      onClick={async (e) => {
+                        e.stopPropagation();
                         const willComplete = !task.isCompleted;
                         const todayStr = getTodayDateString();
                         const prevFocus = useShadowTrackerStore.getState().dailyLogs.find(l => l.date === todayStr)?.focusScore ?? 0;
@@ -668,10 +806,42 @@ export const TasksFeature: React.FC = () => {
                       )}
                       
                       <div className="flex flex-wrap items-center gap-2 mt-3">
-                        <span className="text-xs font-bold text-muted-foreground flex items-center gap-1.5 bg-surface-elevated px-2.5 py-1 rounded-md">
-                          <Lucide.Calendar size={13} /> {format(new Date(task.dueDate), 'MMM dd')}
+                        {/* 1. Assignee */}
+                        <span className="text-xs font-bold text-primary bg-primary/10 flex items-center gap-1.5 px-2.5 py-1 rounded-md" title={`Assignee: ${task.assignee || defaultAssignee}`}>
+                          <Lucide.User size={12} className="shrink-0" />
+                          <span>{task.assignee || defaultAssignee}</span>
                         </span>
 
+                        {/* 2. Kanban Progress */}
+                        {(() => {
+                          const status = task.status || (task.isCompleted ? 'done' : 'todo');
+                          const statusConfig = {
+                            done: { label: 'Done', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+                            in_progress: { label: 'In Progress', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+                            todo: { label: 'To Do', color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' },
+                          }[status] || { label: 'To Do', color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' };
+
+                          return (
+                            <span className={`text-xs font-black uppercase px-2.5 py-1 rounded-md border ${statusConfig.color}`}>
+                              {statusConfig.label}
+                            </span>
+                          );
+                        })()}
+
+                        {/* 3. Category */}
+                        {taskCategory ? (
+                          <span className="text-xs font-bold text-muted-foreground flex items-center gap-1.5 bg-surface-elevated px-2.5 py-1 rounded-md">
+                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: taskCategory.color }} />
+                            {taskCategory.name}
+                          </span>
+                        ) : (
+                          <span className="text-xs font-bold text-muted-foreground/70 flex items-center gap-1.5 bg-surface-elevated px-2.5 py-1 rounded-md">
+                            <span className="w-2 h-2 rounded-full bg-muted-foreground/40" />
+                            General
+                          </span>
+                        )}
+
+                        {/* 4. Priority / Severity */}
                         <span className={`text-xs font-bold uppercase px-2.5 py-1 rounded-md ${
                           task.priority === 'high' 
                             ? 'text-red-500 bg-red-500/10' 
@@ -682,12 +852,10 @@ export const TasksFeature: React.FC = () => {
                           {task.priority}
                         </span>
 
-                        {taskCategory && (
-                          <span className="text-xs font-bold text-muted-foreground flex items-center gap-1.5 bg-surface-elevated px-2.5 py-1 rounded-md">
-                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: taskCategory.color }} />
-                            {taskCategory.name}
-                          </span>
-                        )}
+                        {/* 5. Due Date */}
+                        <span className="text-xs font-bold text-muted-foreground flex items-center gap-1.5 bg-surface-elevated px-2.5 py-1 rounded-md">
+                          <Lucide.Calendar size={13} className="text-primary/70" /> {format(new Date(task.dueDate), 'MMM dd')}
+                        </span>
 
                         {task.isRecurring && (
                           <span className="text-xs font-bold text-primary bg-primary/10 flex items-center gap-1.5 px-2.5 py-1 rounded-md">
@@ -703,7 +871,11 @@ export const TasksFeature: React.FC = () => {
                       <motion.button
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => handleSnooze(task.id, task.dueDate)}
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSnooze(task.id, task.dueDate);
+                        }}
                         className="p-2.5 text-muted-foreground hover:text-foreground hover:bg-surface-elevated rounded-xl transition-all"
                         title="Snooze 1 Day"
                       >
@@ -713,7 +885,11 @@ export const TasksFeature: React.FC = () => {
                     <motion.button
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
-                      onClick={() => openEditModal(task)}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openEditModal(task);
+                      }}
                       className="p-2.5 text-muted-foreground hover:text-foreground hover:bg-surface-elevated rounded-xl transition-all"
                       title="Edit Task"
                     >
@@ -722,7 +898,11 @@ export const TasksFeature: React.FC = () => {
                     <motion.button
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
-                      onClick={() => deleteTask(task.id)}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteTask(task.id);
+                      }}
                       className="p-2.5 text-red-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
                       title="Delete Task"
                     >
@@ -897,6 +1077,49 @@ export const TasksFeature: React.FC = () => {
             <Lucide.ChevronDown className="absolute right-4 top-[38px] text-muted-foreground pointer-events-none" size={16} />
           </div>
 
+          <div className="space-y-2 relative">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <Lucide.User size={13} className="text-primary" /> Assignee
+            </label>
+            <select
+              value={formAssignee}
+              onChange={(e) => setFormAssignee(e.target.value)}
+              className="w-full text-base pl-5 pr-10 py-3.5 bg-secondary rounded-2xl text-foreground font-semibold border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none appearance-none cursor-pointer"
+            >
+              {assignees.map(user => (
+                <option key={user} value={user}>
+                  {user} {user === defaultAssignee ? '(Default)' : ''}
+                </option>
+              ))}
+            </select>
+            <Lucide.ChevronDown className="absolute right-4 top-[38px] text-muted-foreground pointer-events-none" size={16} />
+          </div>
+
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Lucide.FileText size={13} className="text-primary" /> Additional Details (Markdown • Max 500 lines)
+              </label>
+              <span className={`text-[11px] font-mono font-medium ${formAdditionalDetails.split('\n').length >= 480 ? 'text-amber-500 font-bold' : 'text-muted-foreground'}`}>
+                {formAdditionalDetails ? formAdditionalDetails.split('\n').length : 0}/500 lines
+              </span>
+            </div>
+            <textarea
+              placeholder="Add extended markdown notes, checklists, code blocks, or instructions (up to 500 lines)..."
+              value={formAdditionalDetails}
+              onChange={(e) => {
+                const lines = e.target.value.split('\n');
+                if (lines.length > 500) {
+                  setFormAdditionalDetails(lines.slice(0, 500).join('\n'));
+                } else {
+                  setFormAdditionalDetails(e.target.value);
+                }
+              }}
+              rows={5}
+              className="w-full text-xs font-mono px-4 py-2.5 bg-surface-elevated rounded-xl text-foreground placeholder:text-muted-foreground border border-border/40 focus:border-primary outline-none resize-y focus:ring-2 focus:ring-primary/20 transition-all leading-relaxed"
+            />
+          </div>
+
           <div className="border-t border-border/40 pt-5 space-y-4">
             <label className="flex items-center gap-3 cursor-pointer group">
               <input
@@ -979,6 +1202,366 @@ export const TasksFeature: React.FC = () => {
             </motion.button>
           </div>
         </form>
+      </Modal>
+
+      {/* Assignee & Team Management Modal */}
+      <Modal
+        isOpen={isAssigneeModalOpen}
+        onClose={() => setIsAssigneeModalOpen(false)}
+        title="Manage Assignees & Default User"
+      >
+        <div className="space-y-5">
+          {/* Default Assignee Selection */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <Lucide.UserCheck size={14} className="text-primary" /> Default Assignee
+            </label>
+            <div className="relative">
+              <select
+                value={defaultAssignee}
+                onChange={(e) => handleSetDefaultAssignee(e.target.value)}
+                className="w-full text-sm pl-4 pr-9 py-2.5 bg-surface-elevated rounded-xl text-foreground font-bold border border-border/60 focus:border-primary outline-none appearance-none cursor-pointer"
+              >
+                {assignees.map(user => (
+                  <option key={user} value={user}>
+                    {user} {user === defaultAssignee ? '(Current Default)' : ''}
+                  </option>
+                ))}
+              </select>
+              <Lucide.ChevronDown className="absolute right-3.5 top-3 text-muted-foreground pointer-events-none" size={15} />
+            </div>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              All tasks created without an explicit assignee automatically default to this user.
+            </p>
+          </div>
+
+          {/* Current Assignees List */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+              <span>Team Members / Operators ({assignees.length})</span>
+            </label>
+            <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+              {assignees.map(user => {
+                const isDefault = user === defaultAssignee;
+                return (
+                  <div key={user} className="flex items-center justify-between p-2.5 rounded-xl bg-surface-elevated border border-border/40 text-sm">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-7 h-7 rounded-full bg-primary/15 text-primary flex items-center justify-center font-bold text-xs shrink-0">
+                        {user.slice(0, 2).toUpperCase()}
+                      </div>
+                      <span className="font-semibold text-foreground truncate">{user}</span>
+                      {isDefault && (
+                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded-md bg-primary/20 text-primary shrink-0">
+                          Default
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      {!isDefault && (
+                        <button
+                          type="button"
+                          onClick={() => handleSetDefaultAssignee(user)}
+                          className="text-[10px] font-bold px-2 py-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors cursor-pointer"
+                          title="Set as Default"
+                        >
+                          Make Default
+                        </button>
+                      )}
+                      {!isDefault && assignees.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveAssignee(user)}
+                          className="p-1.5 text-muted-foreground hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition-colors cursor-pointer"
+                          title="Remove User"
+                        >
+                          <Lucide.Trash2 size={13} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Add New Assignee Input */}
+          <div className="space-y-1.5 pt-2 border-t border-border/40">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Add New Assignee</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="e.g. Lead Engineer, Vibish..."
+                maxLength={30}
+                value={newAssigneeName}
+                onChange={(e) => setNewAssigneeName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddAssignee();
+                  }
+                }}
+                className="flex-1 text-sm px-3.5 py-2.5 bg-surface-elevated rounded-xl border border-border/40 text-foreground outline-none focus:ring-2 focus:ring-primary/20"
+              />
+              <button
+                type="button"
+                onClick={handleAddAssignee}
+                disabled={!newAssigneeName.trim()}
+                className="btn-glass-pill active text-xs font-black px-4 py-2.5 cursor-pointer disabled:opacity-40"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-3 border-t border-border/40">
+            <button
+              type="button"
+              onClick={() => setIsAssigneeModalOpen(false)}
+              className="px-5 py-2 text-xs font-bold text-foreground bg-secondary hover:bg-secondary/80 rounded-xl transition-all cursor-pointer"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Fixed Pop-in Task Detail Modal */}
+      <Modal
+        isOpen={!!viewingTask}
+        onClose={() => setViewingTask(null)}
+        title="Task Overview & Specifications"
+      >
+        {viewingTask && (() => {
+          const taskCategory = categories.find(c => c.id === viewingTask.categoryId);
+          const currentStatus = viewingTask.status || (viewingTask.isCompleted ? 'done' : 'todo');
+
+          return (
+            <div className="space-y-5">
+              {/* Header Title & Status Checkbox */}
+              <div className="flex items-start gap-3">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const willComplete = !viewingTask.isCompleted;
+                    const todayStr = getTodayDateString();
+                    const prevFocus = useShadowTrackerStore.getState().dailyLogs.find(l => l.date === todayStr)?.focusScore ?? 0;
+                    await toggleTaskCompletion(viewingTask.id);
+                    if (willComplete) {
+                      fireConfetti();
+                      const freshLog = useShadowTrackerStore.getState().dailyLogs.find(l => l.date === todayStr);
+                      const newFocus = freshLog?.focusScore ?? prevFocus;
+                      const diff = newFocus - prevFocus;
+                      window.dispatchEvent(new CustomEvent('showCelebrationNotice', {
+                        detail: { title: 'Node Resolved', subtitle: viewingTask.title, flowText: diff > 0 ? `+${diff}% Flow` : `${newFocus}% Flow`, type: 'task' }
+                      }));
+                    }
+                  }}
+                  className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all mt-1 shrink-0 cursor-pointer ${
+                    viewingTask.isCompleted
+                      ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-xs'
+                      : 'border-2 border-muted-foreground/60 hover:border-emerald-500 hover:bg-emerald-500/10'
+                  }`}
+                  title={viewingTask.isCompleted ? 'Mark Active' : 'Mark Completed'}
+                >
+                  {viewingTask.isCompleted && <Lucide.Check size={14} className="stroke-[3.5]" />}
+                </button>
+
+                <div className="min-w-0 flex-1">
+                  <h3 className={`text-lg font-black leading-snug ${viewingTask.isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                    {viewingTask.title}
+                  </h3>
+                  {viewingTask.description && (
+                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                      {viewingTask.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* 5 Visible Labels Display Panel */}
+              <div className="p-3.5 rounded-2xl bg-surface-elevated/70 border border-border/50 space-y-2.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+                  Task Parameters &amp; Metadata
+                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  {/* 1. Assignee */}
+                  <span className="text-xs font-bold text-primary bg-primary/15 border border-primary/20 px-2.5 py-1 rounded-lg flex items-center gap-1.5" title="Task Assignee">
+                    <Lucide.User size={13} className="shrink-0" />
+                    <span>Assignee: {viewingTask.assignee || defaultAssignee}</span>
+                  </span>
+
+                  {/* 2. Kanban Progress */}
+                  <span className={`text-xs font-bold uppercase px-2.5 py-1 rounded-lg border ${
+                    currentStatus === 'done' 
+                      ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' 
+                      : currentStatus === 'in_progress' 
+                      ? 'text-amber-400 bg-amber-500/10 border-amber-500/20' 
+                      : 'text-sky-400 bg-sky-500/10 border-sky-500/20'
+                  }`}>
+                    {currentStatus === 'done' ? '✅ Done' : currentStatus === 'in_progress' ? '⚡ In Progress' : '📌 To Do'}
+                  </span>
+
+                  {/* 3. Category */}
+                  {taskCategory ? (
+                    <span className="text-xs font-bold text-muted-foreground flex items-center gap-1.5 bg-secondary px-2.5 py-1 rounded-lg border border-border/40">
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: taskCategory.color }} />
+                      <span>{taskCategory.name}</span>
+                    </span>
+                  ) : (
+                    <span className="text-xs font-bold text-muted-foreground/70 flex items-center gap-1.5 bg-secondary px-2.5 py-1 rounded-lg border border-border/40">
+                      <span className="w-2 h-2 rounded-full shrink-0 bg-muted-foreground/40" />
+                      <span>General</span>
+                    </span>
+                  )}
+
+                  {/* 4. Priority / Severity */}
+                  <span className={`text-xs font-bold uppercase px-2.5 py-1 rounded-lg ${
+                    viewingTask.priority === 'high' 
+                      ? 'text-red-500 bg-red-500/10 border border-red-500/20' 
+                      : viewingTask.priority === 'medium' 
+                      ? 'text-yellow-500 bg-yellow-500/10 border border-yellow-500/20' 
+                      : 'text-muted-foreground bg-muted-foreground/10 border border-border/40'
+                  }`}>
+                    {viewingTask.priority} Priority
+                  </span>
+
+                  {/* 5. Due Date */}
+                  <span className="text-xs font-bold text-muted-foreground flex items-center gap-1.5 bg-secondary px-2.5 py-1 rounded-lg border border-border/40">
+                    <Lucide.Calendar size={13} className="text-primary/80" />
+                    <span>Due: {format(new Date(viewingTask.dueDate), 'MMM dd, yyyy')}</span>
+                  </span>
+
+                  {viewingTask.scheduledTime && (
+                    <span className="text-xs font-bold text-muted-foreground flex items-center gap-1.5 bg-secondary px-2.5 py-1 rounded-lg border border-border/40">
+                      <Lucide.Clock size={13} className="text-sky-400" />
+                      <span>{viewingTask.scheduledTime} ({viewingTask.estimatedMinutes || 30}m)</span>
+                    </span>
+                  )}
+
+                  {viewingTask.isRecurring && (
+                    <span className="text-xs font-bold text-primary bg-primary/10 flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-primary/20">
+                      <Lucide.Repeat size={13} /> {viewingTask.recurrencePattern}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Fast Kanban Status Switcher */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Quick Kanban Status Switch
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(['todo', 'in_progress', 'done'] as const).map(st => {
+                    const isCurrent = currentStatus === st;
+                    const labels = { todo: '📌 To Do', in_progress: '⚡ In Progress', done: '✅ Done' };
+                    return (
+                      <button
+                        key={st}
+                        type="button"
+                        onClick={async () => {
+                          await updateTask(viewingTask.id, {
+                            status: st,
+                            isCompleted: st === 'done',
+                          });
+                        }}
+                        className={`py-2 px-3 rounded-xl text-xs font-black transition-all cursor-pointer border ${
+                          isCurrent
+                            ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                            : 'bg-surface-elevated hover:bg-secondary text-muted-foreground hover:text-foreground border-border/50'
+                        }`}
+                      >
+                        {labels[st]}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Additional Details (Markdown Supported • 500 lines limit) */}
+              <div className="space-y-2 pt-2 border-t border-border/40">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <Lucide.FileText size={13} className="text-primary" /> Additional Details (Markdown)
+                  </span>
+                  {viewingTask.additionalDetails && (
+                    <span className="text-[10px] font-mono text-muted-foreground">
+                      {viewingTask.additionalDetails.split('\n').length} lines
+                    </span>
+                  )}
+                </div>
+
+                {viewingTask.additionalDetails && viewingTask.additionalDetails.trim() ? (
+                  <div className="p-4 rounded-2xl bg-surface-elevated border border-border/50 max-h-72 overflow-y-auto leading-relaxed text-xs">
+                    <MarkdownRenderer content={viewingTask.additionalDetails} />
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-2xl bg-surface-elevated/40 border border-dashed border-border/60 text-xs text-muted-foreground italic text-center">
+                    No markdown notes or steps provided yet. Click &quot;Edit Task&quot; below to add formatted details (up to 500 lines).
+                  </div>
+                )}
+              </div>
+
+              {/* Action Buttons Footer */}
+              <div className="flex flex-wrap items-center justify-between gap-2.5 pt-4 border-t border-border/40">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const willComplete = !viewingTask.isCompleted;
+                    await toggleTaskCompletion(viewingTask.id);
+                    if (willComplete) {
+                      fireConfetti();
+                    }
+                  }}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    viewingTask.isCompleted
+                      ? 'bg-secondary text-muted-foreground hover:text-foreground'
+                      : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-xs'
+                  }`}
+                >
+                  {viewingTask.isCompleted ? 'Reopen Task' : 'Complete Task'}
+                </button>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const t = viewingTask;
+                      setViewingTask(null);
+                      openEditModal(t);
+                    }}
+                    className="px-3.5 py-2 rounded-xl text-xs font-bold bg-secondary hover:bg-secondary/80 text-foreground border border-border/50 transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Lucide.Edit2 size={13} />
+                    <span>Edit Task</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const id = viewingTask.id;
+                      setViewingTask(null);
+                      await deleteTask(id);
+                    }}
+                    className="px-3.5 py-2 rounded-xl text-xs font-bold text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Lucide.Trash2 size={13} />
+                    <span>Delete</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setViewingTask(null)}
+                    className="px-4 py-2 rounded-xl text-xs font-bold bg-secondary hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </Modal>
     </div>
   );

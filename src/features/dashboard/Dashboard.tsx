@@ -277,7 +277,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         className="space-y-6 font-sans select-none"
       >
         {/* Sticky Explorer Header / Breadcrumb Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 p-4 tile rounded-2xl bg-surface-elevated/90 border border-border/80 backdrop-blur-md sticky top-2 z-20 shadow-md">
+        <div className="flex flex-wrap items-center justify-between gap-4 p-4 tile rounded-2xl bg-surface-elevated border border-border/80 sticky top-2 z-20 shadow-md">
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -348,7 +348,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <Lucide.ChevronRight size={13} className="text-secondary shrink-0 hidden sm:inline" />
           </button>
 
-          <div className="flex items-center gap-2 sm:gap-3 px-3 py-1.5 rounded-full bg-secondary/30 border border-border/80 backdrop-blur-sm shadow-sm shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 px-3 py-1.5 rounded-full bg-secondary border border-border/80 shadow-sm shrink-0">
             <div className="flex items-center gap-1.5" title="Tasks Completed / Total Today">
               <Lucide.CheckSquare size={13} className="text-blue-400 shrink-0" />
               <span className="text-xs sm:text-sm font-bold text-foreground">{completedTasksCount}/{todayTasks.length}</span>
@@ -360,7 +360,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary/40 border border-border rounded-full text-xs sm:text-sm font-medium shadow-sm backdrop-blur-sm shrink-0">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary border border-border rounded-full text-xs sm:text-sm font-medium shadow-sm shrink-0">
             <Lucide.Flame className="text-orange-400 shrink-0" size={14} />
             <span className="text-foreground whitespace-nowrap">{highestStreak} day streak</span>
           </div>
@@ -370,35 +370,37 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* Life OS Quick Launchers Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <button
-          onClick={() => setReviewMode('morning')}
-          className="tile settings-tile p-3.5 rounded-2xl flex items-center justify-between border-amber-500/30 hover:border-amber-500/60 bg-amber-500/5 cursor-pointer transition-all active:scale-95 group"
+          onClick={() => onNavigate('money')}
+          className="tile settings-tile p-3.5 rounded-2xl flex items-center justify-between border-emerald-500/30 hover:border-emerald-500/60 bg-emerald-500/5 cursor-pointer transition-all active:scale-95 group"
+          title="Wealth & Budget Management"
         >
           <div className="flex items-center gap-2.5 min-w-0">
-            <span className="p-2 rounded-xl bg-amber-500/15 text-amber-400 group-hover:scale-110 transition-transform">
-              <Lucide.Sunrise size={18} />
+            <span className="p-2 rounded-xl bg-emerald-500/15 text-emerald-400 group-hover:scale-110 transition-transform">
+              <Lucide.Wallet size={18} />
             </span>
             <div className="text-left truncate">
-              <span className="text-xs font-black text-foreground block truncate">Start My Day</span>
-              <span className="text-[10px] text-muted-foreground font-medium">Morning Briefing</span>
+              <span className="text-xs font-black text-foreground block truncate">Wealth Hub</span>
+              <span className="text-[10px] text-muted-foreground font-medium">Budget &amp; Assets</span>
             </div>
           </div>
-          <Lucide.ChevronRight size={14} className="text-amber-400/60 shrink-0" />
+          <Lucide.ChevronRight size={14} className="text-emerald-400/60 shrink-0" />
         </button>
 
         <button
-          onClick={() => setReviewMode('evening')}
-          className="tile settings-tile p-3.5 rounded-2xl flex items-center justify-between border-indigo-500/30 hover:border-indigo-500/60 bg-indigo-500/5 cursor-pointer transition-all active:scale-95 group"
+          onClick={() => onNavigate('analytics')}
+          className="tile settings-tile p-3.5 rounded-2xl flex items-center justify-between border-sky-500/30 hover:border-sky-500/60 bg-sky-500/5 cursor-pointer transition-all active:scale-95 group"
+          title="Analytics & Habit Telemetry"
         >
           <div className="flex items-center gap-2.5 min-w-0">
-            <span className="p-2 rounded-xl bg-indigo-500/15 text-indigo-400 group-hover:scale-110 transition-transform">
-              <Lucide.Sunset size={18} />
+            <span className="p-2 rounded-xl bg-sky-500/15 text-sky-400 group-hover:scale-110 transition-transform">
+              <Lucide.BarChart3 size={18} />
             </span>
             <div className="text-left truncate">
-              <span className="text-xs font-black text-foreground block truncate">Evening Review</span>
-              <span className="text-[10px] text-muted-foreground font-medium">Wrap up &amp; Wins</span>
+              <span className="text-xs font-black text-foreground block truncate">Analytics</span>
+              <span className="text-[10px] text-muted-foreground font-medium">Telemetry &amp; Focus</span>
             </div>
           </div>
-          <Lucide.ChevronRight size={14} className="text-indigo-400/60 shrink-0" />
+          <Lucide.ChevronRight size={14} className="text-sky-400/60 shrink-0" />
         </button>
 
         <button
@@ -585,7 +587,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <TileArtCompanion />
             
             <div className="relative z-10 flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl bg-secondary/50 border border-border p-1.5 flex items-center justify-center relative shadow-inner backdrop-blur-sm group">
+              <div className="w-11 h-11 rounded-xl bg-secondary border border-border p-1.5 flex items-center justify-center relative shadow-inner group">
                 <div 
                   className="w-full h-full transition-transform duration-500 group-hover:scale-110" 
                   dangerouslySetInnerHTML={{ __html: mascot.avatarSvg }} 
@@ -599,7 +601,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </div>
             </div>
 
-            <div className="relative z-10 mt-2.5 p-2 bg-foreground/5 border border-border rounded-xl text-xs font-medium leading-relaxed text-foreground shadow-sm backdrop-blur-md">
+            <div className="relative z-10 mt-2.5 p-2 bg-foreground/5 border border-border rounded-xl text-xs font-medium leading-relaxed text-foreground shadow-sm">
               <div className="absolute -top-1.5 left-8 w-2 h-2 bg-surface border-t border-l border-border transform rotate-45"></div>
               <p className="relative z-10">&quot;{renderWithAliasHighlight(mascot.speech)}&quot;</p>
             </div>
@@ -683,7 +685,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </motion.div>
               </div>
 
-              <motion.div whileHover={{ scale: 1.02, transition: { type: "spring" as const, stiffness: 300 } }} className="flex items-start gap-2.5 bg-foreground/5 border border-border p-2.5 rounded-xl text-xs font-medium text-foreground leading-relaxed shadow-sm backdrop-blur-sm relative overflow-hidden group">
+              <motion.div whileHover={{ scale: 1.02, transition: { type: "spring" as const, stiffness: 300 } }} className="flex items-start gap-2.5 bg-foreground/5 border border-border p-2.5 rounded-xl text-xs font-medium text-foreground leading-relaxed shadow-sm relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <Lucide.Lightbulb size={16} className="text-yellow-400 shrink-0 mt-0.5" />
                 <p className="relative z-10">{renderWithAliasHighlight(coachingText)}</p>
@@ -1109,6 +1111,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
         isOpen={reviewMode !== null}
         mode={reviewMode || 'morning'}
         onClose={() => setReviewMode(null)}
+        onJumpToTask={(taskId) => {
+          setReviewMode(null);
+          onNavigate('tasks');
+          setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('openTaskDetail', { detail: { taskId } }));
+          }, 50);
+        }}
       />
     </div>
   );

@@ -174,6 +174,12 @@ export function smartMergeBackupData(localData: FullBackupData, cloudData: FullB
       const newTime = getItemTimestamp(t);
       const isCompleted = existing.isCompleted || t.isCompleted;
       const winner = newTime >= existingTime ? { ...t, isCompleted } : { ...existing, isCompleted };
+      if (!winner.assignee && (existing.assignee || t.assignee)) {
+        winner.assignee = existing.assignee || t.assignee;
+      }
+      if (!winner.additionalDetails && (existing.additionalDetails || t.additionalDetails)) {
+        winner.additionalDetails = existing.additionalDetails || t.additionalDetails;
+      }
       taskMap.set(t.id, winner);
     }
   }
@@ -322,8 +328,15 @@ export function smartMergeBackupData(localData: FullBackupData, cloudData: FullB
     notes: Array.from(noteMap.values()),
     categories: Array.from(categoryMap.values()),
     reminders: Array.from(reminderMap.values()),
-    settings: localData.settings || cloudData.settings,
-    healthData: mergedHealth,
+    settings: (localData.settings || cloudData.settings) ? ({
+      ...(cloudData.settings || {}),
+      ...(localData.settings || {}),
+      taskAssignees: Array.from(new Set([
+        ...(localData.settings?.taskAssignees || ['Shadow', 'Core Lead', 'Operator']),
+        ...(cloudData.settings?.taskAssignees || [])
+      ])),
+      defaultAssignee: localData.settings?.defaultAssignee || cloudData.settings?.defaultAssignee || 'Shadow',
+    } as Settings) : undefined,
     moneyData: mergedMoney,
     rpgQuests: Array.from(questMap.values()),
     wizardScrolls: Array.from(scrollMap.values()),

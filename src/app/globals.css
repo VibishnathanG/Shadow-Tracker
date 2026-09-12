@@ -66,6 +66,9 @@ html {
   min-height: 100%;
   touch-action: pan-y;
   background-color: var(--bg-canvas, #09100d);
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: none;
 }
 
 body {
@@ -74,6 +77,8 @@ body {
   overflow-x: hidden;
   background-color: var(--bg-canvas, #09100d);
   color: var(--text-primary, #f1f5f9);
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: none;
 }
 
 /* Base Typogaphy & Android Emoji Support */

@@ -265,7 +265,7 @@ export default function HealthDashboardTab({
   }, [currentData.weightKg, biometrics]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 transform-gpu">
       {/* Metabolic Baseline & Target Profile Banner */}
       <div className="p-4 rounded-3xl bg-surface border border-emerald-500/25 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs">
         <div className="flex items-center gap-3">

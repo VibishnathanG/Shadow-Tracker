@@ -181,7 +181,7 @@ export default function WeeklyDietPlanner({ onCopyDayToPlate }: WeeklyDietPlanne
   }, [selectedPlan]);
 
   return (
-    <div className="tile settings-tile p-4 sm:p-6 md:p-8 rounded-3xl space-y-6 border border-emerald-500/25 bg-gradient-to-b from-surface-elevated/90 to-surface/90 shadow-xl relative overflow-hidden">
+    <div className="tile settings-tile p-4 sm:p-6 md:p-8 rounded-3xl space-y-6 border border-emerald-500/25 bg-surface shadow-xl relative overflow-hidden transform-gpu">
       {/* Subtle background glow */}
       <div className="absolute top-0 right-0 w-80 h-80 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
 
@@ -770,7 +770,7 @@ export default function WeeklyDietPlanner({ onCopyDayToPlate }: WeeklyDietPlanne
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: mIdx * 0.04 }}
-              className="p-5 sm:p-6 rounded-3xl bg-surface/90 border border-border/80 hover:border-emerald-500/40 transition-all space-y-4 flex flex-col justify-between group shadow-xs hover:shadow-md min-h-[250px]"
+              className="p-5 sm:p-6 rounded-3xl bg-surface border border-border/80 hover:border-emerald-500/40 transition-all space-y-4 flex flex-col justify-between group shadow-xs hover:shadow-md min-h-[250px] transform-gpu"
             >
               <div className="space-y-2.5">
                 {/* Meal slot header */}
