@@ -272,7 +272,7 @@ export const TaskKanbanView: React.FC<TaskKanbanViewProps> = ({
             <div className="p-3.5 bg-surface-elevated/70 border-b border-border/70 flex items-center justify-between">
               <div className="flex items-center gap-2 text-sky-400">
                 <Lucide.ListTodo size={16} />
-                <span className="text-xs font-black uppercase tracking-wider">To Do</span>
+                <span className="text-xs font-bold uppercase tracking-wider">To Do</span>
                 <span className="text-[11px] font-black font-mono px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-300">
                   {kanbanGroups.todo.length}
                 </span>
@@ -388,7 +388,7 @@ export const TaskKanbanView: React.FC<TaskKanbanViewProps> = ({
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
                 </span>
-                <span className="text-xs font-black uppercase tracking-wider">In Progress</span>
+                <span className="text-xs font-bold uppercase tracking-wider">In Progress</span>
                 <span className="text-[11px] font-black font-mono px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300">
                   {kanbanGroups.inProgress.length}
                 </span>
@@ -495,7 +495,7 @@ export const TaskKanbanView: React.FC<TaskKanbanViewProps> = ({
             <div className="p-3.5 bg-surface-elevated/70 border-b border-border/70 flex items-center justify-between">
               <div className="flex items-center gap-2 text-emerald-400">
                 <Lucide.CheckCircle2 size={16} />
-                <span className="text-xs font-black uppercase tracking-wider">Done</span>
+                <span className="text-xs font-bold uppercase tracking-wider">Done</span>
                 <span className="text-[11px] font-black font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300">
                   {kanbanGroups.done.length}
                 </span>

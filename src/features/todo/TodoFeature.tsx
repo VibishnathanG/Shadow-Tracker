@@ -79,8 +79,11 @@ export default function TodoFeature() {
     saveStoredTodos(newTodos);
   }, []);
 
-  // 15-Day Activity Graph calculation
+  // 15-Day Activity Graph calculation (optimized: computed only when graph is toggled open)
   const last15DaysGraph = useMemo(() => {
+    if (!showGraph) {
+      return { days: [], maxVal: 1 };
+    }
     const days: Array<{
       dateStr: string;
       label: string;
@@ -117,7 +120,7 @@ export default function TodoFeature() {
 
     const maxVal = Math.max(1, ...days.map(d => Math.max(d.committed, d.completed)));
     return { days, maxVal };
-  }, [todos]);
+  }, [todos, showGraph]);
 
   // Open Modal for Creation or Editing
   const openCreateModal = () => {
@@ -503,6 +506,152 @@ export default function TodoFeature() {
 
   return (
     <div className="space-y-6 animate-fadeIn pb-12">
+      {/* Standalone ToDo Studio Header (Minimal & Sleek Top Placement) */}
+      <div className="tile settings-tile p-3 sm:p-4 rounded-2xl relative overflow-hidden shadow-xs">
+        <div className="absolute top-0 right-0 w-64 h-32 bg-emerald-500/5 blur-[60px] pointer-events-none rounded-full" />
+
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 relative z-10">
+          {/* Studio Identity + Local Only + Compact Progress */}
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="p-2 bg-emerald-500/15 text-emerald-500 dark:text-emerald-400 rounded-xl border border-emerald-500/30 shadow-xs shrink-0">
+              <Lucide.CheckCircle2 size={18} />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-sm sm:text-base font-bold tracking-tight text-foreground truncate">
+                  Standalone ToDo Studio
+                </h2>
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 rounded-full shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Local Only
+                </span>
+              </div>
+              {totalCount > 0 && (
+                <div className="flex items-center gap-2 mt-1">
+                  <div className="w-20 sm:w-28 h-1.5 bg-surface-elevated rounded-full overflow-hidden border border-border/60">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${completionPercent}%` }}
+                      transition={{ duration: 0.4 }}
+                      className="h-full bg-gradient-to-r from-emerald-500 to-cyan-400 rounded-full"
+                    />
+                  </div>
+                  <span className="text-[10.5px] font-semibold text-muted-foreground">
+                    {completionPercent}% <span className="opacity-75">({completedCount}/{totalCount})</span>
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Quick Metrics + Graph Toggle */}
+          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            <div className="grid grid-cols-4 gap-1.5 shrink-0 text-center">
+              <div className="bg-surface-elevated/70 border border-border/70 rounded-xl px-2.5 py-1 text-center min-w-[50px]">
+                <span className="text-[8.5px] font-bold uppercase tracking-wider text-muted-foreground block leading-tight">Total</span>
+                <span className="text-xs sm:text-sm font-extrabold text-foreground">{totalCount}</span>
+              </div>
+              <div className="bg-surface-elevated/70 border border-border/70 rounded-xl px-2.5 py-1 text-center min-w-[50px]">
+                <span className="text-[8.5px] font-bold uppercase tracking-wider text-amber-500 dark:text-amber-400 block leading-tight">Active</span>
+                <span className="text-xs sm:text-sm font-extrabold text-amber-500 dark:text-amber-400">{activeCount}</span>
+              </div>
+              <div className="bg-surface-elevated/70 border border-border/70 rounded-xl px-2.5 py-1 text-center min-w-[50px]">
+                <span className="text-[8.5px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block leading-tight">Done</span>
+                <span className="text-xs sm:text-sm font-extrabold text-emerald-600 dark:text-emerald-400">{completedCount}</span>
+              </div>
+              <div className="bg-surface-elevated/70 border border-border/70 rounded-xl px-2.5 py-1 text-center min-w-[50px]">
+                <span className="text-[8.5px] font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400 block leading-tight">Star</span>
+                <span className="text-xs sm:text-sm font-extrabold text-cyan-600 dark:text-cyan-400">{starredCount}</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowGraph(prev => !prev)}
+              className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-surface-elevated hover:bg-surface text-secondary hover:text-foreground text-xs font-bold rounded-xl border border-border/80 transition-all cursor-pointer shrink-0"
+              title="Toggle 15-Day Graph"
+            >
+              <Lucide.TrendingUp size={13} className="text-emerald-500 dark:text-emerald-400" />
+              <span>{showGraph ? 'Hide Graph' : 'Show Graph'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 15-Day Activity & Completion Graph (Collapsible) */}
+        <AnimatePresence>
+          {showGraph && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mt-3 pt-3 border-t border-border/60 relative z-10 space-y-2 overflow-hidden"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-foreground flex items-center gap-1.5">
+                  <Lucide.TrendingUp size={13} className="text-emerald-500 dark:text-emerald-400" />
+                  <span>15-Day Activity & Completion Velocity</span>
+                </h4>
+
+                <div className="flex items-center gap-3 text-[10px] font-bold">
+                  <span className="flex items-center gap-1 text-cyan-600 dark:text-cyan-300">
+                    <span className="w-2 h-2 rounded-xs bg-cyan-500" />
+                    <span>Committed</span>
+                  </span>
+                  <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                    <span className="w-2 h-2 rounded-xs bg-emerald-500" />
+                    <span>Completed</span>
+                  </span>
+                </div>
+              </div>
+
+              <div className="bg-surface-elevated/70 backdrop-blur-md border border-border/70 rounded-2xl px-3 sm:px-4 pt-3 pb-3.5 shadow-inner">
+                <div className="gap-1 sm:gap-1.5 h-24 items-end pt-1 pb-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(15, minmax(0, 1fr))' }}>
+                  {last15DaysGraph.days.map((item, idx) => {
+                    const committedPct = Math.round((item.committed / last15DaysGraph.maxVal) * 100);
+                    const completedPct = Math.round((item.completed / last15DaysGraph.maxVal) * 100);
+                    const isToday = idx === 14;
+
+                    return (
+                      <div
+                        key={item.dateStr}
+                        className="flex flex-col items-center justify-between h-full group/bar relative pt-1"
+                      >
+                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-surface-elevated border border-border/80 text-foreground px-2 py-0.5 rounded-lg text-[9px] font-bold whitespace-nowrap shadow-xl opacity-0 group-hover/bar:opacity-100 transition-all pointer-events-none z-20">
+                          <span className="text-emerald-600 dark:text-emerald-400">{item.label}</span>: {item.committed} commit, {item.completed} done
+                        </div>
+
+                        <div className="w-full flex-1 flex items-end justify-center gap-0.5 min-h-[48px] pb-1">
+                          <div
+                            className={`w-1 sm:w-2 rounded-t-xs transition-all duration-300 ${
+                              item.committed > 0
+                                ? 'bg-gradient-to-t from-cyan-600 to-cyan-400 shadow-xs shadow-cyan-400/40'
+                                : 'bg-surface/50'
+                            }`}
+                            style={{ height: `${item.committed > 0 ? Math.max(18, committedPct) : 4}%` }}
+                          />
+                          <div
+                            className={`w-1 sm:w-2 rounded-t-xs transition-all duration-300 ${
+                              item.completed > 0
+                                ? 'bg-gradient-to-t from-emerald-600 to-emerald-400 shadow-xs shadow-emerald-500/40'
+                                : 'bg-surface/50'
+                            }`}
+                            style={{ height: `${item.completed > 0 ? Math.max(18, completedPct) : 4}%` }}
+                          />
+                        </div>
+
+                        <span className={`text-[9px] sm:text-[10px] font-black tracking-tight truncate leading-none shrink-0 py-0.5 ${isToday ? 'text-emerald-500 dark:text-emerald-400 font-extrabold' : 'text-secondary'}`}>
+                          {isToday ? 'Today' : item.label.split('/')[1]}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
       {/* Main Actions & Filters Header */}
       <div className="tile settings-tile p-4 sm:p-5 rounded-2xl space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -1030,159 +1179,7 @@ export default function TodoFeature() {
         </div>
       )}
 
-      {/* Standalone ToDo Studio Overview & Graph Frame */}
-      <div className="tile settings-tile p-5 sm:p-6 rounded-3xl space-y-4 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-72 h-72 bg-emerald-500/8 blur-[90px] pointer-events-none rounded-full" />
-        
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 relative z-10">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 sm:gap-2.5">
-              <span className="p-2 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 rounded-xl border border-emerald-500/30 shadow-xs shrink-0">
-                <Lucide.CheckCircle2 size={18} />
-              </span>
-              <div className="flex flex-wrap items-center gap-2 min-w-0">
-                <h2 className="text-base sm:text-2xl font-black tracking-tight text-foreground truncate">
-                  Standalone ToDo Studio
-                </h2>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-[8.5px] sm:text-[9.5px] font-black uppercase tracking-wider bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 rounded-full shrink-0 shadow-2xs">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Local Only
-                </span>
-              </div>
-            </div>
-          </div>
 
-          {/* Quick Stats Grid + Graph Toggle */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full lg:w-auto">
-            <div className="grid grid-cols-4 gap-1.5 sm:gap-2 w-full sm:w-auto">
-              <div className="bg-surface-elevated/70 backdrop-blur-md border border-border/80 rounded-2xl px-2.5 py-2 sm:px-3.5 sm:py-2.5 text-center min-w-0 shadow-xs">
-                <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-muted-foreground block truncate">Total</span>
-                <span className="text-sm sm:text-base font-black text-foreground">{totalCount}</span>
-              </div>
-              <div className="bg-surface-elevated/70 backdrop-blur-md border border-border/80 rounded-2xl px-2.5 py-2 sm:px-3.5 sm:py-2.5 text-center min-w-0 shadow-xs">
-                <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-amber-500 dark:text-amber-400 block truncate">Active</span>
-                <span className="text-sm sm:text-base font-black text-amber-500 dark:text-amber-400">{activeCount}</span>
-              </div>
-              <div className="bg-surface-elevated/70 backdrop-blur-md border border-border/80 rounded-2xl px-2.5 py-2 sm:px-3.5 sm:py-2.5 text-center min-w-0 shadow-xs">
-                <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block truncate">Done</span>
-                <span className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400">{completedCount}</span>
-              </div>
-              <div className="bg-surface-elevated/70 backdrop-blur-md border border-border/80 rounded-2xl px-2.5 py-2 sm:px-3.5 sm:py-2.5 text-center min-w-0 shadow-xs">
-                <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400 block truncate">Star</span>
-                <span className="text-sm sm:text-base font-black text-cyan-600 dark:text-cyan-400">{starredCount}</span>
-              </div>
-            </div>
-
-            <button
-              onClick={() => setShowGraph(prev => !prev)}
-              className="flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-surface-elevated hover:bg-surface text-secondary hover:text-foreground text-xs font-bold rounded-2xl border border-border/80 transition-all cursor-pointer w-full sm:w-auto shrink-0 shadow-xs"
-              title="Toggle 15-Day Graph"
-            >
-              <Lucide.TrendingUp size={14} className="text-emerald-500 dark:text-emerald-400" />
-              <span>{showGraph ? 'Hide Graph' : 'Show Graph'}</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Completion Progress Bar */}
-        {totalCount > 0 && (
-          <div className="mt-3.5 pt-3 border-t border-border/60 relative z-10">
-            <div className="flex items-center justify-between text-[11px] font-bold mb-1.5">
-              <span className="text-muted-foreground uppercase tracking-wider">Overall Progress</span>
-              <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">{completionPercent}% ({completedCount}/{totalCount})</span>
-            </div>
-            <div className="w-full h-2.5 bg-surface-elevated rounded-full overflow-hidden border border-border/70 p-0.5">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${completionPercent}%` }}
-                transition={{ duration: 0.5, ease: 'easeOut' }}
-                className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-400 rounded-full shadow-md shadow-emerald-500/30"
-              />
-            </div>
-          </div>
-        )}
-
-        {/* 15-Day Activity & Completion Graph (Collapsible & Compact) */}
-        <AnimatePresence>
-          {showGraph && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mt-3.5 pt-3 border-t border-border/60 relative z-10 space-y-2 overflow-hidden"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-foreground flex items-center gap-1.5">
-                  <Lucide.TrendingUp size={13} className="text-emerald-500 dark:text-emerald-400" />
-                  <span>15-Day Activity & Completion Velocity</span>
-                </h4>
-
-                {/* Legend */}
-                <div className="flex items-center gap-3 text-[10px] font-bold">
-                  <span className="flex items-center gap-1 text-cyan-600 dark:text-cyan-300">
-                    <span className="w-2 h-2 rounded-xs bg-cyan-500" />
-                    <span>Committed</span>
-                  </span>
-                  <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
-                    <span className="w-2 h-2 rounded-xs bg-emerald-500" />
-                    <span>Completed</span>
-                  </span>
-                </div>
-              </div>
-
-              {/* Compact Dual Bar Activity Chart */}
-              <div className="bg-surface-elevated/70 backdrop-blur-md border border-border/70 rounded-2xl px-3 sm:px-4 pt-3 pb-3.5 shadow-inner">
-                <div className="gap-1 sm:gap-1.5 h-24 items-end pt-1 pb-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(15, minmax(0, 1fr))' }}>
-                  {last15DaysGraph.days.map((item, idx) => {
-                    const committedPct = Math.round((item.committed / last15DaysGraph.maxVal) * 100);
-                    const completedPct = Math.round((item.completed / last15DaysGraph.maxVal) * 100);
-                    const isToday = idx === 14;
-
-                    return (
-                      <div
-                        key={item.dateStr}
-                        className="flex flex-col items-center justify-between h-full group/bar relative pt-1"
-                      >
-                        {/* Hover Tooltip */}
-                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-surface-elevated border border-border/80 text-foreground px-2 py-0.5 rounded-lg text-[9px] font-bold whitespace-nowrap shadow-xl opacity-0 group-hover/bar:opacity-100 transition-all pointer-events-none z-20">
-                          <span className="text-emerald-600 dark:text-emerald-400">{item.label}</span>: {item.committed} commit, {item.completed} done
-                        </div>
-
-                        {/* Dual Bars Container */}
-                        <div className="w-full flex-1 flex items-end justify-center gap-0.5 min-h-[48px] pb-1">
-                          {/* Committed Bar */}
-                          <div
-                            className={`w-1 sm:w-2 rounded-t-xs transition-all duration-300 ${
-                              item.committed > 0
-                                ? 'bg-gradient-to-t from-cyan-600 to-cyan-400 shadow-xs shadow-cyan-400/40'
-                                : 'bg-surface/50'
-                            }`}
-                            style={{ height: `${item.committed > 0 ? Math.max(18, committedPct) : 4}%` }}
-                          />
-                          {/* Completed Bar */}
-                          <div
-                            className={`w-1 sm:w-2 rounded-t-xs transition-all duration-300 ${
-                              item.completed > 0
-                                ? 'bg-gradient-to-t from-emerald-600 to-emerald-400 shadow-xs shadow-emerald-500/40'
-                                : 'bg-surface/50'
-                            }`}
-                            style={{ height: `${item.completed > 0 ? Math.max(18, completedPct) : 4}%` }}
-                          />
-                        </div>
-
-                        {/* X-Axis Date Label */}
-                        <span className={`text-[9px] sm:text-[10px] font-black tracking-tight truncate leading-none shrink-0 py-0.5 ${isToday ? 'text-emerald-500 dark:text-emerald-400 font-extrabold' : 'text-secondary'}`}>
-                          {isToday ? 'Today' : item.label.split('/')[1]}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
 
       {/* Create / Edit ToDo Modal */}
       <AnimatePresence>

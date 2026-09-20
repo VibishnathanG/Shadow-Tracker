@@ -678,7 +678,7 @@ export const TasksFeature: React.FC = () => {
                           }[status] || { label: 'To Do', color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' };
 
                           return (
-                            <span className={`text-[9.5px] font-black uppercase px-2 py-0.5 rounded-md border ${statusConfig.color} shrink-0`}>
+                            <span className={`text-[9.5px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md border ${statusConfig.color} shrink-0`}>
                               {statusConfig.label}
                             </span>
                           );
@@ -699,12 +699,12 @@ export const TasksFeature: React.FC = () => {
                       </div>
 
                       {/* Label 4: Priority / Severity */}
-                      <span className={`text-[9.5px] font-black uppercase px-2 py-0.5 rounded-md shrink-0 ${
+                      <span className={`text-[9.5px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md border shrink-0 ${
                         task.priority === 'high' 
-                          ? 'text-red-500 bg-red-500/10' 
+                          ? 'text-rose-400 bg-rose-500/10 border-rose-500/25' 
                           : task.priority === 'medium' 
-                          ? 'text-yellow-500 bg-yellow-500/10' 
-                          : 'text-muted-foreground bg-muted-foreground/10'
+                          ? 'text-amber-400 bg-amber-500/10 border-amber-500/25' 
+                          : 'text-muted-foreground bg-muted-foreground/10 border-border/40'
                       }`}>
                         {task.priority}
                       </span>
@@ -870,7 +870,7 @@ export const TasksFeature: React.FC = () => {
                           }[status] || { label: 'To Do', color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' };
 
                           return (
-                            <span className={`text-xs font-black uppercase px-2.5 py-1 rounded-md border ${statusConfig.color}`}>
+                            <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md border ${statusConfig.color}`}>
                               {statusConfig.label}
                             </span>
                           );
@@ -890,12 +890,12 @@ export const TasksFeature: React.FC = () => {
                         )}
 
                         {/* 4. Priority / Severity */}
-                        <span className={`text-xs font-bold uppercase px-2.5 py-1 rounded-md ${
+                        <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md border ${
                           task.priority === 'high' 
-                            ? 'text-red-500 bg-red-500/10' 
+                            ? 'text-rose-400 bg-rose-500/10 border-rose-500/25' 
                             : task.priority === 'medium' 
-                            ? 'text-yellow-500 bg-yellow-500/10' 
-                            : 'text-muted-foreground bg-muted-foreground/10'
+                            ? 'text-amber-400 bg-amber-500/10 border-amber-500/25' 
+                            : 'text-muted-foreground bg-muted-foreground/10 border-border/40'
                         }`}>
                           {task.priority}
                         </span>

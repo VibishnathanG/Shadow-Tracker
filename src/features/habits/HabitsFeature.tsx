@@ -346,7 +346,7 @@ const PremiumHabitCard: React.FC<PremiumHabitCardProps> = ({
             </motion.div>
           </motion.h3>
           {habit.description && (
-            <p className="text-xs text-secondary font-medium mt-1 leading-relaxed break-words">
+            <p className="text-xs text-muted-foreground font-normal mt-1 leading-relaxed break-words">
               {habit.description}
             </p>
           )}
