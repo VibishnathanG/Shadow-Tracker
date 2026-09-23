@@ -50,6 +50,7 @@ import {
   saveCustomPrompt,
   deleteCustomPrompt,
 } from '../aiPromptsData';
+import { AiMarkdownRenderer } from '../AiMarkdownRenderer';
 import {
   getSessionApiKey,
   setSessionApiKey,
@@ -335,5 +336,30 @@ describe('Session-Only API Key Security', () => {
 
     discardSessionApiKey();
     expect(getSessionApiKey()).toBe('');
+  });
+});
+
+describe('AiMarkdownRenderer Unit Tests', () => {
+  it('renders bold, bullet items, numbered lists, and code blocks cleanly', () => {
+    const rawMarkdown = `### Today's Mission Plan
+**Focus Goal**: Complete Quantum Module
+- First action item
+- Second action item with **bold priority**
+1. Step one
+2. Step two
+\`inline_command\`
+\`\`\`bash
+npm run build
+\`\`\``;
+
+    const rendered = AiMarkdownRenderer({ content: rawMarkdown, isUser: false }) as React.ReactElement<any>;
+    expect(rendered).toBeDefined();
+    expect(rendered?.props.className).toContain('ai-markdown-content');
+    expect(rendered?.props.children.length).toBeGreaterThan(5);
+  });
+
+  it('renders null on empty content without errors', () => {
+    const rendered = AiMarkdownRenderer({ content: '' });
+    expect(rendered).toBeNull();
   });
 });

@@ -26,6 +26,7 @@ import {
 } from './aiService';
 import AiToolsModal from './AiToolsModal';
 import AiPromptsModal from './AiPromptsModal';
+import { AiMarkdownRenderer } from './AiMarkdownRenderer';
 
 interface AiAssistantModalProps {
   isOpen: boolean;
@@ -680,13 +681,13 @@ Click **"Day-to-Day Prompts"** or **"Tools & Engine"** above, or type your reque
                         className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}
                       >
                         <div
-                          className={`max-w-[88%] sm:max-w-[80%] rounded-2xl p-3.5 sm:p-4 text-xs sm:text-sm leading-relaxed whitespace-pre-wrap ${
+                          className={`max-w-[88%] sm:max-w-[80%] rounded-2xl p-3.5 sm:p-4 text-xs sm:text-sm leading-relaxed ${
                             isUser
                               ? 'bg-primary text-primary-foreground shadow-md shadow-primary/25 rounded-tr-xs'
                               : 'bg-surface border border-border text-foreground shadow-sm rounded-tl-xs'
                           }`}
                         >
-                          {msg.content}
+                          <AiMarkdownRenderer content={msg.content} isUser={isUser} />
 
                           {/* Executed Tools Badges */}
                           {msg.toolExecutionResults && msg.toolExecutionResults.length > 0 && (
