@@ -4,7 +4,7 @@
   <img src="./public/app_logo_master.png" alt="Shadow Tracker Logo" width="100" />
 </p>
 
-<h3 align="center">Local-First • Privacy-First • Personal Operating System</h3>
+<h3 align="center">Offline Habits, Tasks, Health & Budget Tracker</h3>
 
 <p align="center">
   <a href="https://hub.docker.com/r/vibishnathang/shadow-tracker"><img src="https://img.shields.io/docker/pulls/vibishnathang/shadow-tracker?style=flat-square&logo=docker&label=Docker%20Pulls&color=0db7ed" alt="Docker Pulls" /></a>
@@ -26,47 +26,38 @@ Watch a 3-minute complete tour of Shadow Tracker in action:
   </a>
 </p>
 
-<p align="center">
-  <a href="https://github.com/VibishnathanG/Shadow-Tracker/raw/main/public/app-looks/Shadow-Tracker-Look.mp4">
-    <img src="https://img.shields.io/badge/▶%EF%B8%8F_Watch_Full_Tour_(3_Mins)-Direct_Stream-10b981?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch Full Video" />
-  </a>
-  <a href="https://github.com/VibishnathanG/Shadow-Tracker/releases/download/v6.0.0/Shadow-Tracker-Look.mp4">
-    <img src="https://img.shields.io/badge/📥_Download_Video_(82MB)-Release_Asset-6366f1?style=for-the-badge" alt="Download Video" />
-  </a>
-</p>
-
 ---
 
 ## Project-Overview
 
-**Shadow Tracker** is an offline-first personal dashboard designed to track habits, tasks, health, and finances while turning your daily consistency into an RPG progression system.
+**Shadow Tracker** is a clean, offline personal dashboard to track your daily habits, tasks, workouts, and budget in one place.
 
-All your records stay on your own machine. Data is stored directly in your browser's IndexedDB and LocalStorage — there are no mandatory accounts, no third-party tracking, and no external database dependencies.
+Everything stays on your own computer. Data is saved directly in your browser without accounts, cloud sync, or external tracking.
 
 ---
 
 ## Core-Features
 
-- **Habit Matrix & Streaks**: Daily habit tracking with 15-week consistency heatmaps, custom recurring schedules, and streak shields.
-- **Tasks & Standalone ToDos**: Priority matrix, time-boxing, subtasks, and an instant-access checklist for quick errands.
-- **Health & Nutrition**: Hydration logging with target goals, calorie tracking, macro distribution (Protein, Carbs, Fats), and workout logs.
-- **Wealth & Budgeting**: Expense logging, subscription trackers, category envelopes, and monthly savings allocation charts.
-- **Life RPG Engine**: Earn XP for completing daily actions, level up your character rank, and unlock achievement badges.
-- **Ambient Focus Companions**: Smooth, lightweight animations (maglev train, shadow ninja, cyber dragon, hoverboard) that automatically turn off in Eco Mode to preserve laptop battery.
-- **Encrypted Backups**: Export and import your data anytime with signed SHA-256 envelopes or AES-GCM encrypted backup bundles.
+- **Habits**: Track daily routines with streaks and heatmaps.
+- **Tasks & ToDos**: Simple priority levels, time estimates, checklists, and subtasks.
+- **Health & Food**: Log water intake, calories, daily macros, and workout routines.
+- **Money & Budget**: Track expenses, monthly spending envelopes, and savings goals.
+- **Progress & Leveling**: Earn XP as you complete daily routines to stay consistent.
+- **Focus Companions**: Lightweight animations (maglev, ninja, dragon) with an Eco Mode toggle to save battery.
+- **Data Backups**: Export or restore your data anytime as a backup file.
 
 ---
 
 ## Shadow-AI-Copilot
 
-Shadow Tracker includes a private autonomous AI assistant that helps manage your daily life without sending your data to any cloud service unless you ask it to.
+Shadow Tracker includes an optional AI assistant that runs safe actions on your local data.
 
-- **16 Local Tools**: The AI can create tasks, complete habits, plan diet meals, log hydration, configure reminders/alarms, and update budgets. All operations are safe and strictly non-destructive (no delete tools).
-- **Session-Only Privacy**: Your API key is stored in browser memory only (`sessionStorage`) and disappears the moment you close the tab or click Discard.
-- **Custom Context Window**: You choose how much tracker history the AI sees — from the last 7 days up to 1 year of data.
-- **Works with Local LLMs**: Connect to any OpenAI-compatible API or run 100% offline with local models through Ollama or LM Studio on `http://localhost:11434/v1`.
-- **Custom Tools & Prompt Library**: 18+ pre-configured day-to-day productivity prompts, real-time prompt search, and the ability to define your own tools using JSON Schema.
-- **Live Markdown & Table Support**: Responses format clean bullet points, bold text, code blocks, and markdown tables automatically.
+- **16 Local Tools**: Can create tasks, mark habits done, plan meals, log water, and set reminders. Strictly non-destructive (never deletes data).
+- **Session Privacy**: API keys stay in temporary session memory (`sessionStorage`) and are cleared when you close the tab.
+- **Custom Context**: Choose how much history the AI sees (7 days up to 1 year), or run with zero context.
+- **Local Models**: Connect to OpenAI or run completely offline with local models using Ollama or LM Studio.
+- **Prompt Library**: Pre-built day-to-day prompts and support for custom user tools.
+- **Rich Formatting**: Outputs clean bullet points, bold text, code, and markdown tables.
 
 ---
 
