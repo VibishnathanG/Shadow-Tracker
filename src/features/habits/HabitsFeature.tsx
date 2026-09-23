@@ -158,15 +158,15 @@ const PremiumHabitCard: React.FC<PremiumHabitCardProps> = ({
   return (
     <motion.div
       layout
-      whileHover={{ scale: 1.015, transition: { type: "spring", stiffness: 400, damping: 12 } }}
+      whileHover={{ scale: 1.01, transition: { type: "spring", stiffness: 400, damping: 12 } }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
-      className={`relative group rounded-3xl p-4 sm:p-5 overflow-hidden transition-all duration-500 border ${
+      className={`relative group rounded-2xl p-3 sm:p-3.5 overflow-hidden transition-all duration-300 border ${
         isCompleted
-          ? 'bg-gradient-to-br from-card/95 to-primary/10 border-primary/30 shadow-[0_0_30px_-5px_rgba(var(--primary),0.15)]'
+          ? 'bg-gradient-to-br from-card/95 to-primary/10 border-primary/30 shadow-[0_0_20px_-5px_rgba(var(--primary),0.12)]'
           : isUncompleted
-          ? 'bg-gradient-to-br from-card/95 to-rose-500/10 border-rose-500/30 shadow-[0_0_20px_-5px_rgba(244,63,94,0.15)]'
-          : 'bg-surface-elevated/95 backdrop-blur-xl border-border/80 hover:border-border hover:shadow-lg hover:bg-surface-elevated'
+          ? 'bg-gradient-to-br from-card/95 to-rose-500/10 border-rose-500/30 shadow-[0_0_15px_-5px_rgba(244,63,94,0.12)]'
+          : 'bg-surface-elevated/95 backdrop-blur-xl border-border/70 hover:border-border hover:shadow-md hover:bg-surface-elevated'
       }`}
     >
       {isCompleted && (
@@ -174,12 +174,12 @@ const PremiumHabitCard: React.FC<PremiumHabitCardProps> = ({
           initial={{ opacity: 0, scale: 0.5 }}
           animate={{ opacity: [0, 0.15, 0], scale: [0.8, 1.2, 1.5] }}
           transition={{ duration: 3, repeat: Infinity, ease: "easeOut" }}
-          className="absolute inset-0 bg-primary/30 rounded-full blur-[80px] pointer-events-none"
+          className="absolute inset-0 bg-primary/25 rounded-full blur-[60px] pointer-events-none"
           style={{ transformOrigin: 'center' }}
         />
       )}
 
-      <div className="absolute -right-16 -top-16 opacity-[0.04] pointer-events-none">
+      <div className="absolute -right-16 -top-16 opacity-[0.03] pointer-events-none">
          <motion.svg width="250" height="250" viewBox="0 0 100 100" animate={{ rotate: 360 }} transition={{ duration: 50, repeat: Infinity, ease: "linear" }} style={{ transformOrigin: '50px 50px' }}>
            <circle cx="50" cy="50" r="45" stroke="currentColor" strokeWidth="1" fill="none" strokeDasharray="4 4" />
            <circle cx="50" cy="50" r="35" stroke="currentColor" strokeWidth="2" fill="none" strokeDasharray="10 5" />
@@ -187,29 +187,29 @@ const PremiumHabitCard: React.FC<PremiumHabitCardProps> = ({
       </div>
       
       {/* Top-Right Streak Prism / Crystal Artwork */}
-      <div className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 pointer-events-none drop-shadow-md z-10 transition-transform group-hover:scale-105">
+      <div className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 pointer-events-none drop-shadow-md z-10 transition-transform group-hover:scale-105 scale-85 origin-top-right">
         {getArtwork(habit.streakCount)}
       </div>
 
-      <div className="relative z-10 space-y-3.5">
+      <div className="relative z-10 space-y-2.5">
         {/* TOP ROW: Check/X Actions + Vitality + Edit/Delete */}
-        <div className="flex items-center justify-between gap-2.5">
+        <div className="flex items-center justify-between gap-2">
           {/* Action Control: Complete Checkmark & Not Completed X */}
           <div className="flex items-center gap-1.5 shrink-0">
             {/* Complete Check Button (✓) */}
             <div className="relative">
               {isCompleted && (
                 <motion.div
-                  animate={{ scale: [1, 1.4, 1], opacity: [0.6, 0, 0.6] }}
+                  animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
                   transition={{ duration: 2, repeat: Infinity }}
-                  className="absolute inset-0 bg-primary rounded-xl blur-sm pointer-events-none"
+                  className="absolute inset-0 bg-primary rounded-xl blur-xs pointer-events-none"
                 />
               )}
               <motion.button
                 whileTap={!isFutureDate && !isPastGracePeriod ? { scale: 0.93 } : undefined}
                 disabled={isFutureDate || isPastGracePeriod}
                 onClick={() => onToggle(habit.id, selectedDateStr)}
-                className={`relative z-10 w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all duration-300 ${
+                className={`relative z-10 w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-lg sm:rounded-xl flex items-center justify-center transition-all duration-200 ${
                   isFutureDate
                     ? 'bg-secondary/20 text-muted-foreground/30 border border-border/40 cursor-not-allowed opacity-35'
                     : isPastGracePeriod
@@ -217,8 +217,8 @@ const PremiumHabitCard: React.FC<PremiumHabitCardProps> = ({
                       ? 'bg-primary/50 text-white/80 border border-primary/40 cursor-not-allowed opacity-60'
                       : 'bg-secondary/20 text-muted-foreground/30 border border-border/40 cursor-not-allowed opacity-35'
                     : isCompleted
-                    ? 'bg-gradient-to-tr from-primary to-purple-500 text-primary-foreground shadow-md shadow-primary/40 scale-105 border border-primary/40 cursor-pointer'
-                    : 'bg-surface-elevated/90 text-secondary hover:text-primary hover:border-primary/60 border-2 border-border/90 shadow-xs cursor-pointer'
+                    ? 'bg-gradient-to-tr from-primary to-purple-500 text-primary-foreground shadow-md shadow-primary/30 scale-105 border border-primary/40 cursor-pointer'
+                    : 'bg-surface-elevated/90 text-secondary hover:text-primary hover:border-primary/60 border-2 border-border/80 shadow-2xs cursor-pointer'
                 }`}
                 title={
                   isFutureDate
@@ -231,7 +231,7 @@ const PremiumHabitCard: React.FC<PremiumHabitCardProps> = ({
                 }
               >
                 <Lucide.Check
-                  size={20}
+                  size={16}
                   className={
                     isCompleted
                       ? 'stroke-[3px]'
@@ -249,19 +249,19 @@ const PremiumHabitCard: React.FC<PremiumHabitCardProps> = ({
                 <motion.div
                   animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
                   transition={{ duration: 2, repeat: Infinity }}
-                  className="absolute inset-0 bg-rose-500 rounded-xl blur-sm pointer-events-none"
+                  className="absolute inset-0 bg-rose-500 rounded-xl blur-xs pointer-events-none"
                 />
               )}
               <motion.button
                 whileTap={!isFutureDate ? { scale: 0.93 } : undefined}
                 disabled={isFutureDate}
                 onClick={() => onMarkUncompleted(habit, selectedDateStr)}
-                className={`relative z-10 w-10 h-10 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl flex items-center justify-center transition-all duration-300 ${
+                className={`relative z-10 w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-lg sm:rounded-xl flex items-center justify-center transition-all duration-200 ${
                   isFutureDate
                     ? 'bg-secondary/20 text-muted-foreground/30 border border-border/40 cursor-not-allowed opacity-35'
                     : isUncompleted
                     ? 'bg-rose-500/20 text-rose-400 border-2 border-rose-500/60 shadow-md shadow-rose-500/20 scale-105 cursor-pointer'
-                    : 'bg-surface-elevated/90 text-secondary hover:text-rose-400 hover:border-rose-500/60 border-2 border-border/90 shadow-xs cursor-pointer'
+                    : 'bg-surface-elevated/90 text-secondary hover:text-rose-400 hover:border-rose-500/60 border-2 border-border/80 shadow-2xs cursor-pointer'
                 }`}
                 title={
                   isFutureDate
@@ -272,7 +272,7 @@ const PremiumHabitCard: React.FC<PremiumHabitCardProps> = ({
                 }
               >
                 <Lucide.X
-                  size={18}
+                  size={15}
                   className={
                     isUncompleted
                       ? 'stroke-[3px]'
@@ -285,16 +285,26 @@ const PremiumHabitCard: React.FC<PremiumHabitCardProps> = ({
             </div>
           </div>
 
-          {/* Vitality in Top Row - Fully visible with dedicated clearance for the top-right prism logo */}
-          <div className="flex-1 min-w-0 px-2 sm:px-3 pr-12 sm:pr-14">
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-[11px] font-black text-secondary uppercase tracking-wider flex items-center gap-1">
-                <Lucide.BatteryCharging size={13} className="text-primary shrink-0" /> 
-                <span className="font-extrabold text-foreground/90 whitespace-nowrap">Vitality</span>
+          {/* Vitality in Top Row - Clean dedicated layout with right padding for streak crystal */}
+          <div className="flex-1 min-w-0 pr-8 sm:pr-10">
+            <div className="flex justify-between items-center mb-0.5">
+              <span className="text-[10px] font-bold text-secondary uppercase tracking-wider flex items-center gap-1">
+                <Lucide.BatteryCharging size={11} className="text-primary shrink-0" /> 
+                <span className="font-bold text-foreground/90 whitespace-nowrap">Vitality</span>
+                {isCompleted && (
+                  <motion.span
+                    animate={{ scale: [1, 1.25, 1], opacity: [0.75, 1, 0.75] }}
+                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                    className="shrink-0 inline-flex items-center text-primary ml-0.5"
+                    title="Completed today"
+                  >
+                    <Lucide.Sparkles size={11} />
+                  </motion.span>
+                )}
               </span>
-              <span className="text-xs font-black text-foreground font-mono ml-1 shrink-0">{energyLevel}%</span>
+              <span className="text-[11px] font-bold text-foreground font-mono ml-1 shrink-0">{energyLevel}%</span>
             </div>
-            <div className="h-2 w-full bg-secondary/80 rounded-full overflow-hidden">
+            <div className="h-1.5 w-full bg-secondary/80 rounded-full overflow-hidden">
               <motion.div 
                 initial={{ width: 0 }}
                 animate={{ width: `${energyLevel}%` }}
@@ -304,49 +314,20 @@ const PremiumHabitCard: React.FC<PremiumHabitCardProps> = ({
                  <motion.div
                    animate={{ x: ['-100%', '200%'] }}
                    transition={{ duration: 2, repeat: Infinity, ease: "linear", delay: 1 }}
-                   className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-12"
+                   className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12"
                  />
               </motion.div>
-            </div>
-          </div>
-          
-          {/* Action Controls (Edit/Delete) */}
-          <div className="flex items-center shrink-0">
-            <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity relative z-20">
-              <button 
-                type="button" 
-                onClick={(e) => { e.stopPropagation(); onEdit(habit); }} 
-                className="p-1.5 text-secondary hover:text-foreground hover:bg-surface-elevated rounded-lg transition-all cursor-pointer"
-                title="Edit Habit"
-              >
-                <Lucide.Edit2 size={15} />
-              </button>
-              <button 
-                type="button" 
-                onClick={(e) => { e.stopPropagation(); onDelete(habit.id); }} 
-                className="p-1.5 text-secondary hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all cursor-pointer"
-                title="Delete Habit"
-              >
-                <Lucide.Trash2 size={15} />
-              </button>
             </div>
           </div>
         </div>
 
         {/* DOWN/BOTTOM SECTION: Full Habit Name & Multi-line Description */}
-        <div className="min-w-0 pt-1">
-          <motion.h3 layout className="text-base font-extrabold tracking-tight text-foreground flex items-start justify-between gap-2 leading-snug">
+        <div className="min-w-0 pt-0.5">
+          <motion.h3 layout className="text-sm font-bold tracking-tight text-foreground block leading-snug">
             <span className="break-words">{habit.name}</span>
-            <motion.div
-              animate={{ scale: [1, 1.2, 1], opacity: [0.6, 1, 0.6] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              className="shrink-0 mt-0.5"
-            >
-              <Lucide.Sparkles size={14} className={isCompleted ? "text-primary" : "text-primary/40"} />
-            </motion.div>
           </motion.h3>
           {habit.description && (
-            <p className="text-xs text-muted-foreground font-normal mt-1 leading-relaxed break-words">
+            <p className="text-[11.5px] text-muted-foreground font-normal mt-0.5 leading-relaxed break-words line-clamp-2">
               {habit.description}
             </p>
           )}
@@ -354,38 +335,60 @@ const PremiumHabitCard: React.FC<PremiumHabitCardProps> = ({
             <button
               type="button"
               onClick={() => onMarkUncompleted(habit, selectedDateStr)}
-              className="mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-400 text-[11px] font-bold hover:bg-amber-500/25 transition-all text-left max-w-full"
+              className="mt-1 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-400 text-[10px] font-bold hover:bg-amber-500/25 transition-all text-left max-w-full"
               title="Click to view/edit reflection reason"
             >
-              <Lucide.FileEdit size={11} className="shrink-0 text-amber-400" />
-              <span className="truncate max-w-[280px]">Reason: {reasonText}</span>
+              <Lucide.FileEdit size={10} className="shrink-0 text-amber-400" />
+              <span className="truncate max-w-[260px]">Reason: {reasonText}</span>
             </button>
           )}
         </div>
 
-        {/* Streaks & Category Tags */}
-        <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
-          <div className="flex items-center gap-1.5 bg-surface-elevated/95 px-2.5 py-1.5 rounded-xl border border-border/80 shadow-xs">
-            <motion.div
-              animate={{ rotate: [-5, 5, -5], scale: [1, 1.15, 1] }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <Lucide.Flame size={14} className={habit.streakCount > 0 ? "text-amber-400 fill-amber-400" : "text-amber-400/60"} />
-            </motion.div>
-            <span className={habit.streakCount > 0 ? "text-amber-400 font-black" : "text-secondary font-bold"}>{habit.streakCount} Day{habit.streakCount !== 1 && 's'}</span>
-          </div>
-
-          <div className="flex items-center gap-1.5 bg-surface-elevated/95 px-2.5 py-1.5 rounded-xl border border-border/80 shadow-xs">
-            <Lucide.Trophy size={14} className={habit.longestStreak > 0 ? "text-amber-400" : "text-amber-400/60"} />
-            <span className={habit.longestStreak > 0 ? "text-amber-400 font-black" : "text-secondary font-bold"}>Best: {habit.longestStreak}</span>
-          </div>
-
-          {category && (
-            <div className="flex items-center gap-1.5 bg-surface-elevated/95 px-2.5 py-1.5 rounded-xl border border-border/80 shadow-xs max-w-full">
-              <span className="w-2 h-2 rounded-full shadow-[0_0_8px_rgba(0,0,0,0.5)] shrink-0" style={{ backgroundColor: category.color, boxShadow: `0 0 8px ${category.color}` }} />
-              <span className="text-foreground font-black text-xs truncate max-w-[130px] sm:max-w-none">{category.name}</span>
+        {/* Streaks & Category Tags + Action Controls */}
+        <div className="flex items-center justify-between gap-1.5 text-[10.5px] font-semibold flex-wrap">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <div className="flex items-center gap-1 bg-surface-elevated/95 px-2 py-0.5 rounded-lg border border-border/70 shadow-2xs">
+              <motion.div
+                animate={{ rotate: [-5, 5, -5], scale: [1, 1.15, 1] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <Lucide.Flame size={12} className={habit.streakCount > 0 ? "text-amber-400 fill-amber-400" : "text-amber-400/60"} />
+              </motion.div>
+              <span className={habit.streakCount > 0 ? "text-amber-400 font-bold" : "text-secondary font-medium"}>{habit.streakCount}d</span>
             </div>
-          )}
+
+            <div className="flex items-center gap-1 bg-surface-elevated/95 px-2 py-0.5 rounded-lg border border-border/70 shadow-2xs">
+              <Lucide.Trophy size={12} className={habit.longestStreak > 0 ? "text-amber-400" : "text-amber-400/60"} />
+              <span className={habit.longestStreak > 0 ? "text-amber-400 font-bold" : "text-secondary font-medium"}>Best: {habit.longestStreak}</span>
+            </div>
+
+            {category && (
+              <div className="flex items-center gap-1 bg-surface-elevated/95 px-2 py-0.5 rounded-lg border border-border/70 shadow-2xs max-w-full">
+                <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: category.color }} />
+                <span className="text-foreground/90 font-medium truncate max-w-[120px]">{category.name}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Action Controls (Edit/Delete) - Positioned with zero collision */}
+          <div className="flex items-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity ml-auto z-20">
+            <button 
+              type="button" 
+              onClick={(e) => { e.stopPropagation(); onEdit(habit); }} 
+              className="p-1 text-secondary hover:text-foreground hover:bg-surface-elevated rounded-lg transition-all cursor-pointer"
+              title="Edit Habit"
+            >
+              <Lucide.Edit2 size={13} />
+            </button>
+            <button 
+              type="button" 
+              onClick={(e) => { e.stopPropagation(); onDelete(habit.id); }} 
+              className="p-1 text-secondary hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all cursor-pointer"
+              title="Delete Habit"
+            >
+              <Lucide.Trash2 size={13} />
+            </button>
+          </div>
         </div>
 
         <motion.div 
@@ -738,7 +741,7 @@ export const HabitsFeature: React.FC = () => {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-3.5">
         {filteredHabits.length > 0 ? (
           filteredHabits.map((habit) => {
             const isCompleted = habit.completedDates.includes(activeDateStr);

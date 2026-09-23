@@ -319,6 +319,7 @@ export const SettingsFeature: React.FC = () => {
     deleteReminder,
     tasks,
     habits,
+    dailyLogs,
   } = useShadowTrackerStore();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -355,6 +356,11 @@ export const SettingsFeature: React.FC = () => {
   const [pendingEncryptedContent, setPendingEncryptedContent] = useState('');
   const [pendingEncryptedFileName, setPendingEncryptedFileName] = useState('');
   const [isDecrypting, setIsDecrypting] = useState(false);
+
+  // 2-Year Demo Overwrite Warning & Backup State
+  const [isDemoWarningModalOpen, setIsDemoWarningModalOpen] = useState(false);
+  const [isExportingDemoBackup, setIsExportingDemoBackup] = useState(false);
+  const [demoBackupDownloaded, setDemoBackupDownloaded] = useState(false);
 
   // Dynamic Per-Year Archiving State
   const [availableYears, setAvailableYears] = useState<string[]>([]);
@@ -962,18 +968,50 @@ export const SettingsFeature: React.FC = () => {
     }
   }, [decryptPassword, pendingEncryptedContent, pendingEncryptedFileName, importBackup]);
 
-  const handleLoadDemoData = useCallback(async () => {
-    if (window.confirm('Load 2-Year Extensive Masterclass Demo Dataset? This will populate 730 days of habits, daily logs, notes, 220+ tasks, 24 full months of financial data, 365 days of nutrition & health logs, and Level 25 Master rank.')) {
-      try {
-        const demoData = generateMassiveTwoYearData();
-        await importBackup(demoData);
-        alert('2-Year Extensive Demo Dataset loaded successfully! Reloading app...');
-        window.location.reload();
-      } catch (err) {
-        console.error('Failed to load demo data:', err);
-      }
+  const hasExistingData = useMemo(() => {
+    return Boolean((tasks && tasks.length > 0) || (habits && habits.length > 0) || (dailyLogs && dailyLogs.length > 0));
+  }, [tasks, habits, dailyLogs]);
+
+  const executeLoadDemoData = useCallback(async () => {
+    try {
+      const demoData = generateMassiveTwoYearData();
+      await importBackup(demoData);
+      alert('2-Year Extensive Demo Dataset loaded successfully! Reloading app...');
+      window.location.reload();
+    } catch (err) {
+      console.error('Failed to load demo data:', err);
+      alert('Failed to load 2-Year Demo Dataset. Check console logs.');
     }
   }, [importBackup]);
+
+  const handleQuickExportBackup = useCallback(async () => {
+    try {
+      setIsExportingDemoBackup(true);
+      const backupData = await dbService.exportAllData(settings);
+      const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(backupData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute('href', dataStr);
+      downloadAnchor.setAttribute('download', `shadow-tracker-backup-prior-to-demo-${getTodayDateString()}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      setDemoBackupDownloaded(true);
+    } catch (err) {
+      console.error('Quick backup failed:', err);
+      alert('Failed to export backup.');
+    } finally {
+      setIsExportingDemoBackup(false);
+    }
+  }, [settings]);
+
+  const handleLoadDemoData = useCallback(() => {
+    if (hasExistingData) {
+      setDemoBackupDownloaded(false);
+      setIsDemoWarningModalOpen(true);
+    } else {
+      executeLoadDemoData();
+    }
+  }, [hasExistingData, executeLoadDemoData]);
 
   const handleReset = useCallback(async () => {
     const confirmReset = window.confirm(
@@ -1245,30 +1283,6 @@ export const SettingsFeature: React.FC = () => {
                     />
                     <span className="text-base text-foreground font-bold">A</span>
                   </div>
-                </div>
-
-                {/* Past Routine Activity Fill Window */}
-                <div className="flex flex-col gap-2 pt-4 border-t border-border">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Past Activity Fill Window</span>
-                    <span className="text-xs font-bold text-primary bg-primary/10 px-2.5 py-0.5 rounded-full">
-                      {settings.habitGracePeriodDays || 3} {settings.habitGracePeriodDays === 1 ? 'day' : 'days'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <input 
-                      type="range" 
-                      min="1" 
-                      max="10" 
-                      step="1"
-                      value={settings.habitGracePeriodDays || 3} 
-                      onChange={(e) => updateSettings({ habitGracePeriodDays: parseInt(e.target.value, 10) })}
-                      className="w-full accent-primary h-2 bg-secondary rounded-lg appearance-none cursor-pointer"
-                    />
-                  </div>
-                  <p className="text-[11px] text-muted-foreground">
-                    Number of past days permitted to retroactively check off or log missed habit reflections (1-10 days, default 3).
-                  </p>
                 </div>
 
                 <div className="space-y-1.5 pt-4 border-t border-border">
@@ -1664,7 +1678,17 @@ export const SettingsFeature: React.FC = () => {
                 Manage your offline-first IndexedDB local storage backups and demo datasets:
               </p>
             </div>
-            <div className="mt-auto pt-3 grid grid-cols-1 sm:grid-cols-3 gap-2 relative z-10">
+
+            {hasExistingData && (
+              <div className="mb-2.5 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center gap-2 text-xs text-amber-800 dark:text-amber-300 relative z-10">
+                <Lucide.AlertTriangle size={15} className="text-amber-500 shrink-0" />
+                <span className="leading-tight text-[11px] font-medium">
+                  <strong className="font-bold">Override Warning:</strong> Loading the 2-Year Demo replaces all existing records. Always take a backup first.
+                </span>
+              </div>
+            )}
+
+            <div className="mt-auto pt-1 grid grid-cols-1 sm:grid-cols-3 gap-2 relative z-10">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.95 }}
@@ -2038,23 +2062,23 @@ export const SettingsFeature: React.FC = () => {
             </p>
           </div>
           
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-row items-center gap-2.5 shrink-0 flex-nowrap">
             <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.96 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
               onClick={() => {
                 resetAllViewPreferences();
                 alert('✅ All page views and filter settings have been reset to factory defaults! Your personal data remains completely intact.');
               }}
-              className="filter-pill active flex items-center justify-center gap-2 !px-5 !py-3 font-bold text-xs rounded-xl shadow-md cursor-pointer"
+              className="filter-pill active flex items-center justify-center gap-1.5 !px-3.5 !py-2 font-bold text-xs rounded-xl shadow-md cursor-pointer whitespace-nowrap"
             >
-              <Lucide.RotateCcw size={15} />
+              <Lucide.RotateCcw size={14} />
               <span>Reset Views & Filters</span>
             </motion.button>
 
             <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.96 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
               onClick={() => {
                 updateSettings({
                   theme: 'spectrum',
@@ -2068,9 +2092,9 @@ export const SettingsFeature: React.FC = () => {
                 resetAllViewPreferences();
                 alert('✅ Theme restored to Spectrum and interface preferences reset to default! Your personal data is 100% safe.');
               }}
-              className="filter-pill flex items-center justify-center gap-2 !px-5 !py-3 bg-secondary/80 hover:bg-secondary text-foreground font-bold text-xs rounded-xl border border-border transition-all cursor-pointer"
+              className="filter-pill flex items-center justify-center gap-1.5 !px-3.5 !py-2 bg-secondary/80 hover:bg-secondary text-foreground font-bold text-xs rounded-xl border border-border transition-all cursor-pointer whitespace-nowrap"
             >
-              <Lucide.Sparkles size={15} className="text-primary" />
+              <Lucide.Sparkles size={14} className="text-primary" />
               <span>Reset Interface Defaults</span>
             </motion.button>
           </div>
@@ -2635,6 +2659,84 @@ export const SettingsFeature: React.FC = () => {
           </div>
         </div>
       </Modal>
+
+      {/* 2-Year Demo Overwrite Warning & Backup Non-Scrollable Modal */}
+      <Modal
+        isOpen={isDemoWarningModalOpen}
+        onClose={() => setIsDemoWarningModalOpen(false)}
+        title="⚠️ Overwrite Warning • 2-Year Demo"
+      >
+        <div className="space-y-4 py-1 select-none">
+          <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3">
+            <div className="p-2 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5">
+              <Lucide.AlertTriangle size={20} />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                Existing Telemetry Detected ({tasks.length} Tasks, {habits.length} Habits, {dailyLogs.length} Logs)
+              </h4>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Loading the 2-Year Masterclass dataset will <strong className="text-amber-600 dark:text-amber-400">permanently overwrite and replace</strong> all current tasks, habit routines, financial logs, and journal reflections.
+              </p>
+            </div>
+          </div>
+
+          <div className="p-3 rounded-xl bg-surface border border-border/80 text-xs text-foreground space-y-1.5">
+            <p className="font-semibold text-primary flex items-center gap-1.5">
+              <Lucide.ShieldCheck size={14} /> Recommended Action:
+            </p>
+            <p className="text-muted-foreground leading-relaxed">
+              Download a quick backup of your current database first so you can restore your data at any time.
+            </p>
+          </div>
+
+          <div className="space-y-2 pt-1">
+            <button
+              type="button"
+              onClick={handleQuickExportBackup}
+              disabled={isExportingDemoBackup}
+              className={`w-full py-3 px-4 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs ${
+                demoBackupDownloaded
+                  ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-600 dark:text-emerald-400'
+                  : 'bg-surface hover:bg-surface-elevated border-border text-foreground hover:border-primary/50'
+              }`}
+            >
+              {demoBackupDownloaded ? (
+                <>
+                  <Lucide.CheckCircle2 size={16} className="text-emerald-500" />
+                  <span>Step 1: Backup Downloaded to Your Device!</span>
+                </>
+              ) : (
+                <>
+                  <Lucide.Download size={15} className="text-primary" />
+                  <span>{isExportingDemoBackup ? 'Exporting Backup...' : 'Step 1: Download Current Backup (.json)'}</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={async () => {
+                setIsDemoWarningModalOpen(false);
+                await executeLoadDemoData();
+              }}
+              className="w-full py-3 px-4 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm active:scale-98"
+            >
+              <Lucide.Sparkles size={15} />
+              <span>Step 2: Overwrite All &amp; Load 2-Year Demo (730 Days)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsDemoWarningModalOpen(false)}
+              className="w-full py-2 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            >
+              Cancel (Keep Current Data)
+            </button>
+          </div>
+        </div>
+      </Modal>
+
       <JsonErrorModal
         isOpen={!!jsonDiagnosticError}
         onClose={() => setJsonDiagnosticError(null)}

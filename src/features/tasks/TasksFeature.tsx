@@ -397,7 +397,7 @@ export const TasksFeature: React.FC = () => {
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 relative z-10">
         <div>
-          <h2 className="text-2xl md:text-3xl font-black tracking-tight text-foreground">Tasks Workspace</h2>
+          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">Tasks Workspace</h2>
         </div>
         <div className="flex items-center gap-2">
           <motion.button
@@ -502,103 +502,107 @@ export const TasksFeature: React.FC = () => {
         </div>
       </div>
 
-      {/* Date Filters Bar */}
-      <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-1 relative z-10">
-        <span className="text-xs font-black text-secondary uppercase tracking-wider mr-1 shrink-0 flex items-center gap-1">
-          <Lucide.Calendar size={13} className="text-primary" /> Filter Date:
-        </span>
-        {[
-          { id: 'all', label: 'All Dates' },
-          { id: 'today', label: 'Today' },
-          { id: 'tomorrow', label: 'Tomorrow' },
-          { id: 'this-week', label: 'This Week' },
-          { id: 'overdue', label: 'Overdue' },
-        ].map(df => (
-          <button
-            key={df.id}
-            type="button"
-            onClick={() => setDateFilter(df.id as typeof dateFilter)}
-            className={`filter-pill ${dateFilter === df.id ? 'active' : ''}`}
-          >
-            {df.label}
-          </button>
-        ))}
+      {/* Consolidated Single-Line Filter Toolbar (Status + Date Filters + View Mode) */}
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-1 relative z-10">
+        {/* Combined Pills: Status Tabs (Pending, Completed, All) + Date Filters */}
+        <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5 min-w-0 max-w-full">
+          {/* Status Tabs */}
+          <div className="pill-group shrink-0">
+            {(['pending', 'completed', 'all'] as const).map(tab => {
+              const isActive = activeTab === tab;
+              const pendingCount = tasks.filter(t => !t.isCompleted).length;
+              return (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => setActiveTab(tab)}
+                  className={`filter-pill ${isActive ? 'active' : ''}`}
+                >
+                  <span className="capitalize">{tab}</span>
+                  {tab === 'pending' && pendingCount > 0 && (
+                    <span className={`ml-1 px-1.5 py-0.2 text-[9px] font-bold rounded-full ${
+                      isActive ? 'bg-black/20 text-slate-100' : 'bg-primary/15 text-primary'
+                    }`}>
+                      {pendingCount}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
 
-        {/* Specific Month Chooser Filter in same rounded glass theme */}
-        <div
-          className={`filter-pill relative flex items-center gap-1.5 cursor-pointer shrink-0 ${dateFilter === 'month' ? 'active' : ''}`}
-          title="Filter tasks by specific month"
-        >
-          <Lucide.CalendarDays size={13} className={dateFilter === 'month' ? 'text-white' : 'text-primary'} />
-          <span className="text-xs font-bold whitespace-nowrap">
-            {(() => {
-              const currentDefault = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
-              const mVal = selectedMonth || currentDefault;
-              try {
-                return format(parseISO(`${mVal}-01`), 'MMM yyyy');
-              } catch {
-                return 'Choose Month';
-              }
-            })()}
-          </span>
-          <Lucide.ChevronDown size={11} className="opacity-70 shrink-0" />
-          <select
-            value={dateFilter === 'month' ? (selectedMonth || '') : ''}
-            onChange={(e) => {
-              if (e.target.value) {
-                setSelectedMonth(e.target.value);
-                setDateFilter('month');
-              }
-            }}
-            onClick={(e) => e.stopPropagation()}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            aria-label="Filter tasks by specific month"
-          >
-            <option value="" disabled>Select Specific Month</option>
-            {availableMonths.map(m => (
-              <option key={m.key} value={m.key} className="bg-surface text-foreground font-semibold text-xs">
-                {m.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+          <div className="h-4 w-[1px] bg-border/60 mx-0.5 shrink-0" />
 
-      {/* Tabs & View Mode Switcher */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 relative z-10">
-        <div className="pill-group overflow-x-auto scrollbar-none">
-          {(['pending', 'completed', 'all'] as const).map(tab => {
-            const isActive = activeTab === tab;
-            return (
+          {/* Date Filters */}
+          <div className="pill-group shrink-0">
+            {[
+              { id: 'all', label: 'All Dates' },
+              { id: 'today', label: 'Today' },
+              { id: 'tomorrow', label: 'Tomorrow' },
+              { id: 'this-week', label: 'This Week' },
+              { id: 'overdue', label: 'Overdue' },
+            ].map(df => (
               <button
-                key={tab}
+                key={df.id}
                 type="button"
-                onClick={() => setActiveTab(tab)}
-                className={`filter-pill ${isActive ? 'active' : ''}`}
+                onClick={() => setDateFilter(df.id as typeof dateFilter)}
+                className={`filter-pill ${dateFilter === df.id ? 'active' : ''}`}
               >
-                <span className="capitalize">{tab}</span>
-                {tab === 'pending' && tasks.filter(t=>!t.isCompleted).length > 0 && (
-                  <span className={`ml-1.5 px-2 py-0.5 text-[10px] font-black rounded-full ${
-                    isActive ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-primary/20 text-primary'
-                  }`}>
-                    {tasks.filter(t=>!t.isCompleted).length}
-                  </span>
-                )}
+                {df.label}
               </button>
-            );
-          })}
+            ))}
+
+            {/* Specific Month Chooser Filter */}
+            <div
+              className={`filter-pill relative flex items-center gap-1 cursor-pointer shrink-0 ${dateFilter === 'month' ? 'active' : ''}`}
+              title="Filter tasks by specific month"
+            >
+              <Lucide.CalendarDays size={12} className={dateFilter === 'month' ? 'text-slate-100' : 'text-primary'} />
+              <span className="text-xs font-semibold whitespace-nowrap">
+                {(() => {
+                  const currentDefault = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
+                  const mVal = selectedMonth || currentDefault;
+                  try {
+                    return format(parseISO(`${mVal}-01`), 'MMM yyyy');
+                  } catch {
+                    return 'Month';
+                  }
+                })()}
+              </span>
+              <Lucide.ChevronDown size={10} className="opacity-70 shrink-0" />
+              <select
+                value={dateFilter === 'month' ? (selectedMonth || '') : ''}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    setSelectedMonth(e.target.value);
+                    setDateFilter('month');
+                  }
+                }}
+                onClick={(e) => e.stopPropagation()}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                aria-label="Filter tasks by specific month"
+              >
+                <option value="" disabled>Select Specific Month</option>
+                {availableMonths.map(m => (
+                  <option key={m.key} value={m.key} className="bg-surface text-foreground font-semibold text-xs">
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
 
         {/* View Mode Toggle: List Details vs Grid View */}
-        <div className="pill-group self-start sm:self-center">
+        <div className="pill-group shrink-0 self-center">
           <button
             type="button"
             onClick={() => setViewMode('list')}
             className={`filter-pill ${viewMode === 'list' ? 'active' : ''}`}
             title="List View with full details"
           >
-            <Lucide.ListFilter size={14} />
-            <span>List Details</span>
+            <Lucide.ListFilter size={13} />
+            <span className="hidden sm:inline">List</span>
           </button>
           <button
             type="button"
@@ -606,8 +610,8 @@ export const TasksFeature: React.FC = () => {
             className={`filter-pill ${viewMode === 'grid' ? 'active' : ''}`}
             title="Grid View (view more tasks at once)"
           >
-            <Lucide.LayoutGrid size={14} />
-            <span>Grid View</span>
+            <Lucide.LayoutGrid size={13} />
+            <span className="hidden sm:inline">Grid</span>
           </button>
         </div>
       </div>
@@ -663,8 +667,8 @@ export const TasksFeature: React.FC = () => {
                         </button>
 
                         {/* Label 1: Assignee */}
-                        <span className="text-[10px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-md flex items-center gap-1 shrink-0 max-w-[110px]" title={`Assignee: ${task.assignee || defaultAssignee}`}>
-                          <Lucide.User size={10} className="shrink-0" />
+                        <span className="text-[8px] font-medium text-primary bg-primary/10 px-1 py-[1px] rounded flex items-center gap-0.5 shrink-0 max-w-[80px]" title={`Assignee: ${task.assignee || defaultAssignee}`}>
+                          <Lucide.User size={8} className="shrink-0 opacity-75" />
                           <span className="truncate">{task.assignee || defaultAssignee}</span>
                         </span>
 
@@ -672,13 +676,13 @@ export const TasksFeature: React.FC = () => {
                         {(() => {
                           const status = task.status || (task.isCompleted ? 'done' : 'todo');
                           const statusConfig = {
-                            done: { label: 'Done', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
-                            in_progress: { label: 'In Progress', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
-                            todo: { label: 'To Do', color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' },
-                          }[status] || { label: 'To Do', color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' };
+                            done: { label: 'Done', color: 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+                            in_progress: { label: 'In Progress', color: 'text-amber-800 dark:text-amber-400 bg-amber-500/10 border-amber-500/20' },
+                            todo: { label: 'To Do', color: 'text-sky-700 dark:text-sky-400 bg-sky-500/10 border-sky-500/20' },
+                          }[status] || { label: 'To Do', color: 'text-sky-700 dark:text-sky-400 bg-sky-500/10 border-sky-500/20' };
 
                           return (
-                            <span className={`text-[9.5px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md border ${statusConfig.color} shrink-0`}>
+                            <span className={`text-[7.5px] font-medium px-1 py-[1px] rounded border ${statusConfig.color} shrink-0`}>
                               {statusConfig.label}
                             </span>
                           );
@@ -686,27 +690,27 @@ export const TasksFeature: React.FC = () => {
 
                         {/* Label 3: Category */}
                         {taskCategory ? (
-                          <span className="text-[10px] font-bold text-muted-foreground flex items-center gap-1 bg-surface-elevated px-2 py-0.5 rounded-md truncate max-w-[110px]" title={`Category: ${taskCategory.name}`}>
-                            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: taskCategory.color }} />
+                          <span className="text-[8px] font-medium text-muted-foreground flex items-center gap-1 bg-surface-elevated/70 px-1 py-[1px] rounded shrink-0 truncate max-w-[85px]" title={`Category: ${taskCategory.name}`}>
+                            <span className="w-1 h-1 rounded-full shrink-0" style={{ backgroundColor: taskCategory.color }} />
                             <span className="truncate">{taskCategory.name}</span>
                           </span>
                         ) : (
-                          <span className="text-[10px] font-bold text-muted-foreground/60 flex items-center gap-1 bg-surface-elevated/60 px-2 py-0.5 rounded-md truncate">
-                            <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-muted-foreground/40" />
+                          <span className="text-[8px] font-medium text-muted-foreground/60 flex items-center gap-1 bg-surface-elevated/60 px-1 py-[1px] rounded shrink-0 truncate">
+                            <span className="w-1 h-1 rounded-full shrink-0 bg-muted-foreground/40" />
                             <span>General</span>
                           </span>
                         )}
                       </div>
 
                       {/* Label 4: Priority / Severity */}
-                      <span className={`text-[9.5px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md border shrink-0 ${
+                      <span className={`text-[7.5px] font-medium px-1 py-[1px] rounded border shrink-0 ${
                         task.priority === 'high' 
-                          ? 'text-rose-400 bg-rose-500/10 border-rose-500/25' 
+                          ? 'text-rose-700 dark:text-rose-400 bg-rose-500/10 border-rose-500/20' 
                           : task.priority === 'medium' 
-                          ? 'text-amber-400 bg-amber-500/10 border-amber-500/25' 
-                          : 'text-muted-foreground bg-muted-foreground/10 border-border/40'
+                          ? 'text-amber-800 dark:text-amber-400 bg-amber-500/10 border-amber-500/20' 
+                          : 'text-slate-700 dark:text-muted-foreground bg-muted-foreground/10 border-border/30'
                       }`}>
-                        {task.priority}
+                        {task.priority === 'high' ? 'High' : task.priority === 'medium' ? 'Med' : 'Low'}
                       </span>
                     </div>
 
@@ -723,8 +727,8 @@ export const TasksFeature: React.FC = () => {
 
                   <div className="flex items-center justify-between pt-2 border-t border-border/40 text-xs mt-auto">
                     {/* Label 5: Due Date */}
-                    <span className="text-[10.5px] font-bold text-muted-foreground flex items-center gap-1 bg-surface-elevated px-2 py-0.5 rounded-md">
-                      <Lucide.Calendar size={11} className="text-primary/70" /> {format(new Date(task.dueDate), 'MMM dd')}
+                    <span className="text-[8px] font-medium text-muted-foreground flex items-center gap-0.5 bg-surface-elevated/70 px-1 py-[1px] rounded shrink-0">
+                      <Lucide.Calendar size={8} className="text-primary/70 shrink-0" /> {format(new Date(task.dueDate), 'MMM dd')}
                     </span>
                     <div className="flex items-center gap-1">
                       {!task.isCompleted && (
@@ -853,24 +857,24 @@ export const TasksFeature: React.FC = () => {
                         </p>
                       )}
                       
-                      <div className="flex flex-wrap items-center gap-2 mt-3">
+                      <div className="flex flex-wrap items-center gap-1.5 mt-2">
                         {/* 1. Assignee */}
-                        <span className="text-xs font-bold text-primary bg-primary/10 flex items-center gap-1.5 px-2.5 py-1 rounded-md" title={`Assignee: ${task.assignee || defaultAssignee}`}>
-                          <Lucide.User size={12} className="shrink-0" />
-                          <span>{task.assignee || defaultAssignee}</span>
+                        <span className="text-[8px] font-medium text-primary bg-primary/10 flex items-center gap-0.5 px-1 py-[1px] rounded shrink-0 max-w-[80px]" title={`Assignee: ${task.assignee || defaultAssignee}`}>
+                          <Lucide.User size={8} className="shrink-0 opacity-75" />
+                          <span className="truncate">{task.assignee || defaultAssignee}</span>
                         </span>
 
                         {/* 2. Kanban Progress */}
                         {(() => {
                           const status = task.status || (task.isCompleted ? 'done' : 'todo');
                           const statusConfig = {
-                            done: { label: 'Done', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
-                            in_progress: { label: 'In Progress', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
-                            todo: { label: 'To Do', color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' },
-                          }[status] || { label: 'To Do', color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' };
+                            done: { label: 'Done', color: 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+                            in_progress: { label: 'In Progress', color: 'text-amber-800 dark:text-amber-400 bg-amber-500/10 border-amber-500/20' },
+                            todo: { label: 'To Do', color: 'text-sky-700 dark:text-sky-400 bg-sky-500/10 border-sky-500/20' },
+                          }[status] || { label: 'To Do', color: 'text-sky-700 dark:text-sky-400 bg-sky-500/10 border-sky-500/20' };
 
                           return (
-                            <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md border ${statusConfig.color}`}>
+                            <span className={`text-[7.5px] font-medium px-1 py-[1px] rounded border ${statusConfig.color} shrink-0`}>
                               {statusConfig.label}
                             </span>
                           );
@@ -878,36 +882,36 @@ export const TasksFeature: React.FC = () => {
 
                         {/* 3. Category */}
                         {taskCategory ? (
-                          <span className="text-xs font-bold text-muted-foreground flex items-center gap-1.5 bg-surface-elevated px-2.5 py-1 rounded-md">
-                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: taskCategory.color }} />
-                            {taskCategory.name}
+                          <span className="text-[8px] font-medium text-muted-foreground flex items-center gap-1 bg-surface-elevated/70 px-1 py-[1px] rounded shrink-0 truncate max-w-[85px]" title={`Category: ${taskCategory.name}`}>
+                            <span className="w-1 h-1 rounded-full shrink-0" style={{ backgroundColor: taskCategory.color }} />
+                            <span className="truncate">{taskCategory.name}</span>
                           </span>
                         ) : (
-                          <span className="text-xs font-bold text-muted-foreground/70 flex items-center gap-1.5 bg-surface-elevated px-2.5 py-1 rounded-md">
-                            <span className="w-2 h-2 rounded-full bg-muted-foreground/40" />
-                            General
+                          <span className="text-[8px] font-medium text-muted-foreground/70 flex items-center gap-1 bg-surface-elevated/70 px-1 py-[1px] rounded shrink-0 truncate">
+                            <span className="w-1 h-1 rounded-full shrink-0 bg-muted-foreground/40" />
+                            <span>General</span>
                           </span>
                         )}
 
                         {/* 4. Priority / Severity */}
-                        <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md border ${
+                        <span className={`text-[7.5px] font-medium px-1 py-[1px] rounded border shrink-0 ${
                           task.priority === 'high' 
-                            ? 'text-rose-400 bg-rose-500/10 border-rose-500/25' 
+                            ? 'text-rose-700 dark:text-rose-400 bg-rose-500/10 border-rose-500/20' 
                             : task.priority === 'medium' 
-                            ? 'text-amber-400 bg-amber-500/10 border-amber-500/25' 
-                            : 'text-muted-foreground bg-muted-foreground/10 border-border/40'
+                            ? 'text-amber-800 dark:text-amber-400 bg-amber-500/10 border-amber-500/20' 
+                            : 'text-slate-700 dark:text-muted-foreground bg-muted-foreground/10 border-border/30'
                         }`}>
-                          {task.priority}
+                          {task.priority === 'high' ? 'High' : task.priority === 'medium' ? 'Med' : 'Low'}
                         </span>
 
                         {/* 5. Due Date */}
-                        <span className="text-xs font-bold text-muted-foreground flex items-center gap-1.5 bg-surface-elevated px-2.5 py-1 rounded-md">
-                          <Lucide.Calendar size={13} className="text-primary/70" /> {format(new Date(task.dueDate), 'MMM dd')}
+                        <span className="text-[8px] font-medium text-muted-foreground flex items-center gap-0.5 bg-surface-elevated/70 px-1 py-[1px] rounded shrink-0">
+                          <Lucide.Calendar size={8} className="text-primary/70 shrink-0" /> {format(new Date(task.dueDate), 'MMM dd')}
                         </span>
 
                         {task.isRecurring && (
-                          <span className="text-xs font-bold text-primary bg-primary/10 flex items-center gap-1.5 px-2.5 py-1 rounded-md">
-                            <Lucide.Repeat size={13} /> {task.recurrencePattern}
+                          <span className="text-[8px] font-medium text-primary bg-primary/10 flex items-center gap-0.5 px-1 py-[1px] rounded shrink-0">
+                            <Lucide.Repeat size={8} /> {task.recurrencePattern}
                           </span>
                         )}
                       </div>

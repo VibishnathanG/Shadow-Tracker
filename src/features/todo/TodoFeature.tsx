@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import {
@@ -16,17 +16,14 @@ import {
   scheduleTodoNotification,
   cancelTodoNotification,
 } from './todoStorage';
-import EmptyState from '@/components/EmptyState';
+import Modal from '@/components/Modal';
 import { NiceTimePicker } from '@/components/NiceTimePicker';
 import { ScheduleSelector } from '@/components/ScheduleSelector';
 import { addDays, parseISO } from 'date-fns';
 import { getTodayDateString, formatDateString } from '@/lib/dateUtils';
-
 import { customDialogs } from '@/lib/dialogs';
 import { useViewPreference } from '@/lib/viewPreferences';
 import { useShadowTrackerStore } from '@/store';
-
-const CATEGORY_PRESETS = ['Personal', 'Work', 'Urgent', 'Shopping', 'Quick', 'Health'];
 
 export default function TodoFeature() {
   const [todos, setTodos] = useState<StandaloneTodo[]>([]);
@@ -36,31 +33,45 @@ export default function TodoFeature() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useViewPreference('todoStatusFilter') as [TodoFilterStatus, (v: TodoFilterStatus) => void];
   const [priorityFilter, setPriorityFilter] = useViewPreference('todoPriorityFilter') as [TodoFilterPriority, (v: TodoFilterPriority) => void];
-  const [categoryFilter, setCategoryFilter] = useViewPreference('todoCategoryFilter') as [string, (v: string) => void];
   const [sortBy, setSortBy] = useViewPreference('todoSortBy') as [TodoSortOption, (v: TodoSortOption) => void];
   const [viewMode, setViewMode] = useViewPreference('todoViewMode') as ['list' | 'grid', (v: 'list' | 'grid') => void];
   const [showGraph, setShowGraph] = useViewPreference('todoShowGraph') as [boolean, (v: boolean | ((prev: boolean) => boolean)) => void];
 
-  // Modal State
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // Inline Microsoft To Do Style Input State
+  const inlineInputRef = useRef<HTMLInputElement>(null);
+  const [inlineTitle, setInlineTitle] = useState('');
+  const [inlinePriority, setInlinePriority] = useState<'low' | 'medium' | 'high'>('medium');
+  const [inlineDueDate, setInlineDueDate] = useState('');
+  const [inlineDueTime, setInlineDueTime] = useState('');
+  const [inlineEnableReminder, setInlineEnableReminder] = useState(false);
+  const [inlineReminderTime, setInlineReminderTime] = useState('');
+  const [inlineIsRecurring, setInlineIsRecurring] = useState(false);
+  const [inlineRecurrencePattern, setInlineRecurrencePattern] = useState<'daily' | 'weekly' | 'monthly' | 'custom'>('daily');
+  const [inlineCustomDays, setInlineCustomDays] = useState<number[]>([1, 2, 3, 4, 5]);
+  const [inlineNotes, setInlineNotes] = useState('');
+  const [inlineSubtasks, setInlineSubtasks] = useState<TodoSubtask[]>([]);
+  const [inlineNewSubtaskInput, setInlineNewSubtaskInput] = useState('');
+  const [isInlineOptionsOpen, setIsInlineOptionsOpen] = useState(false);
+  const [inlineActiveTab, setInlineActiveTab] = useState<'none' | 'due' | 'reminder' | 'priority' | 'more'>('none');
+
+  // Edit Modal State
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingTodo, setEditingTodo] = useState<StandaloneTodo | null>(null);
 
-  // Form State inside Modal
-  const [formTitle, setFormTitle] = useState('');
-  const [formDesc, setFormDesc] = useState('');
-  const [formPriority, setFormPriority] = useState<'low' | 'medium' | 'high'>('medium');
-  const [formCategory, setFormCategory] = useState('Personal');
-  const [formCustomCategory, setFormCustomCategory] = useState('');
-  const [formDueDate, setFormDueDate] = useState('');
-  const [formDueTime, setFormDueTime] = useState('');
-  const [formEnableReminder, setFormEnableReminder] = useState(false);
-  const [formReminderTime, setFormReminderTime] = useState('');
-  const [customReminderExpanded, setCustomReminderExpanded] = useState(false);
-  const [formIsRecurring, setFormIsRecurring] = useState(false);
-  const [formRecurrencePattern, setFormRecurrencePattern] = useState<'daily' | 'weekly' | 'monthly' | 'custom'>('daily');
-  const [formCustomDays, setFormCustomDays] = useState<number[]>([1, 2, 3, 4, 5]);
-  const [formSubtasks, setFormSubtasks] = useState<TodoSubtask[]>([]);
-  const [newSubtaskInput, setNewSubtaskInput] = useState('');
+  // Form State inside Edit Modal
+  const [editTitle, setEditTitle] = useState('');
+  const [editDesc, setEditDesc] = useState('');
+  const [editPriority, setEditPriority] = useState<'low' | 'medium' | 'high'>('medium');
+  const [editDueDate, setEditDueDate] = useState('');
+  const [editDueTime, setEditDueTime] = useState('');
+  const [editEnableReminder, setEditEnableReminder] = useState(false);
+  const [editReminderTime, setEditReminderTime] = useState('');
+  const [editCustomReminderExpanded, setEditCustomReminderExpanded] = useState(false);
+  const [editIsRecurring, setEditIsRecurring] = useState(false);
+  const [editRecurrencePattern, setEditRecurrencePattern] = useState<'daily' | 'weekly' | 'monthly' | 'custom'>('daily');
+  const [editCustomDays, setEditCustomDays] = useState<number[]>([1, 2, 3, 4, 5]);
+  const [editSubtasks, setEditSubtasks] = useState<TodoSubtask[]>([]);
+  const [editNewSubtaskInput, setEditNewSubtaskInput] = useState('');
 
   // Inline Subtask Input on Cards
   const [expandedSubtaskTodoId, setExpandedSubtaskTodoId] = useState<string | null>(null);
@@ -122,145 +133,151 @@ export default function TodoFeature() {
     return { days, maxVal };
   }, [todos, showGraph]);
 
-  // Open Modal for Creation or Editing
-  const openCreateModal = () => {
-    setEditingTodo(null);
-    setFormTitle('');
-    setFormDesc('');
-    setFormPriority('medium');
-    setFormCategory('Personal');
-    setFormCustomCategory('');
-    setFormDueDate('');
-    setFormDueTime('');
-    setFormEnableReminder(false);
-    setFormReminderTime('');
-    setCustomReminderExpanded(false);
-    setFormIsRecurring(false);
-    setFormRecurrencePattern('daily');
-    setFormCustomDays([1, 2, 3, 4, 5]);
-    setFormSubtasks([]);
-    setNewSubtaskInput('');
-    setIsModalOpen(true);
+  // Handle Microsoft To Do Inline Task Creation
+  const handleInlineSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const trimmed = inlineTitle.trim();
+    if (!trimmed) return;
+
+    const nowStr = new Date().toISOString();
+    const effectiveReminder = inlineEnableReminder && inlineReminderTime ? inlineReminderTime : undefined;
+
+    const newTodo: StandaloneTodo = {
+      id: 'todo-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7),
+      title: trimmed,
+      description: inlineNotes.trim() || undefined,
+      isCompleted: false,
+      isStarred: false,
+      priority: inlinePriority,
+      dueDate: inlineDueDate || undefined,
+      dueTime: inlineDueTime || undefined,
+      reminderTime: effectiveReminder,
+      isRecurring: inlineIsRecurring,
+      recurrencePattern: inlineIsRecurring ? inlineRecurrencePattern : undefined,
+      customDays: inlineIsRecurring && inlineRecurrencePattern === 'custom' ? inlineCustomDays : undefined,
+      subtasks: inlineSubtasks,
+      createdAt: nowStr,
+      updatedAt: nowStr,
+    };
+
+    if (effectiveReminder) {
+      const notifId = await scheduleTodoNotification(newTodo);
+      newTodo.reminderNotificationId = notifId;
+    }
+
+    updateTodosState([newTodo, ...todos]);
+
+    // Reset inline inputs cleanly
+    setInlineTitle('');
+    setInlineNotes('');
+    setInlinePriority('medium');
+    setInlineDueDate('');
+    setInlineDueTime('');
+    setInlineEnableReminder(false);
+    setInlineReminderTime('');
+    setInlineIsRecurring(false);
+    setInlineSubtasks([]);
+    setInlineNewSubtaskInput('');
+    setIsInlineOptionsOpen(false);
+    setInlineActiveTab('none');
+
+    // Keep focus on input for seamless rapid entries
+    if (inlineInputRef.current) {
+      inlineInputRef.current.focus();
+    }
   };
 
+  // Add subtask to inline creation
+  const handleAddInlineSubtask = () => {
+    if (!inlineNewSubtaskInput.trim()) return;
+    setInlineSubtasks(prev => [
+      ...prev,
+      {
+        id: 'sub-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7),
+        title: inlineNewSubtaskInput.trim(),
+        isCompleted: false,
+      },
+    ]);
+    setInlineNewSubtaskInput('');
+  };
+
+  // Open Edit Modal for an existing ToDo
   const openEditModal = (todo: StandaloneTodo) => {
     setEditingTodo(todo);
-    setFormTitle(todo.title);
-    setFormDesc(todo.description || '');
-    setFormPriority(todo.priority);
-    
-    if (CATEGORY_PRESETS.includes(todo.category || '')) {
-      setFormCategory(todo.category || 'Personal');
-      setFormCustomCategory('');
-    } else {
-      setFormCategory('Custom');
-      setFormCustomCategory(todo.category || '');
-    }
-
-    setFormDueDate(todo.dueDate || '');
-    setFormDueTime(todo.dueTime || '');
+    setEditTitle(todo.title);
+    setEditDesc(todo.description || '');
+    setEditPriority(todo.priority);
+    setEditDueDate(todo.dueDate || '');
+    setEditDueTime(todo.dueTime || '');
     const hasReminder = Boolean(todo.reminderTime);
-    setFormEnableReminder(hasReminder);
-    setFormReminderTime(todo.reminderTime || '');
-    setCustomReminderExpanded(hasReminder);
-    setFormIsRecurring(Boolean(todo.isRecurring));
-    setFormRecurrencePattern(todo.recurrencePattern || 'daily');
-    setFormCustomDays(todo.customDays || [1, 2, 3, 4, 5]);
-    setFormSubtasks(todo.subtasks || []);
-    setNewSubtaskInput('');
-    setIsModalOpen(true);
+    setEditEnableReminder(hasReminder);
+    setEditReminderTime(todo.reminderTime || '');
+    setEditCustomReminderExpanded(hasReminder);
+    setEditIsRecurring(Boolean(todo.isRecurring));
+    setEditRecurrencePattern(todo.recurrencePattern || 'daily');
+    setEditCustomDays(todo.customDays || [1, 2, 3, 4, 5]);
+    setEditSubtasks(todo.subtasks || []);
+    setEditNewSubtaskInput('');
+    setIsEditModalOpen(true);
   };
 
-  // Add/Remove subtask in Modal Form
-  const handleAddFormSubtask = () => {
-    if (!newSubtaskInput.trim()) return;
-    setFormSubtasks(prev => [
+  // Add/Remove subtask in Edit Modal
+  const handleAddEditSubtask = () => {
+    if (!editNewSubtaskInput.trim()) return;
+    setEditSubtasks(prev => [
       ...prev,
-      { id: 'sub-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7), title: newSubtaskInput.trim(), isCompleted: false },
+      { id: 'sub-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7), title: editNewSubtaskInput.trim(), isCompleted: false },
     ]);
-    setNewSubtaskInput('');
+    setEditNewSubtaskInput('');
   };
 
-  const handleRemoveFormSubtask = (id: string) => {
-    setFormSubtasks(prev => prev.filter(s => s.id !== id));
+  const handleRemoveEditSubtask = (id: string) => {
+    setEditSubtasks(prev => prev.filter(s => s.id !== id));
   };
 
-  const handleToggleFormSubtask = (id: string) => {
-    setFormSubtasks(prev => prev.map(s => s.id === id ? { ...s, isCompleted: !s.isCompleted } : s));
+  const handleToggleEditSubtask = (id: string) => {
+    setEditSubtasks(prev => prev.map(s => s.id === id ? { ...s, isCompleted: !s.isCompleted } : s));
   };
 
-  // Save Modal Form
-  const handleSaveModal = async (e: React.FormEvent) => {
+  // Save Edit Modal Changes
+  const handleSaveEditModal = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formTitle.trim()) return;
+    if (!editingTodo || !editTitle.trim()) return;
 
-    const finalCategory = formCategory === 'Custom' ? (formCustomCategory.trim() || 'General') : formCategory;
     const nowStr = new Date().toISOString();
-    const effectiveReminderTime = formEnableReminder && formReminderTime ? formReminderTime : undefined;
+    const effectiveReminderTime = editEnableReminder && editReminderTime ? editReminderTime : undefined;
 
-    if (editingTodo) {
-      // Edit Existing ToDo
-      let updatedNotifId = editingTodo.reminderNotificationId;
-      const updatedTodo: StandaloneTodo = {
-        ...editingTodo,
-        title: formTitle.trim(),
-        description: formDesc.trim() || undefined,
-        priority: formPriority,
-        category: finalCategory,
-        dueDate: formDueDate || undefined,
-        dueTime: formDueTime || undefined,
-        reminderTime: effectiveReminderTime,
-        isRecurring: formIsRecurring,
-        recurrencePattern: formIsRecurring ? formRecurrencePattern : undefined,
-        customDays: formIsRecurring && formRecurrencePattern === 'custom' ? formCustomDays : undefined,
-        subtasks: formSubtasks,
-        updatedAt: nowStr,
-      };
+    let updatedNotifId = editingTodo.reminderNotificationId;
+    const updatedTodo: StandaloneTodo = {
+      ...editingTodo,
+      title: editTitle.trim(),
+      description: editDesc.trim() || undefined,
+      priority: editPriority,
+      dueDate: editDueDate || undefined,
+      dueTime: editDueTime || undefined,
+      reminderTime: effectiveReminderTime,
+      isRecurring: editIsRecurring,
+      recurrencePattern: editIsRecurring ? editRecurrencePattern : undefined,
+      customDays: editIsRecurring && editRecurrencePattern === 'custom' ? editCustomDays : undefined,
+      subtasks: editSubtasks,
+      updatedAt: nowStr,
+    };
 
-      if (effectiveReminderTime !== editingTodo.reminderTime) {
-        if (editingTodo.reminderNotificationId) {
-          await cancelTodoNotification(editingTodo.reminderNotificationId);
-        }
-        if (effectiveReminderTime) {
-          updatedNotifId = await scheduleTodoNotification(updatedTodo);
-          updatedTodo.reminderNotificationId = updatedNotifId;
-        } else {
-          updatedTodo.reminderNotificationId = undefined;
-        }
+    if (effectiveReminderTime !== editingTodo.reminderTime) {
+      if (editingTodo.reminderNotificationId) {
+        await cancelTodoNotification(editingTodo.reminderNotificationId);
       }
-
-      const nextTodos = todos.map(t => t.id === editingTodo.id ? updatedTodo : t);
-      updateTodosState(nextTodos);
-    } else {
-      // Create New ToDo
-      const newTodo: StandaloneTodo = {
-        id: 'todo-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7),
-        title: formTitle.trim(),
-        description: formDesc.trim() || undefined,
-        isCompleted: false,
-        isStarred: false,
-        priority: formPriority,
-        category: finalCategory,
-        dueDate: formDueDate || undefined,
-        dueTime: formDueTime || undefined,
-        reminderTime: effectiveReminderTime,
-        isRecurring: formIsRecurring,
-        recurrencePattern: formIsRecurring ? formRecurrencePattern : undefined,
-        customDays: formIsRecurring && formRecurrencePattern === 'custom' ? formCustomDays : undefined,
-        subtasks: formSubtasks,
-        createdAt: nowStr,
-        updatedAt: nowStr,
-      };
-
       if (effectiveReminderTime) {
-        const notifId = await scheduleTodoNotification(newTodo);
-        newTodo.reminderNotificationId = notifId;
+        updatedNotifId = await scheduleTodoNotification(updatedTodo);
+        updatedTodo.reminderNotificationId = updatedNotifId;
+      } else {
+        updatedTodo.reminderNotificationId = undefined;
       }
-
-      updateTodosState([newTodo, ...todos]);
     }
 
-    setIsModalOpen(false);
+    const nextTodos = todos.map(t => t.id === editingTodo.id ? updatedTodo : t);
+    updateTodosState(nextTodos);
+    setIsEditModalOpen(false);
   };
 
   // Toggle ToDo Completion (with Recurrence Spawning)
@@ -277,7 +294,7 @@ export default function TodoFeature() {
         // Handle Recurrence Spawning on Completion
         if (isCompleted && t.isRecurring) {
           const baseDateStr = t.dueDate || getTodayDateString();
-          let baseDate = parseISO(baseDateStr);
+          const baseDate = parseISO(baseDateStr);
           let nextDueDate = formatDateString(addDays(baseDate, 1));
 
           if (t.recurrencePattern === 'daily') {
@@ -388,16 +405,6 @@ export default function TodoFeature() {
     updateTodosState([]);
   };
 
-  // Mark All Complete / Active
-  const handleToggleAllComplete = (targetStatus: boolean) => {
-    const nextTodos = todos.map(t => ({
-      ...t,
-      isCompleted: targetStatus,
-      updatedAt: new Date().toISOString(),
-    }));
-    updateTodosState(nextTodos);
-  };
-
   // Inline Subtask Toggle & Add on Card
   const handleToggleCardSubtask = (todoId: string, subtaskId: string) => {
     const nextTodos = todos.map(t => {
@@ -444,23 +451,15 @@ export default function TodoFeature() {
   const starredCount = useMemo(() => todos.filter(t => t.isStarred).length, [todos]);
   const completionPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
-  // Categories list for filter bar
-  const uniqueCategories = useMemo(() => {
-    const set = new Set<string>();
-    todos.forEach(t => { if (t.category) set.add(t.category); });
-    return Array.from(set);
-  }, [todos]);
-
-  // Filtered & Sorted ToDos
+  // Filtered & Sorted ToDos (Without category)
   const filteredTodos = useMemo(() => {
     return todos.filter(todo => {
-      // Search
+      // Search (Title & Description only, no category)
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchTitle = todo.title.toLowerCase().includes(q);
         const matchDesc = todo.description?.toLowerCase().includes(q);
-        const matchCategory = todo.category?.toLowerCase().includes(q);
-        if (!matchTitle && !matchDesc && !matchCategory) return false;
+        if (!matchTitle && !matchDesc) return false;
       }
 
       // Status Filter
@@ -470,9 +469,6 @@ export default function TodoFeature() {
 
       // Priority Filter
       if (priorityFilter !== 'all' && todo.priority !== priorityFilter) return false;
-
-      // Category Filter
-      if (categoryFilter !== 'all' && todo.category !== categoryFilter) return false;
 
       return true;
     }).sort((a, b) => {
@@ -500,98 +496,99 @@ export default function TodoFeature() {
       }
       return 0;
     });
-  }, [todos, searchQuery, statusFilter, priorityFilter, categoryFilter, sortBy]);
+  }, [todos, searchQuery, statusFilter, priorityFilter, sortBy]);
 
   if (!mounted) return null;
 
   return (
-    <div className="space-y-6 animate-fadeIn pb-12">
-      {/* Standalone ToDo Studio Header (Minimal & Sleek Top Placement) */}
-      <div className="tile settings-tile p-3 sm:p-4 rounded-2xl relative overflow-hidden shadow-xs">
-        <div className="absolute top-0 right-0 w-64 h-32 bg-emerald-500/5 blur-[60px] pointer-events-none rounded-full" />
-
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 relative z-10">
-          {/* Studio Identity + Local Only + Compact Progress */}
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="p-2 bg-emerald-500/15 text-emerald-500 dark:text-emerald-400 rounded-xl border border-emerald-500/30 shadow-xs shrink-0">
-              <Lucide.CheckCircle2 size={18} />
+    <div className="space-y-4 pb-12 relative">
+      {/* Minimal One-Liner Header */}
+      <div className="flex flex-wrap items-center justify-between gap-3 py-1 px-0.5">
+        <div className="flex items-center gap-2.5 flex-wrap min-w-0">
+          {/* Micro Progress Bar & Percentage */}
+          <div className="flex items-center gap-2 bg-surface-elevated/80 border border-border/70 px-2.5 py-1 rounded-xl shadow-2xs">
+            <div className="w-14 sm:w-20 h-1.5 bg-secondary rounded-full overflow-hidden border border-border/60">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${completionPercent}%` }}
+                transition={{ duration: 0.35 }}
+                className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full"
+              />
             </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h2 className="text-sm sm:text-base font-bold tracking-tight text-foreground truncate">
-                  Standalone ToDo Studio
-                </h2>
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 rounded-full shrink-0">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Local Only
-                </span>
-              </div>
-              {totalCount > 0 && (
-                <div className="flex items-center gap-2 mt-1">
-                  <div className="w-20 sm:w-28 h-1.5 bg-surface-elevated rounded-full overflow-hidden border border-border/60">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${completionPercent}%` }}
-                      transition={{ duration: 0.4 }}
-                      className="h-full bg-gradient-to-r from-emerald-500 to-cyan-400 rounded-full"
-                    />
-                  </div>
-                  <span className="text-[10.5px] font-semibold text-muted-foreground">
-                    {completionPercent}% <span className="opacity-75">({completedCount}/{totalCount})</span>
-                  </span>
-                </div>
-              )}
-            </div>
+            <span className="text-xs font-black text-foreground">{completionPercent}%</span>
           </div>
 
-          {/* Quick Metrics + Graph Toggle */}
-          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-            <div className="grid grid-cols-4 gap-1.5 shrink-0 text-center">
-              <div className="bg-surface-elevated/70 border border-border/70 rounded-xl px-2.5 py-1 text-center min-w-[50px]">
-                <span className="text-[8.5px] font-bold uppercase tracking-wider text-muted-foreground block leading-tight">Total</span>
-                <span className="text-xs sm:text-sm font-extrabold text-foreground">{totalCount}</span>
-              </div>
-              <div className="bg-surface-elevated/70 border border-border/70 rounded-xl px-2.5 py-1 text-center min-w-[50px]">
-                <span className="text-[8.5px] font-bold uppercase tracking-wider text-amber-500 dark:text-amber-400 block leading-tight">Active</span>
-                <span className="text-xs sm:text-sm font-extrabold text-amber-500 dark:text-amber-400">{activeCount}</span>
-              </div>
-              <div className="bg-surface-elevated/70 border border-border/70 rounded-xl px-2.5 py-1 text-center min-w-[50px]">
-                <span className="text-[8.5px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block leading-tight">Done</span>
-                <span className="text-xs sm:text-sm font-extrabold text-emerald-600 dark:text-emerald-400">{completedCount}</span>
-              </div>
-              <div className="bg-surface-elevated/70 border border-border/70 rounded-xl px-2.5 py-1 text-center min-w-[50px]">
-                <span className="text-[8.5px] font-bold uppercase tracking-wider text-cyan-600 dark:text-cyan-400 block leading-tight">Star</span>
-                <span className="text-xs sm:text-sm font-extrabold text-cyan-600 dark:text-cyan-400">{starredCount}</span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setShowGraph(prev => !prev)}
-              className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-surface-elevated hover:bg-surface text-secondary hover:text-foreground text-xs font-bold rounded-xl border border-border/80 transition-all cursor-pointer shrink-0"
-              title="Toggle 15-Day Graph"
-            >
-              <Lucide.TrendingUp size={13} className="text-emerald-500 dark:text-emerald-400" />
-              <span>{showGraph ? 'Hide Graph' : 'Show Graph'}</span>
-            </button>
+          {/* Minimal One-Liner Metrics */}
+          <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground flex-wrap">
+            <span>Total: <strong className="text-foreground font-bold">{totalCount}</strong></span>
+            <span className="opacity-40">•</span>
+            <span>Active: <strong className="text-amber-500 dark:text-amber-400 font-bold">{activeCount}</strong></span>
+            <span className="opacity-40">•</span>
+            <span>Done: <strong className="text-emerald-500 dark:text-emerald-400 font-bold">{completedCount}</strong></span>
+            {starredCount > 0 && (
+              <>
+                <span className="opacity-40">•</span>
+                <span>Starred: <strong className="text-cyan-400 font-bold">{starredCount}</strong></span>
+              </>
+            )}
           </div>
         </div>
 
-        {/* 15-Day Activity & Completion Graph (Collapsible) */}
-        <AnimatePresence>
-          {showGraph && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mt-3 pt-3 border-t border-border/60 relative z-10 space-y-2 overflow-hidden"
+        {/* Header Actions: Toggle Velocity Graph & Clear */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => setShowGraph(prev => !prev)}
+            className={`px-2.5 py-1 text-xs font-bold rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 ${
+              showGraph
+                ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/40 shadow-xs'
+                : 'bg-surface-elevated/70 text-muted-foreground hover:text-foreground border-border/70'
+            }`}
+            title="Toggle 15-Day Velocity Graph"
+          >
+            <Lucide.TrendingUp size={13} className={showGraph ? 'text-emerald-700 dark:text-emerald-400' : 'text-muted-foreground'} />
+            <span className="hidden sm:inline">{showGraph ? 'Hide Velocity' : 'Velocity'}</span>
+          </button>
+
+          {completedCount > 0 && (
+            <button
+              type="button"
+              onClick={handleClearCompleted}
+              className="px-2.5 py-1 text-xs font-semibold rounded-xl bg-surface-elevated/70 hover:bg-surface text-muted-foreground hover:text-foreground border border-border/70 transition-colors cursor-pointer"
+              title="Clear Completed ToDos"
             >
+              Clear Done
+            </button>
+          )}
+
+          {totalCount > 0 && (
+            <button
+              type="button"
+              onClick={handleDeleteAll}
+              className="p-1.5 text-xs font-semibold rounded-xl bg-rose-950/20 hover:bg-rose-950/40 text-rose-400/80 hover:text-rose-300 border border-rose-500/20 transition-colors cursor-pointer"
+              title="Delete All ToDos"
+            >
+              <Lucide.Trash2 size={13} />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* 15-Day Activity & Velocity Graph (Collapsible) */}
+      <AnimatePresence>
+        {showGraph && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="pt-1 overflow-hidden"
+          >
+            <div className="tile p-3 sm:p-4 rounded-2xl border border-border/70 space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <h4 className="text-[11px] font-extrabold uppercase tracking-wider text-foreground flex items-center gap-1.5">
                   <Lucide.TrendingUp size={13} className="text-emerald-500 dark:text-emerald-400" />
-                  <span>15-Day Activity & Completion Velocity</span>
+                  <span>15-Day Velocity & Completion History</span>
                 </h4>
-
                 <div className="flex items-center gap-3 text-[10px] font-bold">
                   <span className="flex items-center gap-1 text-cyan-600 dark:text-cyan-300">
                     <span className="w-2 h-2 rounded-xs bg-cyan-500" />
@@ -605,7 +602,7 @@ export default function TodoFeature() {
               </div>
 
               <div className="bg-surface-elevated/70 backdrop-blur-md border border-border/70 rounded-2xl px-3 sm:px-4 pt-3 pb-3.5 shadow-inner">
-                <div className="gap-1 sm:gap-1.5 h-24 items-end pt-1 pb-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(15, minmax(0, 1fr))' }}>
+                <div className="gap-1 sm:gap-1.5 h-20 items-end pt-1 pb-1" style={{ display: 'grid', gridTemplateColumns: 'repeat(15, minmax(0, 1fr))' }}>
                   {last15DaysGraph.days.map((item, idx) => {
                     const committedPct = Math.round((item.committed / last15DaysGraph.maxVal) * 100);
                     const completedPct = Math.round((item.completed / last15DaysGraph.maxVal) * 100);
@@ -616,11 +613,11 @@ export default function TodoFeature() {
                         key={item.dateStr}
                         className="flex flex-col items-center justify-between h-full group/bar relative pt-1"
                       >
-                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-surface-elevated border border-border/80 text-foreground px-2 py-0.5 rounded-lg text-[9px] font-bold whitespace-nowrap shadow-xl opacity-0 group-hover/bar:opacity-100 transition-all pointer-events-none z-20">
-                          <span className="text-emerald-600 dark:text-emerald-400">{item.label}</span>: {item.committed} commit, {item.completed} done
+                        <div className="absolute -top-9 left-1/2 -translate-x-1/2 bg-surface-elevated border border-border/80 text-foreground px-2 py-0.5 rounded-lg text-[9px] font-bold whitespace-nowrap shadow-xl opacity-0 group-hover/bar:opacity-100 transition-all pointer-events-none z-20">
+                          <span className="text-emerald-500">{item.label}</span>: {item.committed} committed, {item.completed} done
                         </div>
 
-                        <div className="w-full flex-1 flex items-end justify-center gap-0.5 min-h-[48px] pb-1">
+                        <div className="w-full flex-1 flex items-end justify-center gap-0.5 min-h-[36px] pb-1">
                           <div
                             className={`w-1 sm:w-2 rounded-t-xs transition-all duration-300 ${
                               item.committed > 0
@@ -647,15 +644,410 @@ export default function TodoFeature() {
                   })}
                 </div>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Microsoft To Do Style Persistent Inline Task Creator */}
+      <div className="bg-surface/90 border border-emerald-500/30 hover:border-emerald-500/60 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 rounded-2xl p-2.5 sm:p-3 shadow-md transition-all relative z-20">
+        <form onSubmit={handleInlineSubmit} className="space-y-2">
+          {/* Primary Input Line */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                if (inlineTitle.trim()) {
+                  handleInlineSubmit();
+                } else if (inlineInputRef.current) {
+                  inlineInputRef.current.focus();
+                }
+              }}
+              className="w-8 h-8 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-700 dark:text-emerald-400 shrink-0 transition-all cursor-pointer"
+              title="Add ToDo"
+            >
+              <Lucide.Plus size={17} className="stroke-[2.5]" />
+            </button>
+
+            <input
+              ref={inlineInputRef}
+              type="text"
+              maxLength={120}
+              placeholder="Add a ToDo... (Press Enter to add)"
+              value={inlineTitle}
+              onChange={e => setInlineTitle(e.target.value)}
+              className="flex-1 bg-transparent text-sm sm:text-base font-semibold text-foreground placeholder-muted-foreground/60 outline-none px-1 py-1 min-w-0"
+            />
+
+            {/* Quick Action Buttons */}
+            <div className="flex items-center gap-1 shrink-0">
+              {/* Due Date Trigger */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsInlineOptionsOpen(true);
+                  setInlineActiveTab(inlineActiveTab === 'due' ? 'none' : 'due');
+                }}
+                className={`p-1.5 sm:px-2 sm:py-1 rounded-xl border text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer ${
+                  inlineDueDate
+                    ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/40 shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground border-border/60 hover:bg-surface-elevated'
+                }`}
+                title="Set Due Date"
+              >
+                <Lucide.Calendar size={14} className={inlineDueDate ? 'text-emerald-700 dark:text-emerald-400' : ''} />
+                <span className="hidden md:inline">{inlineDueDate || 'Due Date'}</span>
+              </button>
+
+              {/* Reminder Alert Trigger */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsInlineOptionsOpen(true);
+                  setInlineActiveTab(inlineActiveTab === 'reminder' ? 'none' : 'reminder');
+                }}
+                className={`p-1.5 sm:px-2 sm:py-1 rounded-xl border text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer ${
+                  inlineEnableReminder
+                    ? 'bg-cyan-500/20 text-cyan-800 dark:text-cyan-300 border-cyan-500/40 shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground border-border/60 hover:bg-surface-elevated'
+                }`}
+                title="Configure Reminder Notification"
+              >
+                <Lucide.Bell size={14} className={inlineEnableReminder ? 'text-cyan-700 dark:text-cyan-400 animate-pulse' : ''} />
+                <span className="hidden md:inline">{inlineEnableReminder ? 'Alert Set' : 'Reminder'}</span>
+              </button>
+
+              {/* Priority Toggle */}
+              <button
+                type="button"
+                onClick={() => {
+                  const nextPriority = inlinePriority === 'medium' ? 'high' : inlinePriority === 'high' ? 'low' : 'medium';
+                  setInlinePriority(nextPriority);
+                }}
+                className={`px-2 py-1 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                  inlinePriority === 'high'
+                    ? 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/35'
+                    : inlinePriority === 'medium'
+                    ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/35'
+                    : 'bg-slate-500/15 text-slate-700 dark:text-slate-300 border-slate-500/35'
+                }`}
+                title={`Priority: ${inlinePriority.toUpperCase()} (Click to cycle)`}
+              >
+                {inlinePriority === 'high' ? '🔥 High' : inlinePriority === 'medium' ? '⚡ Med' : '☕ Low'}
+              </button>
+
+              {/* Expand More Options */}
+              <button
+                type="button"
+                onClick={() => setIsInlineOptionsOpen(prev => !prev)}
+                className={`p-1.5 rounded-xl border transition-all cursor-pointer ${
+                  isInlineOptionsOpen
+                    ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/40'
+                    : 'text-muted-foreground hover:text-foreground border-border/60 hover:bg-surface-elevated'
+                }`}
+                title={isInlineOptionsOpen ? 'Collapse options' : 'More task options'}
+              >
+                <Lucide.SlidersHorizontal size={14} />
+              </button>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={!inlineTitle.trim()}
+                className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-35 disabled:pointer-events-none text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-600/20 transition-all cursor-pointer shrink-0 ml-1"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+
+          {/* Expandable Inline Configuration Tray */}
+          <AnimatePresence>
+            {isInlineOptionsOpen && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="pt-3 border-t border-border/50 space-y-3 overflow-hidden text-xs"
+              >
+                {/* Due Date & Time Section */}
+                <div className="space-y-1.5">
+                  <label className="font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 text-[10px]">
+                    <Lucide.Calendar size={12} className="text-emerald-400" />
+                    <span>Due Date & Time</span>
+                  </label>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {/* Quick date pills */}
+                    <button
+                      type="button"
+                      onClick={() => setInlineDueDate(getTodayDateString())}
+                      className={`px-2.5 py-1 rounded-lg border font-semibold transition-all cursor-pointer ${
+                        inlineDueDate === getTodayDateString()
+                          ? 'bg-emerald-500 text-black border-emerald-400 font-bold'
+                          : 'bg-secondary/60 text-muted-foreground hover:text-foreground border-border/60'
+                      }`}
+                    >
+                      Today
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setInlineDueDate(formatDateString(addDays(parseISO(getTodayDateString()), 1)))}
+                      className={`px-2.5 py-1 rounded-lg border font-semibold transition-all cursor-pointer ${
+                        inlineDueDate === formatDateString(addDays(parseISO(getTodayDateString()), 1))
+                          ? 'bg-emerald-500 text-black border-emerald-400 font-bold'
+                          : 'bg-secondary/60 text-muted-foreground hover:text-foreground border-border/60'
+                      }`}
+                    >
+                      Tomorrow
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setInlineDueDate(formatDateString(addDays(parseISO(getTodayDateString()), 7)))}
+                      className={`px-2.5 py-1 rounded-lg border font-semibold transition-all cursor-pointer ${
+                        inlineDueDate === formatDateString(addDays(parseISO(getTodayDateString()), 7))
+                          ? 'bg-emerald-500 text-black border-emerald-400 font-bold'
+                          : 'bg-secondary/60 text-muted-foreground hover:text-foreground border-border/60'
+                      }`}
+                    >
+                      Next Week
+                    </button>
+
+                    <input
+                      type="date"
+                      value={inlineDueDate}
+                      onChange={e => setInlineDueDate(e.target.value)}
+                      className="px-2.5 py-1 bg-secondary rounded-lg border border-border text-foreground font-medium outline-none focus:border-emerald-500"
+                    />
+
+                    <input
+                      type="time"
+                      value={inlineDueTime}
+                      onChange={e => setInlineDueTime(e.target.value)}
+                      className="px-2.5 py-1 bg-secondary rounded-lg border border-border text-foreground font-medium outline-none focus:border-emerald-500"
+                    />
+
+                    {inlineDueDate && (
+                      <button
+                        type="button"
+                        onClick={() => { setInlineDueDate(''); setInlineDueTime(''); }}
+                        className="p-1 text-muted-foreground hover:text-rose-400"
+                        title="Clear Due Date"
+                      >
+                        <Lucide.X size={13} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Reminder Notification Section */}
+                <div className="space-y-2 pt-2 border-t border-border/40">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={inlineEnableReminder}
+                      onChange={e => {
+                        const checked = e.target.checked;
+                        setInlineEnableReminder(checked);
+                        if (checked) {
+                          if (inlineDueDate) {
+                            setInlineReminderTime(`${inlineDueDate}T${inlineDueTime || '09:00'}`);
+                          } else {
+                            setInlineReminderTime(`${getTodayDateString()}T09:00`);
+                          }
+                        } else {
+                          setInlineReminderTime('');
+                        }
+                      }}
+                      className="w-3.5 h-3.5 rounded text-emerald-500 focus:ring-emerald-500 bg-secondary border-border cursor-pointer"
+                    />
+                    <span className="font-bold text-foreground flex items-center gap-1.5 text-xs">
+                      <Lucide.Bell size={13} className="text-cyan-400" />
+                      Enable Notification Alert
+                    </span>
+                  </label>
+
+                  {inlineEnableReminder && (
+                    <div className="bg-emerald-950/20 border border-emerald-500/30 p-2.5 rounded-xl space-y-2">
+                      <div className="flex flex-wrap gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const date = inlineDueDate || getTodayDateString();
+                            setInlineReminderTime(`${date}T${inlineDueTime || '09:00'}`);
+                          }}
+                          className={`px-2 py-0.5 text-[11px] font-bold rounded-lg border transition-all cursor-pointer ${
+                            inlineReminderTime === `${inlineDueDate || getTodayDateString()}T${inlineDueTime || '09:00'}`
+                              ? 'bg-emerald-500 text-black border-emerald-400'
+                              : 'bg-secondary/70 text-muted-foreground hover:text-foreground border-border/50'
+                          }`}
+                        >
+                          🔔 At Due Time ({inlineDueTime || '09:00'})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const date = inlineDueDate || getTodayDateString();
+                            setInlineReminderTime(`${date}T09:00`);
+                          }}
+                          className={`px-2 py-0.5 text-[11px] font-bold rounded-lg border transition-all cursor-pointer ${
+                            inlineReminderTime === `${inlineDueDate || getTodayDateString()}T09:00`
+                              ? 'bg-emerald-500 text-black border-emerald-400'
+                              : 'bg-secondary/70 text-muted-foreground hover:text-foreground border-border/50'
+                          }`}
+                        >
+                          🌅 Morning (09:00)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const tomorrow = formatDateString(addDays(parseISO(getTodayDateString()), 1));
+                            setInlineReminderTime(`${tomorrow}T09:00`);
+                          }}
+                          className={`px-2 py-0.5 text-[11px] font-bold rounded-lg border transition-all cursor-pointer ${
+                            inlineReminderTime.startsWith(formatDateString(addDays(parseISO(getTodayDateString()), 1)))
+                              ? 'bg-emerald-500 text-black border-emerald-400'
+                              : 'bg-secondary/70 text-muted-foreground hover:text-foreground border-border/50'
+                          }`}
+                        >
+                          ⏭️ Tomorrow 09:00
+                        </button>
+                      </div>
+
+                      <div className="flex items-center gap-2 pt-1">
+                        <span className="text-[10px] text-muted-foreground font-semibold">Custom:</span>
+                        <input
+                          type="datetime-local"
+                          value={inlineReminderTime}
+                          onChange={e => setInlineReminderTime(e.target.value)}
+                          className="px-2 py-1 bg-secondary rounded-lg border border-border text-foreground text-xs outline-none focus:border-emerald-500"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Optional Notes */}
+                <div className="space-y-1 pt-2 border-t border-border/40">
+                  <label className="font-bold uppercase tracking-wider text-muted-foreground text-[10px]">
+                    Notes / Description (Optional)
+                  </label>
+                  <textarea
+                    rows={2}
+                    maxLength={500}
+                    placeholder="Add details, links, or instructions..."
+                    value={inlineNotes}
+                    onChange={e => setInlineNotes(e.target.value)}
+                    className="w-full text-xs px-3 py-2 bg-secondary/80 rounded-xl border border-border text-foreground placeholder-muted-foreground/60 outline-none focus:border-emerald-500 resize-none"
+                  />
+                </div>
+
+                {/* Optional Recurrence */}
+                <div className="space-y-2 pt-2 border-t border-border/40">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={inlineIsRecurring}
+                      onChange={e => setInlineIsRecurring(e.target.checked)}
+                      className="w-3.5 h-3.5 rounded text-emerald-500 focus:ring-emerald-500 bg-secondary border-border cursor-pointer"
+                    />
+                    <span className="font-bold text-foreground flex items-center gap-1.5 text-xs">
+                      <Lucide.Repeat size={13} className="text-emerald-400" />
+                      Recurring Task
+                    </span>
+                  </label>
+
+                  {inlineIsRecurring && (
+                    <div className="p-2.5 bg-secondary/50 rounded-xl border border-border/50 space-y-2">
+                      <select
+                        value={inlineRecurrencePattern}
+                        onChange={e => setInlineRecurrencePattern(e.target.value as 'daily' | 'weekly' | 'monthly' | 'custom')}
+                        className="w-full px-3 py-1.5 bg-secondary text-foreground text-xs font-semibold rounded-lg border border-border outline-none focus:border-emerald-500 cursor-pointer"
+                      >
+                        <option value="daily">Every Day (Daily)</option>
+                        <option value="weekly">Every Week (Weekly)</option>
+                        <option value="monthly">Every Month (Monthly)</option>
+                        <option value="custom">Custom Days</option>
+                      </select>
+                      {inlineRecurrencePattern === 'custom' && (
+                        <ScheduleSelector
+                          selectedDays={inlineCustomDays}
+                          onChange={setInlineCustomDays}
+                          label="Select Repeat Days"
+                        />
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Optional Checklist Subtasks */}
+                <div className="space-y-2 pt-2 border-t border-border/40">
+                  <label className="font-bold uppercase tracking-wider text-muted-foreground text-[10px] flex items-center gap-1">
+                    <Lucide.ListChecks size={12} className="text-emerald-400" />
+                    <span>Checklist Sub-tasks ({inlineSubtasks.length})</span>
+                  </label>
+
+                  {inlineSubtasks.length > 0 && (
+                    <div className="space-y-1 max-h-28 overflow-y-auto scrollbar-thin">
+                      {inlineSubtasks.map(sub => (
+                        <div key={sub.id} className="flex items-center justify-between gap-2 px-2.5 py-1 bg-secondary/60 rounded-lg border border-border/40">
+                          <span className="text-xs font-medium text-foreground truncate">{sub.title}</span>
+                          <button
+                            type="button"
+                            onClick={() => setInlineSubtasks(prev => prev.filter(s => s.id !== sub.id))}
+                            className="text-muted-foreground hover:text-rose-400 p-0.5"
+                          >
+                            <Lucide.X size={12} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      maxLength={80}
+                      placeholder="Add sub-task item..."
+                      value={inlineNewSubtaskInput}
+                      onChange={e => setInlineNewSubtaskInput(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddInlineSubtask();
+                        }
+                      }}
+                      className="flex-1 text-xs px-3 py-1.5 bg-secondary rounded-lg border border-border text-foreground outline-none focus:border-emerald-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddInlineSubtask}
+                      className="px-3 py-1.5 bg-surface-elevated hover:bg-secondary text-foreground font-bold text-xs rounded-lg border border-border transition-all cursor-pointer"
+                    >
+                      + Add
+                    </button>
+                  </div>
+                </div>
+
+                {/* Close Options Button */}
+                <div className="flex justify-end pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setIsInlineOptionsOpen(false)}
+                    className="text-[11px] font-bold text-muted-foreground hover:text-foreground underline cursor-pointer"
+                  >
+                    Hide extra options
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </form>
       </div>
 
-      {/* Main Actions & Filters Header */}
-      <div className="tile settings-tile p-4 sm:p-5 rounded-2xl space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          {/* Status Tabs */}
+      {/* Status Tabs + Filter Controls Toolbar (Clean & Category-Free) */}
+      <div className="tile p-3 sm:p-4 rounded-2xl space-y-2.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          {/* Status Filter Pills */}
           <div className="pill-group overflow-x-auto scrollbar-none">
             {(['all', 'active', 'completed', 'starred'] as TodoFilterStatus[]).map(tab => {
               const isActive = statusFilter === tab;
@@ -672,83 +1064,48 @@ export default function TodoFeature() {
             })}
           </div>
 
-          {/* Action Buttons & View Mode Toggle */}
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* View Mode Toggle: List Details vs Grid View */}
-            <div className="pill-group">
-              <button
-                type="button"
-                onClick={() => setViewMode('list')}
-                className={`filter-pill ${viewMode === 'list' ? 'active' : ''}`}
-                title="List View with full details & subtasks"
-              >
-                <Lucide.ListFilter size={14} />
-                <span>List Details</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('grid')}
-                className={`filter-pill ${viewMode === 'grid' ? 'active' : ''}`}
-                title="Grid View (view more tasks at once)"
-              >
-                <Lucide.LayoutGrid size={14} />
-                <span>Grid View</span>
-              </button>
-            </div>
-
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.96 }}
-              onClick={openCreateModal}
-              className="btn-glass-pill active flex items-center gap-1.5 text-xs font-black py-2 px-3.5 shadow-md cursor-pointer"
+          {/* View Mode Toggle: List vs Grid */}
+          <div className="pill-group shrink-0 self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={() => setViewMode('list')}
+              className={`filter-pill ${viewMode === 'list' ? 'active' : ''}`}
+              title="List View with full details"
             >
-              <Lucide.Plus size={15} />
-              <span>Add ToDo</span>
-            </motion.button>
-
-            {completedCount > 0 && (
-              <button
-                onClick={handleClearCompleted}
-                className="flex items-center gap-1.5 px-3 py-2 bg-surface-elevated hover:bg-secondary text-muted-foreground hover:text-foreground font-bold text-xs rounded-xl border border-border transition-all cursor-pointer"
-                title="Clear Completed ToDos"
-              >
-                <Lucide.CheckCheck size={14} />
-                <span className="hidden sm:inline">Clear Done</span>
-              </button>
-            )}
-
-            {totalCount > 0 && (
-              <button
-                onClick={handleDeleteAll}
-                className="flex items-center gap-1.5 px-3 py-2 bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 font-bold text-xs rounded-xl border border-rose-500/30 transition-all cursor-pointer"
-                title="Delete All ToDos"
-              >
-                <Lucide.Trash2 size={14} />
-                <span className="hidden sm:inline">Delete All</span>
-              </button>
-            )}
+              <Lucide.ListFilter size={14} />
+              <span>List</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('grid')}
+              className={`filter-pill ${viewMode === 'grid' ? 'active' : ''}`}
+              title="Grid View (high density)"
+            >
+              <Lucide.LayoutGrid size={14} />
+              <span>Grid</span>
+            </button>
           </div>
         </div>
 
-        {/* Filter Controls Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+        {/* Search, Priority & Sort Row (No Category!) */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
           {/* Search Box */}
-          <div className="relative">
-            <Lucide.Search className="absolute left-3.5 top-3 text-muted-foreground pointer-events-none" size={16} />
+          <div className="relative sm:col-span-2">
+            <Lucide.Search className="absolute left-3 top-2.5 text-muted-foreground pointer-events-none" size={15} />
             <input
               type="text"
               maxLength={80}
               placeholder="Search ToDos..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full text-sm !pl-10 !pr-8 py-2.5 bg-surface-elevated rounded-xl border border-border/60 text-foreground placeholder-muted-foreground focus:border-emerald-500 focus:outline-none transition-all"
+              className="w-full text-xs sm:text-sm !pl-9 !pr-8 py-2 bg-surface-elevated rounded-xl border border-border/60 text-foreground placeholder-muted-foreground focus:border-emerald-500 focus:outline-none transition-all"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground p-0.5 rounded-lg"
+                className="absolute right-2.5 top-2 text-muted-foreground hover:text-foreground p-0.5 rounded-lg"
               >
-                <Lucide.X size={14} />
+                <Lucide.X size={13} />
               </button>
             )}
           </div>
@@ -758,37 +1115,22 @@ export default function TodoFeature() {
             <select
               value={priorityFilter}
               onChange={e => setPriorityFilter(e.target.value as TodoFilterPriority)}
-              className="w-full text-sm pl-4 pr-9 py-2.5 bg-surface-elevated rounded-xl border border-border/60 text-foreground outline-none appearance-none cursor-pointer focus:border-emerald-500 transition-all"
+              className="w-full text-xs sm:text-sm pl-3 pr-8 py-2 bg-surface-elevated rounded-xl border border-border/60 text-foreground outline-none appearance-none cursor-pointer focus:border-emerald-500 transition-all"
             >
               <option value="all">All Priorities</option>
               <option value="high">High Priority (🔥)</option>
               <option value="medium">Medium Priority (⚡)</option>
               <option value="low">Low Priority (☕)</option>
             </select>
-            <Lucide.ChevronDown className="absolute right-3.5 top-3 text-muted-foreground pointer-events-none" size={16} />
-          </div>
-
-          {/* Category Filter */}
-          <div className="relative">
-            <select
-              value={categoryFilter}
-              onChange={e => setCategoryFilter(e.target.value)}
-              className="w-full text-sm pl-4 pr-9 py-2.5 bg-surface-elevated rounded-xl border border-border/60 text-foreground outline-none appearance-none cursor-pointer focus:border-emerald-500 transition-all"
-            >
-              <option value="all">All Categories</option>
-              {uniqueCategories.map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
-            <Lucide.ChevronDown className="absolute right-3.5 top-3 text-muted-foreground pointer-events-none" size={16} />
+            <Lucide.ChevronDown className="absolute right-2.5 top-2.5 text-muted-foreground pointer-events-none" size={14} />
           </div>
 
           {/* Sort By Select */}
-          <div className="relative">
+          <div className="relative sm:col-span-3">
             <select
               value={sortBy}
               onChange={e => setSortBy(e.target.value as TodoSortOption)}
-              className="w-full text-sm pl-4 pr-9 py-2.5 bg-surface-elevated rounded-xl border border-border/60 text-foreground outline-none appearance-none cursor-pointer focus:border-emerald-500 transition-all"
+              className="w-full text-xs sm:text-sm pl-3 pr-8 py-2 bg-surface-elevated rounded-xl border border-border/60 text-foreground outline-none appearance-none cursor-pointer focus:border-emerald-500 transition-all"
             >
               <option value="createdAt_desc">Sort: Newest First</option>
               <option value="createdAt_asc">Sort: Oldest First</option>
@@ -796,26 +1138,28 @@ export default function TodoFeature() {
               <option value="dueDate_asc">Sort: Due Date</option>
               <option value="alphabetical">Sort: Alphabetical</option>
             </select>
-            <Lucide.ChevronDown className="absolute right-3.5 top-3 text-muted-foreground pointer-events-none" size={16} />
+            <Lucide.ChevronDown className="absolute right-2.5 top-2.5 text-muted-foreground pointer-events-none" size={14} />
           </div>
         </div>
       </div>
 
-      {/* ToDo List Cards Container */}
+      {/* ToDo List Items Container */}
       {filteredTodos.length === 0 ? (
-        <EmptyState
-          icon="CheckCircle2"
-          title={searchQuery ? 'No matching ToDos found' : 'No ToDos yet'}
-          description={
-            searchQuery
-              ? 'Try adjusting your search query or filters.'
-              : 'Create your first standalone ToDo to start managing local tasks efficiently.'
-          }
-          actionLabel="Create ToDo"
-          onAction={openCreateModal}
-        />
+        <div className="p-8 text-center rounded-2xl bg-surface/50 border border-border/50 space-y-2">
+          <div className="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto">
+            <Lucide.CheckCircle2 size={20} />
+          </div>
+          <h3 className="text-sm font-bold text-foreground">
+            {searchQuery ? 'No matching ToDos found' : 'All clear! No ToDos'}
+          </h3>
+          <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+            {searchQuery
+              ? 'Try adjusting your search query or priority filters.'
+              : 'Type in the box above and press Enter to quickly add your next task.'}
+          </p>
+        </div>
       ) : viewMode === 'grid' ? (
-        /* Grid View: High-Density Compact Cards to View More ToDos at Once */
+        /* Grid View: High-Density Cards (Category-Free) */
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 relative z-10">
           <AnimatePresence mode="popLayout">
             {filteredTodos.map(todo => {
@@ -840,36 +1184,28 @@ export default function TodoFeature() {
                   }`}
                 >
                   <div className="space-y-2">
-                    {/* Header: Checkbox + Category + Priority + Star */}
+                    {/* Header: Checkbox + Priority + Star (NO Category!) */}
                     <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <button
-                          type="button"
-                          onClick={() => handleToggleComplete(todo.id)}
-                          className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all shrink-0 cursor-pointer ${
-                            todo.isCompleted
-                              ? 'bg-emerald-500 border-emerald-500 text-white shadow-xs'
-                              : 'border-muted-foreground/60 hover:border-emerald-400 text-transparent hover:bg-emerald-500/10'
-                          }`}
-                        >
-                          <Lucide.Check size={12} className="stroke-[3.5]" />
-                        </button>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleComplete(todo.id)}
+                        className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all shrink-0 cursor-pointer ${
+                          todo.isCompleted
+                            ? 'bg-emerald-500 border-emerald-500 text-white shadow-xs'
+                            : 'border-muted-foreground/60 hover:border-emerald-400 text-transparent hover:bg-emerald-500/10'
+                        }`}
+                      >
+                        <Lucide.Check size={12} className="stroke-[3.5]" />
+                      </button>
 
-                        {todo.category && (
-                          <span className="text-[10px] font-bold text-muted-foreground bg-surface-elevated px-2 py-0.5 rounded-md truncate max-w-[110px] border border-border/40">
-                            🏷️ {todo.category}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-1 shrink-0">
+                      <div className="flex items-center gap-1.5 shrink-0">
                         <span
-                          className={`px-1.5 py-0.5 rounded font-bold uppercase tracking-wider text-[9.5px] ${
+                          className={`px-1 py-[1px] rounded text-[7.5px] font-medium shrink-0 ${
                             todo.priority === 'high'
-                              ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                              ? 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/25'
                               : todo.priority === 'medium'
-                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                              : 'bg-slate-500/20 text-slate-300 border border-slate-500/40'
+                              ? 'bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/25'
+                              : 'bg-slate-500/10 text-slate-700 dark:text-slate-300 border border-slate-500/25'
                           }`}
                         >
                           {todo.priority === 'high' ? '🔥 High' : todo.priority === 'medium' ? '⚡ Med' : '☕ Low'}
@@ -884,7 +1220,7 @@ export default function TodoFeature() {
                           }`}
                           title={todo.isStarred ? 'Unstar' : 'Star'}
                         >
-                          <Lucide.Star size={13} className={todo.isStarred ? 'fill-amber-400' : ''} />
+                          <Lucide.Star size={12} className={todo.isStarred ? 'fill-amber-400' : ''} />
                         </button>
                       </div>
                     </div>
@@ -913,25 +1249,25 @@ export default function TodoFeature() {
                   <div className="flex items-center justify-between pt-2 border-t border-border/40 text-xs mt-auto">
                     <div className="flex items-center gap-1.5 flex-wrap min-w-0">
                       {(todo.dueDate || todo.dueTime) && (
-                        <span className="text-[10px] font-bold text-muted-foreground flex items-center gap-1 bg-surface-elevated px-1.5 py-0.5 rounded border border-border/40">
-                          <Lucide.Calendar size={11} className="text-emerald-400" />
+                        <span className="text-[9.5px] font-medium text-muted-foreground flex items-center gap-1 bg-surface-elevated/70 px-1.5 py-0.5 rounded border border-border/40 shrink-0">
+                          <Lucide.Calendar size={10} className="text-emerald-400 shrink-0" />
                           <span className="truncate">{todo.dueDate}</span>
                         </span>
                       )}
                       {hasSubtasks && (
-                        <span className="text-[10px] font-bold text-emerald-400 flex items-center gap-0.5 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
-                          <Lucide.ListChecks size={11} />
+                        <span className="text-[9.5px] font-medium text-emerald-400 flex items-center gap-0.5 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20 shrink-0">
+                          <Lucide.ListChecks size={10} />
                           <span>{completedSubtasksCount}/{todo.subtasks.length}</span>
                         </span>
                       )}
                       {todo.reminderTime && (
-                        <span className="text-[10px] text-cyan-400 flex items-center" title="Alarm set">
-                          <Lucide.Bell size={11} />
+                        <span className="text-[9.5px] text-cyan-400 flex items-center" title={`Alert: ${todo.reminderTime}`}>
+                          <Lucide.Bell size={10} />
                         </span>
                       )}
                       {todo.isRecurring && (
-                        <span className="text-[10px] text-emerald-400 flex items-center" title="Recurring">
-                          <Lucide.Repeat size={11} />
+                        <span className="text-[9.5px] text-emerald-400 flex items-center" title="Recurring task">
+                          <Lucide.Repeat size={10} />
                         </span>
                       )}
                     </div>
@@ -961,8 +1297,8 @@ export default function TodoFeature() {
           </AnimatePresence>
         </div>
       ) : (
-        /* List View: Full Detailed View with Subtasks and Full Metadata */
-        <div className="space-y-3.5">
+        /* List View: Full Detailed View with Subtasks (Category-Free) */
+        <div className="space-y-2.5">
           <AnimatePresence mode="popLayout">
             {filteredTodos.map(todo => {
               const completedSubtasksCount = todo.subtasks.filter(s => s.isCompleted).length;
@@ -973,11 +1309,11 @@ export default function TodoFeature() {
                 <motion.div
                   key={todo.id}
                   layout
-                  initial={{ opacity: 0, y: 15 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.2 }}
-                  className={`group relative bg-surface hover:bg-surface-elevated/70 border rounded-2xl p-4 sm:p-5 transition-all shadow-md ${
+                  transition={{ duration: 0.15 }}
+                  className={`group relative bg-surface hover:bg-surface-elevated/70 border rounded-2xl p-3 sm:p-4 transition-all shadow-sm ${
                     todo.isCompleted
                       ? 'border-border/40 opacity-70 bg-surface/50'
                       : todo.isStarred
@@ -985,26 +1321,26 @@ export default function TodoFeature() {
                       : 'border-border/80 hover:border-emerald-500/40'
                   }`}
                 >
-                  <div className="flex items-start gap-3.5">
+                  <div className="flex items-start gap-3">
                     {/* Checkbox */}
                     <button
                       onClick={() => handleToggleComplete(todo.id)}
-                      className={`mt-0.5 w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all shrink-0 cursor-pointer ${
+                      className={`mt-0.5 w-5 h-5 sm:w-6 sm:h-6 rounded-lg border-2 flex items-center justify-center transition-all shrink-0 cursor-pointer ${
                         todo.isCompleted
-                          ? 'bg-emerald-500 border-emerald-500 text-white shadow-md shadow-emerald-500/30'
+                          ? 'bg-emerald-500 border-emerald-500 text-white shadow-xs'
                           : 'border-border/80 hover:border-emerald-400 text-transparent hover:bg-emerald-500/10'
                       }`}
                     >
-                      <Lucide.Check size={14} className="stroke-[3]" />
+                      <Lucide.Check size={13} className="stroke-[3]" />
                     </button>
 
                     {/* Main Content Area */}
-                    <div className="flex-1 min-w-0 space-y-2">
-                      <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0 space-y-1.5">
+                      <div className="flex items-start justify-between gap-2">
                         {/* Title */}
                         <h3
                           onClick={() => handleToggleComplete(todo.id)}
-                          className={`text-base font-bold tracking-tight cursor-pointer select-none transition-all ${
+                          className={`text-sm sm:text-base font-bold tracking-tight cursor-pointer select-none transition-all ${
                             todo.isCompleted
                               ? 'line-through text-muted-foreground'
                               : 'text-foreground hover:text-emerald-400'
@@ -1013,7 +1349,7 @@ export default function TodoFeature() {
                           {todo.title}
                         </h3>
 
-                        {/* Star & Actions Right */}
+                        {/* Star & Edit Actions */}
                         <div className="flex items-center gap-1 shrink-0">
                           <button
                             onClick={() => handleToggleStar(todo.id)}
@@ -1024,7 +1360,7 @@ export default function TodoFeature() {
                             }`}
                             title={todo.isStarred ? 'Unstar' : 'Star ToDo'}
                           >
-                            <Lucide.Star size={16} className={todo.isStarred ? 'fill-amber-400' : ''} />
+                            <Lucide.Star size={15} className={todo.isStarred ? 'fill-amber-400' : ''} />
                           </button>
 
                           <button
@@ -1032,7 +1368,7 @@ export default function TodoFeature() {
                             className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-surface-elevated rounded-lg transition-colors cursor-pointer"
                             title="Edit ToDo"
                           >
-                            <Lucide.Edit3 size={15} />
+                            <Lucide.Edit3 size={14} />
                           </button>
 
                           <button
@@ -1040,7 +1376,7 @@ export default function TodoFeature() {
                             className="p-1.5 text-muted-foreground hover:text-rose-400 hover:bg-rose-950/30 rounded-lg transition-colors cursor-pointer"
                             title="Delete ToDo"
                           >
-                            <Lucide.Trash2 size={15} />
+                            <Lucide.Trash2 size={14} />
                           </button>
                         </div>
                       </div>
@@ -1052,48 +1388,41 @@ export default function TodoFeature() {
                         </p>
                       )}
 
-                      {/* Tags & Meta Info Row */}
-                      <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
+                      {/* Tags & Metadata Row (NO Category!) */}
+                      <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-xs">
                         {/* Priority Badge */}
                         <span
-                          className={`px-2.5 py-0.5 rounded-md font-bold uppercase tracking-wider text-[10px] ${
+                          className={`px-1 py-[1px] rounded text-[7.5px] font-medium shrink-0 ${
                             todo.priority === 'high'
-                              ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                              ? 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/25'
                               : todo.priority === 'medium'
-                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                              : 'bg-slate-500/20 text-slate-300 border border-slate-500/40'
+                              ? 'bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/25'
+                              : 'bg-slate-500/10 text-slate-700 dark:text-slate-300 border border-slate-500/25'
                           }`}
                         >
                           {todo.priority === 'high' ? '🔥 High' : todo.priority === 'medium' ? '⚡ Med' : '☕ Low'}
                         </span>
 
-                        {/* Category Tag */}
-                        {todo.category && (
-                          <span className="px-2.5 py-0.5 rounded-md font-semibold text-[10px] bg-secondary/80 text-foreground/80 border border-border/50">
-                            🏷️ {todo.category}
-                          </span>
-                        )}
-
                         {/* Due Date & Time */}
                         {(todo.dueDate || todo.dueTime) && (
-                          <span className="flex items-center gap-1 text-[11px] font-semibold text-muted-foreground bg-surface-elevated px-2 py-0.5 rounded-md border border-border/40">
-                            <Lucide.Calendar size={12} className="text-emerald-400" />
+                          <span className="flex items-center gap-1 text-[9.5px] font-medium text-muted-foreground bg-surface-elevated/70 px-1.5 py-0.5 rounded-md border border-border/40 shrink-0">
+                            <Lucide.Calendar size={10} className="text-emerald-400 shrink-0" />
                             {todo.dueDate} {todo.dueTime}
                           </span>
                         )}
 
                         {/* Alarm Indicator */}
                         {todo.reminderTime && (
-                          <span className="flex items-center gap-1 text-[11px] font-bold text-cyan-400 bg-cyan-950/40 px-2 py-0.5 rounded-md border border-cyan-500/30" title={`Alarm set for ${new Date(todo.reminderTime).toLocaleString()}`}>
-                            <Lucide.Bell size={12} className="animate-pulse" />
+                          <span className="flex items-center gap-1 text-[9.5px] font-medium text-cyan-400 bg-cyan-950/40 px-1.5 py-0.5 rounded-md border border-cyan-500/30 shrink-0" title={`Alarm: ${todo.reminderTime}`}>
+                            <Lucide.Bell size={10} className="animate-pulse" />
                             <span>Alarm</span>
                           </span>
                         )}
 
                         {/* Recurrence Indicator */}
                         {todo.isRecurring && (
-                          <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-500/30" title="Recurring ToDo item">
-                            <Lucide.Repeat size={12} />
+                          <span className="flex items-center gap-1 text-[9.5px] font-medium text-emerald-400 bg-emerald-950/40 px-1.5 py-0.5 rounded-md border border-emerald-500/30 shrink-0">
+                            <Lucide.Repeat size={10} />
                             <span className="capitalize">{todo.recurrencePattern || 'recurring'}</span>
                           </span>
                         )}
@@ -1101,13 +1430,13 @@ export default function TodoFeature() {
                         {/* Subtasks Accordion Button */}
                         <button
                           onClick={() => setExpandedSubtaskTodoId(isExpanded ? null : todo.id)}
-                          className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
+                          className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-bold transition-all cursor-pointer ${
                             hasSubtasks
                               ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
                               : 'text-muted-foreground hover:text-foreground hover:bg-surface-elevated'
                           }`}
                         >
-                          <Lucide.ListChecks size={13} />
+                          <Lucide.ListChecks size={12} />
                           <span>Checklist {hasSubtasks ? `(${completedSubtasksCount}/${todo.subtasks.length})` : '+ Add'}</span>
                           <Lucide.ChevronDown size={12} className={`transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                         </button>
@@ -1120,7 +1449,7 @@ export default function TodoFeature() {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="mt-3 pt-3 border-t border-border/50 space-y-2.5 overflow-hidden"
+                            className="mt-2.5 pt-2.5 border-t border-border/50 space-y-2 overflow-hidden"
                           >
                             {/* Checklist Items */}
                             {todo.subtasks.map(sub => (
@@ -1162,7 +1491,7 @@ export default function TodoFeature() {
                               />
                               <button
                                 onClick={() => handleAddCardSubtask(todo.id)}
-                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-sm cursor-pointer"
+                                className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-xs cursor-pointer"
                               >
                                 Add
                               </button>
@@ -1179,431 +1508,359 @@ export default function TodoFeature() {
         </div>
       )}
 
-
-
-      {/* Create / Edit ToDo Modal */}
-      <AnimatePresence>
-        {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsModalOpen(false)}
-              className="fixed inset-0 bg-black/70 backdrop-blur-md"
+      {/* Edit ToDo Modal (Portaled via shared Modal to guarantee fixed background on Android) */}
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        title="Edit Standalone ToDo"
+        size="lg"
+      >
+        <form onSubmit={handleSaveEditModal} className="space-y-4">
+          {/* Title */}
+          <div className="space-y-1.5">
+            <div className="flex justify-between items-center">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Title *</label>
+              <span className="text-[10px] text-muted-foreground font-mono">{editTitle.length}/120</span>
+            </div>
+            <input
+              type="text"
+              required
+              maxLength={120}
+              placeholder="What needs to be done?"
+              value={editTitle}
+              onChange={e => setEditTitle(e.target.value)}
+              className="w-full text-base px-4 py-2.5 bg-secondary rounded-xl text-foreground font-semibold border border-border focus:border-emerald-500 focus:outline-none transition-all"
             />
+          </div>
 
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-xl bg-surface border border-emerald-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl z-10 space-y-6 max-h-[90vh] overflow-y-auto scrollbar-thin"
+          {/* Description */}
+          <div className="space-y-1.5">
+            <div className="flex justify-between items-center">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Notes / Description</label>
+              <span className="text-[10px] text-muted-foreground font-mono">{editDesc.length}/500</span>
+            </div>
+            <textarea
+              rows={3}
+              maxLength={500}
+              placeholder="Additional context or details..."
+              value={editDesc}
+              onChange={e => setEditDesc(e.target.value)}
+              className="w-full text-sm px-4 py-2.5 bg-secondary rounded-xl text-foreground border border-border focus:border-emerald-500 focus:outline-none transition-all resize-none"
+            />
+          </div>
+
+          {/* Priority Select (Category Removed) */}
+          <div className="space-y-1.5 relative">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Priority</label>
+            <select
+              value={editPriority}
+              onChange={e => setEditPriority(e.target.value as 'low' | 'medium' | 'high')}
+              className="w-full text-sm pl-4 pr-9 py-2.5 bg-secondary rounded-xl text-foreground font-semibold border border-border focus:border-emerald-500 outline-none appearance-none cursor-pointer"
             >
-              {/* Modal Header */}
-              <div className="flex items-center justify-between border-b border-border/60 pb-4">
-                <div className="flex items-center gap-2.5">
-                  <span className="p-2 bg-emerald-500/20 text-emerald-400 rounded-xl border border-emerald-500/30">
-                    <Lucide.CheckCircle2 size={20} />
-                  </span>
-                  <h2 className="text-xl font-extrabold text-foreground">
-                    {editingTodo ? 'Edit Standalone ToDo' : 'Create Standalone ToDo'}
-                  </h2>
-                </div>
-                <button
-                  onClick={() => setIsModalOpen(false)}
-                  className="p-2 text-muted-foreground hover:text-foreground hover:bg-surface-elevated rounded-xl transition-colors cursor-pointer"
-                >
-                  <Lucide.X size={18} />
-                </button>
-              </div>
+              <option value="low">Low Priority (☕)</option>
+              <option value="medium">Medium Priority (⚡)</option>
+              <option value="high">High Priority (🔥)</option>
+            </select>
+            <Lucide.ChevronDown className="absolute right-3.5 top-9 text-muted-foreground pointer-events-none" size={16} />
+          </div>
 
-              {/* Form Body */}
-              <form onSubmit={handleSaveModal} className="space-y-4">
-                {/* Title */}
-                <div className="space-y-1.5">
-                  <div className="flex justify-between items-center">
-                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Title *</label>
-                    <span className="text-[10px] text-muted-foreground font-mono">{formTitle.length}/120</span>
+          {/* Due Date & Time Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Due Date</label>
+              <input
+                type="date"
+                value={editDueDate}
+                onChange={e => setEditDueDate(e.target.value)}
+                className="w-full text-sm px-4 py-2 bg-secondary rounded-xl text-foreground border border-border focus:border-emerald-500 outline-none"
+              />
+            </div>
+
+            <NiceTimePicker
+              value={editDueTime}
+              onChange={setEditDueTime}
+              label="Due Time"
+            />
+          </div>
+
+          {/* Reminder Notification Alert */}
+          <div className="space-y-2.5 pt-2 border-t border-border/40">
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={editEnableReminder}
+                onChange={e => {
+                  const checked = e.target.checked;
+                  setEditEnableReminder(checked);
+                  if (checked) {
+                    if (editDueDate) {
+                      setEditReminderTime(`${editDueDate}T${editDueTime || '09:00'}`);
+                    } else {
+                      setEditReminderTime(`${getTodayDateString()}T09:00`);
+                    }
+                  } else {
+                    setEditReminderTime('');
+                  }
+                }}
+                className="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-500 bg-secondary border-border cursor-pointer"
+              />
+              <span className="text-xs font-bold text-foreground group-hover:text-emerald-400 transition-colors flex items-center gap-1.5">
+                <Lucide.Bell size={14} className="text-emerald-400" />
+                Enable Notification Alert
+              </span>
+            </label>
+
+            {editEnableReminder && (
+              <div className="space-y-2.5 bg-emerald-950/20 border border-emerald-500/30 p-3 rounded-2xl">
+                {editDueDate ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                        <Lucide.CalendarCheck size={13} />
+                        Derived Notification from Due Date
+                      </span>
+                      <span className="text-[10px] text-muted-foreground font-mono">
+                        Due: {editDueDate} {editDueTime || '(No time set)'}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setEditReminderTime(`${editDueDate}T${editDueTime || '09:00'}`)}
+                        className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                          editReminderTime === `${editDueDate}T${editDueTime || '09:00'}`
+                            ? 'bg-emerald-500 text-black border-emerald-400 shadow-xs'
+                            : 'bg-secondary/60 text-muted-foreground hover:text-foreground border-border/50'
+                        }`}
+                      >
+                        🔔 At Due Time ({editDueTime || '09:00'})
+                      </button>
+
+                      {editDueTime && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const [h, m] = editDueTime.split(':').map(Number);
+                            const totalM = h * 60 + m - 60;
+                            const prevH = Math.max(0, Math.floor(totalM / 60));
+                            const prevM = Math.max(0, totalM % 60);
+                            const timeStr = `${String(prevH).padStart(2, '0')}:${String(prevM).padStart(2, '0')}`;
+                            setEditReminderTime(`${editDueDate}T${timeStr}`);
+                          }}
+                          className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                            editReminderTime.startsWith(editDueDate) && editReminderTime !== `${editDueDate}T${editDueTime}` && editReminderTime !== `${editDueDate}T09:00`
+                              ? 'bg-emerald-500 text-black border-emerald-400 shadow-xs'
+                              : 'bg-secondary/60 text-muted-foreground hover:text-foreground border-border/50'
+                          }`}
+                        >
+                          ⏱️ 1 Hour Before
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => setEditReminderTime(`${editDueDate}T09:00`)}
+                        className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                          editReminderTime === `${editDueDate}T09:00`
+                            ? 'bg-emerald-500 text-black border-emerald-400 shadow-xs'
+                            : 'bg-secondary/60 text-muted-foreground hover:text-foreground border-border/50'
+                        }`}
+                      >
+                        🌅 Morning of Due Date (09:00)
+                      </button>
+                    </div>
                   </div>
-                  <input
-                    type="text"
-                    required
-                    maxLength={120}
-                    placeholder="What needs to be done?"
-                    value={formTitle}
-                    onChange={e => setFormTitle(e.target.value)}
-                    className="w-full text-base px-4 py-3 bg-secondary rounded-2xl text-foreground font-semibold border border-border focus:border-emerald-500 focus:outline-none transition-all"
-                  />
-                </div>
-
-                {/* Description */}
-                <div className="space-y-1.5">
-                  <div className="flex justify-between items-center">
-                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Notes / Description</label>
-                    <span className="text-[10px] text-muted-foreground font-mono">{formDesc.length}/500</span>
-                  </div>
-                  <textarea
-                    rows={3}
-                    maxLength={500}
-                    placeholder="Additional context or details..."
-                    value={formDesc}
-                    onChange={e => setFormDesc(e.target.value)}
-                    className="w-full text-sm px-4 py-3 bg-secondary rounded-2xl text-foreground border border-border focus:border-emerald-500 focus:outline-none transition-all resize-none"
-                  />
-                </div>
-
-                {/* Priority & Category Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Priority Select */}
-                  <div className="space-y-1.5 relative">
-                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Priority</label>
-                    <select
-                      value={formPriority}
-                      onChange={e => setFormPriority(e.target.value as 'low' | 'medium' | 'high')}
-                      className="w-full text-sm pl-4 pr-9 py-3 bg-secondary rounded-2xl text-foreground font-semibold border border-border focus:border-emerald-500 outline-none appearance-none cursor-pointer"
-                    >
-                      <option value="low">Low Priority (☕)</option>
-                      <option value="medium">Medium Priority (⚡)</option>
-                      <option value="high">High Priority (🔥)</option>
-                    </select>
-                    <Lucide.ChevronDown className="absolute right-3.5 top-9 text-muted-foreground pointer-events-none" size={16} />
-                  </div>
-
-                  {/* Category Preset Select */}
-                  <div className="space-y-1.5 relative">
-                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Category Tag</label>
-                    <select
-                      value={formCategory}
-                      onChange={e => setFormCategory(e.target.value)}
-                      className="w-full text-sm pl-4 pr-9 py-3 bg-secondary rounded-2xl text-foreground font-semibold border border-border focus:border-emerald-500 outline-none appearance-none cursor-pointer"
-                    >
-                      {CATEGORY_PRESETS.map(preset => (
-                        <option key={preset} value={preset}>{preset}</option>
-                      ))}
-                      <option value="Custom">+ Custom Tag</option>
-                    </select>
-                    <Lucide.ChevronDown className="absolute right-3.5 top-9 text-muted-foreground pointer-events-none" size={16} />
-                  </div>
-                </div>
-
-                {/* Custom Category Input */}
-                {formCategory === 'Custom' && (
-                  <div className="space-y-1.5 animate-fadeIn">
-                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Custom Category Name</label>
-                    <input
-                      type="text"
-                      maxLength={30}
-                      placeholder="e.g. Project Alpha"
-                      value={formCustomCategory}
-                      onChange={e => setFormCustomCategory(e.target.value)}
-                      className="w-full text-sm px-4 py-2.5 bg-secondary rounded-xl text-foreground border border-border focus:border-emerald-500 focus:outline-none"
-                    />
+                ) : (
+                  <div className="space-y-2">
+                    <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
+                      <Lucide.Clock size={13} />
+                      Preconfigured Reminder Options
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        { label: '🌅 Morning (09:00)', time: '09:00', daysAhead: 0 },
+                        { label: '☀️ Afternoon (14:00)', time: '14:00', daysAhead: 0 },
+                        { label: '🌙 Evening (20:00)', time: '20:00', daysAhead: 0 },
+                        { label: '⏭️ Tomorrow 09:00', time: '09:00', daysAhead: 1 },
+                      ].map(preset => {
+                        const targetDate = preset.daysAhead === 0 
+                          ? getTodayDateString() 
+                          : formatDateString(addDays(parseISO(getTodayDateString()), 1));
+                        const targetIso = `${targetDate}T${preset.time}`;
+                        const isSelected = editReminderTime === targetIso;
+                        return (
+                          <button
+                            key={preset.label}
+                            type="button"
+                            onClick={() => setEditReminderTime(targetIso)}
+                            className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                              isSelected
+                                ? 'bg-emerald-500 text-black border-emerald-400 shadow-xs'
+                                : 'bg-secondary/60 text-muted-foreground hover:text-foreground border-border/50'
+                            }`}
+                          >
+                            {preset.label}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
 
-                {/* Due Date & Time Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Due Date</label>
-                    <input
-                      type="date"
-                      value={formDueDate}
-                      onChange={e => setFormDueDate(e.target.value)}
-                      className="w-full text-sm px-4 py-2.5 bg-secondary rounded-xl text-foreground border border-border focus:border-emerald-500 outline-none"
-                    />
-                  </div>
-
-                  <NiceTimePicker
-                    value={formDueTime}
-                    onChange={setFormDueTime}
-                    label="Due Time"
-                  />
-                </div>
-
-                {/* Reminder Notification Alert */}
-                <div className="space-y-3 pt-2 border-t border-border/40">
-                  <label className="flex items-center gap-3 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={formEnableReminder}
-                      onChange={e => {
-                        const checked = e.target.checked;
-                        setFormEnableReminder(checked);
-                        if (checked) {
-                          if (formDueDate) {
-                            setFormReminderTime(`${formDueDate}T${formDueTime || '09:00'}`);
-                          } else {
-                            setFormReminderTime(`${getTodayDateString()}T09:00`);
-                          }
-                        } else {
-                          setFormReminderTime('');
-                        }
-                      }}
-                      className="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-500 bg-secondary border-border cursor-pointer"
-                    />
-                    <span className="text-xs font-bold text-foreground group-hover:text-emerald-400 transition-colors flex items-center gap-1.5">
-                      <Lucide.Bell size={14} className="text-emerald-400" />
-                      Enable Notification Alert
-                    </span>
-                  </label>
-
-                  {formEnableReminder && (
-                    <div className="space-y-3 animate-fadeIn bg-emerald-950/20 border border-emerald-500/30 p-3.5 rounded-2xl">
-                      {/* Derived from Due Date if set */}
-                      {formDueDate ? (
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
-                              <Lucide.CalendarCheck size={13} />
-                              Derived Notification from Due Date
-                            </span>
-                            <span className="text-[10px] text-muted-foreground font-mono">
-                              Due: {formDueDate} {formDueTime || '(No time set)'}
-                            </span>
-                          </div>
-
-                          <div className="flex flex-wrap gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => setFormReminderTime(`${formDueDate}T${formDueTime || '09:00'}`)}
-                              className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
-                                formReminderTime === `${formDueDate}T${formDueTime || '09:00'}`
-                                  ? 'bg-emerald-500 text-black border-emerald-400 shadow-xs'
-                                  : 'bg-secondary/60 text-muted-foreground hover:text-foreground border-border/50'
-                              }`}
-                            >
-                              🔔 At Due Time ({formDueTime || '09:00'})
-                            </button>
-
-                            {formDueTime && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const [h, m] = formDueTime.split(':').map(Number);
-                                  const totalM = h * 60 + m - 60;
-                                  const prevH = Math.max(0, Math.floor(totalM / 60));
-                                  const prevM = Math.max(0, totalM % 60);
-                                  const timeStr = `${String(prevH).padStart(2, '0')}:${String(prevM).padStart(2, '0')}`;
-                                  setFormReminderTime(`${formDueDate}T${timeStr}`);
-                                }}
-                                className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
-                                  formReminderTime.startsWith(formDueDate) && formReminderTime !== `${formDueDate}T${formDueTime}` && formReminderTime !== `${formDueDate}T09:00`
-                                    ? 'bg-emerald-500 text-black border-emerald-400 shadow-xs'
-                                    : 'bg-secondary/60 text-muted-foreground hover:text-foreground border-border/50'
-                                }`}
-                              >
-                                ⏱️ 1 Hour Before
-                              </button>
-                            )}
-
-                            <button
-                              type="button"
-                              onClick={() => setFormReminderTime(`${formDueDate}T09:00`)}
-                              className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
-                                formReminderTime === `${formDueDate}T09:00`
-                                  ? 'bg-emerald-500 text-black border-emerald-400 shadow-xs'
-                                  : 'bg-secondary/60 text-muted-foreground hover:text-foreground border-border/50'
-                              }`}
-                            >
-                              🌅 Morning of Due Date (09:00)
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        /* Preconfigured daily reminders if no Due Date given */
-                        <div className="space-y-2">
-                          <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
-                            <Lucide.Clock size={13} />
-                            Preconfigured Reminder Options
-                          </span>
-                          <div className="flex flex-wrap gap-1.5">
-                            {[
-                              { label: '🌅 Morning (09:00)', time: '09:00', daysAhead: 0 },
-                              { label: '☀️ Afternoon (14:00)', time: '14:00', daysAhead: 0 },
-                              { label: '🌙 Evening (20:00)', time: '20:00', daysAhead: 0 },
-                              { label: '⏭️ Tomorrow 09:00', time: '09:00', daysAhead: 1 },
-                            ].map(preset => {
-                              const targetDate = preset.daysAhead === 0 
-                                ? getTodayDateString() 
-                                : formatDateString(addDays(parseISO(getTodayDateString()), 1));
-                              const targetIso = `${targetDate}T${preset.time}`;
-                              const isSelected = formReminderTime === targetIso;
-                              return (
-                                <button
-                                  key={preset.label}
-                                  type="button"
-                                  onClick={() => setFormReminderTime(targetIso)}
-                                  className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
-                                    isSelected
-                                      ? 'bg-emerald-500 text-black border-emerald-400 shadow-xs'
-                                      : 'bg-secondary/60 text-muted-foreground hover:text-foreground border-border/50'
-                                  }`}
-                                >
-                                  {preset.label}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Expandable Custom Datetime Picker */}
-                      <div className="pt-2 border-t border-emerald-500/20 space-y-2">
-                        <button
-                          type="button"
-                          onClick={() => setCustomReminderExpanded(prev => !prev)}
-                          className="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1 cursor-pointer"
-                        >
-                          <span>{customReminderExpanded ? 'Hide Custom Alert Picker' : 'Set Custom Date & Time'}</span>
-                          <Lucide.ChevronDown size={13} className={`transition-transform duration-200 ${customReminderExpanded ? 'rotate-180' : ''}`} />
-                        </button>
-
-                        {customReminderExpanded && (
-                          <div className="animate-fadeIn space-y-1 pt-1">
-                            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                              Custom Alert Datetime
-                            </label>
-                            <input
-                              type="datetime-local"
-                              value={formReminderTime}
-                              onChange={e => setFormReminderTime(e.target.value)}
-                              className="w-full text-xs px-3 py-2 bg-secondary rounded-xl text-foreground border border-border focus:border-emerald-500 outline-none"
-                            />
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Active Alert Preview */}
-                      {formReminderTime && (
-                        <div className="text-[11px] font-mono text-emerald-300 bg-emerald-950/40 px-3 py-1.5 rounded-xl border border-emerald-500/20 flex items-center gap-1.5">
-                          <Lucide.BellRing size={12} className="shrink-0" />
-                          <span>Alert set for: <strong>{formReminderTime.replace('T', ' ')}</strong></span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Recurrence Schedule Selector */}
-                <div className="space-y-3 pt-3 border-t border-border/40">
-                  <label className="flex items-center gap-3 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={formIsRecurring}
-                      onChange={e => setFormIsRecurring(e.target.checked)}
-                      className="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-500 bg-secondary border-border cursor-pointer"
-                    />
-                    <span className="text-xs font-bold text-foreground group-hover:text-emerald-400 transition-colors flex items-center gap-1.5">
-                      <Lucide.Repeat size={14} className="text-emerald-400" />
-                      Enable ToDo Recurrence
-                    </span>
-                  </label>
-
-                  {formIsRecurring && (
-                    <div className="space-y-3 animate-fadeIn p-3.5 bg-secondary/40 rounded-2xl border border-border/50">
-                      <div className="space-y-1.5 relative">
-                        <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Recurrence Rule</label>
-                        <select
-                          value={formRecurrencePattern}
-                          onChange={e => setFormRecurrencePattern(e.target.value as 'daily' | 'weekly' | 'monthly' | 'custom')}
-                          className="w-full text-xs font-bold px-3.5 py-2.5 bg-secondary text-foreground rounded-xl border border-border outline-none focus:border-emerald-500 appearance-none cursor-pointer"
-                        >
-                          <option value="daily">Every Single Day (Daily)</option>
-                          <option value="weekly">Every Week (Weekly)</option>
-                          <option value="monthly">Every Month (Monthly)</option>
-                          <option value="custom">Custom Days Schedule</option>
-                        </select>
-                        <Lucide.ChevronDown size={14} className="absolute right-3.5 top-8 text-muted-foreground pointer-events-none" />
-                      </div>
-
-                      {formRecurrencePattern === 'custom' && (
-                        <ScheduleSelector
-                          selectedDays={formCustomDays}
-                          onChange={setFormCustomDays}
-                          label="Custom Days Schedule"
-                        />
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Subtasks Checklist Builder */}
-                <div className="space-y-2 pt-2 border-t border-border/50">
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Checklist Sub-tasks</label>
-                  
-                  {/* List of subtasks */}
-                  <div className="space-y-1.5 max-h-36 overflow-y-auto scrollbar-thin">
-                    {formSubtasks.map(sub => (
-                      <div key={sub.id} className="flex items-center justify-between gap-2 px-3 py-1.5 bg-secondary/50 rounded-xl border border-border/40">
-                        <label className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
-                          <input
-                            type="checkbox"
-                            checked={sub.isCompleted}
-                            onChange={() => handleToggleFormSubtask(sub.id)}
-                            className="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-500 bg-surface-elevated border-border"
-                          />
-                          <span className={`text-xs font-medium ${sub.isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
-                            {sub.title}
-                          </span>
-                        </label>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveFormSubtask(sub.id)}
-                          className="text-muted-foreground hover:text-rose-400 p-1"
-                        >
-                          <Lucide.X size={14} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Add Subtask Input */}
-                  <div className="flex items-center gap-2 pt-1">
-                    <input
-                      type="text"
-                      maxLength={80}
-                      placeholder="Add sub-task item..."
-                      value={newSubtaskInput}
-                      onChange={e => setNewSubtaskInput(e.target.value)}
-                      onKeyDown={e => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault();
-                          handleAddFormSubtask();
-                        }
-                      }}
-                      className="flex-1 text-xs px-3.5 py-2.5 bg-secondary rounded-xl border border-border focus:border-emerald-500 outline-none"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleAddFormSubtask}
-                      className="px-4 py-2.5 bg-surface-elevated hover:bg-secondary text-foreground font-bold text-xs rounded-xl border border-border cursor-pointer"
-                    >
-                      + Add Item
-                    </button>
-                  </div>
-                </div>
-
-                {/* Buttons Footer */}
-                <div className="flex justify-end gap-3 pt-4 border-t border-border/60">
+                <div className="pt-2 border-t border-emerald-500/20 space-y-2">
                   <button
                     type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="px-5 py-2.5 bg-surface-elevated hover:bg-secondary text-foreground font-bold text-xs rounded-xl border border-border transition-all cursor-pointer"
+                    onClick={() => setEditCustomReminderExpanded(prev => !prev)}
+                    className="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1 cursor-pointer"
                   >
-                    Cancel
+                    <span>{editCustomReminderExpanded ? 'Hide Custom Alert Picker' : 'Set Custom Date & Time'}</span>
+                    <Lucide.ChevronDown size={13} className={`transition-transform duration-200 ${editCustomReminderExpanded ? 'rotate-180' : ''}`} />
                   </button>
-                  <button
-                    type="submit"
-                    className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-emerald-600/30 transition-all cursor-pointer"
-                  >
-                    {editingTodo ? 'Save Changes' : 'Create ToDo'}
-                  </button>
+
+                  {editCustomReminderExpanded && (
+                    <div className="space-y-1 pt-1">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        Custom Alert Datetime
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={editReminderTime}
+                        onChange={e => setEditReminderTime(e.target.value)}
+                        className="w-full text-xs px-3 py-2 bg-secondary rounded-xl text-foreground border border-border focus:border-emerald-500 outline-none"
+                      />
+                    </div>
+                  )}
                 </div>
-              </form>
-            </motion.div>
+
+                {editReminderTime && (
+                  <div className="text-[11px] font-mono text-emerald-300 bg-emerald-950/40 px-3 py-1.5 rounded-xl border border-emerald-500/20 flex items-center gap-1.5">
+                    <Lucide.BellRing size={12} className="shrink-0" />
+                    <span>Alert set for: <strong>{editReminderTime.replace('T', ' ')}</strong></span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-        )}
-      </AnimatePresence>
+
+          {/* Recurrence Schedule Selector */}
+          <div className="space-y-2.5 pt-2 border-t border-border/40">
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={editIsRecurring}
+                onChange={e => setEditIsRecurring(e.target.checked)}
+                className="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-500 bg-secondary border-border cursor-pointer"
+              />
+              <span className="text-xs font-bold text-foreground group-hover:text-emerald-400 transition-colors flex items-center gap-1.5">
+                <Lucide.Repeat size={14} className="text-emerald-400" />
+                Enable ToDo Recurrence
+              </span>
+            </label>
+
+            {editIsRecurring && (
+              <div className="space-y-2.5 p-3 bg-secondary/40 rounded-2xl border border-border/50">
+                <div className="space-y-1.5 relative">
+                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Recurrence Rule</label>
+                  <select
+                    value={editRecurrencePattern}
+                    onChange={e => setEditRecurrencePattern(e.target.value as 'daily' | 'weekly' | 'monthly' | 'custom')}
+                    className="w-full text-xs font-bold px-3.5 py-2 bg-secondary text-foreground rounded-xl border border-border outline-none focus:border-emerald-500 appearance-none cursor-pointer"
+                  >
+                    <option value="daily">Every Single Day (Daily)</option>
+                    <option value="weekly">Every Week (Weekly)</option>
+                    <option value="monthly">Every Month (Monthly)</option>
+                    <option value="custom">Custom Days Schedule</option>
+                  </select>
+                  <Lucide.ChevronDown size={14} className="absolute right-3.5 top-7 text-muted-foreground pointer-events-none" />
+                </div>
+
+                {editRecurrencePattern === 'custom' && (
+                  <ScheduleSelector
+                    selectedDays={editCustomDays}
+                    onChange={setEditCustomDays}
+                    label="Custom Days Schedule"
+                  />
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Subtasks Checklist Builder */}
+          <div className="space-y-2 pt-2 border-t border-border/50">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Checklist Sub-tasks</label>
+            
+            {editSubtasks.length > 0 && (
+              <div className="space-y-1.5 max-h-36 overflow-y-auto scrollbar-thin">
+                {editSubtasks.map(sub => (
+                  <div key={sub.id} className="flex items-center justify-between gap-2 px-3 py-1.5 bg-secondary/50 rounded-xl border border-border/40">
+                    <label className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
+                      <input
+                        type="checkbox"
+                        checked={sub.isCompleted}
+                        onChange={() => handleToggleEditSubtask(sub.id)}
+                        className="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-500 bg-surface-elevated border-border"
+                      />
+                      <span className={`text-xs font-medium ${sub.isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                        {sub.title}
+                      </span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveEditSubtask(sub.id)}
+                      className="text-muted-foreground hover:text-rose-400 p-1"
+                    >
+                      <Lucide.X size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add Subtask Input */}
+            <div className="flex items-center gap-2 pt-1">
+              <input
+                type="text"
+                maxLength={80}
+                placeholder="Add sub-task item..."
+                value={editNewSubtaskInput}
+                onChange={e => setEditNewSubtaskInput(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddEditSubtask();
+                  }
+                }}
+                className="flex-1 text-xs px-3.5 py-2 bg-secondary rounded-xl border border-border focus:border-emerald-500 outline-none"
+              />
+              <button
+                type="button"
+                onClick={handleAddEditSubtask}
+                className="px-4 py-2 bg-surface-elevated hover:bg-secondary text-foreground font-bold text-xs rounded-xl border border-border cursor-pointer"
+              >
+                + Add Item
+              </button>
+            </div>
+          </div>
+
+          {/* Modal Buttons Footer */}
+          <div className="flex justify-end gap-2.5 pt-3 border-t border-border/60">
+            <button
+              type="button"
+              onClick={() => setIsEditModalOpen(false)}
+              className="px-4 py-2 bg-surface-elevated hover:bg-secondary text-foreground font-bold text-xs rounded-xl border border-border transition-all cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-emerald-600/30 transition-all cursor-pointer"
+            >
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

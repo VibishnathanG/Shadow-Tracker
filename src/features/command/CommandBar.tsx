@@ -94,14 +94,29 @@ export const CommandBar: React.FC<CommandBarProps> = ({
       onClose();
     }},
     { id: 'data-load-2y-demo', category: 'Data & Workspaces', label: 'Load 2-Year Masterclass Demo (730 Days)', icon: 'Sparkles', action: async () => {
-      if (window.confirm('Load 2-Year Extensive Masterclass Demo Dataset? This will populate 730 days of habits, daily logs, notes, 220+ tasks, 24 full months of financial data, and Level 25 Master rank.')) {
-        try {
-          const { generateMassiveTwoYearData } = await import('@/lib/seedData');
-          await importBackup(generateMassiveTwoYearData());
-          window.location.reload();
-        } catch (e) {
-          console.error(e);
+      const state = useShadowTrackerStore.getState();
+      const hasData = state.tasks.length > 0 || state.habits.length > 0 || state.dailyLogs.length > 0;
+      if (hasData) {
+        const proceed = window.confirm(
+          '⚠️ DATA OVERRIDE WARNING:\n\nExisting tasks, habits, and telemetry records were detected.\nLoading the 2-Year Masterclass Dataset will COMPLETELY OVERWRITE ALL EXISTING DATA.\n\nPlease take a backup first in Settings > Data Management.\n\nDo you still wish to proceed and overwrite all data now?'
+        );
+        if (!proceed) {
+          onClose();
+          return;
         }
+      } else {
+        if (!window.confirm('Load 2-Year Extensive Masterclass Demo Dataset? This will populate 730 days of telemetry and Level 25 Master rank.')) {
+          onClose();
+          return;
+        }
+      }
+
+      try {
+        const { generateMassiveTwoYearData } = await import('@/lib/seedData');
+        await importBackup(generateMassiveTwoYearData());
+        window.location.reload();
+      } catch (e) {
+        console.error(e);
       }
       onClose();
     }},
@@ -155,8 +170,8 @@ export const CommandBar: React.FC<CommandBarProps> = ({
             onKeyDown={handleKeyDown}
             className="relative w-full max-w-2xl tile overflow-hidden z-10 mt-10 shadow-2xl shadow-black/40"
           >
-            <div className="flex items-center px-5 border-b border-border bg-card">
-              <Lucide.Search className="text-foreground mr-3" size={22} />
+            <div className="flex items-center px-4 md:px-5 border-b border-border/80 bg-card/90">
+              <Lucide.Search className="text-muted-foreground mr-3 shrink-0" size={20} />
               <input
                 ref={inputRef}
                 type="text"
@@ -167,9 +182,9 @@ export const CommandBar: React.FC<CommandBarProps> = ({
                   setQuery(e.target.value);
                   setSelectedIndex(0);
                 }}
-                className="w-full h-16 bg-transparent text-foreground font-semibold placeholder-muted-foreground border-0 outline-none focus:ring-0 text-base"
+                className="command-input flex-1 h-14 !bg-transparent !text-foreground font-medium placeholder:text-muted-foreground/60 !border-0 !border-none !shadow-none !outline-none focus:!ring-0 !ring-0 text-base !py-0 !px-0"
               />
-              <div className="hidden md:flex items-center gap-1 text-xs font-bold text-muted-foreground bg-secondary px-2 py-1 rounded-md border border-border">
+              <div className="hidden md:flex items-center gap-1 text-[11px] font-bold text-muted-foreground bg-secondary/80 px-2 py-0.5 rounded-md border border-border/60 shrink-0 select-none">
                 <span>ESC</span>
               </div>
             </div>

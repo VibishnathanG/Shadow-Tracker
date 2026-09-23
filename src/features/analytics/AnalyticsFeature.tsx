@@ -373,15 +373,15 @@ const HabitsMonthlyGridCard: React.FC = () => {
       {/* Month Header & Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
         <div>
-          <div className="flex items-center gap-2">
-            <Lucide.CalendarCheck className="text-primary" size={20} />
-            <h3 className="text-lg font-black tracking-tight text-foreground">Monthly Habit Matrix</h3>
-          </div>
-          <p className="text-xs text-muted-foreground font-medium mt-1 flex items-center gap-2 flex-wrap">
-            <span>4-5 week schedule grid with interactive completion checkboxes.</span>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-500 font-bold border border-amber-500/20 text-[10.5px]">
-              <Lucide.FileEdit size={11} /> Tap 📝 on uncompleted days to log reason to Journal
+          <div className="flex items-center gap-2 flex-wrap">
+            <Lucide.CalendarCheck className="text-primary" size={18} />
+            <h3 className="text-base font-bold tracking-tight text-foreground">Monthly Habit Matrix</h3>
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-800 dark:text-amber-400 font-semibold border border-amber-500/20 text-[10px]">
+              <Lucide.FileEdit size={10} /> Tap 📝 to journal
             </span>
+          </div>
+          <p className="text-[11px] text-muted-foreground font-normal mt-0.5">
+            Interactive schedule grid with habit checkboxes.
           </p>
         </div>
 

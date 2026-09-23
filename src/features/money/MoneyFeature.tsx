@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom';
 import { useShadowTrackerStore } from '@/store';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from '@/components/icons';
-import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { useViewPreference } from '@/lib/viewPreferences';
 
 export type ExpenseCategory = 'Shopping' | 'Food' | 'Bills' | 'Other';
@@ -1130,65 +1130,129 @@ export default function MoneyFeature() {
         </div>
 
         {/* 6-Month Trajectory Area Chart */}
-        <div className="tile settings-tile p-5 sm:p-6 rounded-3xl space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="tile settings-tile p-4 sm:p-5 rounded-3xl space-y-3.5">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
-              <h2 className="text-base font-extrabold text-foreground">Financial Trajectory</h2>
-              <p className="text-xs text-muted-foreground">Historical comparison (Last 6 months)</p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h2 className="text-base font-extrabold text-foreground">Financial Trajectory</h2>
+                {historicalData.length > 0 && (() => {
+                  const latest = historicalData[historicalData.length - 1];
+                  const mNet = (latest?.Income || 0) - (latest?.Spend || 0);
+                  const mReserves = (latest?.Savings || 0) + (latest?.Investments || 0);
+                  return (
+                    <>
+                      <span className={`inline-flex items-center gap-1 text-[10.5px] font-bold px-2 py-0.5 rounded-full border ${
+                        mNet >= 0 
+                          ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-700 dark:text-emerald-300' 
+                          : 'bg-rose-500/15 border-rose-500/30 text-rose-700 dark:text-rose-300'
+                      }`}>
+                        <Lucide.TrendingUp size={11} className={mNet >= 0 ? '' : 'rotate-180'} />
+                        {mNet >= 0 ? `+₹${mNet.toLocaleString()} Surplus` : `-₹${Math.abs(mNet).toLocaleString()} Deficit`}
+                      </span>
+                      <span className="text-[10.5px] font-bold px-2 py-0.5 rounded-full bg-primary/10 border border-primary/20 text-primary">
+                        ₹{mReserves.toLocaleString()} Reserves
+                      </span>
+                    </>
+                  );
+                })()}
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">Historical comparison (Last 6 months) • Hover to inspect</p>
             </div>
             
-            <div className="flex flex-wrap gap-2">
-              {[
-                { id: 'spend', label: 'Spend', color: '#f97316' },
-                { id: 'income', label: 'Income', color: '#10b981' },
-                { id: 'savings', label: 'Savings', color: '#0ea5e9' },
-                { id: 'investments', label: 'Investments', color: '#a855f7' },
-              ].map(filter => (
-                <button
-                  key={filter.id}
-                  onClick={() => setChartFilters(prev => ({ ...prev, [filter.id]: !prev[filter.id as keyof typeof chartFilters] }))}
-                  className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-full border transition-all cursor-pointer ${
-                    chartFilters[filter.id as keyof typeof chartFilters] ? 'bg-surface text-foreground border-border' : 'text-muted-foreground border-transparent'
-                  }`}
-                >
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: chartFilters[filter.id as keyof typeof chartFilters] ? filter.color : '#888' }} />
-                  {filter.label}
-                </button>
-              ))}
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              {(() => {
+                const latest = historicalData.length > 0 ? historicalData[historicalData.length - 1] : null;
+                return [
+                  { id: 'spend', label: 'Spend', value: latest?.Spend, color: '#f97316' },
+                  { id: 'income', label: 'Income', value: latest?.Income, color: '#10b981' },
+                  { id: 'savings', label: 'Savings', value: latest?.Savings, color: '#0ea5e9' },
+                  { id: 'investments', label: 'Investments', value: latest?.Investments, color: '#a855f7' },
+                ].map(filter => {
+                  const isEnabled = chartFilters[filter.id as keyof typeof chartFilters];
+                  return (
+                    <button
+                      key={filter.id}
+                      type="button"
+                      onClick={() => setChartFilters(prev => ({ ...prev, [filter.id]: !prev[filter.id as keyof typeof chartFilters] }))}
+                      className={`flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-full border transition-all cursor-pointer ${
+                        isEnabled ? 'bg-surface text-foreground border-border shadow-2xs' : 'text-muted-foreground/60 border-transparent hover:text-muted-foreground'
+                      }`}
+                      title={`Toggle ${filter.label} line`}
+                    >
+                      <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: isEnabled ? filter.color : '#94a3b8' }} />
+                      <span>{filter.label}</span>
+                      <span className="font-mono text-[10.5px] opacity-80">
+                        ₹{filter.value ? (filter.value >= 1000 ? `${(filter.value / 1000).toFixed(0)}k` : filter.value) : '0'}
+                      </span>
+                    </button>
+                  );
+                });
+              })()}
             </div>
           </div>
 
-          <div className="h-[280px] w-full pt-2">
+          <div className="h-[280px] w-full pt-1">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={historicalData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorSpend" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f97316" stopOpacity={0.3}/>
+                    <stop offset="5%" stopColor="#f97316" stopOpacity={0.25}/>
                     <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.25}/>
                     <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="colorSavings" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3}/>
+                    <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.25}/>
                     <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0}/>
                   </linearGradient>
                   <linearGradient id="colorInvestments" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#a855f7" stopOpacity={0.3}/>
+                    <stop offset="5%" stopColor="#a855f7" stopOpacity={0.25}/>
                     <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="currentColor" opacity={0.08} />
                 <XAxis dataKey="month" stroke="#888888" fontSize={11} tickLine={false} axisLine={false} />
                 <YAxis stroke="#888888" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${v/1000}k`} />
                 <RechartsTooltip 
-                  contentStyle={{ backgroundColor: 'var(--surface-elevated)', borderColor: 'var(--border)', borderRadius: '12px', color: 'var(--foreground)' }}
-                  itemStyle={{ color: 'var(--foreground)', fontSize: '12px' }}
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      const mIncome = data.Income || 0;
+                      const mSpend = data.Spend || 0;
+                      const mNet = mIncome - mSpend;
+                      return (
+                        <div className="bg-surface-elevated/95 backdrop-blur-md border border-border rounded-2xl p-3 shadow-xl text-xs space-y-2 min-w-[190px]">
+                          <div className="flex items-center justify-between border-b border-border/60 pb-1.5 font-bold">
+                            <span className="text-foreground">{label}</span>
+                            <span className={`px-1.5 py-0.5 rounded-md font-mono text-[10px] font-extrabold ${mNet >= 0 ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'bg-rose-500/15 text-rose-700 dark:text-rose-300'}`}>
+                              {mNet >= 0 ? `+₹${mNet.toLocaleString()}` : `-₹${Math.abs(mNet).toLocaleString()}`}
+                            </span>
+                          </div>
+                          <div className="space-y-1">
+                            {payload.map((entry: any) => (
+                              <div key={entry.name} className="flex items-center justify-between gap-3 text-[11px]">
+                                <span className="flex items-center gap-1.5 text-muted-foreground font-medium">
+                                  <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
+                                  {entry.name}
+                                </span>
+                                <span className="font-mono font-bold text-foreground">
+                                  ₹{Number(entry.value).toLocaleString()}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
                 />
-                {chartFilters.income && <Area type="monotone" dataKey="Income" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colorIncome)" />}
-                {chartFilters.spend && <Area type="monotone" dataKey="Spend" stroke="#f97316" strokeWidth={2} fillOpacity={1} fill="url(#colorSpend)" />}
-                {chartFilters.savings && <Area type="monotone" dataKey="Savings" stroke="#0ea5e9" strokeWidth={2} fillOpacity={1} fill="url(#colorSavings)" />}
-                {chartFilters.investments && <Area type="monotone" dataKey="Investments" stroke="#a855f7" strokeWidth={2} fillOpacity={1} fill="url(#colorInvestments)" />}
+                {chartFilters.income && <Area type="monotone" dataKey="Income" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorIncome)" activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }} />}
+                {chartFilters.spend && <Area type="monotone" dataKey="Spend" stroke="#f97316" strokeWidth={2.5} fillOpacity={1} fill="url(#colorSpend)" activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }} />}
+                {chartFilters.savings && <Area type="monotone" dataKey="Savings" stroke="#0ea5e9" strokeWidth={2.5} fillOpacity={1} fill="url(#colorSavings)" activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }} />}
+                {chartFilters.investments && <Area type="monotone" dataKey="Investments" stroke="#a855f7" strokeWidth={2.5} fillOpacity={1} fill="url(#colorInvestments)" activeDot={{ r: 5, strokeWidth: 2, stroke: '#fff' }} />}
               </AreaChart>
             </ResponsiveContainer>
           </div>

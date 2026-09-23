@@ -330,7 +330,7 @@ export const Layout: React.FC<LayoutProps> = ({
               {/* Full-width spacious Search Button */}
               <button
                 onClick={() => setCommandBarOpen(true)}
-                className="w-full flex items-center justify-between px-3.5 py-2 bg-surface-elevated hover:bg-surface text-secondary hover:text-foreground rounded-xl text-xs font-bold transition-all border border-border shadow-sm cursor-pointer group"
+                className="sidebar-search-btn w-full flex items-center justify-between px-3.5 py-2 bg-surface-elevated hover:bg-surface text-secondary hover:text-foreground rounded-xl text-xs font-bold transition-all border border-border shadow-sm cursor-pointer group"
                 title="Search Command Bar (Ctrl + K)"
               >
                 <div className="flex items-center gap-2 min-w-0">
@@ -344,18 +344,18 @@ export const Layout: React.FC<LayoutProps> = ({
               <div className="grid grid-cols-2 gap-1.5">
                 <button
                   onClick={() => setDayReviewModal('morning')}
-                  className="flex items-center justify-center gap-1.5 px-2 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded-xl text-[11px] font-bold transition-all cursor-pointer active:scale-95 shadow-2xs"
+                  className="sidebar-morning-btn flex items-center justify-center gap-1.5 px-2 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-400 border border-amber-500/30 rounded-xl text-[11px] font-bold transition-all cursor-pointer active:scale-95 shadow-2xs"
                   title="Start My Day (Morning Briefing)"
                 >
-                  <Lucide.Sunrise size={13} />
+                  <Lucide.Sunrise size={13} className="text-amber-700 dark:text-amber-400" />
                   <span>Morning</span>
                 </button>
                 <button
                   onClick={() => setDayReviewModal('evening')}
-                  className="flex items-center justify-center gap-1.5 px-2 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 rounded-xl text-[11px] font-bold transition-all cursor-pointer active:scale-95 shadow-2xs"
+                  className="sidebar-evening-btn flex items-center justify-center gap-1.5 px-2 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-800 dark:text-indigo-400 border border-indigo-500/30 rounded-xl text-[11px] font-bold transition-all cursor-pointer active:scale-95 shadow-2xs"
                   title="End of Day (Evening Reflection)"
                 >
-                  <Lucide.Sunset size={13} />
+                  <Lucide.Sunset size={13} className="text-indigo-700 dark:text-indigo-400" />
                   <span>Evening</span>
                 </button>
               </div>
@@ -365,7 +365,7 @@ export const Layout: React.FC<LayoutProps> = ({
                 {/* Wizard Button */}
                 <button
                   onClick={() => setActiveTab('wizard')}
-                  className={`flex items-center justify-center gap-1 px-2 py-1.5 rounded-xl text-[11px] font-bold transition-all border shadow-sm cursor-pointer active:scale-95 min-w-0 ${
+                  className={`sidebar-quick-btn flex items-center justify-center gap-1 px-2 py-1.5 rounded-xl text-[11px] font-bold transition-all border shadow-sm cursor-pointer active:scale-95 min-w-0 ${
                     activeTab === 'wizard'
                       ? 'bg-primary text-primary-foreground border-primary shadow-md shadow-primary/30 ring-1 ring-primary/40'
                       : 'bg-surface-elevated hover:bg-surface text-secondary hover:text-foreground border-border hover:border-primary/40'
@@ -382,20 +382,20 @@ export const Layout: React.FC<LayoutProps> = ({
                   onClick={() => setActiveTab('todo')}
                   className={`flex items-center justify-center gap-1 px-2 py-1.5 rounded-xl text-[11px] font-bold transition-all border shadow-sm cursor-pointer active:scale-95 min-w-0 ${
                     activeTab === 'todo'
-                      ? 'bg-emerald-600 text-white border-emerald-400 shadow-emerald-500/30'
-                      : 'bg-gradient-to-r from-emerald-950/80 to-teal-950/80 hover:from-emerald-900 hover:to-teal-900 text-emerald-300 border-emerald-500/40'
+                      ? 'bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-500/30'
+                      : 'bg-emerald-50 dark:bg-emerald-950/80 hover:bg-emerald-100 dark:hover:bg-emerald-900 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-500/40'
                   }`}
                   title="Standalone ToDo"
                   aria-label="Standalone ToDo Page"
                 >
-                  <Lucide.CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
+                  <Lucide.CheckCircle2 size={13} className="text-emerald-700 dark:text-emerald-400 shrink-0" />
                   <span className="truncate">ToDo</span>
                 </button>
 
                 {/* Theme Toggle Button */}
                 <button
                   onClick={cycleTheme}
-                  className="flex items-center justify-center gap-1 px-2 py-1.5 bg-surface-elevated hover:bg-surface border border-transparent hover:border-border text-secondary hover:text-foreground rounded-xl text-[11px] font-bold transition-all shadow-sm cursor-pointer min-w-0"
+                  className="sidebar-quick-btn flex items-center justify-center gap-1 px-2 py-1.5 bg-surface-elevated hover:bg-surface border border-border text-secondary hover:text-foreground rounded-xl text-[11px] font-bold transition-all shadow-sm cursor-pointer min-w-0"
                   title="Toggle Theme"
                 >
                   {getThemeIcon(13)}

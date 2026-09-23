@@ -8,13 +8,28 @@ import { useShadowTrackerStore } from '@/store';
 import { getCharacterTitle, getXpForLevel } from '@/features/rpg/rpgLevels';
 import confetti from 'canvas-confetti';
 import { useViewPreference } from '@/lib/viewPreferences';
+import {
+  BUILTIN_WISP_MOTIVATIONAL_LINES,
+  getWispCustomLines,
+  saveWispCustomLine,
+  deleteWispCustomLine,
+} from '@/lib/quotes';
 
 interface QuoteItem {
   id: string;
-  vibe: 'power' | 'wisdom' | 'wealth' | 'tech' | 'health';
+  vibe: 'power' | 'wisdom' | 'wealth' | 'tech' | 'health' | 'wisp';
   quote: string;
   author?: string;
+  isWisp?: boolean;
 }
+
+const BUILTIN_WISP_QUOTES: QuoteItem[] = BUILTIN_WISP_MOTIVATIONAL_LINES.map((line, idx) => ({
+  id: `wisp-builtin-${idx}`,
+  vibe: 'wisp',
+  quote: line,
+  author: 'Nexus Wisp',
+  isWisp: true,
+}));
 
 const ARCANE_QUOTES: QuoteItem[] = [
   {
@@ -93,6 +108,7 @@ const ARCANE_QUOTES: QuoteItem[] = [
 
 const VIBE_CATEGORIES = [
   { id: 'all', label: 'All Arcana', icon: Lucide.Sparkles },
+  { id: 'wisp', label: '🔮 Wisp Lines', icon: Lucide.Sparkles },
   { id: 'power', label: 'Discipline', icon: Lucide.Flame },
   { id: 'wisdom', label: 'Wisdom', icon: Lucide.Eye },
   { id: 'wealth', label: 'Wealth', icon: Lucide.Coins },
@@ -114,25 +130,37 @@ export default function WizardFeature() {
   const [copied, setCopied] = useState(false);
   const [customQuoteText, setCustomQuoteText] = useState('');
   const [customQuoteAuthor, setCustomQuoteAuthor] = useState('');
-  const [customQuoteVibe, setCustomQuoteVibe] = useState<'power' | 'wisdom' | 'wealth' | 'tech' | 'health'>('wisdom');
+  const [customQuoteVibe, setCustomQuoteVibe] = useState<'power' | 'wisdom' | 'wealth' | 'tech' | 'health' | 'wisp'>('wisp');
   const [customQuotes, setCustomQuotes] = useState<QuoteItem[]>([]);
+  const [wispCustomLines, setWispCustomLines] = useState<string[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
 
-  // Load custom quotes from localStorage
+  // Load custom quotes and Wisp lines from persistent storage
   useEffect(() => {
     try {
       const stored = localStorage.getItem('shadow_wizard_quotes_v1');
       if (stored) {
         setCustomQuotes(JSON.parse(stored));
       }
+      setWispCustomLines(getWispCustomLines());
     } catch {
       // ignore
     }
   }, []);
 
+  const customWispQuotes: QuoteItem[] = useMemo(() => {
+    return wispCustomLines.map((line, idx) => ({
+      id: `wisp-custom-${idx}`,
+      vibe: 'wisp',
+      quote: line,
+      author: `${settings.alias || 'Shadow'} (Wisp Inscription)`,
+      isWisp: true,
+    }));
+  }, [wispCustomLines, settings.alias]);
+
   const allQuotes = useMemo(() => {
-    return [...customQuotes, ...ARCANE_QUOTES];
-  }, [customQuotes]);
+    return [...customQuotes, ...customWispQuotes, ...ARCANE_QUOTES, ...BUILTIN_WISP_QUOTES];
+  }, [customQuotes, customWispQuotes]);
 
   const filteredQuotes = useMemo(() => {
     if (selectedVibe === 'all') return allQuotes;
@@ -225,19 +253,24 @@ export default function WizardFeature() {
     e.preventDefault();
     if (!customQuoteText.trim()) return;
 
-    const newQuote: QuoteItem = {
-      id: `custom-${Date.now()}`,
-      vibe: customQuoteVibe,
-      quote: customQuoteText.trim(),
-      author: customQuoteAuthor.trim() || settings.alias || 'Shadow'
-    };
+    if (customQuoteVibe === 'wisp') {
+      const updatedWisp = saveWispCustomLine(customQuoteText.trim());
+      setWispCustomLines(updatedWisp);
+    } else {
+      const newQuote: QuoteItem = {
+        id: `custom-${Date.now()}`,
+        vibe: customQuoteVibe,
+        quote: customQuoteText.trim(),
+        author: customQuoteAuthor.trim() || settings.alias || 'Shadow'
+      };
 
-    const updated = [newQuote, ...customQuotes];
-    setCustomQuotes(updated);
-    try {
-      localStorage.setItem('shadow_wizard_quotes_v1', JSON.stringify(updated));
-    } catch {
-      // ignore
+      const updated = [newQuote, ...customQuotes];
+      setCustomQuotes(updated);
+      try {
+        localStorage.setItem('shadow_wizard_quotes_v1', JSON.stringify(updated));
+      } catch {
+        // ignore
+      }
     }
 
     setCustomQuoteText('');
@@ -455,10 +488,25 @@ export default function WizardFeature() {
             })}
           </div>
 
-          {/* Inscribe Scroll Button */}
-          <div className="flex items-center gap-2">
+          {/* Inscribe Scroll & Add Wisp Motivational Line Buttons */}
+          <div className="flex items-center gap-2 flex-wrap">
             <button
-              onClick={() => setShowAddModal(true)}
+              onClick={() => {
+                setCustomQuoteVibe('wisp');
+                setShowAddModal(true);
+              }}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-purple-500/15 hover:bg-purple-500/25 border border-purple-500/40 text-purple-300 font-bold rounded-xl text-xs transition-all cursor-pointer shadow-xs hover:border-purple-400"
+              title="Inscribe New Motivational Line for Nexus Wisp Companion"
+            >
+              <Lucide.Sparkles size={14} className="text-purple-400" />
+              <span>+ Wisp Motivational Line</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setCustomQuoteVibe('wisdom');
+                setShowAddModal(true);
+              }}
               className="flex items-center gap-1.5 px-4 py-2 bg-primary/15 hover:bg-primary/25 border border-primary/40 text-foreground font-bold rounded-xl text-xs transition-all cursor-pointer shadow-xs hover:border-primary"
               title="Inscribe New Wisdom Scroll"
             >
@@ -636,10 +684,43 @@ export default function WizardFeature() {
 
                   <div className="pt-2 border-t border-border/40 flex items-center justify-between text-[11px] text-muted-foreground">
                     <span className="truncate font-medium">{q.author || 'Ancient Creed'}</span>
-                    <span className="flex items-center gap-0.5 text-primary font-bold text-[10px] group-hover:translate-x-0.5 transition-transform">
-                      <span>Invoke</span>
-                      <Lucide.ChevronRight size={13} />
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      {q.id.startsWith('wisp-custom-') ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const idx = parseInt(q.id.replace('wisp-custom-', ''), 10);
+                            const updated = deleteWispCustomLine(idx);
+                            setWispCustomLines(updated);
+                          }}
+                          className="p-1 text-muted-foreground hover:text-red-500 rounded-md hover:bg-red-500/10 transition-colors"
+                          title="Delete Custom Wisp Line"
+                        >
+                          <Lucide.Trash2 size={12} />
+                        </button>
+                      ) : q.id.startsWith('custom-') ? (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const updated = customQuotes.filter(cq => cq.id !== q.id);
+                            setCustomQuotes(updated);
+                            try {
+                              localStorage.setItem('shadow_wizard_quotes_v1', JSON.stringify(updated));
+                            } catch {}
+                          }}
+                          className="p-1 text-muted-foreground hover:text-red-500 rounded-md hover:bg-red-500/10 transition-colors"
+                          title="Delete Custom Scroll"
+                        >
+                          <Lucide.Trash2 size={12} />
+                        </button>
+                      ) : null}
+                      <span className="flex items-center gap-0.5 text-primary font-bold text-[10px] group-hover:translate-x-0.5 transition-transform">
+                        <span>Invoke</span>
+                        <Lucide.ChevronRight size={13} />
+                      </span>
+                    </div>
                   </div>
                 </motion.div>
               );
@@ -692,18 +773,20 @@ export default function WizardFeature() {
                     Arcana Category
                   </label>
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    {(['power', 'wisdom', 'wealth', 'tech', 'health'] as const).map((vibe) => (
+                    {(['wisp', 'power', 'wisdom', 'wealth', 'tech', 'health'] as const).map((vibe) => (
                       <button
                         type="button"
                         key={vibe}
                         onClick={() => setCustomQuoteVibe(vibe)}
                         className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                           customQuoteVibe === vibe
-                            ? 'bg-primary text-primary-foreground shadow-sm'
+                            ? vibe === 'wisp'
+                              ? 'bg-purple-600 text-white shadow-sm ring-1 ring-purple-400'
+                              : 'bg-primary text-primary-foreground shadow-sm'
                             : 'bg-secondary/60 text-muted-foreground hover:text-foreground'
                         }`}
                       >
-                        {vibe.toUpperCase()}
+                        {vibe === 'wisp' ? '🔮 WISP MOTIVATION' : vibe.toUpperCase()}
                       </button>
                     ))}
                   </div>

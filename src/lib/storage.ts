@@ -147,6 +147,7 @@ export const dbService = {
     let healthData = null;
     let rpgQuests = null;
     let wizardScrolls = null;
+    let wispCustomLines: string[] = [];
     let unlockedBadges: string[] = [];
 
     if (isBrowser) {
@@ -205,6 +206,10 @@ export const dbService = {
         // 6. Badges
         const savedBadges = localStorage.getItem('shadow_unlocked_badges');
         if (savedBadges) unlockedBadges = JSON.parse(savedBadges);
+
+        // 7. Wisp Custom Lines
+        const savedWispLines = localStorage.getItem('shadow_wisp_custom_lines_v1');
+        if (savedWispLines) wispCustomLines = JSON.parse(savedWispLines);
       } catch (e) {
         console.error('Error reading localStorage data for export:', e);
       }
@@ -228,6 +233,7 @@ export const dbService = {
       healthData,
       rpgQuests,
       wizardScrolls,
+      wispCustomLines,
       unlockedBadges,
       exportedAt: new Date().toISOString(),
     };
@@ -373,6 +379,14 @@ export const dbService = {
         localStorage.setItem('shadow_wizard_quotes_v1', JSON.stringify(data.wizardScrolls));
       } catch (e) {
         console.error('Error restoring wizardScrolls:', e);
+      }
+    }
+
+    if (data.wispCustomLines && Array.isArray(data.wispCustomLines)) {
+      try {
+        localStorage.setItem('shadow_wisp_custom_lines_v1', JSON.stringify(data.wispCustomLines));
+      } catch (e) {
+        console.error('Error restoring wispCustomLines:', e);
       }
     }
 

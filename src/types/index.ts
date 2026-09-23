@@ -181,6 +181,7 @@ export interface BackupData {
   standaloneTodos?: any[];
   rpgQuests?: any[];
   wizardScrolls?: any[];
+  wispCustomLines?: string[];
   unlockedBadges?: string[];
   exportedAt: string;
   archiveYear?: string;
