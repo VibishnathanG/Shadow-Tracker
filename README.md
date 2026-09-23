@@ -21,9 +21,18 @@
 Watch a 3-minute complete tour of Shadow Tracker in action:
 
 <p align="center">
-  <video src="./public/app-looks/Shadow-Tracker-Look.mp4" controls="controls" width="100%" poster="./public/app-looks/01-dashboard.png">
-    <a href="./public/app-looks/Shadow-Tracker-Look.mp4">Download / Watch App Tour Video</a>
-  </video>
+  <a href="https://github.com/VibishnathanG/Shadow-Tracker/raw/main/public/app-looks/Shadow-Tracker-Look.mp4" title="Watch full 3-minute walkthrough video">
+    <img src="./public/app-looks/demo-preview.gif" alt="Shadow Tracker Live Walkthrough Preview" width="100%" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/VibishnathanG/Shadow-Tracker/raw/main/public/app-looks/Shadow-Tracker-Look.mp4">
+    <img src="https://img.shields.io/badge/▶%EF%B8%8F_Watch_Full_Tour_(3_Mins)-Direct_Stream-10b981?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch Full Video" />
+  </a>
+  <a href="https://github.com/VibishnathanG/Shadow-Tracker/releases/download/v6.0.0/Shadow-Tracker-Look.mp4">
+    <img src="https://img.shields.io/badge/📥_Download_Video_(82MB)-Release_Asset-6366f1?style=for-the-badge" alt="Download Video" />
+  </a>
 </p>
 
 ---
@@ -74,32 +83,6 @@ Measured in live production tests on the official Docker image serving high-conc
 | **Container CPU** | **< 2%** | Negligible CPU footprint on host |
 | **15k Records Parsing & Hydration** | **12.1 ms** | Fast IndexedDB & JSON deserialization |
 | **Full 1-Year AI Snapshot** | **~9,000 tokens** | Fits easily inside 16k/32k/64k token ceilings |
-
----
-
-## Visual-Showcase
-
-### Habit-Consistency-Matrix
-
-Build lasting daily routines with categorized habit cards, streaks, and a 15-week consistency heatmap.
-
-![Atomic Habit Routines](./public/app-looks/02-habits.png)
-
----
-
-### Health-and-Vitality-Suite
-
-Track daily hydration, set target calories, visualize macro distributions, and log workout plans.
-
-![Health and Vitality Suite](./public/app-looks/03-health.png)
-
----
-
-### Command-Center-Telemetry
-
-A 5-week monthly habit grid with check-offs, streak counters, and focus metrics.
-
-![Command Center Telemetry](./public/app-looks/04-analytics.png)
 
 ---
 
