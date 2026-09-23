@@ -18,6 +18,7 @@ import { useOneDriveAutoSync } from '@/lib/useOneDriveAutoSync';
 import { GitHubDailySync } from './GitHubDailySync';
 import CustomDialogOverlay from './CustomDialogOverlay';
 import { DayReviewModal } from './DayReviewModal';
+import { AiNeuralLogo } from './AiNeuralLogo';
 import dynamic from 'next/dynamic';
 
 const AiAssistantModal = dynamic(() => import('@/features/ai/AiAssistantModal'), { ssr: false });
@@ -298,12 +299,11 @@ export const Layout: React.FC<LayoutProps> = ({
             {/* AI Assistant Button */}
             <button
               onClick={() => setIsAiModalOpen(true)}
-              className="w-10 h-10 rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/30 hover:border-primary/60 text-primary flex flex-col items-center justify-center transition-all cursor-pointer active:scale-95 shadow-sm shadow-primary/15 relative shrink-0 group"
+              className="w-11 h-11 rounded-2xl bg-primary/10 hover:bg-primary/20 border border-primary/30 hover:border-primary/60 text-primary flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-md shadow-primary/15 relative shrink-0 group"
               title="Shadow AI Assistant (Autonomous Copilot)"
               aria-label="Open AI Assistant"
             >
-              <Lucide.Sparkles size={16} className="group-hover:scale-110 group-hover:rotate-12 transition-transform text-primary" />
-              <span style={{ fontSize: '7px' }} className="font-black tracking-wider uppercase text-primary -mt-0.5">AI</span>
+              <AiNeuralLogo size={24} className="group-hover:scale-110 transition-transform" />
             </button>
           </div>
 
@@ -448,12 +448,11 @@ export const Layout: React.FC<LayoutProps> = ({
             {/* Mobile AI Assistant Button */}
             <button
               onClick={() => setIsAiModalOpen(true)}
-              className="ml-1 w-8.5 h-8.5 rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/30 hover:border-primary/60 text-primary flex flex-col items-center justify-center transition-all cursor-pointer active:scale-95 shadow-sm shadow-primary/15 shrink-0 group"
+              className="ml-1 w-9 h-9 rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/30 hover:border-primary/60 text-primary flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-sm shadow-primary/15 shrink-0 group"
               title="Shadow AI Assistant"
               aria-label="Open AI Assistant"
             >
-              <Lucide.Sparkles size={13} className="group-hover:scale-110 transition-transform text-primary" />
-              <span style={{ fontSize: '6px' }} className="font-black tracking-wider uppercase text-primary -mt-0.5">AI</span>
+              <AiNeuralLogo size={20} className="group-hover:scale-110 transition-transform" />
             </button>
           </div>
 

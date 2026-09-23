@@ -149,6 +149,8 @@ export const dbService = {
     let wizardScrolls = null;
     let wispCustomLines: string[] = [];
     let unlockedBadges: string[] = [];
+    let aiCustomPrompts = null;
+    let aiCustomTools = null;
 
     if (isBrowser) {
       try {
@@ -210,6 +212,12 @@ export const dbService = {
         // 7. Wisp Custom Lines
         const savedWispLines = localStorage.getItem('shadow_wisp_custom_lines_v1');
         if (savedWispLines) wispCustomLines = JSON.parse(savedWispLines);
+
+        // 8. AI Custom Prompts & Custom Tools
+        const savedAiPrompts = localStorage.getItem('shadow_ai_custom_prompts_v1');
+        if (savedAiPrompts) aiCustomPrompts = JSON.parse(savedAiPrompts);
+        const savedAiTools = localStorage.getItem('shadow_ai_custom_tools_v1');
+        if (savedAiTools) aiCustomTools = JSON.parse(savedAiTools);
       } catch (e) {
         console.error('Error reading localStorage data for export:', e);
       }
@@ -235,6 +243,8 @@ export const dbService = {
       wizardScrolls,
       wispCustomLines,
       unlockedBadges,
+      aiCustomPrompts,
+      aiCustomTools,
       exportedAt: new Date().toISOString(),
     };
   },
@@ -400,6 +410,24 @@ export const dbService = {
         } catch (e) {}
       } else {
         localStorage.setItem('shadow_unlocked_badges', JSON.stringify(data.unlockedBadges));
+      }
+    }
+
+    if (data.aiCustomPrompts && Array.isArray(data.aiCustomPrompts)) {
+      try {
+        localStorage.setItem('shadow_ai_custom_prompts_v1', JSON.stringify(data.aiCustomPrompts));
+        window.dispatchEvent(new CustomEvent('shadow_ai_prompts_updated'));
+      } catch (e) {
+        console.error('Error restoring aiCustomPrompts:', e);
+      }
+    }
+
+    if (data.aiCustomTools && Array.isArray(data.aiCustomTools)) {
+      try {
+        localStorage.setItem('shadow_ai_custom_tools_v1', JSON.stringify(data.aiCustomTools));
+        window.dispatchEvent(new CustomEvent('shadow_ai_tools_updated'));
+      } catch (e) {
+        console.error('Error restoring aiCustomTools:', e);
       }
     }
   },

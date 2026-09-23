@@ -37,7 +37,19 @@ const mockSessionStorage = {
 };
 
 import { compileAiContext } from '../aiContext';
-import { executeAiToolCall, AI_TOOL_DEFINITIONS } from '../aiTools';
+import {
+  executeAiToolCall,
+  AI_TOOL_DEFINITIONS,
+  getCustomTools,
+  saveCustomTool,
+  deleteCustomTool,
+  getAllActiveToolDefinitions,
+} from '../aiTools';
+import {
+  getAllPrompts,
+  saveCustomPrompt,
+  deleteCustomPrompt,
+} from '../aiPromptsData';
 import {
   getSessionApiKey,
   setSessionApiKey,
@@ -80,8 +92,8 @@ describe('AI Tool Definitions & Autonomous Executors', () => {
     mockSessionStorage.clear();
   });
 
-  it('has 15 defined tools with no delete operations', () => {
-    expect(AI_TOOL_DEFINITIONS.length).toBe(15);
+  it('has 16 defined tools with no delete operations', () => {
+    expect(AI_TOOL_DEFINITIONS.length).toBe(16);
     const names = AI_TOOL_DEFINITIONS.map(t => t.function.name);
     names.forEach(name => {
       expect(name).not.toContain('delete');
@@ -95,6 +107,7 @@ describe('AI Tool Definitions & Autonomous Executors', () => {
     expect(names).toContain('log_water_intake');
     expect(names).toContain('update_wealth_transaction');
     expect(names).toContain('create_journal_entry');
+    expect(names).toContain('configure_notification');
     expect(names).toContain('web_search_query');
   });
 
@@ -199,6 +212,110 @@ describe('AI Tool Definitions & Autonomous Executors', () => {
     });
     expect(searchRes.success).toBe(true);
     expect(searchRes.actionSummary).toContain('Web Knowledge Queried');
+  });
+
+  it('executes configure_notification for tasks, todos, and general alerts', async () => {
+    // 1. Task notification
+    await executeAiToolCall('create_task', { title: 'Deep Meditation', priority: 'medium' });
+    const taskNotif = await executeAiToolCall('configure_notification', {
+      targetType: 'task',
+      targetTitle: 'Deep Meditation',
+      time: '07:30',
+    });
+    expect(taskNotif.success).toBe(true);
+    expect(taskNotif.actionSummary).toContain('Notification Configured');
+
+    // 2. Standalone ToDo notification
+    await executeAiToolCall('create_todo', { title: 'Pay Electricity Bill' });
+    const todoNotif = await executeAiToolCall('configure_notification', {
+      targetType: 'todo',
+      targetTitle: 'Pay Electricity Bill',
+      time: '18:00',
+    });
+    expect(todoNotif.success).toBe(true);
+    expect(todoNotif.actionSummary).toContain('Notification Configured');
+
+    // 3. General alert notification
+    const genNotif = await executeAiToolCall('configure_notification', {
+      targetType: 'general',
+      message: 'Drink 500ml water and stretch',
+      time: '11:00',
+    });
+    expect(genNotif.success).toBe(true);
+    expect(genNotif.actionSummary).toContain('Drink 500ml water and stretch');
+  });
+});
+
+describe('Custom Tools Engine & Dynamic Tool Aggregation', () => {
+  beforeEach(() => {
+    mockLocalStorage.clear();
+  });
+
+  it('allows adding, listing, executing, and deleting custom tools', async () => {
+    const initialTools = getAllActiveToolDefinitions();
+    expect(initialTools.length).toBe(16);
+
+    const saved = saveCustomTool({
+      name: 'calculate_daily_deficit',
+      description: 'Calculates caloric deficit based on TDEE and target intake',
+      parameters: {
+        type: 'object',
+        properties: {
+          tdee: { type: 'number', description: 'Maintenance calories' },
+          targetIntake: { type: 'number', description: 'Target daily intake' },
+        },
+        required: ['tdee', 'targetIntake'],
+      },
+      actionType: 'prompt_injection',
+      actionConfig: {
+        returnTemplate: 'Deficit calculation ready.',
+      },
+    });
+
+    expect(saved.length).toBe(1);
+    expect(getCustomTools().length).toBe(1);
+
+    const activeTools = getAllActiveToolDefinitions();
+    expect(activeTools.length).toBe(17);
+    expect(activeTools.some(t => t.function.name === 'calculate_daily_deficit')).toBe(true);
+
+    const execRes = await executeAiToolCall('calculate_daily_deficit', { tdee: 2500, targetIntake: 2000 });
+    expect(execRes.success).toBe(true);
+    expect(execRes.actionSummary).toContain('Custom Tool Executed: calculate_daily_deficit');
+
+    const remaining = deleteCustomTool(saved[0].id);
+    expect(remaining.length).toBe(0);
+    expect(getAllActiveToolDefinitions().length).toBe(16);
+  });
+});
+
+describe('Day-to-Day Prompt Templates Library', () => {
+  beforeEach(() => {
+    mockLocalStorage.clear();
+  });
+
+  it('loads built-in prompts and manages custom user templates', () => {
+    const builtIn = getAllPrompts();
+    expect(builtIn.length).toBeGreaterThanOrEqual(18);
+    expect(builtIn.some(p => p.category.toLowerCase() === 'tasks')).toBe(true);
+    expect(builtIn.some(p => p.category.toLowerCase() === 'habits')).toBe(true);
+    expect(builtIn.some(p => p.category.toLowerCase() === 'notifications')).toBe(true);
+
+    const custom = saveCustomPrompt({
+      title: 'Weekly Systems Review',
+      prompt: 'Review my weekly completed tasks and habit consistency score.',
+      category: 'tasks',
+      icon: 'BarChart2',
+    });
+
+    expect(custom.some(p => p.title === 'Weekly Systems Review')).toBe(true);
+    const customItem = custom.find(p => p.title === 'Weekly Systems Review');
+    expect(customItem?.isCustom).toBe(true);
+
+    if (customItem) {
+      const updated = deleteCustomPrompt(customItem.id);
+      expect(updated.some(p => p.id === customItem.id)).toBe(false);
+    }
   });
 });
 

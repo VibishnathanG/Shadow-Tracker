@@ -14,6 +14,8 @@ export interface FullBackupData {
   rpgQuests?: any[];
   wizardScrolls?: any[];
   unlockedBadges?: string[];
+  aiCustomPrompts?: any[];
+  aiCustomTools?: any[];
   version?: string;
   exportedAt?: string;
   timestamp?: number;
@@ -335,6 +337,28 @@ export function smartMergeBackupData(localData: FullBackupData, cloudData: FullB
     }
   }
 
+  // Merge AI Custom Prompts
+  const allAiPrompts = [...(cloudData.aiCustomPrompts || []), ...(localData.aiCustomPrompts || [])];
+  const aiPromptMap = new Map<string, any>();
+  for (const p of allAiPrompts) {
+    if (!p) continue;
+    const key = p.id || p.title;
+    if (key && !aiPromptMap.has(key)) {
+      aiPromptMap.set(key, p);
+    }
+  }
+
+  // Merge AI Custom Tools
+  const allAiTools = [...(cloudData.aiCustomTools || []), ...(localData.aiCustomTools || [])];
+  const aiToolMap = new Map<string, any>();
+  for (const t of allAiTools) {
+    if (!t) continue;
+    const key = t.id || t.name;
+    if (key && !aiToolMap.has(key)) {
+      aiToolMap.set(key, t);
+    }
+  }
+
   return {
     tasks: Array.from(taskMap.values()),
     habits: Array.from(habitMap.values()),
@@ -364,6 +388,8 @@ export function smartMergeBackupData(localData: FullBackupData, cloudData: FullB
     rpgQuests: Array.from(questMap.values()),
     wizardScrolls: Array.from(scrollMap.values()),
     unlockedBadges: mergedBadges,
+    aiCustomPrompts: Array.from(aiPromptMap.values()),
+    aiCustomTools: Array.from(aiToolMap.values()),
     version: localData.version || cloudData.version || '1.0.0',
     exportedAt: new Date().toISOString(),
     timestamp: Date.now(),

@@ -183,6 +183,8 @@ export interface BackupData {
   wizardScrolls?: any[];
   wispCustomLines?: string[];
   unlockedBadges?: string[];
+  aiCustomPrompts?: any[];
+  aiCustomTools?: any[];
   exportedAt: string;
   archiveYear?: string;
 }

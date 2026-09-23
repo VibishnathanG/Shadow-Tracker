@@ -7,8 +7,8 @@ android {
         applicationId "com.shadowtracker.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 40000
-        versionName "4.0.0-beta"
+        versionCode 40100
+        versionName "4.1.0-beta"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

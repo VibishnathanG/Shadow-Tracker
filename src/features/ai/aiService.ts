@@ -1,9 +1,10 @@
-import { AiChatMessage, AiEndpointConfig } from './aiTypes';
-import { AI_TOOL_DEFINITIONS, executeAiToolCall } from './aiTools';
+import { AiChatMessage, AiEndpointConfig, TokenUsageInfo } from './aiTypes';
+import { getAllActiveToolDefinitions, executeAiToolCall } from './aiTools';
 
 const SESSION_KEY_NAME = 'shadow_ai_session_api_key_v1';
 const ENDPOINT_STORAGE_KEY = 'shadow_ai_endpoint_url_v1';
 const MODEL_STORAGE_KEY = 'shadow_ai_model_name_v1';
+const MAX_CONTEXT_STORAGE_KEY = 'shadow_ai_max_context_v1';
 
 export function getSessionApiKey(): string {
   if (typeof window === 'undefined') return '';
@@ -40,6 +41,17 @@ export function saveModel(model: string): void {
   localStorage.setItem(MODEL_STORAGE_KEY, model.trim());
 }
 
+export function getSavedMaxContext(): number {
+  if (typeof window === 'undefined') return 16000;
+  const raw = localStorage.getItem(MAX_CONTEXT_STORAGE_KEY);
+  return raw ? Number(raw) || 16000 : 16000;
+}
+
+export function saveMaxContext(val: number): void {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(MAX_CONTEXT_STORAGE_KEY, String(val));
+}
+
 export interface SendMessageResponse {
   finalContent: string;
   toolResults: {
@@ -48,6 +60,12 @@ export interface SendMessageResponse {
     success: boolean;
   }[];
   updatedHistory: AiChatMessage[];
+  tokenUsage?: TokenUsageInfo;
+  wasContextRefreshed?: boolean;
+}
+
+function estimateTokens(text: string): number {
+  return Math.max(1, Math.ceil((text || '').length / 4));
 }
 
 export async function sendAiChatMessage(
@@ -56,6 +74,7 @@ export async function sendAiChatMessage(
 ): Promise<SendMessageResponse> {
   const baseUrl = config.baseUrl.replace(/\/+$/, '');
   const url = `${baseUrl}/chat/completions`;
+  const maxContext = config.maxContextTokens || getSavedMaxContext();
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -65,8 +84,40 @@ export async function sendAiChatMessage(
     headers['Authorization'] = `Bearer ${config.apiKey}`;
   }
 
+  // Check running token usage of history
+  let workingHistory = [...history];
+  let wasContextRefreshed = false;
+
+  const currentEstimatedTokens = workingHistory.reduce((acc, m) => {
+    return acc + estimateTokens(m.content) + (m.tool_calls ? 60 : 0);
+  }, 0);
+
+  // If context exceeds max context threshold, automatically refresh session:
+  // Retain the original system prompt with the loaded JSON context, clear intermediate chat turns
+  if (currentEstimatedTokens >= maxContext && workingHistory.length > 2) {
+    const systemPrompt = workingHistory.find(m => m.role === 'system');
+    const lastUserMsg = workingHistory[workingHistory.length - 1];
+
+    workingHistory = [
+      systemPrompt || {
+        id: 'sys_refreshed_' + Date.now(),
+        role: 'system',
+        content: 'You are Shadow Tracker AI operating with active tracker context.',
+        timestamp: Date.now(),
+      },
+      {
+        id: 'refresh_notice_' + Date.now(),
+        role: 'assistant',
+        content: `🔄 **Memory Session Auto-Refreshed**: Active conversation exceeded **${maxContext.toLocaleString()} tokens** limit. Historical chat turns were flushed while your original tracker JSON context remains permanently anchored in memory.`,
+        timestamp: Date.now(),
+      },
+      lastUserMsg,
+    ];
+    wasContextRefreshed = true;
+  }
+
   // Format messages for OpenAI API
-  const apiMessages = history.map(m => {
+  const apiMessages = workingHistory.map(m => {
     if (m.role === 'tool') {
       return {
         role: 'tool',
@@ -95,9 +146,12 @@ export async function sendAiChatMessage(
 
   let currentMessages = [...apiMessages];
   let finalAssistantContent = '';
-  let updatedChatHistory = [...history];
+  let updatedChatHistory = [...workingHistory];
+  let finalUsage: TokenUsageInfo | undefined;
 
-  // Tool-calling loop (maximum 4 recursive rounds)
+  const activeTools = getAllActiveToolDefinitions();
+
+  // Tool-calling loop (maximum 4 rounds)
   for (let round = 0; round < 4; round++) {
     let response: Response;
     try {
@@ -107,7 +161,7 @@ export async function sendAiChatMessage(
         body: JSON.stringify({
           model: config.model || 'gpt-4o-mini',
           messages: currentMessages,
-          tools: AI_TOOL_DEFINITIONS,
+          tools: activeTools,
           tool_choice: 'auto',
           temperature: 0.7,
         }),
@@ -141,9 +195,28 @@ export async function sendAiChatMessage(
       throw new Error('No response message received from AI model');
     }
 
+    // Capture token usage telemetry
+    if (data?.usage) {
+      finalUsage = {
+        promptTokens: data.usage.prompt_tokens || 0,
+        completionTokens: data.usage.completion_tokens || 0,
+        totalTokens: data.usage.total_tokens || ((data.usage.prompt_tokens || 0) + (data.usage.completion_tokens || 0)),
+        isEstimated: false,
+      };
+    } else {
+      // Estimate if endpoint didn't provide usage
+      const promptChars = JSON.stringify(currentMessages).length;
+      const compChars = (message.content || '').length;
+      finalUsage = {
+        promptTokens: Math.ceil(promptChars / 4),
+        completionTokens: Math.ceil(compChars / 4),
+        totalTokens: Math.ceil((promptChars + compChars) / 4),
+        isEstimated: true,
+      };
+    }
+
     // Check for tool calls
     if (message.tool_calls && message.tool_calls.length > 0) {
-      // Append assistant message with tool calls
       currentMessages.push({
         role: 'assistant',
         content: message.content || '',
@@ -172,7 +245,6 @@ export async function sendAiChatMessage(
         const toolResult = await executeAiToolCall(call.function.name, parsedArgs);
         executedToolSummaries.push(toolResult);
 
-        // Append tool result message
         currentMessages.push({
           role: 'tool',
           tool_call_id: call.id,
@@ -188,7 +260,6 @@ export async function sendAiChatMessage(
         });
       }
 
-      // Loop to next round to let model summarize the action results
       continue;
     }
 
@@ -200,6 +271,7 @@ export async function sendAiChatMessage(
       role: 'assistant',
       content: finalAssistantContent,
       toolExecutionResults: executedToolSummaries.length > 0 ? executedToolSummaries : undefined,
+      tokenUsage: finalUsage,
       timestamp: Date.now(),
     });
     break;
@@ -209,5 +281,7 @@ export async function sendAiChatMessage(
     finalContent: finalAssistantContent,
     toolResults: executedToolSummaries,
     updatedHistory: updatedChatHistory,
+    tokenUsage: finalUsage,
+    wasContextRefreshed,
   };
 }
