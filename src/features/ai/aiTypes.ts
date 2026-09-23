@@ -106,6 +106,7 @@ export interface PromptTemplateItem {
   category: 'Tasks' | 'Habits' | 'Health & Diet' | 'Wealth' | 'Journal' | 'Notifications' | 'Custom';
   prompt: string;
   description?: string;
+  icon?: string;
   isCustom?: boolean;
   createdAt: string;
 }

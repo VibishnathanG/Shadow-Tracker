@@ -258,6 +258,7 @@ describe('Custom Tools Engine & Dynamic Tool Aggregation', () => {
     const saved = saveCustomTool({
       name: 'calculate_daily_deficit',
       description: 'Calculates caloric deficit based on TDEE and target intake',
+      category: 'Health',
       parameters: {
         type: 'object',
         properties: {
@@ -304,7 +305,7 @@ describe('Day-to-Day Prompt Templates Library', () => {
     const custom = saveCustomPrompt({
       title: 'Weekly Systems Review',
       prompt: 'Review my weekly completed tasks and habit consistency score.',
-      category: 'tasks',
+      category: 'Tasks',
       icon: 'BarChart2',
     });
 

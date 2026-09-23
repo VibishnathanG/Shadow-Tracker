@@ -12,15 +12,16 @@ export type CritterType =
   | 'hacker' 
   | 'flow' 
   | 'rocket' 
-  | 'cricket' 
   | 'arc_reactor' 
   | 'coin' 
   | 'spark' 
   | 'crown'
   | 'ufo'
-  | 'jet'
   | 'hoverboard'
-  | 'phoenix';
+  | 'phoenix'
+  | 'maglev'
+  | 'ninja'
+  | 'dragon';
 
 export const ALL_CRITTERS: CritterType[] = [
   'spider', 
@@ -29,16 +30,17 @@ export const ALL_CRITTERS: CritterType[] = [
   'flying_money', 
   'hacker', 
   'rocket', 
-  'cricket', 
   'arc_reactor', 
   'flow', 
   'coin', 
   'crown', 
   'spark',
   'ufo',
-  'jet',
   'hoverboard',
-  'phoenix'
+  'phoenix',
+  'maglev',
+  'ninja',
+  'dragon'
 ];
 
 // Helper for seamless continuous horizontal motion
@@ -284,7 +286,7 @@ export const CarCritter: React.FC<{
   );
 };
 
-// --- 4. FLYING MONEY: Banknote Flapping Wings ---
+// --- 4. FLYING MONEY: Majestic Dual-Wing Flapping Currency & Gold Orbiters ---
 export const FlyingMoneyCritter: React.FC<{
   className?: string;
   variant?: 'local' | 'global';
@@ -301,37 +303,109 @@ export const FlyingMoneyCritter: React.FC<{
       animate={{ ...motionProps.animate, y: isGlobal ? 25 : 15 }}
       transition={motionProps.transition}
     >
-      <div className={`relative flex items-center ${isRtl ? 'scale-x-[-1]' : ''}`}>
-        {/* Flapping Angel / Fairy Wings */}
-        <motion.div
-          className="absolute -top-3 left-4 origin-bottom"
-          animate={{ rotate: [-24, 28, -24], scaleY: [0.85, 1.15, 0.85] }}
-          transition={{ duration: 0.28, repeat: Infinity, ease: 'easeInOut' }}
-        >
-          <svg width="24" height="20" viewBox="0 0 40 30" fill="none">
-            <path d="M 5 28 C 0 10, 20 0, 38 5 C 32 15, 20 22, 5 28 Z" fill="#f8fafc" opacity="0.85" stroke="#cbd5e1" strokeWidth="1.2" />
-          </svg>
-        </motion.div>
+      <motion.div 
+        className="relative flex items-center"
+        animate={{ y: [-7, 7, -7], rotate: isRtl ? [3, -3, 3] : [-3, 3, -3] }}
+        transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+      >
+        {/* Trailing Gold Stardust & Coin Dust */}
+        <div className={`absolute ${isRtl ? '-right-6' : '-left-8'} top-1 flex items-center gap-1.5 pointer-events-none`}>
+          {[0, 1, 2].map((i) => (
+            <motion.span
+              key={i}
+              className="text-[9px] font-black text-amber-300 drop-shadow-[0_0_6px_rgba(251,191,36,0.8)] select-none"
+              animate={{ 
+                x: isRtl ? [2, 16 + i * 6] : [-2, -16 - i * 6], 
+                y: [0, (i % 2 === 0 ? -6 : 6)],
+                opacity: [1, 0],
+                scale: [1, 0.3]
+              }}
+              transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.18, ease: 'easeOut' }}
+            >
+              ✦
+            </motion.span>
+          ))}
+        </div>
 
-        {/* Banknote */}
-        <div className="relative drop-shadow-[0_0_12px_rgba(16,185,129,0.7)]">
-          <svg width="50" height="28" viewBox="0 0 100 56" fill="none">
-            <rect x="2" y="2" width="96" height="52" rx="4" fill="#10b981" stroke="#059669" strokeWidth="2.5" />
-            <rect x="8" y="8" width="84" height="40" rx="3" fill="#34d399" opacity="0.4" stroke="#047857" strokeWidth="1" strokeDasharray="4 2" />
-            <circle cx="50" cy="28" r="14" fill="#047857" opacity="0.8" />
-            <text x="50" y="35" fontSize="22" fontWeight="900" fill="#fff" textAnchor="middle" fontFamily="sans-serif">$</text>
+        {/* Banknote with Dual Flapping Feathered Wings */}
+        <div className="relative drop-shadow-[0_0_16px_rgba(16,185,129,0.65)]">
+          <svg width="68" height="42" viewBox="0 0 120 70" fill="none">
+            {/* Left Flapping Wing (Back Wing) */}
+            <motion.g
+              animate={{ 
+                rotate: [-28, 24, -28], 
+                scaleY: [0.85, 1.15, 0.85],
+                transformOrigin: '32px 30px'
+              }}
+              transition={{ duration: 0.28, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <path
+                d="M 32 30 C 20 10, 2 -2, 0 10 C -1 18, 12 28, 30 32 Z"
+                fill="#f8fafc"
+                stroke="#cbd5e1"
+                strokeWidth="1.2"
+                opacity="0.9"
+              />
+              <path d="M 12 12 Q 22 22 28 28" stroke="#94a3b8" strokeWidth="0.8" opacity="0.7" />
+              <path d="M 6 18 Q 18 24 26 30" stroke="#94a3b8" strokeWidth="0.8" opacity="0.6" />
+            </motion.g>
+
+            {/* Right Flapping Wing (Front Wing) */}
+            <motion.g
+              animate={{ 
+                rotate: [28, -24, 28], 
+                scaleY: [0.85, 1.15, 0.85],
+                transformOrigin: '88px 30px'
+              }}
+              transition={{ duration: 0.28, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <path
+                d="M 88 30 C 100 10, 118 -2, 120 10 C 121 18, 108 28, 90 32 Z"
+                fill="#f8fafc"
+                stroke="#cbd5e1"
+                strokeWidth="1.2"
+                opacity="0.9"
+              />
+              <path d="M 108 12 Q 98 22 92 28" stroke="#94a3b8" strokeWidth="0.8" opacity="0.7" />
+              <path d="M 114 18 Q 102 24 94 30" stroke="#94a3b8" strokeWidth="0.8" opacity="0.6" />
+            </motion.g>
+
+            {/* Main Banknote Body */}
+            <rect x="24" y="24" width="72" height="38" rx="4" fill="#059669" stroke="#047857" strokeWidth="1.5" />
+            <rect x="27" y="27" width="66" height="32" rx="3" fill="#10b981" stroke="#34d399" strokeWidth="0.8" strokeDasharray="3 2" />
+            
+            {/* Guilloche Corner Accents */}
+            <circle cx="31" cy="31" r="2.5" fill="#fef08a" opacity="0.9" />
+            <circle cx="89" cy="31" r="2.5" fill="#fef08a" opacity="0.9" />
+            <circle cx="31" cy="55" r="2.5" fill="#fef08a" opacity="0.9" />
+            <circle cx="89" cy="55" r="2.5" fill="#fef08a" opacity="0.9" />
+
+            {/* Central Cameo Medallion */}
+            <circle cx="60" cy="43" r="12" fill="#047857" stroke="#fef08a" strokeWidth="1.2" />
+            <circle cx="60" cy="43" r="9.5" fill="#065f46" />
+            <text 
+              x="60" 
+              y="49.5" 
+              fontSize="16" 
+              fontWeight="900" 
+              fill="#fef08a" 
+              textAnchor="middle" 
+              fontFamily="sans-serif"
+            >
+              $
+            </text>
           </svg>
         </div>
 
-        {/* Golden Sparkles */}
-        <motion.span
-          className="absolute -bottom-2 -left-2 text-[10px] font-black text-amber-400 select-none"
-          animate={{ opacity: [0, 1, 0], scale: [0.6, 1.2, 0.6] }}
-          transition={{ duration: 0.5, repeat: Infinity }}
+        {/* Orbiting Little Gold Coin */}
+        <motion.div
+          className="absolute -top-1 right-2 w-4 h-4 rounded-full bg-amber-400 border border-amber-300 shadow-[0_0_8px_rgba(245,158,11,0.9)] flex items-center justify-center pointer-events-none"
+          animate={{ y: [-4, 4, -4], scale: [0.85, 1.1, 0.85] }}
+          transition={{ duration: 1.0, repeat: Infinity, ease: 'easeInOut' }}
         >
-          ✦
-        </motion.span>
-      </div>
+          <span className="text-[8px] font-black text-amber-950">$</span>
+        </motion.div>
+      </motion.div>
     </motion.div>
   );
 };
@@ -454,9 +528,9 @@ export const RocketCritter: React.FC<{
             />
             {/* Nose Cone */}
             <path d="M 70 18 Q 88 25 70 32 Z" fill="#ef4444" />
-            {/* Cockpit Porthole */}
-            <circle cx="58" cy="25" r="4.5" fill="#38bdf8" stroke="#0284c7" strokeWidth="1.5" />
-            <circle cx="56" cy="23" r="1.5" fill="#fff" />
+            {/* Cockpit Porthole (Obsidian & Silver Glint) */}
+            <circle cx="58" cy="25" r="4.5" fill="#0f172a" stroke="#64748b" strokeWidth="1.5" />
+            <circle cx="56.5" cy="23.5" r="1.5" fill="#ffffff" opacity="0.9" />
             {/* Top Fin */}
             <polygon points="22,18 12,8 35,16" fill="#ef4444" />
             {/* Bottom Fin */}
@@ -470,72 +544,158 @@ export const RocketCritter: React.FC<{
   );
 };
 
-// --- 7. CRICKET: Batsman swinging willow and launching a towering Six! ---
-export const CricketCritter: React.FC<{
+// --- 7. MAGLEV BULLET TRAIN: Hyper-Speed Aerodynamic Shinkansen with Neon Levitation Beam ---
+export const MaglevCritter: React.FC<{
   className?: string;
   variant?: 'local' | 'global';
   direction?: 'ltr' | 'rtl';
 }> = ({ className = '', variant = 'local', direction = 'ltr' }) => {
   const isGlobal = variant === 'global';
   const isRtl = direction === 'rtl';
-  const motionProps = getLinearMotion(isGlobal, isRtl, 8);
+  const motionProps = getLinearMotion(isGlobal, isRtl, 6.8);
 
   return (
     <motion.div
       className={`absolute pointer-events-none select-none z-30 ${className}`}
-      initial={{ ...motionProps.initial, y: isGlobal ? 25 : 12 }}
-      animate={{ ...motionProps.animate, y: isGlobal ? 25 : 12 }}
+      initial={{ ...motionProps.initial, y: isGlobal ? 32 : 18 }}
+      animate={{ ...motionProps.animate, y: isGlobal ? 32 : 18 }}
       transition={motionProps.transition}
     >
       <div className={`relative flex items-center ${isRtl ? 'scale-x-[-1]' : ''}`}>
-        {/* Batsman with Continuous Bat Swing */}
-        <div className="relative flex items-center">
-          <svg width="48" height="48" viewBox="0 0 100 100" fill="none">
-            <circle cx="36" cy="24" r="8" fill="#3b82f6" />
-            <path d="M 38 24 L 44 26" stroke="#93c5fd" strokeWidth="2" strokeLinecap="round" />
-            <path d="M 34 32 L 40 56 L 30 58 Z" fill="#2563eb" />
-            <rect x="26" y="58" width="6" height="26" rx="2" fill="#f8fafc" stroke="#cbd5e1" strokeWidth="1" />
-            <rect x="34" y="58" width="6" height="26" rx="2" fill="#f8fafc" stroke="#cbd5e1" strokeWidth="1" />
-            <motion.g
-              animate={{ rotate: [-20, 65, -20] }}
-              transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
-              style={{ transformOrigin: '40px 42px' }}
+        {/* Under-chassis Levitation Magnetic Beam & Speed Stream */}
+        <div className="absolute -left-12 bottom-0 flex items-center pointer-events-none">
+          <motion.div
+            className="w-16 h-1 rounded-l-full bg-gradient-to-l from-cyan-400 via-teal-300 to-transparent blur-[1px]"
+            animate={{ opacity: [0.6, 1, 0.6], scaleX: [0.9, 1.3, 0.9] }}
+            transition={{ duration: 0.2, repeat: Infinity, ease: 'linear' }}
+          />
+          {[0, 1, 2].map((i) => (
+            <motion.span
+              key={i}
+              className="text-[8px] font-black text-cyan-300 absolute -left-2 select-none"
+              animate={{ x: [-2, -18 - i * 8], opacity: [0.9, 0], scale: [1, 0.3] }}
+              transition={{ duration: 0.35, repeat: Infinity, delay: i * 0.1, ease: 'linear' }}
             >
-              <line x1="40" y1="42" x2="62" y2="28" stroke="#ca8a04" strokeWidth="4" strokeLinecap="round" />
-              <rect x="60" y="22" width="22" height="6.5" rx="1.5" transform="rotate(-32 60 22)" fill="#eab308" stroke="#a16207" strokeWidth="1" />
-            </motion.g>
+              ✦
+            </motion.span>
+          ))}
+        </div>
+
+        {/* Shinkansen Bullet Train Body */}
+        <div className="relative drop-shadow-[0_0_12px_rgba(20,184,166,0.6)]">
+          <svg width="84" height="26" viewBox="0 0 140 44" fill="none">
+            {/* Guide Rail Track Line */}
+            <line x1="0" y1="42" x2="140" y2="42" stroke="#0d9488" strokeWidth="1.5" strokeDasharray="6 3" opacity="0.4" />
+            
+            {/* Sleek Aerodynamic Nose Fuselage */}
+            <path
+              d="M 6 36 L 40 16 L 115 16 C 130 16, 138 24, 138 34 L 138 36 L 6 36 Z"
+              fill="#f8fafc"
+              stroke="#cbd5e1"
+              strokeWidth="1.5"
+            />
+            {/* Lower Chassis Skirt */}
+            <path d="M 6 36 L 138 36 L 134 40 L 12 40 Z" fill="#0f172a" />
+            
+            {/* Racing Speed Stripe */}
+            <path d="M 28 26 L 138 26 L 138 29 L 24 29 Z" fill="#0d9488" />
+            
+            {/* Aerodynamic Cockpit Windshield */}
+            <path d="M 112 19 L 130 25 C 133 27, 130 29, 124 29 L 106 29 Z" fill="#1e293b" stroke="#0d9488" strokeWidth="0.8" />
+            <line x1="110" y1="21" x2="124" y2="26" stroke="#fff" strokeWidth="0.8" opacity="0.8" />
+
+            {/* Passenger Cabin Illuminated Windows */}
+            <rect x="42" y="19" width="10" height="5" rx="1.5" fill="#fef08a" stroke="#ca8a04" strokeWidth="0.6" opacity="0.9" />
+            <rect x="58" y="19" width="10" height="5" rx="1.5" fill="#fef08a" stroke="#ca8a04" strokeWidth="0.6" opacity="0.9" />
+            <rect x="74" y="19" width="10" height="5" rx="1.5" fill="#fef08a" stroke="#ca8a04" strokeWidth="0.6" opacity="0.9" />
+            <rect x="90" y="19" width="10" height="5" rx="1.5" fill="#fef08a" stroke="#ca8a04" strokeWidth="0.6" opacity="0.9" />
+
+            {/* Front Headlight Beam */}
+            <circle cx="136" cy="31" r="2.5" fill="#fef08a" />
+            <polygon points="137,30 148,27 148,35 137,32" fill="#fef08a" opacity="0.35" />
+          </svg>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// --- 8. CYBER SHINOBI: Minimalist Shadow Ninja Dashing with Flowing Scarf ---
+export const NinjaCritter: React.FC<{
+  className?: string;
+  variant?: 'local' | 'global';
+  direction?: 'ltr' | 'rtl';
+}> = ({ className = '', variant = 'local', direction = 'ltr' }) => {
+  const isGlobal = variant === 'global';
+  const isRtl = direction === 'rtl';
+  const motionProps = getLinearMotion(isGlobal, isRtl, 7.2);
+
+  return (
+    <motion.div
+      className={`absolute pointer-events-none select-none z-30 ${className}`}
+      initial={{ ...motionProps.initial, y: isGlobal ? 28 : 16 }}
+      animate={{ ...motionProps.animate, y: isGlobal ? 28 : 16 }}
+      transition={motionProps.transition}
+    >
+      <div className={`relative flex items-center ${isRtl ? 'scale-x-[-1]' : ''}`}>
+        {/* Shadow Clone After-Images (Motion Blur Dash Trail) */}
+        <div className="absolute -left-7 top-1 pointer-events-none opacity-30">
+          <svg width="40" height="38" viewBox="0 0 100 95" fill="none">
+            <circle cx="56" cy="24" r="8" fill="#475569" />
+            <path d="M 52 32 L 64 52 L 44 54 Z" fill="#334155" />
+            <line x1="44" y1="54" x2="32" y2="76" stroke="#334155" strokeWidth="5" strokeLinecap="round" />
+            <line x1="64" y1="52" x2="76" y2="74" stroke="#334155" strokeWidth="5" strokeLinecap="round" />
           </svg>
         </div>
 
-        {/* Towering Parabolic Cricket Ball Launching for a SIX */}
-        <motion.div
-          className="absolute left-14 top-4 pointer-events-none"
-          animate={{
-            x: isGlobal ? [0, 60, 140, 220, 300] : [0, 40, 90, 140, 180],
-            y: [0, -32, -45, -28, 5],
-            opacity: [1, 1, 1, 1, 0.4]
-          }}
-          transition={{ duration: 2.2, repeat: Infinity, ease: 'linear' }}
+        {/* Main Sprinting Cyber Ninja Silhouette */}
+        <motion.div 
+          className="relative drop-shadow-[0_0_12px_rgba(239,68,68,0.65)]"
+          animate={{ y: [-3, 2, -3] }}
+          transition={{ duration: 0.28, repeat: Infinity, ease: 'easeInOut' }}
         >
-          <div className="relative flex items-center justify-center">
-            <motion.div
-              animate={{ rotate: 720 }}
-              transition={{ duration: 0.5, repeat: Infinity, ease: 'linear' }}
-              className="w-4 h-4 rounded-full bg-red-600 border border-red-400 shadow-[0_0_8px_rgba(239,68,68,0.8)] flex items-center justify-center"
-            >
-              <line x1="2" y1="8" x2="14" y2="8" stroke="#fff" strokeWidth="0.8" strokeDasharray="1.5 1.5" />
-            </motion.div>
-            <span className="absolute -top-3 -right-2 text-[10px] font-black text-amber-400 select-none">✦</span>
-          </div>
-        </motion.div>
+          <svg width="46" height="42" viewBox="0 0 100 95" fill="none">
+            {/* Flowing Crimson Ribbon/Scarf Waving in the Wind */}
+            <motion.path
+              d="M 50 30 Q 30 18 10 24 Q 24 32 46 34 Z"
+              fill="#ef4444"
+              stroke="#b91c1c"
+              strokeWidth="1"
+              animate={{
+                d: [
+                  "M 50 30 Q 30 18 10 24 Q 24 32 46 34 Z",
+                  "M 50 30 Q 28 36 6 28 Q 22 22 46 34 Z",
+                  "M 50 30 Q 30 18 10 24 Q 24 32 46 34 Z"
+                ]
+              }}
+              transition={{ duration: 0.5, repeat: Infinity, ease: 'easeInOut' }}
+            />
 
-        {/* "SIX!" Badge Chip */}
-        <motion.div
-          animate={{ scale: [0.9, 1.1, 0.9] }}
-          transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut' }}
-          className="ml-3 px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/60 text-amber-300 font-black text-[9px] tracking-wider uppercase shadow-xs select-none"
-        >
-          SIX! 🏏 6️⃣
+            {/* Katana Blade on Back with Silver Glint */}
+            <line x1="28" y1="54" x2="68" y2="18" stroke="#cbd5e1" strokeWidth="2.5" strokeLinecap="round" />
+            <line x1="26" y1="56" x2="34" y2="48" stroke="#ef4444" strokeWidth="3" strokeLinecap="round" />
+            <circle cx="68" cy="18" r="1.5" fill="#fff" />
+
+            {/* Head & Mask */}
+            <circle cx="56" cy="24" r="8" fill="#0f172a" stroke="#ef4444" strokeWidth="1" />
+            {/* Glowing Eye Visor Slit */}
+            <line x1="58" y1="24" x2="63" y2="24" stroke="#fef08a" strokeWidth="1.8" strokeLinecap="round" />
+
+            {/* Torso (Athletic Low Forward Lean) */}
+            <path d="M 52 32 L 66 52 L 44 54 Z" fill="#0f172a" />
+            <path d="M 54 34 L 62 48" stroke="#334155" strokeWidth="2" />
+
+            {/* Forward Reaching Arm */}
+            <line x1="58" y1="36" x2="74" y2="42" stroke="#0f172a" strokeWidth="4" strokeLinecap="round" />
+            {/* Rear Arm */}
+            <line x1="50" y1="38" x2="36" y2="46" stroke="#0f172a" strokeWidth="4" strokeLinecap="round" />
+
+            {/* Dynamic Running Stride Legs */}
+            <line x1="44" y1="54" x2="28" y2="72" stroke="#0f172a" strokeWidth="4.5" strokeLinecap="round" />
+            <line x1="28" y1="72" x2="20" y2="78" stroke="#ef4444" strokeWidth="4" strokeLinecap="round" />
+            <line x1="66" y1="52" x2="80" y2="68" stroke="#0f172a" strokeWidth="4.5" strokeLinecap="round" />
+            <line x1="80" y1="68" x2="88" y2="72" stroke="#ef4444" strokeWidth="4" strokeLinecap="round" />
+          </svg>
         </motion.div>
       </div>
     </motion.div>
@@ -673,7 +833,7 @@ export const CrownCritter: React.FC<{
   );
 };
 
-// --- 11. MONEY COIN: Continuous Rolling RPG Coin ---
+// --- 11. MONEY COIN: 3D Gleaming Gold Coin with Cascading Stardust ---
 export const CoinCritter: React.FC<{
   className?: string;
   variant?: 'local' | 'global';
@@ -681,31 +841,52 @@ export const CoinCritter: React.FC<{
 }> = ({ className = '', variant = 'local', direction = 'ltr' }) => {
   const isGlobal = variant === 'global';
   const isRtl = direction === 'rtl';
-  const motionProps = getLinearMotion(isGlobal, isRtl, 8);
+  const motionProps = getLinearMotion(isGlobal, isRtl, 7.6);
 
   return (
     <motion.div
       className={`absolute pointer-events-none select-none z-30 ${className}`}
-      initial={{ ...motionProps.initial, y: isGlobal ? 30 : 15 }}
-      animate={{ ...motionProps.animate, y: isGlobal ? 30 : 15 }}
+      initial={{ ...motionProps.initial, y: isGlobal ? 28 : 15 }}
+      animate={{ ...motionProps.animate, y: isGlobal ? 28 : 15 }}
       transition={motionProps.transition}
     >
       <motion.div
-        animate={{ y: [-15, 0, -15] }}
-        transition={{ duration: 0.8, repeat: Infinity, ease: 'easeInOut' }}
-        className="relative"
+        animate={{ y: [-8, 4, -8] }}
+        transition={{ duration: 1.0, repeat: Infinity, ease: 'easeInOut' }}
+        className="relative flex items-center justify-center"
       >
+        {/* Shimmering Golden Dust Trail */}
+        <div className={`absolute ${isRtl ? '-right-6' : '-left-6'} flex items-center gap-1 pointer-events-none`}>
+          {[0, 1].map((i) => (
+            <motion.span
+              key={i}
+              className="text-[9px] font-black text-amber-300 drop-shadow-[0_0_6px_rgba(251,191,36,0.8)] select-none"
+              animate={{ 
+                x: isRtl ? [0, 14 + i * 6] : [0, -14 - i * 6], 
+                y: [0, (i === 0 ? -4 : 4)],
+                opacity: [1, 0],
+                scale: [1, 0.2]
+              }}
+              transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.2, ease: 'easeOut' }}
+            >
+              ✦
+            </motion.span>
+          ))}
+        </div>
+
+        {/* 3D Spinning Gold Medallion */}
         <motion.div
-          animate={{ rotateY: [0, 180, 360] }}
-          transition={{ duration: 1.0, repeat: Infinity, ease: 'linear' }}
-          className="w-9 h-9 relative flex items-center justify-center drop-shadow-[0_0_12px_rgba(234,179,8,0.75)]"
+          animate={{ scaleX: [1, 0.18, 1, 0.18, 1] }}
+          transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
+          className="w-10 h-10 relative flex items-center justify-center drop-shadow-[0_0_14px_rgba(234,179,8,0.8)]"
         >
-          <svg width="34" height="34" viewBox="0 0 100 100" fill="none">
-            <circle cx="50" cy="50" r="44" fill="#eab308" stroke="#ca8a04" strokeWidth="4" />
-            <circle cx="50" cy="50" r="36" fill="#facc15" stroke="#eab308" strokeWidth="2" strokeDasharray="6 4" />
-            <polygon points="50,26 64,50 50,74 36,50" fill="#ca8a04" />
-            <polygon points="50,30 60,50 50,70 40,50" fill="#fef08a" />
-            <circle cx="40" cy="38" r="3" fill="#fff" />
+          <svg width="38" height="38" viewBox="0 0 100 100" fill="none">
+            <circle cx="50" cy="50" r="46" fill="#eab308" stroke="#ca8a04" strokeWidth="4" />
+            <circle cx="50" cy="50" r="38" fill="#facc15" stroke="#eab308" strokeWidth="2" strokeDasharray="5 3" />
+            {/* Center Crown / Star Crest */}
+            <polygon points="50,24 64,50 50,76 36,50" fill="#ca8a04" />
+            <polygon points="50,28 60,50 50,72 40,50" fill="#fef08a" />
+            <circle cx="50" cy="50" r="5" fill="#f59e0b" />
           </svg>
         </motion.div>
       </motion.div>
@@ -810,15 +991,15 @@ export const UfoCritter: React.FC<{
   );
 };
 
-// --- 14. [NEW] SUPERSONIC STEALTH JET: Angular Fighter with Dual Mach Afterburners ---
-export const JetCritter: React.FC<{
+// --- 14. CELESTIAL DRAGON: Serpentine Lung Dragon Undulating Through Starlight ---
+export const DragonCritter: React.FC<{
   className?: string;
   variant?: 'local' | 'global';
   direction?: 'ltr' | 'rtl';
 }> = ({ className = '', variant = 'local', direction = 'ltr' }) => {
   const isGlobal = variant === 'global';
   const isRtl = direction === 'rtl';
-  const motionProps = getLinearMotion(isGlobal, isRtl, 6.5);
+  const motionProps = getLinearMotion(isGlobal, isRtl, 8.5);
 
   return (
     <motion.div
@@ -827,40 +1008,84 @@ export const JetCritter: React.FC<{
       animate={{ ...motionProps.animate, y: isGlobal ? 25 : 14 }}
       transition={motionProps.transition}
     >
-      <div 
-        className={`relative flex items-center ${isRtl ? 'scale-x-[-1]' : ''}`}
-        style={{ transform: isRtl ? 'scaleX(-1) rotate(2deg)' : 'rotate(-2deg)' }}
-      >
-        {/* Twin Supersonic Afterburners */}
-        <div className="absolute -left-10 top-2 flex flex-col gap-1.5 pointer-events-none">
-          <motion.div
-            className="w-10 h-2 rounded-l-full bg-gradient-to-l from-cyan-400 via-sky-500 to-transparent blur-[1px]"
-            animate={{ scaleX: [0.8, 1.5, 0.8], opacity: [0.7, 1, 0.7] }}
-            transition={{ duration: 0.15, repeat: Infinity, ease: 'linear' }}
-          />
-          <motion.div
-            className="w-10 h-2 rounded-l-full bg-gradient-to-l from-cyan-400 via-sky-500 to-transparent blur-[1px]"
-            animate={{ scaleX: [0.8, 1.5, 0.8], opacity: [0.7, 1, 0.7] }}
-            transition={{ duration: 0.15, repeat: Infinity, delay: 0.07, ease: 'linear' }}
-          />
+      <div className={`relative flex items-center ${isRtl ? 'scale-x-[-1]' : ''}`}>
+        {/* Starlight Dragon Pearls & Floating Golden Embers */}
+        <div className="absolute -left-8 top-1 flex items-center pointer-events-none">
+          {[0, 1, 2].map((i) => (
+            <motion.span
+              key={i}
+              className="text-[9px] font-black text-amber-300 absolute -left-2 select-none"
+              animate={{ 
+                x: [-2, -22 - i * 8], 
+                y: [0, (i % 2 === 0 ? -8 : 8)],
+                opacity: [1, 0],
+                scale: [1, 0.2]
+              }}
+              transition={{ duration: 0.8, repeat: Infinity, delay: i * 0.22, ease: 'easeOut' }}
+            >
+              ✧
+            </motion.span>
+          ))}
         </div>
 
-        {/* Stealth Fighter Aircraft SVG */}
-        <div className="relative drop-shadow-[0_0_14px_rgba(14,165,233,0.7)]">
-          <svg width="64" height="28" viewBox="0 0 120 50" fill="none">
-            {/* Main Delta Fuselage */}
-            <polygon points="115,25 65,12 15,10 25,25 15,40 65,38" fill="#1e293b" stroke="#38bdf8" strokeWidth="1.8" />
-            {/* Wing details */}
-            <polygon points="50,15 15,10 28,25" fill="#0f172a" />
-            <polygon points="50,35 15,40 28,25" fill="#0f172a" />
-            {/* Cockpit Tinted Canopy */}
-            <polygon points="98,25 72,21 60,25 72,29" fill="#38bdf8" stroke="#0284c7" strokeWidth="1" opacity="0.9" />
-            <line x1="85" y1="23" x2="68" y2="23" stroke="#fff" strokeWidth="1" opacity="0.7" />
-            {/* Twin Vertical Stabilizers */}
-            <polygon points="32,15 20,4 28,15" fill="#0284c7" />
-            <polygon points="32,35 20,46 28,35" fill="#0284c7" />
+        {/* Serpentine Dragon Body SVG */}
+        <motion.div
+          animate={{ y: [-4, 4, -4], rotate: [-2, 2, -2] }}
+          transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+          className="relative drop-shadow-[0_0_14px_rgba(245,158,11,0.65)]"
+        >
+          <svg width="78" height="34" viewBox="0 0 140 60" fill="none">
+            {/* Undulating Serpentine Dragon Spine */}
+            <motion.path
+              d="M 12 36 Q 30 18 50 34 Q 70 50 90 32 Q 105 20 120 28"
+              fill="none"
+              stroke="#ca8a04"
+              strokeWidth="9"
+              strokeLinecap="round"
+              animate={{
+                d: [
+                  "M 12 36 Q 30 18 50 34 Q 70 50 90 32 Q 105 20 120 28",
+                  "M 12 30 Q 30 46 50 32 Q 70 16 90 36 Q 105 44 120 28",
+                  "M 12 36 Q 30 18 50 34 Q 70 50 90 32 Q 105 20 120 28"
+                ]
+              }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+            />
+            {/* Golden Core Belly Scale Strip */}
+            <motion.path
+              d="M 12 36 Q 30 18 50 34 Q 70 50 90 32 Q 105 20 120 28"
+              fill="none"
+              stroke="#fef08a"
+              strokeWidth="4"
+              strokeLinecap="round"
+              animate={{
+                d: [
+                  "M 12 36 Q 30 18 50 34 Q 70 50 90 32 Q 105 20 120 28",
+                  "M 12 30 Q 30 46 50 32 Q 70 16 90 36 Q 105 44 120 28",
+                  "M 12 36 Q 30 18 50 34 Q 70 50 90 32 Q 105 20 120 28"
+                ]
+              }}
+              transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+            />
+
+            {/* Dragon Head */}
+            <g transform="translate(112, 20)">
+              {/* Snout & Jaws */}
+              <polygon points="6,4 20,8 18,16 4,14" fill="#eab308" stroke="#ca8a04" strokeWidth="1" />
+              {/* Golden Antlers */}
+              <path d="M 8 4 L 14 -6 L 18 -4" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" />
+              <path d="M 12 -2 L 10 -8" stroke="#f59e0b" strokeWidth="1.5" strokeLinecap="round" />
+              {/* Crimson Eye */}
+              <circle cx="12" cy="8" r="2.2" fill="#ef4444" />
+              <circle cx="12" cy="7.5" r="0.8" fill="#fff" />
+              {/* Flowing Whiskers */}
+              <path d="M 18 12 Q 26 14 28 8" stroke="#fef08a" strokeWidth="1.2" strokeLinecap="round" fill="none" />
+              <path d="M 18 14 Q 24 20 26 18" stroke="#fef08a" strokeWidth="1" strokeLinecap="round" fill="none" />
+              {/* Celestial Dragon Pearl in Front of Jaws */}
+              <circle cx="26" cy="12" r="3.5" fill="#fef08a" stroke="#f59e0b" strokeWidth="1" />
+            </g>
           </svg>
-        </div>
+        </motion.div>
       </div>
     </motion.div>
   );
@@ -1020,8 +1245,12 @@ export const renderCritterComponent = (
       return <HackerCritter key="hacker" variant={variant} direction={direction} />;
     case 'rocket':
       return <RocketCritter key="rocket" variant={variant} direction={direction} />;
-    case 'cricket':
-      return <CricketCritter key="cricket" variant={variant} direction={direction} />;
+    case 'maglev':
+      return <MaglevCritter key="maglev" variant={variant} direction={direction} />;
+    case 'ninja':
+      return <NinjaCritter key="ninja" variant={variant} direction={direction} />;
+    case 'dragon':
+      return <DragonCritter key="dragon" variant={variant} direction={direction} />;
     case 'arc_reactor':
       return <ArcReactorCritter key="arc_reactor" variant={variant} direction={direction} />;
     case 'flow':
@@ -1034,8 +1263,6 @@ export const renderCritterComponent = (
       return <SparkCritter key="spark" variant={variant} direction={direction} />;
     case 'ufo':
       return <UfoCritter key="ufo" variant={variant} direction={direction} />;
-    case 'jet':
-      return <JetCritter key="jet" variant={variant} direction={direction} />;
     case 'hoverboard':
       return <HoverboardCritter key="hoverboard" variant={variant} direction={direction} />;
     case 'phoenix':
