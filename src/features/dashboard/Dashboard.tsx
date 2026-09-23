@@ -594,71 +594,73 @@ export const Dashboard: React.FC<DashboardProps> = ({
       </div>
 
       {/* Life OS Quick Launchers Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
         <button
           onClick={() => onNavigate('money')}
-          className="tile settings-tile p-3.5 rounded-2xl flex items-center justify-between border-emerald-500/30 hover:border-emerald-500/60 bg-emerald-500/5 cursor-pointer transition-all active:scale-95 group"
+          className="tile settings-tile p-2.5 sm:p-3.5 rounded-2xl flex items-center justify-between border-emerald-500/30 hover:border-emerald-500/60 bg-emerald-500/5 cursor-pointer transition-all active:scale-95 group"
           title="Wealth & Budget Management"
         >
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span className="p-2 rounded-xl bg-emerald-500/15 text-emerald-400 group-hover:scale-110 transition-transform">
-              <Lucide.Wallet size={18} />
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            <span className="p-1.5 sm:p-2 rounded-xl bg-emerald-500/15 text-emerald-400 group-hover:scale-110 transition-transform">
+              <Lucide.Wallet className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
             </span>
             <div className="text-left truncate">
               <span className="text-xs font-black text-foreground block truncate">Wealth Hub</span>
-              <span className="text-[10px] text-muted-foreground font-medium">Budget &amp; Assets</span>
+              <span className="text-[9.5px] sm:text-[10px] text-muted-foreground font-medium block truncate">Budget &amp; Assets</span>
             </div>
           </div>
-          <Lucide.ChevronRight size={14} className="text-emerald-400/60 shrink-0" />
+          <Lucide.ChevronRight size={14} className="text-emerald-400/60 shrink-0 hidden sm:block" />
         </button>
 
         <button
           onClick={() => onNavigate('analytics')}
-          className="tile settings-tile p-3.5 rounded-2xl flex items-center justify-between border-sky-500/30 hover:border-sky-500/60 bg-sky-500/5 cursor-pointer transition-all active:scale-95 group"
+          className="tile settings-tile p-2.5 sm:p-3.5 rounded-2xl flex items-center justify-between border-sky-500/30 hover:border-sky-500/60 bg-sky-500/5 cursor-pointer transition-all active:scale-95 group"
           title="Analytics & Habit Telemetry"
         >
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span className="p-2 rounded-xl bg-sky-500/15 text-sky-400 group-hover:scale-110 transition-transform">
-              <Lucide.BarChart3 size={18} />
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            <span className="p-1.5 sm:p-2 rounded-xl bg-sky-500/15 text-sky-400 group-hover:scale-110 transition-transform">
+              <Lucide.BarChart3 className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
             </span>
             <div className="text-left truncate">
               <span className="text-xs font-black text-foreground block truncate">Analytics</span>
-              <span className="text-[10px] text-muted-foreground font-medium">Telemetry &amp; Focus</span>
+              <span className="text-[9.5px] sm:text-[10px] text-muted-foreground font-medium block truncate">Telemetry &amp; Focus</span>
             </div>
           </div>
-          <Lucide.ChevronRight size={14} className="text-sky-400/60 shrink-0" />
+          <Lucide.ChevronRight size={14} className="text-sky-400/60 shrink-0 hidden sm:block" />
         </button>
 
         <button
           onClick={() => onNavigate('health')}
-          className="tile settings-tile p-3.5 rounded-2xl flex items-center justify-between border-rose-500/30 hover:border-rose-500/60 bg-rose-500/5 cursor-pointer transition-all active:scale-95 group"
+          className="tile settings-tile p-2.5 sm:p-3.5 rounded-2xl flex items-center justify-between border-rose-500/30 hover:border-rose-500/60 bg-rose-500/5 cursor-pointer transition-all active:scale-95 group"
+          title="Health & Vitality"
         >
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span className="p-2 rounded-xl bg-rose-500/15 text-rose-400 group-hover:scale-110 transition-transform">
-              <Lucide.HeartPulse size={18} />
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            <span className="p-1.5 sm:p-2 rounded-xl bg-rose-500/15 text-rose-400 group-hover:scale-110 transition-transform">
+              <Lucide.HeartPulse className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
             </span>
             <div className="text-left truncate">
               <span className="text-xs font-black text-foreground block truncate">Health Hub</span>
-              <span className="text-[10px] text-muted-foreground font-medium">Water, Sleep &amp; Gym</span>
+              <span className="text-[9.5px] sm:text-[10px] text-muted-foreground font-medium block truncate">Water &amp; Sleep</span>
             </div>
           </div>
-          <Lucide.ChevronRight size={14} className="text-rose-400/60 shrink-0" />
+          <Lucide.ChevronRight size={14} className="text-rose-400/60 shrink-0 hidden sm:block" />
         </button>
 
         <button
           onClick={() => onNavigate('rpg')}
-          className="tile settings-tile p-3.5 rounded-2xl flex items-center justify-between border-primary/30 hover:border-primary/60 bg-primary/5 cursor-pointer transition-all active:scale-95 group"
+          className="tile settings-tile p-2.5 sm:p-3.5 rounded-2xl flex items-center justify-between border-primary/30 hover:border-primary/60 bg-primary/5 cursor-pointer transition-all active:scale-95 group"
+          title="Life RPG & Quests"
         >
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span className="p-2 rounded-xl bg-primary/15 text-primary group-hover:scale-110 transition-transform">
-              <Lucide.Crown size={18} />
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            <span className="p-1.5 sm:p-2 rounded-xl bg-primary/15 text-primary group-hover:scale-110 transition-transform">
+              <Lucide.Crown className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
             </span>
             <div className="text-left truncate">
               <span className="text-xs font-black text-foreground block truncate">Life RPG</span>
-              <span className="text-[10px] text-muted-foreground font-medium">Level {level} • Quests</span>
+              <span className="text-[9.5px] sm:text-[10px] text-muted-foreground font-medium block truncate">Lv {level} • Quests</span>
             </div>
           </div>
-          <Lucide.ChevronRight size={14} className="text-primary/60 shrink-0" />
+          <Lucide.ChevronRight size={14} className="text-primary/60 shrink-0 hidden sm:block" />
         </button>
       </div>
 
@@ -742,7 +744,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           window.dispatchEvent(new CustomEvent('badgeUnlocked', { detail: b.id }));
                         }
                       }}
-                      className={`w-full min-h-[90px] sm:min-h-[98px] lg:min-h-[104px] p-2 sm:p-2.5 lg:p-3 relative rounded-2xl border flex flex-col items-center justify-center gap-1 sm:gap-1.5 text-center transition-all duration-200 ease-out group ${
+                      className={`w-full min-h-[82px] sm:min-h-[98px] lg:min-h-[104px] p-1.5 sm:p-2.5 lg:p-3 relative rounded-2xl border flex flex-col items-center justify-center gap-1 sm:gap-1.5 text-center transition-all duration-200 ease-out group ${
                         isUnlocked 
                           ? `${b.color} cursor-pointer shadow-[0_0_12px_currentColor] hover:-translate-y-1 hover:scale-[1.04] hover:shadow-[0_0_20px_currentColor] hover:z-20 ${
                               (settings.theme === 'light' || settings.theme === 'white' || settings.theme === 'midnight' || settings.theme === 'pine' || settings.theme === 'purple')
@@ -776,7 +778,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       
                       {/* High-Contrast Title & Subtitle */}
                       <div className="w-full flex flex-col items-center justify-center gap-0.5 select-none relative z-10">
-                        <strong className={`block text-[11.5px] sm:text-[12.5px] lg:text-sm leading-tight font-semibold tracking-tight text-center truncate max-w-full px-0.5 ${
+                        <strong className={`block text-[10px] sm:text-[12.5px] lg:text-sm leading-tight font-bold tracking-tight text-center truncate max-w-full px-0.5 ${
                           (isWhiteTheme && isTargetBlackBadge)
                             ? 'text-black font-black'
                             : (settings.theme === 'light' || settings.theme === 'white' || settings.theme === 'midnight' || settings.theme === 'pine' || settings.theme === 'purple')
@@ -785,7 +787,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         }`}>
                           {b.name}
                         </strong>
-                        <span className={`block text-[8.5px] sm:text-[9.5px] lg:text-[10px] font-medium leading-tight text-center truncate max-w-full px-0.5 ${
+                        <span className={`block text-[8px] sm:text-[9.5px] lg:text-[10px] font-medium leading-tight text-center truncate max-w-full px-0.5 ${
                           (isWhiteTheme && isTargetBlackBadge)
                             ? 'text-neutral-900 font-bold'
                             : isUnlocked 

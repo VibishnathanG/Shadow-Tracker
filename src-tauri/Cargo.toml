@@ -1,6 +1,6 @@
 [package]
 name = "shadow-tracker"
-version = "6.0.0"
+version = "6.1.0"
 description = "Shadow Tracker - Gamified Habit, Task & Focus Telemetry Matrix"
 authors = ["Shadow Tracker Software"]
 license = "MIT"

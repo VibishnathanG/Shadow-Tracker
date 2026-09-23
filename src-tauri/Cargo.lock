@@ -3085,7 +3085,7 @@ dependencies = [
 
 [[package]]
 name = "shadow-tracker"
-version = "4.0.0"
+version = "6.1.0"
 dependencies = [
  "log",
  "serde",

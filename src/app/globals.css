@@ -47,7 +47,7 @@
   --color-popover: var(--surface-elevated);
   --color-popover-foreground: var(--text-primary);
   --color-primary: var(--accent-strong);
-  --color-primary-foreground: #cbd5e1;
+  --color-primary-foreground: #ffffff;
   --color-secondary: var(--surface-elevated);
   --color-secondary-foreground: var(--text-secondary);
   --color-muted: var(--surface);
@@ -76,14 +76,14 @@ body {
   touch-action: pan-y;
   overflow-x: hidden;
   background-color: var(--bg-canvas, #09100d);
-  color: var(--text-primary, #b4bece);
+  color: var(--text-primary, #f8fafc);
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: none;
 }
 
 /* Base Typogaphy & Android Emoji Support */
 html, body, input, textarea, select, button {
-  font-family: var(--theme-font, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Android Emoji', emoji, sans-serif);
+  font-family: var(--font-inter), var(--theme-font, 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Android Emoji', emoji, sans-serif);
   line-height: 1.6;
   letter-spacing: -0.01em;
   font-weight: 500;
@@ -156,7 +156,7 @@ button, a, [role="button"] {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--theme-heading-font, var(--theme-font, 'Inter', sans-serif));
+  font-family: var(--theme-heading-font, var(--font-inter, 'Inter', sans-serif));
   font-weight: 800; /* Bolder for readability */
   letter-spacing: -0.025em;
   line-height: 1.15;
@@ -215,7 +215,7 @@ html[data-theme="spectrum"] h3:not(.text-transparent):not(.text-primary-foregrou
 html[data-theme="spectrum"] h4:not(.text-transparent):not(.text-primary-foreground):not(.text-muted-foreground):not(.text-secondary):not(.line-through):not([class*="text-rose"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-cyan"]):not([class*="text-indigo"]):not([class*="text-blue"]):not([class*="text-purple"]):not([class*="text-fuchsia"]):not([class*="text-sky"]):not([class*="text-teal"]):not([class*="text-red"]):not([class*="text-white"]):not([class*="text-black"]),
 html[data-theme="spectrum"] h5:not(.text-transparent):not(.text-primary-foreground):not(.text-muted-foreground):not(.text-secondary):not(.line-through):not([class*="text-rose"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-cyan"]):not([class*="text-indigo"]):not([class*="text-blue"]):not([class*="text-purple"]):not([class*="text-fuchsia"]):not([class*="text-sky"]):not([class*="text-teal"]):not([class*="text-red"]):not([class*="text-white"]):not([class*="text-black"]),
 html[data-theme="spectrum"] h6:not(.text-transparent):not(.text-primary-foreground):not(.text-muted-foreground):not(.text-secondary):not(.line-through):not([class*="text-rose"]):not([class*="text-emerald"]):not([class*="text-amber"]):not([class*="text-orange"]):not([class*="text-cyan"]):not([class*="text-indigo"]):not([class*="text-blue"]):not([class*="text-purple"]):not([class*="text-fuchsia"]):not([class*="text-sky"]):not([class*="text-teal"]):not([class*="text-red"]):not([class*="text-white"]):not([class*="text-black"]) {
-  color: #b0bccd !important; /* Soft eye-friendly slate with 10-15% reduced white glare */
+  color: #f8fafc !important; /* Crisp luminous high-contrast white */
   text-shadow: none;
 }
 
@@ -248,15 +248,15 @@ html[data-theme="spectrum"], html[data-theme="spectrum"] body {
 }
 .theme-purple .text-foreground, .theme-midnight .text-foreground, .theme-pine .text-foreground,
 html[data-theme="midnight"] .text-foreground, html[data-theme="purple"] .text-foreground, html[data-theme="spectrum"] .text-foreground {
-  color: #b0bccd !important; /* Soft, low-contrast, non-glaring off-white */
+  color: #f8fafc !important; /* Crisp, high-contrast, even white across all platforms */
 }
 .theme-purple .text-muted-foreground, .theme-midnight .text-muted-foreground, .theme-pine .text-muted-foreground,
 html[data-theme="midnight"] .text-muted-foreground, html[data-theme="purple"] .text-muted-foreground, html[data-theme="spectrum"] .text-muted-foreground {
-  color: #7e8d9f !important; /* Soothing muted slate */
+  color: #94a3b8 !important; /* Balanced legible muted slate */
 }
 .theme-purple .text-secondary, .theme-midnight .text-secondary, .theme-pine .text-secondary,
 html[data-theme="midnight"] .text-secondary, html[data-theme="purple"] .text-secondary, html[data-theme="spectrum"] .text-secondary {
-  color: #94a3b8 !important; /* Balanced secondary */
+  color: #cbd5e1 !important; /* Bright high-contrast secondary */
 }
 
 /* Glass & Layer Tokens (legacy — kept for CommandBar and other special components) */
@@ -404,7 +404,7 @@ button.bg-sky-500,
   background: var(--accent-primary) !important;
   border: 1px solid color-mix(in srgb, var(--accent-primary) 80%, rgba(255, 255, 255, 0.12)) !important;
   box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.12), 0 2px 6px -1px color-mix(in srgb, var(--accent-primary) 18%, transparent) !important;
-  color: #cbd5e1 !important;
+  color: #ffffff !important;
   text-shadow: none;
 }
 
@@ -544,8 +544,8 @@ html.theme-white {
   --muted-foreground: var(--text-muted);
   --input: #ffffff;
   --ring: var(--border-focus);
-  --theme-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --theme-heading-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --theme-font: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --theme-heading-font: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --theme-radius: 24px;
   --theme-border: 1px solid var(--border-subtle);
   --theme-shadow: 0 10px 25px -4px rgba(120, 95, 60, 0.08), 0 4px 10px -2px rgba(120, 95, 60, 0.04), 0 0 0 1px rgba(180, 150, 110, 0.25);
@@ -600,9 +600,9 @@ html.theme-purple {
   --bg-surface-elevated: rgba(26, 30, 43, 0.65);
   --border-subtle: rgba(229, 229, 229, 0.16);
   --border-focus: #818cf8;
-  --text-primary: #b4bece;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
   --accent-primary: #4d50be;
   --accent-primary-hover: #5d61ce;
   --accent-surface: rgba(77, 80, 190, 0.14);
@@ -611,9 +611,9 @@ html.theme-purple {
   --accent-orange: #bc5112;
   --accent-emerald: #10835e;
   --accent-rose: #b82f47;
-  --creamy-white: #b4bece;
-  --creamy-sheen: rgba(180, 190, 206, 0.08);
-  --creamy-border: rgba(180, 190, 206, 0.08);
+  --creamy-white: #f8fafc;
+  --creamy-sheen: rgba(248, 250, 252, 0.08);
+  --creamy-border: rgba(248, 250, 252, 0.08);
 
   /* Semantic Mappings */
   --background: var(--bg-canvas);
@@ -631,15 +631,15 @@ html.theme-purple {
   --popover: var(--bg-surface-elevated);
   --popover-foreground: var(--text-primary);
   --primary: var(--accent-primary);
-  --primary-foreground: #e5e5e5;
+  --primary-foreground: #ffffff;
   --secondary: var(--bg-surface-elevated);
   --secondary-foreground: var(--text-secondary);
   --muted: var(--bg-surface-elevated);
   --muted-foreground: var(--text-muted);
   --input: var(--bg-surface-elevated);
   --ring: var(--border-focus);
-  --theme-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --theme-heading-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --theme-font: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --theme-heading-font: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --theme-radius: var(--radius-lg);
   --theme-border: 1px solid var(--border-subtle);
   --theme-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.65), 0 2px 8px -1px rgba(229, 229, 229, 0.04);
@@ -863,9 +863,9 @@ html.theme-obsidian {
   --bg-surface-elevated: rgba(28, 16, 48, 0.65);
   --border-subtle: rgba(147, 64, 230, 0.24);
   --border-focus: #ab66ea;
-  --text-primary: #b4bece;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
   --accent-primary: #873ad3;
   --accent-primary-hover: #782ebd;
   --accent-surface: rgba(135, 58, 211, 0.18);
@@ -876,7 +876,7 @@ html.theme-obsidian {
   --border: var(--border-subtle);
   --accent: var(--accent-surface);
   --accent-strong: var(--accent-primary);
-  --accent-secondary: #b4bece;
+  --accent-secondary: #f8fafc;
   --success: #129168;
   --warning: #c77f0a;
   --danger: #c8344e;
@@ -893,8 +893,8 @@ html.theme-obsidian {
   --muted-foreground: var(--text-muted);
   --input: var(--bg-surface-elevated);
   --ring: var(--border-focus);
-  --theme-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --theme-heading-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --theme-font: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --theme-heading-font: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --theme-radius: var(--radius-lg);
   --theme-border: 1px solid var(--border-subtle);
   --theme-shadow: 0 12px 36px rgba(0, 0, 0, 0.65), 0 0 8px rgba(147, 64, 230, 0.08);
@@ -936,9 +936,9 @@ html.theme-onedark {
   --bg-surface-elevated: rgba(37, 41, 50, 0.65);
   --border-subtle: rgba(255, 255, 255, 0.08);
   --border-focus: #5294e2;
-  --text-primary: #b4bece;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
   --accent-primary: #376dc4;
   --accent-primary-hover: #295aa9;
   --accent-surface: rgba(82, 148, 226, 0.15);
@@ -966,8 +966,8 @@ html.theme-onedark {
   --muted-foreground: var(--text-muted);
   --input: var(--bg-surface-elevated);
   --ring: var(--border-focus);
-  --theme-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --theme-heading-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --theme-font: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --theme-heading-font: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --theme-radius: var(--radius-md);
   --theme-border: 1px solid var(--border-subtle);
   --theme-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
@@ -1006,9 +1006,9 @@ html.theme-cyberpunk {
   --bg-surface-elevated: rgba(28, 34, 48, 0.65);
   --border-subtle: rgba(40, 160, 210, 0.18);
   --border-focus: #28a0d2;
-  --text-primary: #b4bece;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
   --accent-primary: #d4566a;
   --accent-primary-hover: #be2e44;
   --accent-surface: rgba(230, 95, 116, 0.15);

@@ -503,11 +503,11 @@ export default function TodoFeature() {
   return (
     <div className="space-y-4 pb-12 relative">
       {/* Minimal One-Liner Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 py-1 px-0.5">
-        <div className="flex items-center gap-2.5 flex-wrap min-w-0">
+      <div className="flex items-center justify-between gap-1.5 sm:gap-3 py-1 px-0.5 overflow-x-auto scrollbar-none">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
           {/* Micro Progress Bar & Percentage */}
-          <div className="flex items-center gap-2 bg-surface-elevated/80 border border-border/70 px-2.5 py-1 rounded-xl shadow-2xs">
-            <div className="w-14 sm:w-20 h-1.5 bg-secondary rounded-full overflow-hidden border border-border/60">
+          <div className="flex items-center gap-1.5 sm:gap-2 bg-surface-elevated/80 border border-border/70 px-2 sm:px-2.5 py-1 rounded-xl shadow-2xs shrink-0">
+            <div className="w-10 sm:w-20 h-1.5 bg-secondary rounded-full overflow-hidden border border-border/60">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${completionPercent}%` }}
@@ -515,11 +515,11 @@ export default function TodoFeature() {
                 className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full"
               />
             </div>
-            <span className="text-xs font-black text-foreground">{completionPercent}%</span>
+            <span className="text-[11px] sm:text-xs font-black text-foreground">{completionPercent}%</span>
           </div>
 
           {/* Minimal One-Liner Metrics */}
-          <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground flex-wrap">
+          <div className="flex items-center gap-1 sm:gap-2 text-[10.5px] sm:text-xs font-semibold text-muted-foreground whitespace-nowrap shrink-0">
             <span>Total: <strong className="text-foreground font-bold">{totalCount}</strong></span>
             <span className="opacity-40">•</span>
             <span>Active: <strong className="text-amber-500 dark:text-amber-400 font-bold">{activeCount}</strong></span>
@@ -535,11 +535,11 @@ export default function TodoFeature() {
         </div>
 
         {/* Header Actions: Toggle Velocity Graph & Clear */}
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 ml-1">
           <button
             type="button"
             onClick={() => setShowGraph(prev => !prev)}
-            className={`px-2.5 py-1 text-xs font-bold rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`p-1.5 sm:px-2.5 sm:py-1 text-xs font-bold rounded-xl border transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
               showGraph
                 ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/40 shadow-xs'
                 : 'bg-surface-elevated/70 text-muted-foreground hover:text-foreground border-border/70'
@@ -673,10 +673,10 @@ export default function TodoFeature() {
               ref={inlineInputRef}
               type="text"
               maxLength={120}
-              placeholder="Add a ToDo... (Press Enter to add)"
+              placeholder="Add a ToDo..."
               value={inlineTitle}
               onChange={e => setInlineTitle(e.target.value)}
-              className="flex-1 bg-transparent text-sm sm:text-base font-semibold text-foreground placeholder-muted-foreground/60 outline-none px-1 py-1 min-w-0"
+              className="flex-1 bg-transparent text-sm sm:text-base font-semibold text-foreground placeholder-muted-foreground/60 outline-none px-1.5 py-1 min-w-0"
             />
 
             {/* Quick Action Buttons */}
@@ -688,7 +688,7 @@ export default function TodoFeature() {
                   setIsInlineOptionsOpen(true);
                   setInlineActiveTab(inlineActiveTab === 'due' ? 'none' : 'due');
                 }}
-                className={`p-1.5 sm:px-2 sm:py-1 rounded-xl border text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer ${
+                className={`hidden sm:flex p-1.5 sm:px-2 sm:py-1 rounded-xl border text-xs font-semibold items-center gap-1 transition-all cursor-pointer ${
                   inlineDueDate
                     ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/40 shadow-xs'
                     : 'text-muted-foreground hover:text-foreground border-border/60 hover:bg-surface-elevated'
@@ -706,7 +706,7 @@ export default function TodoFeature() {
                   setIsInlineOptionsOpen(true);
                   setInlineActiveTab(inlineActiveTab === 'reminder' ? 'none' : 'reminder');
                 }}
-                className={`p-1.5 sm:px-2 sm:py-1 rounded-xl border text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer ${
+                className={`hidden sm:flex p-1.5 sm:px-2 sm:py-1 rounded-xl border text-xs font-semibold items-center gap-1 transition-all cursor-pointer ${
                   inlineEnableReminder
                     ? 'bg-cyan-500/20 text-cyan-800 dark:text-cyan-300 border-cyan-500/40 shadow-xs'
                     : 'text-muted-foreground hover:text-foreground border-border/60 hover:bg-surface-elevated'
@@ -724,7 +724,7 @@ export default function TodoFeature() {
                   const nextPriority = inlinePriority === 'medium' ? 'high' : inlinePriority === 'high' ? 'low' : 'medium';
                   setInlinePriority(nextPriority);
                 }}
-                className={`px-2 py-1 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                className={`hidden sm:flex px-2 py-1 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                   inlinePriority === 'high'
                     ? 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/35'
                     : inlinePriority === 'medium'
@@ -740,21 +740,26 @@ export default function TodoFeature() {
               <button
                 type="button"
                 onClick={() => setIsInlineOptionsOpen(prev => !prev)}
-                className={`p-1.5 rounded-xl border transition-all cursor-pointer ${
+                className={`p-1.5 rounded-xl border transition-all cursor-pointer relative ${
                   isInlineOptionsOpen
                     ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/40'
+                    : (inlineDueDate || inlineEnableReminder || inlinePriority !== 'low')
+                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
                     : 'text-muted-foreground hover:text-foreground border-border/60 hover:bg-surface-elevated'
                 }`}
                 title={isInlineOptionsOpen ? 'Collapse options' : 'More task options'}
               >
                 <Lucide.SlidersHorizontal size={14} />
+                {(inlineDueDate || inlineEnableReminder || inlinePriority !== 'low') && (
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 absolute top-1 right-1" />
+                )}
               </button>
 
               {/* Submit Button */}
               <button
                 type="submit"
                 disabled={!inlineTitle.trim()}
-                className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-35 disabled:pointer-events-none text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-600/20 transition-all cursor-pointer shrink-0 ml-1"
+                className="px-3 sm:px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-35 disabled:pointer-events-none text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-600/20 transition-all cursor-pointer shrink-0 ml-0.5 sm:ml-1"
               >
                 Add
               </button>

@@ -10,6 +10,7 @@ public class MainActivity extends BridgeActivity {
         super.onCreate(savedInstanceState);
         if (this.bridge != null && this.bridge.getWebView() != null) {
             this.bridge.getWebView().setBackgroundColor(Color.parseColor("#030603"));
+            this.bridge.getWebView().clearCache(true);
         }
     }
 }

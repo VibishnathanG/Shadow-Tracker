@@ -438,17 +438,17 @@ export const Layout: React.FC<LayoutProps> = ({
                 <span className="text-white [html[data-theme='white']_&]:text-foreground [html[data-theme='light']_&]:text-foreground"> Tracker</span>
               </span>
               <span 
-                style={{ fontSize: '6.5px', lineHeight: '8px' }}
-                className="font-semibold tracking-wider uppercase flex items-center gap-1 px-1.5 py-0.5 mt-0.5 rounded-full bg-surface-elevated/90 border border-border/80 text-muted-foreground w-fit select-none pointer-events-none"
+                style={{ fontSize: '5.5px', lineHeight: '7px' }}
+                className="font-bold tracking-widest uppercase inline-flex items-center gap-0.5 px-1 py-0.2 mt-0.5 rounded bg-surface-elevated/80 border border-border/60 text-muted-foreground w-fit select-none pointer-events-none"
               >
-                <Lucide.ShieldCheck size={6.5} className="text-emerald-400" /> PRIVACY FIRST
+                <Lucide.ShieldCheck size={5.5} className="text-emerald-400 shrink-0" /> PRIVACY FIRST
               </span>
             </div>
 
             {/* Mobile AI Assistant Button */}
             <button
               onClick={() => setIsAiModalOpen(true)}
-              className="ml-1 w-9 h-9 rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/30 hover:border-primary/60 text-primary flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-sm shadow-primary/15 shrink-0 group"
+              className="ml-1.5 w-9 h-9 rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/30 hover:border-primary/60 text-primary flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-sm shadow-primary/15 shrink-0 group"
               title="Shadow AI Assistant"
               aria-label="Open AI Assistant"
             >
@@ -482,14 +482,6 @@ export const Layout: React.FC<LayoutProps> = ({
               title="Standalone ToDo"
             >
               <Lucide.CheckCircle2 size={16} className="text-emerald-400" />
-            </button>
-
-            <button
-              onClick={() => setCommandBarOpen(true)}
-              className="p-2 text-muted-foreground hover:text-foreground hover:bg-surface-elevated rounded-xl transition-colors cursor-pointer"
-              aria-label="Search Command Bar"
-            >
-              <Lucide.Search size={18} />
             </button>
 
             <button
