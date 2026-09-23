@@ -4,6 +4,7 @@ import { getTodayDateString } from '@/lib/dateUtils';
 import { StandaloneTodo } from '@/features/todo/todoTypes';
 import { getStoredTodos, saveStoredTodos, scheduleTodoNotification } from '@/features/todo/todoStorage';
 import { saveCustomDietPlan, WeeklyDietPlan } from '@/features/health/dietPlansData';
+import { fetchLiveTimeWithFallback, resolveAiDueDate } from './aiTimeUtils';
 
 export const BUILTIN_TOOL_DEFINITIONS: ToolDefinition[] = [
   // 1. Tasks
@@ -284,12 +285,12 @@ export const BUILTIN_TOOL_DEFINITIONS: ToolDefinition[] = [
     },
   },
 
-  // 8. Web Search (Optional Knowledge Lookup)
+  // 8. Web Search (Live Multi-Engine Search)
   {
     type: 'function',
     function: {
       name: 'web_search_query',
-      description: 'Look up external verified productivity, nutrition, habit science, or reference knowledge.',
+      description: 'Search the live web for verified facts, current news, dates/time, people, places, nutrition, or productivity science.',
       parameters: {
         type: 'object',
         properties: {
@@ -386,7 +387,7 @@ export async function executeAiToolCall(
           rawPriority === 'urgent' || rawPriority === 'high' ? 'high' : 
           rawPriority === 'low' ? 'low' : 'medium';
         const estimatedMinutes = Number(args.estimatedMinutes) || 30;
-        const dueDate = args.dueDate ? String(args.dueDate) : today;
+        const dueDate = resolveAiDueDate(args.dueDate as string);
         const defaultCatId = store.categories[0]?.id || 'cat-general';
 
         const created = await store.addTask({
@@ -454,7 +455,7 @@ export async function executeAiToolCall(
       case 'create_todo': {
         const title = String(args.title || 'New ToDo');
         const priority = (args.priority as 'low' | 'medium' | 'high') || 'medium';
-        const dueDate = args.dueDate ? String(args.dueDate) : today;
+        const dueDate = resolveAiDueDate(args.dueDate as string);
         const notes = args.notes ? String(args.notes) : '';
 
         const newTodo: StandaloneTodo = {
@@ -934,18 +935,112 @@ export async function executeAiToolCall(
         };
       }
 
-      // 8. Web Search
+      // 8. Web Search (Live Multi-Engine Search)
       case 'web_search_query': {
-        const query = String(args.query || '');
+        const query = String(args.query || '').trim();
+        const timeInfo = await fetchLiveTimeWithFallback();
+        const isTimeQuery = /\b(time|date|today|tomorrow|current year|what day|clock|timezone)\b/i.test(query);
+
+        let wikiHits: Array<{ title: string; snippet: string }> = [];
+        let topSummary = '';
+        let ddgSummary = '';
+
+        try {
+          // 1. Parallel search: Wikipedia OpenSearch & DuckDuckGo Instant Answer
+          const wikiSearchPromise = (async () => {
+            try {
+              const controller = new AbortController();
+              const tid = setTimeout(() => controller.abort(), 3500);
+              const searchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&utf8=&format=json&origin=*`;
+              const res = await fetch(searchUrl, { signal: controller.signal });
+              clearTimeout(tid);
+              if (res.ok) {
+                const data = await res.json();
+                return (data?.query?.search || []).slice(0, 3).map((h: any) => ({
+                  title: String(h.title || ''),
+                  snippet: String(h.snippet || '').replace(/<[^>]+>/g, '').trim(),
+                }));
+              }
+            } catch {
+              // Silently handle network errors
+            }
+            return [];
+          })();
+
+          const ddgPromise = (async () => {
+            try {
+              const controller = new AbortController();
+              const tid = setTimeout(() => controller.abort(), 2500);
+              const ddgUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1`;
+              const res = await fetch(ddgUrl, { signal: controller.signal });
+              clearTimeout(tid);
+              if (res.ok) {
+                const data = await res.json();
+                if (data.AbstractText) return String(data.AbstractText);
+                if (data.Answer) return String(data.Answer);
+                if (data.Definition) return String(data.Definition);
+              }
+            } catch {
+              // Silently handle network errors
+            }
+            return '';
+          })();
+
+          const [hits, ddg] = await Promise.all([wikiSearchPromise, ddgPromise]);
+          wikiHits = hits;
+          ddgSummary = ddg;
+
+          // 2. Fetch full summary extract for top Wikipedia result
+          if (wikiHits.length > 0 && wikiHits[0].title) {
+            try {
+              const controller = new AbortController();
+              const tid = setTimeout(() => controller.abort(), 2500);
+              const summaryUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(wikiHits[0].title)}`;
+              const sRes = await fetch(summaryUrl, { signal: controller.signal });
+              clearTimeout(tid);
+              if (sRes.ok) {
+                const sData = await sRes.json();
+                topSummary = sData.extract || '';
+              }
+            } catch {
+              // Silently handle summary fetch error
+            }
+          }
+        } catch (searchErr) {
+          console.warn('Web search fetch error:', searchErr);
+        }
+
+        const bestSummary = topSummary || ddgSummary || (wikiHits[0]?.snippet ? `Key excerpt: ${wikiHits[0].snippet}` : '');
+
+        const searchOutput: Record<string, unknown> = {
+          query,
+          temporalReference: {
+            currentDate: timeInfo.currentDate,
+            currentTime: timeInfo.currentTime,
+            currentDay: timeInfo.currentDay,
+            timezone: timeInfo.timeZone,
+            source: timeInfo.source,
+          },
+        };
+
+        if (bestSummary) {
+          searchOutput.summary = bestSummary;
+        }
+        if (wikiHits.length > 0) {
+          searchOutput.sources = wikiHits.map(h => ({ title: h.title, snippet: h.snippet }));
+        }
+
+        if (!bestSummary && wikiHits.length === 0) {
+          searchOutput.note = isTimeQuery
+            ? `Live system temporal clock provided. Current date is ${timeInfo.currentDate}, time is ${timeInfo.currentTime}.`
+            : `Web search could not retrieve external results for "${query}". System date & time confirmed as ${timeInfo.currentDate} (${timeInfo.currentTime}).`;
+        }
+
         return {
           toolName: name,
           actionSummary: `Web Knowledge Queried: "${query}"`,
           success: true,
-          resultData: {
-            query,
-            source: 'Synthesized Productivity & Health Knowledge Engine',
-            summary: `Verified guidance retrieved for "${query}". Recommended application: Align with personal circadian rhythm, prioritize progressive overload for physical training, and utilize time-boxed focus sessions (Pomodoro 50/10) for cognitive work.`,
-          },
+          resultData: searchOutput,
         };
       }
 

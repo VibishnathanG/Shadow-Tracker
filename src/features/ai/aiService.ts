@@ -132,6 +132,14 @@ export async function sendAiChatMessage(
         tool_calls: m.tool_calls,
       };
     }
+    if (m.role === 'system') {
+      const now = new Date();
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Local';
+      return {
+        role: 'system',
+        content: `${m.content}\n\n[Active Turn Timestamp: ${now.toLocaleDateString([], { weekday: 'long' })}, ${now.toISOString().split('T')[0]} ${now.toLocaleTimeString()} (${tz})]`,
+      };
+    }
     return {
       role: m.role,
       content: m.content,

@@ -12,6 +12,7 @@ import {
   MAX_CONTEXT_PRESETS,
 } from './aiTypes';
 import { compileAiContext } from './aiContext';
+import { getSystemTimeInfo } from './aiTimeUtils';
 import {
   getSessionApiKey,
   setSessionApiKey,
@@ -148,6 +149,8 @@ export default function AiAssistantModal({ isOpen, onClose }: AiAssistantModalPr
     saveModel(model);
     saveMaxContext(maxContextTokens);
 
+    const timeInfo = getSystemTimeInfo();
+
     let systemInstruction = `You are Shadow Tracker AI - an ultra-capable personal life operating system co-pilot.
 You have native access to execute verified tool actions inside the user's local tracker:
 - create_task, update_task, complete_task
@@ -157,10 +160,22 @@ You have native access to execute verified tool actions inside the user's local 
 - update_wealth_transaction, update_wealth_budget
 - create_journal_entry
 - configure_notification (schedule alarms and alerts across tasks, habits, todos, and general alerts)
-- web_search_query
+- web_search_query (search live facts, news, people, places, dates, or productivity science)
 - and any custom user tools registered in the active tool engine.
 
-CRITICAL CONSTRAINTS:
+LIVE SYSTEM CLOCK & TEMPORAL CONTEXT (LOADED DIRECTLY FROM LOCAL SYSTEM):
+- Today's Date: ${timeInfo.currentDate} (${timeInfo.currentDay})
+- Current Time: ${timeInfo.currentTime} (${timeInfo.timeZone})
+- Tomorrow's Date: ${timeInfo.tomorrowDate}
+- Local Timezone: ${timeInfo.timeZone}
+- Full Timestamp: ${timeInfo.isoString}
+
+CRITICAL TEMPORAL CONSTRAINTS:
+1. Today's date is strictly ${timeInfo.currentDate}. Tomorrow is strictly ${timeInfo.tomorrowDate}.
+2. NEVER use outdated training cutoffs (like 2024 or 2025). When scheduling tasks, habits, due dates, or answering time questions, ALWAYS anchor to today (${timeInfo.currentDate}).
+3. When the user asks for "today", use ${timeInfo.currentDate}. When "tomorrow", use ${timeInfo.tomorrowDate}.
+
+OPERATIONAL CONSTRAINTS:
 1. STRICTLY NEVER perform delete operations. All mutations must be create, update, or mark completed.
 2. Whenever the user asks you to schedule, plan, log, or track something, immediately call the matching tool.
 3. Be concise, direct, inspiring, and empowering.`;

@@ -142,6 +142,70 @@ export const AiMarkdownRenderer: React.FC<AiMarkdownRendererProps> = ({
       continue;
     }
 
+    // Tables (| col 1 | col 2 |)
+    if (trimmed.startsWith('|') && i + 1 < lines.length) {
+      const nextTrimmed = lines[i + 1].trim();
+      const isSeparator = /^\|?(\s*:?-+:?\s*\|)+\s*:?-+:?\s*\|?$/.test(nextTrimmed);
+      if (isSeparator) {
+        const parseRow = (rowStr: string) => {
+          let s = rowStr.trim();
+          if (s.startsWith('|')) s = s.slice(1);
+          if (s.endsWith('|')) s = s.slice(0, -1);
+          return s.split('|').map((c) => c.trim());
+        };
+
+        const headers = parseRow(trimmed);
+        const rows: string[][] = [];
+        let rIndex = i + 2;
+
+        while (rIndex < lines.length) {
+          const rLine = lines[rIndex].trim();
+          if (!rLine.startsWith('|') || rLine === '') break;
+          rows.push(parseRow(rLine));
+          rIndex++;
+        }
+
+        elements.push(
+          <div
+            key={`table-${i}`}
+            className="my-2.5 overflow-x-auto rounded-xl border border-border/80 bg-surface/60 shadow-xs scrollbar-thin"
+          >
+            <table className="w-full text-left text-xs border-collapse">
+              <thead className="bg-muted/70 text-foreground font-black border-b border-border/80">
+                <tr>
+                  {headers.map((h, hIdx) => (
+                    <th
+                      key={hIdx}
+                      className="px-3 py-2 border-r last:border-r-0 border-border/50 text-[11.5px] uppercase tracking-wider font-extrabold"
+                    >
+                      {renderInline(h, isUser)}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/40">
+                {rows.map((row, rIdx) => (
+                  <tr key={rIdx} className="hover:bg-muted/20 transition-colors">
+                    {row.map((cell, cIdx) => (
+                      <td
+                        key={cIdx}
+                        className="px-3 py-1.5 border-r last:border-r-0 border-border/40 text-foreground/90 font-medium"
+                      >
+                        {renderInline(cell, isUser)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        );
+
+        i = rIndex - 1;
+        continue;
+      }
+    }
+
     // Headings (###, ##, #)
     if (trimmed.startsWith('### ')) {
       elements.push(

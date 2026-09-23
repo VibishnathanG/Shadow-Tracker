@@ -362,4 +362,50 @@ npm run build
     const rendered = AiMarkdownRenderer({ content: '' });
     expect(rendered).toBeNull();
   });
+
+  it('renders markdown tables with headers and rows properly', () => {
+    const tableMarkdown = `| Metric | Current | Target |
+|---|---|---|
+| Hydration | 2500ml | 3000ml |
+| Focus Score | 92% | 95% |`;
+
+    const rendered = AiMarkdownRenderer({ content: tableMarkdown, isUser: false }) as React.ReactElement<any>;
+    expect(rendered).toBeDefined();
+    expect(rendered?.props.className).toContain('ai-markdown-content');
+    const tableContainer = rendered?.props.children[0];
+    expect(tableContainer).toBeDefined();
+  });
+});
+
+describe('AI Temporal & Web Time Utilities', () => {
+  it('retrieves system date and time directly from code execution', async () => {
+    const { getSystemTimeInfo } = await import('../aiTimeUtils');
+    const info = getSystemTimeInfo();
+    expect(info.currentDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(info.tomorrowDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(info.source).toBe('system_clock');
+    expect(info.currentTime).toBeDefined();
+    expect(info.currentDay).toBeDefined();
+  });
+
+  it('resolves relative due dates and upgrades outdated training cutoffs', async () => {
+    const { resolveAiDueDate } = await import('../aiTimeUtils');
+    const today = resolveAiDueDate('today');
+    expect(today).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+
+    const tomorrow = resolveAiDueDate('tomorrow');
+    expect(tomorrow).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(tomorrow).not.toBe(today);
+
+    const corrected = resolveAiDueDate('2025-01-16');
+    const currentYear = new Date().getFullYear().toString();
+    expect(corrected.startsWith(currentYear)).toBe(true);
+  });
+
+  it('safely attempts live time verification with fallback to code system time', async () => {
+    const { fetchLiveTimeWithFallback } = await import('../aiTimeUtils');
+    const liveInfo = await fetchLiveTimeWithFallback();
+    expect(liveInfo.currentDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(['system_clock', 'web_verified_clock']).toContain(liveInfo.source);
+  });
 });
