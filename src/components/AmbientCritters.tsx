@@ -395,44 +395,48 @@ export const HackerCritter: React.FC<{
   );
 };
 
-// --- 6. ROCKET: Aerodynamically Aligned Space Rocket with Exhaust Fire (FIXED ALIGNMENT) ---
+// --- 6. ROCKET: Aerodynamically Aligned Space Rocket with Exhaust Fire (FIXED PROPER DIRECTION) ---
 export const RocketCritter: React.FC<{
   className?: string;
   variant?: 'local' | 'global';
   direction?: 'ltr' | 'rtl';
-}> = ({ className = '', variant = 'local', direction = 'ltr' }) => {
+}> = ({ className = '', variant = 'local' }) => {
   const isGlobal = variant === 'global';
-  const isRtl = direction === 'rtl';
-  const motionProps = getLinearMotion(isGlobal, isRtl, 7);
+  // Rocket ALWAYS launches forward in the proper direction (Left-to-Right) climbing into the sky!
+  const startX = isGlobal ? -120 : -60;
+  const endX = isGlobal ? 1100 : 360;
 
   return (
     <motion.div
       className={`absolute pointer-events-none select-none z-30 ${className}`}
-      initial={{ ...motionProps.initial, y: isGlobal ? 35 : 20 }}
-      animate={{ ...motionProps.animate, y: isGlobal ? 35 : 20 }}
-      transition={motionProps.transition}
+      initial={{ x: startX, y: isGlobal ? 70 : 34, opacity: 0 }}
+      animate={{ 
+        x: endX, 
+        y: isGlobal ? 15 : 8,
+        opacity: [0, 1, 1, 1, 0] 
+      }}
+      transition={{ 
+        duration: isGlobal ? 6.8 : 4.8, 
+        ease: 'linear',
+        times: [0, 0.08, 0.85, 0.96, 1]
+      }}
     >
-      {/* 
-        Alignment Fix:
-        SVG rocket is drawn pointing horizontally forward (nose at x=88, thruster at x=14).
-        Pitch is set to -3° (pointing forward with aerodynamic climb angle) when flying LTR,
-        and cleanly mirrored when flying RTL so it never looks twisted!
-      */}
+      {/* Aerodynamic forward climb angle: tilted -12° with nose pointing forward-up (+X) */}
       <div 
-        className={`relative flex items-center ${isRtl ? 'scale-x-[-1]' : ''}`}
-        style={{ transform: isRtl ? 'scaleX(-1) rotate(3deg)' : 'rotate(-3deg)' }}
+        className="relative flex items-center"
+        style={{ transform: 'rotate(-12deg)' }}
       >
-        {/* Thruster Fire & Trailing Exhaust Particles */}
+        {/* Thruster Fire & Trailing Exhaust Particles (Trailing backwards to the left) */}
         <div className="absolute -left-9 top-2 flex items-center pointer-events-none">
           <motion.div
-            className="w-9 h-4 rounded-l-full bg-gradient-to-l from-amber-400 via-orange-500 to-transparent blur-[1px]"
+            className="w-10 h-4 rounded-l-full bg-gradient-to-l from-amber-400 via-orange-500 to-transparent blur-[1px]"
             animate={{ scaleX: [0.8, 1.4, 0.8], opacity: [0.8, 1, 0.8] }}
             transition={{ duration: 0.16, repeat: Infinity, ease: 'linear' }}
           />
           <motion.span
             className="text-[9px] text-amber-300 font-black absolute -left-2 top-0 select-none"
-            animate={{ x: [-2, -10], opacity: [1, 0], scale: [1, 0.4] }}
-            transition={{ duration: 0.25, repeat: Infinity, ease: 'linear' }}
+            animate={{ x: [-2, -12], opacity: [1, 0], scale: [1, 0.4] }}
+            transition={{ duration: 0.22, repeat: Infinity, ease: 'linear' }}
           >
             ✦
           </motion.span>

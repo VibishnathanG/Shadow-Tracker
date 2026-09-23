@@ -1109,8 +1109,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           : 'bg-foreground/[0.03] border-border hover:border-border hover:bg-foreground/[0.05] shadow-sm'
                       }`}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2.5">
+                      <div className="flex items-center justify-between gap-2 w-full min-w-0">
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
                           <div className={`w-5 h-5 rounded-md flex items-center justify-center transition-all duration-300 relative border shrink-0 ${
                             isCompletedToday
                               ? 'bg-gradient-to-br from-purple-600 via-fuchsia-500 to-pink-500 border-fuchsia-400 text-white shadow-[0_0_12px_rgba(217,70,239,0.5)] scale-105'
@@ -1133,11 +1133,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
                               <Lucide.Check size={11} className={isCompletedToday ? 'stroke-[3.5px]' : 'opacity-30'} />
                             </motion.div>
                           </div>
-                          <p className={`text-sm font-semibold truncate flex-1 min-w-0 ${isCompletedToday ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                          <p 
+                            title={habit.name}
+                            className={`text-sm font-semibold truncate min-w-0 flex-1 ${isCompletedToday ? 'line-through text-muted-foreground' : 'text-foreground'}`}
+                          >
                             {habit.name}
                           </p>
                         </div>
-                        <span className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+                        <span className="shrink-0 whitespace-nowrap text-sm font-medium text-muted-foreground flex items-center gap-1 pl-1">
                           <Lucide.Flame size={12} className={isCompletedToday ? "text-orange-400" : "text-orange-400/50"} /> {habit.streakCount}
                         </span>
                       </div>

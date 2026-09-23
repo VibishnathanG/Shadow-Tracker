@@ -18,6 +18,9 @@ import { useOneDriveAutoSync } from '@/lib/useOneDriveAutoSync';
 import { GitHubDailySync } from './GitHubDailySync';
 import CustomDialogOverlay from './CustomDialogOverlay';
 import { DayReviewModal } from './DayReviewModal';
+import dynamic from 'next/dynamic';
+
+const AiAssistantModal = dynamic(() => import('@/features/ai/AiAssistantModal'), { ssr: false });
 
 interface LayoutProps {
   activeTab: string;
@@ -106,6 +109,7 @@ export const Layout: React.FC<LayoutProps> = ({
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
   const [isWizardModalOpen, setIsWizardModalOpen] = useState(false);
   const [dayReviewModal, setDayReviewModal] = useState<'morning' | 'evening' | null>(null);
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
 
   // OneDrive auto-sync
   useOneDriveAutoSync();
@@ -270,24 +274,37 @@ export const Layout: React.FC<LayoutProps> = ({
         <SidebarArt />
 
         <div className="flex flex-col h-full relative z-10 px-5 overflow-hidden">
-          {/* Logo */}
-          <div className="flex items-center gap-3.5 px-1 mb-8 shrink-0 relative">
-            <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/30 flex items-center justify-center shadow-lg shadow-primary/20 shrink-0 transition-colors">
-              <AppLogo size={34} theme={settings.theme} />
+          {/* Logo & AI Assistant Button */}
+          <div className="flex items-center justify-between gap-2 px-1 mb-8 shrink-0 relative">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-13 h-13 rounded-2xl bg-primary/10 border border-primary/30 flex items-center justify-center shadow-lg shadow-primary/20 shrink-0 transition-colors">
+                <AppLogo size={32} theme={settings.theme} />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-sm sm:text-base font-black tracking-tight leading-tight whitespace-nowrap">
+                  <span className="text-primary truncate max-w-[125px] inline-block align-bottom">{settings.alias ? settings.alias.charAt(0).toUpperCase() + settings.alias.slice(1) : 'Shadow'}</span>
+                  <span className="text-white [html[data-theme='white']_&]:text-foreground [html[data-theme='light']_&]:text-foreground"> Tracker</span>
+                </h1>
+                <span 
+                  style={{ fontSize: '7px', lineHeight: '9px' }}
+                  className="inline-flex items-center gap-1 px-1.5 py-0.5 mt-1 rounded-full bg-surface-elevated/90 border border-border/70 font-semibold text-muted-foreground tracking-wider uppercase select-none pointer-events-none w-fit"
+                >
+                  <Lucide.ShieldCheck size={7} className="text-emerald-400" />
+                  Privacy First
+                </span>
+              </div>
             </div>
-            <div className="min-w-0">
-              <h1 className="text-sm sm:text-base font-black tracking-tight leading-tight whitespace-nowrap">
-                <span className="text-primary truncate max-w-[140px] inline-block align-bottom">{settings.alias ? settings.alias.charAt(0).toUpperCase() + settings.alias.slice(1) : 'Shadow'}</span>
-                <span className="text-white [html[data-theme='white']_&]:text-foreground [html[data-theme='light']_&]:text-foreground"> Tracker</span>
-              </h1>
-              <span 
-                style={{ fontSize: '7px', lineHeight: '9px' }}
-                className="inline-flex items-center gap-1 px-1.5 py-0.5 mt-1 rounded-full bg-surface-elevated/90 border border-border/70 font-semibold text-muted-foreground tracking-wider uppercase select-none pointer-events-none w-fit"
-              >
-                <Lucide.ShieldCheck size={7} className="text-emerald-400" />
-                PRIVACY FIRST
-              </span>
-            </div>
+
+            {/* AI Assistant Button */}
+            <button
+              onClick={() => setIsAiModalOpen(true)}
+              className="w-10 h-10 rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/30 hover:border-primary/60 text-primary flex flex-col items-center justify-center transition-all cursor-pointer active:scale-95 shadow-sm shadow-primary/15 relative shrink-0 group"
+              title="Shadow AI Assistant (Autonomous Copilot)"
+              aria-label="Open AI Assistant"
+            >
+              <Lucide.Sparkles size={16} className="group-hover:scale-110 group-hover:rotate-12 transition-transform text-primary" />
+              <span style={{ fontSize: '7px' }} className="font-black tracking-wider uppercase text-primary -mt-0.5">AI</span>
+            </button>
           </div>
 
           {/* Navigation */}
@@ -411,13 +428,13 @@ export const Layout: React.FC<LayoutProps> = ({
       <div className="flex-1 md:pl-72 flex flex-col min-h-screen w-full">
         {/* Mobile Header */}
         <header className="md:hidden flex items-center justify-between px-5 py-4 bg-surface/90 backdrop-blur-xl border-b border-border sticky top-0 z-40 select-none shadow-sm">
-          <div className="flex items-center gap-2.5">
-            <div className="w-11 h-11 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center shrink-0">
-              <AppLogo size={26} theme={settings.theme} />
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center shrink-0">
+              <AppLogo size={24} theme={settings.theme} />
             </div>
             <div className="flex flex-col min-w-0">
               <span className="text-xs sm:text-sm font-black tracking-tight leading-tight whitespace-nowrap">
-                <span className="text-primary truncate max-w-[110px] inline-block align-bottom">{settings.alias ? settings.alias.charAt(0).toUpperCase() + settings.alias.slice(1) : 'Shadow'}</span>
+                <span className="text-primary truncate max-w-[95px] inline-block align-bottom">{settings.alias ? settings.alias.charAt(0).toUpperCase() + settings.alias.slice(1) : 'Shadow'}</span>
                 <span className="text-white [html[data-theme='white']_&]:text-foreground [html[data-theme='light']_&]:text-foreground"> Tracker</span>
               </span>
               <span 
@@ -427,6 +444,17 @@ export const Layout: React.FC<LayoutProps> = ({
                 <Lucide.ShieldCheck size={6.5} className="text-emerald-400" /> PRIVACY FIRST
               </span>
             </div>
+
+            {/* Mobile AI Assistant Button */}
+            <button
+              onClick={() => setIsAiModalOpen(true)}
+              className="ml-1 w-8.5 h-8.5 rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/30 hover:border-primary/60 text-primary flex flex-col items-center justify-center transition-all cursor-pointer active:scale-95 shadow-sm shadow-primary/15 shrink-0 group"
+              title="Shadow AI Assistant"
+              aria-label="Open AI Assistant"
+            >
+              <Lucide.Sparkles size={13} className="group-hover:scale-110 transition-transform text-primary" />
+              <span style={{ fontSize: '6px' }} className="font-black tracking-wider uppercase text-primary -mt-0.5">AI</span>
+            </button>
           </div>
 
           <div className="flex items-center gap-2">
@@ -660,6 +688,12 @@ export const Layout: React.FC<LayoutProps> = ({
             window.dispatchEvent(new CustomEvent('openTaskDetail', { detail: { taskId } }));
           }, 50);
         }}
+      />
+
+      {/* Autonomous Shadow AI Assistant Modal */}
+      <AiAssistantModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
       />
     </div>
   );
