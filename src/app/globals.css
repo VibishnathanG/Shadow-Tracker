@@ -94,11 +94,11 @@ html, body, input, textarea, select, button {
 
 /* Core GPU Hardware Acceleration & Dynamic Graphics Killswitch (Zero-GPU Mode) */
 html.no-gpu,
-html.no-gpu *,
+html.no-gpu *:not(.toggle-handle):not(.toggle-track),
 html.no-gpu *::before,
 html.no-gpu *::after,
 html.gpu-disabled,
-html.gpu-disabled *,
+html.gpu-disabled *:not(.toggle-handle):not(.toggle-track),
 html.gpu-disabled *::before,
 html.gpu-disabled *::after {
   animation: none !important;
@@ -152,6 +152,19 @@ html.window-blurred .animate-spin {
   animation: none !important;
 }
 
+/* Deep zero-CPU/GPU Idle Freeze when Hidden, Minimized or Blurred in Background */
+html.is-hidden,
+html.window-blurred {
+  content-visibility: auto;
+}
+
+html.is-hidden .theme-ambient-canvas,
+html.window-blurred .theme-ambient-canvas,
+html.is-hidden canvas,
+html.window-blurred canvas {
+  display: none !important;
+}
+
 /* Halt framer-motion GPU layers when hidden or in eco mode — prevents idle GPU compositing */
 html.is-hidden [style*="transform"],
 html.window-blurred [style*="transform"],
@@ -161,13 +174,17 @@ html.no-gpu [style*="transform"] {
   will-change: auto !important;
 }
 
-/* Ensure Task, ToDo, and status badge labels never collapse below legible 11px on Windows WebView2 */
+/* Ensure Task, ToDo, and small status badge labels never collapse below legible 11.5px */
 .task-badge-label,
+[class*="text-[7px]"],
 [class*="text-[7.5px]"],
 [class*="text-[8px]"],
-[class*="text-[8.5px]"] {
-  font-size: 11px !important;
-  line-height: 1.15 !important;
+[class*="text-[8.5px]"],
+[class*="text-[9px]"],
+[class*="text-[9.5px]"],
+[class*="text-[10px]"] {
+  font-size: 11.5px !important;
+  line-height: 1.25 !important;
 }
 
 /* Mobile Performance Boost & Minimal Ambient Canvas */
@@ -1417,36 +1434,45 @@ select option {
   width: 38px;
   height: 20px;
   border-radius: 9999px;
-  background-color: color-mix(in srgb, var(--bg-surface-elevated) 80%, transparent);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid var(--border-subtle);
+  background-color: #334155; /* Distinct dark slate when OFF */
+  border: 1.5px solid rgba(255, 255, 255, 0.16);
   position: relative;
   display: inline-flex;
   align-items: center;
   cursor: pointer;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.35);
+  transition: background-color 0.18s ease, border-color 0.18s ease;
   flex-shrink: 0;
 }
 .toggle-track.active,
 .toggle-track[data-checked="true"] {
-  background-color: var(--accent-primary) !important;
-  border-color: var(--accent-primary) !important;
-  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.12), 0 0 6px -2px var(--accent-primary);
+  background-color: #10b981 !important; /* Vibrant emerald green when ON */
+  border-color: #059669 !important;
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.25), 0 0 8px rgba(16, 185, 129, 0.4);
 }
 .toggle-handle {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background-color: #f1f5f9;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-  transition: transform 0.2s ease;
-  transform: translateX(1px);
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  position: absolute;
+  top: 1px;
+  left: 2px !important;
+  transition: left 0.18s ease;
 }
 .toggle-track.active .toggle-handle,
 .toggle-track[data-checked="true"] .toggle-handle {
-  transform: translateX(19px);
+  left: 18px !important;
+}
+
+/* Zero-animation instant snap when GPU is disabled */
+html.no-gpu .toggle-track,
+html.gpu-disabled .toggle-track,
+html.no-gpu .toggle-handle,
+html.gpu-disabled .toggle-handle {
+  transition: none !important;
+  transition-duration: 0s !important;
 }
 
 /* 3. Habit Matrix Grid & Calendar Spends */

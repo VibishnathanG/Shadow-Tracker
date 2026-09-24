@@ -130,7 +130,7 @@ export const Layout: React.FC<LayoutProps> = ({
       return <Lucide.Sun size={size} className="text-amber-500" />;
     }
     if (current === 'midnight' || current === 'pine' || current === 'purple' || current === 'spectrum') {
-      return <Lucide.Sparkles size={size} className="text-indigo-400" />;
+      return <Lucide.Palette size={size} className="text-indigo-400" />;
     }
     if (current === 'obsidian') {
       return <Lucide.Moon size={size} className="text-purple-300" />;
@@ -216,10 +216,8 @@ export const Layout: React.FC<LayoutProps> = ({
     };
 
     const handleBlur = () => {
-      if (document.hidden) {
-        setIsBackground(true);
-        document.documentElement.classList.add('window-blurred');
-      }
+      setIsBackground(true);
+      document.documentElement.classList.add('window-blurred');
     };
 
     const handleFocus = () => {
@@ -248,8 +246,12 @@ export const Layout: React.FC<LayoutProps> = ({
         }).then(unlisten => { unlistenEco = unlisten; }).catch(() => {});
 
         listen<{ minimized?: boolean; hidden?: boolean; focused?: boolean }>('shadow-window-state', (e) => {
-          const bg = Boolean(e.payload?.minimized || e.payload?.hidden || (typeof e.payload?.focused === 'boolean' && !e.payload.focused && e.payload?.minimized));
-          if (bg) {
+          const isInactive = Boolean(
+            e.payload?.minimized ||
+            e.payload?.hidden ||
+            (typeof e.payload?.focused === 'boolean' && !e.payload.focused)
+          );
+          if (isInactive) {
             setIsBackground(true);
             document.documentElement.classList.add('is-hidden', 'window-blurred');
           } else if (e.payload?.focused === true) {
@@ -369,12 +371,9 @@ export const Layout: React.FC<LayoutProps> = ({
                   <span className="text-primary truncate max-w-[125px] inline-block align-bottom">{settings.alias ? settings.alias.charAt(0).toUpperCase() + settings.alias.slice(1) : 'Shadow'}</span>
                   <span className="text-white [html[data-theme='white']_&]:text-foreground [html[data-theme='light']_&]:text-foreground"> Tracker</span>
                 </h1>
-                <span 
-                  style={{ fontSize: '7px', lineHeight: '9px' }}
-                  className="inline-flex items-center gap-1 px-1.5 py-0.5 mt-1 rounded-full bg-surface-elevated/90 border border-border/70 font-semibold text-muted-foreground tracking-wider uppercase select-none pointer-events-none w-fit"
-                >
-                  <Lucide.ShieldCheck size={7} className="text-emerald-400" />
-                  Privacy First
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 mt-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-[10.5px] font-medium text-emerald-400 select-none pointer-events-none w-fit shadow-2xs">
+                  <Lucide.ShieldCheck size={11} className="text-emerald-400 shrink-0" />
+                  <span>Privacy First</span>
                 </span>
               </div>
             </div>
@@ -520,11 +519,9 @@ export const Layout: React.FC<LayoutProps> = ({
                 <span className="text-primary truncate max-w-[95px] inline-block align-bottom">{settings.alias ? settings.alias.charAt(0).toUpperCase() + settings.alias.slice(1) : 'Shadow'}</span>
                 <span className="text-white [html[data-theme='white']_&]:text-foreground [html[data-theme='light']_&]:text-foreground"> Tracker</span>
               </span>
-              <span 
-                style={{ fontSize: '5.5px', lineHeight: '7px' }}
-                className="font-bold tracking-widest uppercase inline-flex items-center gap-0.5 px-1 py-0.2 mt-0.5 rounded bg-surface-elevated/80 border border-border/60 text-muted-foreground w-fit select-none pointer-events-none"
-              >
-                <Lucide.ShieldCheck size={5.5} className="text-emerald-400 shrink-0" /> PRIVACY FIRST
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 mt-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-[9.5px] font-medium text-emerald-400 select-none pointer-events-none w-fit">
+                <Lucide.ShieldCheck size={9.5} className="text-emerald-400 shrink-0" />
+                <span>Privacy First</span>
               </span>
             </div>
 

@@ -637,99 +637,103 @@ export const TasksFeature: React.FC = () => {
                   }`}
                 >
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                        <button
-                          type="button"
-                          onClick={async (e) => {
-                            e.stopPropagation();
-                            const willComplete = !task.isCompleted;
-                            const todayStr = getTodayDateString();
-                            const prevFocus = useShadowTrackerStore.getState().dailyLogs.find(l => l.date === todayStr)?.focusScore ?? 0;
-                            await toggleTaskCompletion(task.id);
-                            if (willComplete) {
-                              fireConfetti();
-                              const freshLog = useShadowTrackerStore.getState().dailyLogs.find(l => l.date === todayStr);
-                              const newFocus = freshLog?.focusScore ?? prevFocus;
-                              const diff = newFocus - prevFocus;
-                              window.dispatchEvent(new CustomEvent('showCelebrationNotice', {
-                                detail: { title: 'Node Resolved', subtitle: task.title, flowText: diff > 0 ? `+${diff}% Flow` : `${newFocus}% Flow`, type: 'task' }
-                              }));
-                            }
-                          }}
-                          className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all shrink-0 cursor-pointer ${
-                            task.isCompleted
-                              ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-xs'
-                              : 'border-2 border-muted-foreground/60 hover:border-emerald-500 hover:bg-emerald-500/10'
-                          }`}
-                        >
-                          {task.isCompleted && <Lucide.Check size={12} className="stroke-[3.5]" />}
-                        </button>
+                    {/* Row 1: Checkbox + Assignee (left) & Kanban Status (right) */}
+                      <div className="flex items-center justify-between gap-1.5 w-full flex-nowrap overflow-hidden">
+                        <div className="flex items-center gap-1.5 min-w-0 flex-nowrap">
+                          <button
+                            type="button"
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              const willComplete = !task.isCompleted;
+                              const todayStr = getTodayDateString();
+                              const prevFocus = useShadowTrackerStore.getState().dailyLogs.find(l => l.date === todayStr)?.focusScore ?? 0;
+                              await toggleTaskCompletion(task.id);
+                              if (willComplete) {
+                                fireConfetti();
+                                const freshLog = useShadowTrackerStore.getState().dailyLogs.find(l => l.date === todayStr);
+                                const newFocus = freshLog?.focusScore ?? prevFocus;
+                                const diff = newFocus - prevFocus;
+                                window.dispatchEvent(new CustomEvent('showCelebrationNotice', {
+                                  detail: { title: 'Node Resolved', subtitle: task.title, flowText: diff > 0 ? `+${diff}% Flow` : `${newFocus}% Flow`, type: 'task' }
+                                }));
+                              }
+                            }}
+                            className={`w-5 h-5 rounded-lg flex items-center justify-center transition-all shrink-0 cursor-pointer ${
+                              task.isCompleted
+                                ? 'bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-xs'
+                                : 'border-2 border-muted-foreground/60 hover:border-emerald-500 hover:bg-emerald-500/10'
+                            }`}
+                          >
+                            {task.isCompleted && <Lucide.Check size={12} className="stroke-[3.5]" />}
+                          </button>
 
-                        {/* Label 1: Assignee */}
-                        <span className="text-[10.5px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded-md flex items-center gap-1 shrink-0 max-w-[110px]" title={`Assignee: ${task.assignee || defaultAssignee}`}>
-                          <Lucide.User size={10.5} className="shrink-0 opacity-75" />
-                          <span className="truncate">{task.assignee || defaultAssignee}</span>
-                        </span>
+                          {/* Label 1: Assignee */}
+                          <span className="text-[11px] font-medium text-primary bg-primary/10 border border-primary/25 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0 max-w-[120px]" title={`Assignee: ${task.assignee || defaultAssignee}`}>
+                            <Lucide.User size={11} className="shrink-0 opacity-75" />
+                            <span className="truncate">{task.assignee || defaultAssignee}</span>
+                          </span>
+                        </div>
 
-                        {/* Label 2: Kanban Progress */}
+                        {/* Label 2: Kanban Progress (second to hide on narrow cards) */}
                         {(() => {
                           const status = task.status || (task.isCompleted ? 'done' : 'todo');
                           const statusConfig = {
-                            done: { label: 'Done', color: 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
-                            in_progress: { label: 'In Progress', color: 'text-amber-800 dark:text-amber-400 bg-amber-500/10 border-amber-500/20' },
-                            todo: { label: 'To Do', color: 'text-sky-700 dark:text-sky-400 bg-sky-500/10 border-sky-500/20' },
-                          }[status] || { label: 'To Do', color: 'text-sky-700 dark:text-sky-400 bg-sky-500/10 border-sky-500/20' };
+                            done: { label: 'Done', color: 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/25' },
+                            in_progress: { label: 'In Progress', color: 'text-amber-800 dark:text-amber-400 bg-amber-500/10 border-amber-500/25' },
+                            todo: { label: 'To Do', color: 'text-sky-700 dark:text-sky-400 bg-sky-500/10 border-sky-500/25' },
+                          }[status] || { label: 'To Do', color: 'text-sky-700 dark:text-sky-400 bg-sky-500/10 border-sky-500/25' };
 
                           return (
-                            <span className={`text-[10.5px] font-medium px-1.5 py-0.5 rounded-md border ${statusConfig.color} shrink-0`}>
+                            <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${statusConfig.color} shrink-0 hidden min-[240px]:inline-flex`}>
                               {statusConfig.label}
                             </span>
                           );
                         })()}
+                      </div>
 
+                      {/* Row 2: Category (left, first to hide if screen width is limited) & Priority (right) */}
+                      <div className="flex items-center justify-between gap-1.5 w-full flex-nowrap overflow-hidden">
                         {/* Label 3: Category */}
                         {taskCategory ? (
-                          <span className="text-[10.5px] font-medium text-muted-foreground flex items-center gap-1 bg-surface-elevated/80 px-1.5 py-0.5 rounded-md shrink-0 truncate max-w-[110px]" title={`Category: ${taskCategory.name}`}>
+                          <span className="text-[11px] font-medium text-muted-foreground hidden min-[280px]:inline-flex items-center gap-1.5 bg-surface-elevated/90 border border-border/60 px-2 py-0.5 rounded-full shrink-0 truncate max-w-[130px]" title={`Category: ${taskCategory.name}`}>
                             <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: taskCategory.color }} />
                             <span className="truncate">{taskCategory.name}</span>
                           </span>
                         ) : (
-                          <span className="text-[10.5px] font-medium text-muted-foreground/70 flex items-center gap-1 bg-surface-elevated/70 px-1.5 py-0.5 rounded-md shrink-0 truncate">
+                          <span className="text-[11px] font-medium text-muted-foreground/70 hidden min-[280px]:inline-flex items-center gap-1.5 bg-surface-elevated/70 border border-border/50 px-2 py-0.5 rounded-full shrink-0 truncate">
                             <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-muted-foreground/40" />
                             <span>General</span>
                           </span>
                         )}
+
+                        {/* Label 4: Priority / Severity */}
+                        <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border shrink-0 ml-auto ${
+                          task.priority === 'high' 
+                            ? 'text-rose-700 dark:text-rose-400 bg-rose-500/10 border-rose-500/25' 
+                            : task.priority === 'medium' 
+                            ? 'text-amber-800 dark:text-amber-400 bg-amber-500/10 border-amber-500/25' 
+                            : 'text-slate-700 dark:text-muted-foreground bg-muted-foreground/10 border-border/30'
+                        }`}>
+                          {task.priority === 'high' ? 'High' : task.priority === 'medium' ? 'Medium' : 'Low'}
+                        </span>
                       </div>
 
-                      {/* Label 4: Priority / Severity */}
-                      <span className={`text-[10.5px] font-medium px-1.5 py-0.5 rounded-md border shrink-0 ${
-                        task.priority === 'high' 
-                          ? 'text-rose-700 dark:text-rose-400 bg-rose-500/10 border-rose-500/20' 
-                          : task.priority === 'medium' 
-                          ? 'text-amber-800 dark:text-amber-400 bg-amber-500/10 border-amber-500/20' 
-                          : 'text-slate-700 dark:text-muted-foreground bg-muted-foreground/10 border-border/30'
-                      }`}>
-                        {task.priority === 'high' ? 'High' : task.priority === 'medium' ? 'Med' : 'Low'}
-                      </span>
+                      <h4 className={`text-sm font-bold line-clamp-2 leading-snug ${task.isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                        {task.title}
+                      </h4>
+
+                      {task.description && (
+                        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                          {task.description}
+                        </p>
+                      )}
                     </div>
 
-                    <h4 className={`text-sm font-bold line-clamp-2 leading-snug ${task.isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
-                      {task.title}
-                    </h4>
-
-                    {task.description && (
-                      <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                        {task.description}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2 border-t border-border/40 text-xs mt-auto">
-                    {/* Label 5: Due Date */}
-                    <span className="text-[10.5px] font-medium text-muted-foreground flex items-center gap-1 bg-surface-elevated/80 px-1.5 py-0.5 rounded-md shrink-0">
-                      <Lucide.Calendar size={11} className="text-primary/70 shrink-0" /> {format(new Date(task.dueDate), 'MMM dd')}
-                    </span>
+                    <div className="flex items-center justify-between pt-2 border-t border-border/40 text-xs mt-auto">
+                      {/* Label 5: Due Date */}
+                      <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1 bg-surface-elevated/80 border border-border/60 px-2 py-0.5 rounded-full shrink-0">
+                        <Lucide.Calendar size={11} className="text-primary/70 shrink-0" /> {format(new Date(task.dueDate), 'MMM dd')}
+                      </span>
                     <div className="flex items-center gap-1">
                       {!task.isCompleted && (
                         <button
@@ -859,7 +863,7 @@ export const TasksFeature: React.FC = () => {
                       
                       <div className="flex flex-wrap items-center gap-1.5 mt-2">
                         {/* 1. Assignee */}
-                        <span className="text-[11px] font-medium text-primary bg-primary/10 flex items-center gap-1 px-2 py-0.5 rounded-md shrink-0 max-w-[110px]" title={`Assignee: ${task.assignee || defaultAssignee}`}>
+                        <span className="text-[11px] font-medium text-primary bg-primary/10 border border-primary/25 flex items-center gap-1 px-2 py-0.5 rounded-full shrink-0 max-w-[120px]" title={`Assignee: ${task.assignee || defaultAssignee}`}>
                           <Lucide.User size={11} className="shrink-0 opacity-75" />
                           <span className="truncate">{task.assignee || defaultAssignee}</span>
                         </span>
@@ -868,13 +872,13 @@ export const TasksFeature: React.FC = () => {
                         {(() => {
                           const status = task.status || (task.isCompleted ? 'done' : 'todo');
                           const statusConfig = {
-                            done: { label: 'Done', color: 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
-                            in_progress: { label: 'In Progress', color: 'text-amber-800 dark:text-amber-400 bg-amber-500/10 border-amber-500/20' },
-                            todo: { label: 'To Do', color: 'text-sky-700 dark:text-sky-400 bg-sky-500/10 border-sky-500/20' },
-                          }[status] || { label: 'To Do', color: 'text-sky-700 dark:text-sky-400 bg-sky-500/10 border-sky-500/20' };
+                            done: { label: 'Done', color: 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/25' },
+                            in_progress: { label: 'In Progress', color: 'text-amber-800 dark:text-amber-400 bg-amber-500/10 border-amber-500/25' },
+                            todo: { label: 'To Do', color: 'text-sky-700 dark:text-sky-400 bg-sky-500/10 border-sky-500/25' },
+                          }[status] || { label: 'To Do', color: 'text-sky-700 dark:text-sky-400 bg-sky-500/10 border-sky-500/25' };
 
                           return (
-                            <span className={`text-[11px] font-medium px-2 py-0.5 rounded-md border ${statusConfig.color} shrink-0`}>
+                            <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${statusConfig.color} shrink-0`}>
                               {statusConfig.label}
                             </span>
                           );
@@ -882,35 +886,35 @@ export const TasksFeature: React.FC = () => {
 
                         {/* 3. Category */}
                         {taskCategory ? (
-                          <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1.5 bg-surface-elevated/80 px-2 py-0.5 rounded-md shrink-0 truncate max-w-[110px]" title={`Category: ${taskCategory.name}`}>
+                          <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1.5 bg-surface-elevated/90 border border-border/60 px-2 py-0.5 rounded-full shrink-0 truncate max-w-[130px]" title={`Category: ${taskCategory.name}`}>
                             <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: taskCategory.color }} />
                             <span className="truncate">{taskCategory.name}</span>
                           </span>
                         ) : (
-                          <span className="text-[11px] font-medium text-muted-foreground/70 flex items-center gap-1.5 bg-surface-elevated/70 px-2 py-0.5 rounded-md shrink-0 truncate">
+                          <span className="text-[11px] font-medium text-muted-foreground/70 flex items-center gap-1.5 bg-surface-elevated/70 border border-border/50 px-2 py-0.5 rounded-full shrink-0 truncate">
                             <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-muted-foreground/40" />
                             <span>General</span>
                           </span>
                         )}
 
                         {/* 4. Priority / Severity */}
-                        <span className={`text-[11px] font-medium px-2 py-0.5 rounded-md border shrink-0 ${
+                        <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border shrink-0 ${
                           task.priority === 'high' 
-                            ? 'text-rose-700 dark:text-rose-400 bg-rose-500/10 border-rose-500/20' 
+                            ? 'text-rose-700 dark:text-rose-400 bg-rose-500/10 border-rose-500/25' 
                             : task.priority === 'medium' 
-                            ? 'text-amber-800 dark:text-amber-400 bg-amber-500/10 border-amber-500/20' 
+                            ? 'text-amber-800 dark:text-amber-400 bg-amber-500/10 border-amber-500/25' 
                             : 'text-slate-700 dark:text-muted-foreground bg-muted-foreground/10 border-border/30'
                         }`}>
-                          {task.priority === 'high' ? 'High' : task.priority === 'medium' ? 'Med' : 'Low'}
+                          {task.priority === 'high' ? 'High' : task.priority === 'medium' ? 'Medium' : 'Low'}
                         </span>
 
                         {/* 5. Due Date */}
-                        <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1 bg-surface-elevated/80 px-2 py-0.5 rounded-md shrink-0">
+                        <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1 bg-surface-elevated/80 border border-border/60 px-2 py-0.5 rounded-full shrink-0">
                           <Lucide.Calendar size={11} className="text-primary/70 shrink-0" /> {format(new Date(task.dueDate), 'MMM dd')}
                         </span>
 
                         {task.isRecurring && (
-                          <span className="text-[11px] font-medium text-primary bg-primary/10 flex items-center gap-1 px-2 py-0.5 rounded-md shrink-0">
+                          <span className="text-[11px] font-medium text-primary bg-primary/10 border border-primary/25 flex items-center gap-1 px-2 py-0.5 rounded-full shrink-0">
                             <Lucide.Repeat size={11} /> {task.recurrencePattern}
                           </span>
                         )}

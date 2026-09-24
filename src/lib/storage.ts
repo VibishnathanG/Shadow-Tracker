@@ -641,7 +641,8 @@ const DEFAULT_SETTINGS: Settings = {
   level: 1,
   unlockedBadges: [],
   githubSyncOnLaunch: true,
-  ecoMode: false,
+  ecoMode: true,
+  lowGpuMode: true,
   disableGpuAcceleration: false,
   minimizeToTray: true,
   habitGracePeriodDays: 3,
@@ -653,13 +654,12 @@ const DEFAULT_SETTINGS: Settings = {
 export const settingsStorage = {
   get(): Settings {
     if (!isBrowser) return DEFAULT_SETTINGS;
-    const isMobile = isMobileDevice();
     try {
       const stored = localStorage.getItem(SETTINGS_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
         const hasExplicitEco = typeof parsed.ecoMode === 'boolean';
-        const finalEco = hasExplicitEco ? parsed.ecoMode : (isMobile ? true : false);
+        const finalEco = hasExplicitEco ? parsed.ecoMode : true;
         let rawAlias = typeof parsed.alias === 'string' ? parsed.alias.trim() : '';
         if (!rawAlias || rawAlias === 'Shadow Legend') {
           rawAlias = 'Shadow';
@@ -671,6 +671,7 @@ export const settingsStorage = {
           alias: finalAlias,
           ecoMode: finalEco,
           lowGpuMode: typeof parsed.lowGpuMode === 'boolean' ? parsed.lowGpuMode : finalEco,
+          disableGpuAcceleration: typeof parsed.disableGpuAcceleration === 'boolean' ? parsed.disableGpuAcceleration : false,
           taskAssignees: Array.isArray(parsed.taskAssignees) && parsed.taskAssignees.length > 0 ? parsed.taskAssignees : DEFAULT_SETTINGS.taskAssignees,
           defaultAssignee: parsed.defaultAssignee || DEFAULT_SETTINGS.defaultAssignee,
           customSubscriptionPresets: parsed.customSubscriptionPresets,
@@ -681,8 +682,9 @@ export const settingsStorage = {
         return {
           ...DEFAULT_SETTINGS,
           alias: 'Shadow',
-          ecoMode: isMobile,
-          lowGpuMode: isMobile,
+          ecoMode: true,
+          lowGpuMode: true,
+          disableGpuAcceleration: false,
           taskAssignees: DEFAULT_SETTINGS.taskAssignees,
           defaultAssignee: DEFAULT_SETTINGS.defaultAssignee,
         };
@@ -692,8 +694,9 @@ export const settingsStorage = {
     }
     return {
       ...DEFAULT_SETTINGS,
-      ecoMode: isMobile,
-      lowGpuMode: isMobile,
+      ecoMode: true,
+      lowGpuMode: true,
+      disableGpuAcceleration: false,
     };
   },
 

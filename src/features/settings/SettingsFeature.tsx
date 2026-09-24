@@ -1410,29 +1410,32 @@ export const SettingsFeature: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2.5 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
                 {notifPermission === 'granted' ? (
-                  <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 whitespace-nowrap">
                     <Lucide.CheckCircle size={14} /> Permission Granted
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-extrabold bg-amber-500/15 text-amber-400 border border-amber-500/30">
-                    <Lucide.AlertCircle size={14} /> {notifPermission === 'denied' ? 'In-App Notifications Active' : 'Pending Enable'}
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/30 whitespace-nowrap">
+                    <Lucide.AlertCircle size={14} /> {notifPermission === 'denied' ? 'In-App Active' : 'Pending Enable'}
                   </span>
                 )}
 
                 <button
-                  onClick={handleRequestPermission}
-                  className="px-4 py-2 bg-primary text-primary-foreground text-xs font-bold rounded-xl shadow-md hover:bg-primary/90 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
-                >
-                  <Lucide.ShieldAlert size={14} /> {notifPermission === 'granted' ? 'Re-test Permission' : 'Enable Notifications'}
-                </button>
-                <button
+                  type="button"
                   onClick={handleTestNativeNotification}
-                  className="px-4 py-2 bg-secondary text-secondary-foreground text-xs font-bold rounded-xl border border-border/80 hover:bg-secondary/80 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+                  className="px-3.5 py-1.5 bg-secondary hover:bg-secondary/80 text-foreground text-xs font-semibold rounded-xl border border-border/80 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 whitespace-nowrap shadow-2xs"
                   title="Test native OS notification toast"
                 >
-                  <Lucide.BellRing size={14} className="text-primary" /> Test Native Notification
+                  <Lucide.BellRing size={14} className="text-primary" /> Test Notification
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleRequestPermission}
+                  className="px-3.5 py-1.5 bg-primary text-primary-foreground text-xs font-semibold rounded-xl shadow-2xs hover:bg-primary/90 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 whitespace-nowrap"
+                >
+                  <Lucide.ShieldAlert size={14} /> {notifPermission === 'granted' ? 'Re-test' : 'Enable'}
                 </button>
               </div>
             </div>
@@ -2018,26 +2021,26 @@ export const SettingsFeature: React.FC = () => {
               </p>
             </div>
             
-            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto shrink-0">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto shrink-0">
               <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.96 }}
                 onClick={handleRecalibrateFromCurrentData}
-                className="filter-pill active flex-1 flex items-center justify-center gap-2.5 !px-5 !py-3.5 font-bold text-xs sm:text-sm rounded-2xl shadow-sm transition-all cursor-pointer"
+                className="filter-pill active flex items-center justify-center gap-2 px-4 py-2.5 font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer whitespace-nowrap"
                 title="Recalculate Level, XP, and unlock all badges based on real current data"
               >
-                <Lucide.Target size={16} />
+                <Lucide.Target size={15} />
                 <span>Recalibrate from Current Data</span>
               </motion.button>
 
               <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.96 }}
                 onClick={() => {
                   useShadowTrackerStore.getState().resetBadges();
                   alert("All achievements have been reset and faded. Start fresh from today!");
                 }}
-                className="filter-pill flex-1 flex items-center justify-center gap-2 !px-4 !py-3.5 text-rose-400 border-rose-500/30 hover:border-rose-500/60 bg-rose-500/10 hover:bg-rose-500/20 font-bold text-xs rounded-2xl shadow-sm transition-all cursor-pointer"
+                className="filter-pill flex items-center justify-center gap-2 px-4 py-2.5 text-rose-400 border border-rose-500/30 hover:border-rose-500/60 bg-rose-500/10 hover:bg-rose-500/20 font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer whitespace-nowrap"
               >
                 <Lucide.RefreshCw size={15} />
                 <span>Reset Badges (Wipe)</span>
@@ -2070,7 +2073,7 @@ export const SettingsFeature: React.FC = () => {
             </p>
           </div>
           
-          <div className="flex flex-row items-center gap-2.5 shrink-0 flex-nowrap">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full lg:w-auto shrink-0">
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
@@ -2078,7 +2081,7 @@ export const SettingsFeature: React.FC = () => {
                 resetAllViewPreferences();
                 alert('✅ All page views and filter settings have been reset to factory defaults! Your personal data remains completely intact.');
               }}
-              className="filter-pill active flex items-center justify-center gap-1.5 !px-3.5 !py-2 font-bold text-xs rounded-xl shadow-md cursor-pointer whitespace-nowrap"
+              className="filter-pill active flex items-center justify-center gap-1.5 px-4 py-2.5 font-bold text-xs rounded-xl shadow-md cursor-pointer whitespace-nowrap"
             >
               <Lucide.RotateCcw size={14} />
               <span>Reset Views & Filters</span>
@@ -2094,16 +2097,16 @@ export const SettingsFeature: React.FC = () => {
                   stickyTaskNotifications: true,
                   showCompletedTasks: true,
                   appScale: 100,
-                  ecoMode: false,
-                  lowGpuMode: false,
+                  ecoMode: true,
+                  lowGpuMode: true,
                   disableGpuAcceleration: false,
                 });
                 resetAllViewPreferences();
                 alert('✅ Theme restored to Spectrum and interface preferences reset to default! Your personal data is 100% safe.');
               }}
-              className="filter-pill flex items-center justify-center gap-1.5 !px-3.5 !py-2 bg-secondary/80 hover:bg-secondary text-foreground font-bold text-xs rounded-xl border border-border transition-all cursor-pointer whitespace-nowrap"
+              className="filter-pill flex items-center justify-center gap-1.5 px-4 py-2.5 bg-secondary/80 hover:bg-secondary text-foreground font-bold text-xs rounded-xl border border-border transition-all cursor-pointer whitespace-nowrap"
             >
-              <Lucide.Sparkles size={14} className="text-primary" />
+              <Lucide.Palette size={14} className="text-primary" />
               <span>Reset Interface Defaults</span>
             </motion.button>
           </div>
@@ -2132,24 +2135,24 @@ export const SettingsFeature: React.FC = () => {
                 </p>
               </div>
               
-              <div className="flex flex-col sm:flex-row gap-3 shrink-0">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto shrink-0">
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.96 }}
                   onClick={handleRecalibrateFromCurrentData}
-                  className="filter-pill active flex items-center justify-center gap-2.5 !px-5 !py-3.5 font-bold text-xs sm:text-sm rounded-2xl shadow-sm transition-all cursor-pointer"
+                  className="filter-pill active flex items-center justify-center gap-2 px-4 py-2.5 font-bold text-xs rounded-xl shadow-sm transition-all cursor-pointer whitespace-nowrap"
                   title="Recalculate Level, XP, and unlock all badges based on real current data"
                 >
-                  <Lucide.Target size={16} />
+                  <Lucide.Target size={15} />
                   <span>Recalibrate with Current Data</span>
                 </motion.button>
                 <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.96 }}
                   onClick={handleResetLifeRpg}
-                  className="filter-pill flex-shrink-0 flex items-center justify-center gap-2.5 !px-5 !py-3.5 bg-amber-500/10 text-amber-400 font-bold text-xs sm:text-sm rounded-2xl border border-amber-500/30 hover:border-amber-500/60 transition-all shadow-sm cursor-pointer"
+                  className="filter-pill flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-500/10 text-amber-400 font-bold text-xs rounded-xl border border-amber-500/30 hover:border-amber-500/60 transition-all shadow-sm cursor-pointer whitespace-nowrap"
                 >
-                  <Lucide.RefreshCw size={16} />
+                  <Lucide.RefreshCw size={15} />
                   <span>Reset RPG (Level 1)</span>
                 </motion.button>
               </div>
@@ -2174,15 +2177,17 @@ export const SettingsFeature: React.FC = () => {
                 </p>
               </div>
               
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleReset}
-                className="filter-pill flex-shrink-0 flex items-center justify-center gap-3 !px-8 !py-4 bg-rose-500/10 text-rose-400 font-bold text-sm rounded-2xl border border-rose-500/30 hover:border-rose-500/60 transition-all shadow-sm cursor-pointer"
-              >
-                <Lucide.Trash size={18} />
-                Reset
-              </motion.button>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto shrink-0">
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.96 }}
+                  onClick={handleReset}
+                  className="filter-pill flex items-center justify-center gap-2 px-6 py-2.5 bg-rose-500/10 text-rose-400 font-bold text-xs rounded-xl border border-rose-500/30 hover:border-rose-500/60 transition-all shadow-sm cursor-pointer whitespace-nowrap"
+                >
+                  <Lucide.Trash size={15} />
+                  <span>Reset All Database</span>
+                </motion.button>
+              </div>
             </div>
           </motion.div>
         </div>

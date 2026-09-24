@@ -15,100 +15,46 @@ import { fireConfetti, fireStreakConfetti } from '@/lib/confetti';
 import { useViewPreference } from '@/lib/viewPreferences';
 
 const MagicCrystal = () => (
-  <motion.svg width="36" height="36" viewBox="0 0 100 100"
-    animate={{ y: [-4, 4, -4] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-  >
+  <svg width="34" height="34" viewBox="0 0 100 100" className="drop-shadow-sm pointer-events-none select-none">
     <defs>
       <linearGradient id="crystalGrad" x1="0%" y1="0%" x2="100%" y2="100%">
         <stop offset="0%" stopColor="#a855f7" />
         <stop offset="100%" stopColor="#3b82f6" />
       </linearGradient>
-      <filter id="glow">
-        <feGaussianBlur stdDeviation="6" result="coloredBlur"/>
-        <feMerge>
-          <feMergeNode in="coloredBlur"/>
-          <feMergeNode in="SourceGraphic"/>
-        </feMerge>
-      </filter>
     </defs>
-    <motion.g
-      initial={{ scale: 0.8 }}
-      animate={{ scale: [0.85, 1, 0.85] }}
-      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-      style={{ transformOrigin: "50px 50px" }}
-    >
-      <path 
-        d="M50 10 L70 40 L50 90 L30 40 Z" 
-        fill="url(#crystalGrad)" 
-        filter="url(#glow)"
-      />
-      <path d="M50 10 L70 40 L50 50 Z" fill="#ffffff" opacity="0.4" />
+    <g transform="scale(0.85) translate(8, 8)">
+      <path d="M50 10 L70 40 L50 90 L30 40 Z" fill="url(#crystalGrad)" />
+      <path d="M50 10 L70 40 L50 50 Z" fill="#ffffff" opacity="0.45" />
       <path d="M50 10 L30 40 L50 50 Z" fill="#000000" opacity="0.2" />
-      <path d="M50 90 L70 40 L50 50 Z" fill="#ffffff" opacity="0.1" />
+      <path d="M50 90 L70 40 L50 50 Z" fill="#ffffff" opacity="0.15" />
       <path d="M50 90 L30 40 L50 50 Z" fill="#000000" opacity="0.3" />
-    </motion.g>
-  </motion.svg>
+    </g>
+  </svg>
 );
 
 const GrowingPlant = ({ level }: { level: number }) => (
-  <motion.svg width="36" height="36" viewBox="0 0 100 100" className="overflow-visible">
+  <svg width="34" height="34" viewBox="0 0 100 100" className="overflow-visible drop-shadow-sm pointer-events-none select-none">
     <defs>
       <linearGradient id="plantGrad" x1="0%" y1="0%" x2="100%" y2="100%">
         <stop offset="0%" stopColor="#4ade80" />
         <stop offset="100%" stopColor="#16a34a" />
       </linearGradient>
     </defs>
-    <motion.g animate={{ rotate: [-3, 3, -3] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} style={{ transformOrigin: "50px 90px" }}>
-      <motion.path 
-        d="M50 90 Q40 60 50 30" 
-        stroke="url(#plantGrad)" 
-        strokeWidth="4" 
-        fill="none" 
-        strokeLinecap="round"
-        initial={{ pathLength: 0 }}
-        animate={{ pathLength: 1 }}
-        transition={{ duration: 1.5, ease: "easeOut" }}
-      />
-      <motion.path 
-        d="M48 60 Q20 50 30 30 Q45 40 48 60 Z" 
-        fill="url(#plantGrad)"
-        initial={{ scale: 0 }}
-        animate={{ scale: level > 0 ? 1 : 0 }}
-        transition={{ delay: 0.5, type: "spring" }}
-        style={{ transformOrigin: "48px 60px" }}
-      />
-      <motion.path 
-        d="M52 50 Q80 40 70 20 Q55 30 52 50 Z" 
-        fill="url(#plantGrad)"
-        initial={{ scale: 0 }}
-        animate={{ scale: level > 1 ? 1 : 0 }}
-        transition={{ delay: 0.7, type: "spring" }}
-        style={{ transformOrigin: "52px 50px" }}
-      />
-      <motion.path 
-        d="M50 30 Q35 10 50 0 Q65 10 50 30 Z" 
-        fill="#22c55e"
-        initial={{ scale: 0 }}
-        animate={{ scale: level > 2 ? 1 : 0 }}
-        transition={{ delay: 0.9, type: "spring" }}
-        style={{ transformOrigin: "50px 30px" }}
-      />
-    </motion.g>
-  </motion.svg>
+    <g>
+      <path d="M50 90 Q40 60 50 30" stroke="url(#plantGrad)" strokeWidth="4" fill="none" strokeLinecap="round" />
+      {level > 0 && <path d="M48 60 Q20 50 30 30 Q45 40 48 60 Z" fill="url(#plantGrad)" />}
+      {level > 1 && <path d="M52 50 Q80 40 70 20 Q55 30 52 50 Z" fill="url(#plantGrad)" />}
+      {level > 2 && <path d="M50 30 Q35 10 50 0 Q65 10 50 30 Z" fill="#22c55e" />}
+    </g>
+  </svg>
 );
 
 const EnergyRingsArtwork = () => (
-  <motion.svg width="36" height="36" viewBox="0 0 100 100">
-    <motion.g animate={{ rotate: 360 }} transition={{ duration: 10, repeat: Infinity, ease: "linear" }} style={{ transformOrigin: "50px 50px" }}>
-      <circle cx="50" cy="50" r="30" stroke="#3b82f6" strokeWidth="2" fill="none" strokeDasharray="10 5" opacity="0.6"/>
-    </motion.g>
-    <motion.g animate={{ rotate: -360 }} transition={{ duration: 7, repeat: Infinity, ease: "linear" }} style={{ transformOrigin: "50px 50px" }}>
-      <circle cx="50" cy="50" r="20" stroke="#a855f7" strokeWidth="3" fill="none" strokeDasharray="15 15" opacity="0.8"/>
-    </motion.g>
-    <motion.circle cx="50" cy="50" r="6" fill="#facc15"
-      animate={{ scale: [1, 1.4, 1], opacity: [0.7, 1, 0.7] }} transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-    />
-  </motion.svg>
+  <svg width="34" height="34" viewBox="0 0 100 100" className="drop-shadow-sm pointer-events-none select-none">
+    <circle cx="50" cy="50" r="30" stroke="#3b82f6" strokeWidth="2.5" fill="none" strokeDasharray="10 5" opacity="0.6"/>
+    <circle cx="50" cy="50" r="20" stroke="#a855f7" strokeWidth="3" fill="none" strokeDasharray="15 15" opacity="0.8"/>
+    <circle cx="50" cy="50" r="6" fill="#facc15" />
+  </svg>
 );
 
 const getArtwork = (streak: number) => {
@@ -157,35 +103,17 @@ const PremiumHabitCard: React.FC<PremiumHabitCardProps> = ({
 
   return (
     <motion.div
-      layout
       whileHover={{ scale: 1.01, transition: { type: "spring", stiffness: 400, damping: 12 } }}
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
-      className={`relative group rounded-2xl p-3 sm:p-3.5 overflow-hidden transition-all duration-300 border ${
+      className={`relative group rounded-2xl p-3 sm:p-3.5 overflow-hidden transition-all duration-200 border ${
         isCompleted
           ? 'bg-gradient-to-br from-card/95 to-primary/10 border-primary/30 shadow-[0_0_20px_-5px_rgba(var(--primary),0.12)]'
           : isUncompleted
           ? 'bg-gradient-to-br from-card/95 to-rose-500/10 border-rose-500/30 shadow-[0_0_15px_-5px_rgba(244,63,94,0.12)]'
-          : 'bg-surface-elevated/95 backdrop-blur-xl border-border/70 hover:border-border hover:shadow-md hover:bg-surface-elevated'
+          : 'bg-surface-elevated/95 border-border/70 hover:border-border hover:shadow-md hover:bg-surface-elevated'
       }`}
     >
-      {isCompleted && (
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: [0, 0.15, 0], scale: [0.8, 1.2, 1.5] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeOut" }}
-          className="absolute inset-0 bg-primary/25 rounded-full blur-[60px] pointer-events-none"
-          style={{ transformOrigin: 'center' }}
-        />
-      )}
-
-      <div className="absolute -right-16 -top-16 opacity-[0.03] pointer-events-none">
-         <motion.svg width="250" height="250" viewBox="0 0 100 100" animate={{ rotate: 360 }} transition={{ duration: 50, repeat: Infinity, ease: "linear" }} style={{ transformOrigin: '50px 50px' }}>
-           <circle cx="50" cy="50" r="45" stroke="currentColor" strokeWidth="1" fill="none" strokeDasharray="4 4" />
-           <circle cx="50" cy="50" r="35" stroke="currentColor" strokeWidth="2" fill="none" strokeDasharray="10 5" />
-         </motion.svg>
-      </div>
-      
       {/* Top-Right Streak Prism / Crystal Artwork */}
       <div className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 pointer-events-none drop-shadow-md z-10 transition-transform group-hover:scale-105 scale-85 origin-top-right">
         {getArtwork(habit.streakCount)}
@@ -198,13 +126,6 @@ const PremiumHabitCard: React.FC<PremiumHabitCardProps> = ({
           <div className="flex items-center gap-1.5 shrink-0">
             {/* Complete Check Button (✓) */}
             <div className="relative">
-              {isCompleted && (
-                <motion.div
-                  animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="absolute inset-0 bg-primary rounded-xl blur-xs pointer-events-none"
-                />
-              )}
               <motion.button
                 whileTap={!isFutureDate && !isPastGracePeriod ? { scale: 0.93 } : undefined}
                 disabled={isFutureDate || isPastGracePeriod}
@@ -245,13 +166,6 @@ const PremiumHabitCard: React.FC<PremiumHabitCardProps> = ({
 
             {/* Not Completed Button (✗) */}
             <div className="relative">
-              {isUncompleted && (
-                <motion.div
-                  animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="absolute inset-0 bg-rose-500 rounded-xl blur-xs pointer-events-none"
-                />
-              )}
               <motion.button
                 whileTap={!isFutureDate ? { scale: 0.93 } : undefined}
                 disabled={isFutureDate}
@@ -292,40 +206,30 @@ const PremiumHabitCard: React.FC<PremiumHabitCardProps> = ({
                 <Lucide.BatteryCharging size={11} className="text-primary shrink-0" /> 
                 <span className="font-bold text-foreground/90 whitespace-nowrap">Vitality</span>
                 {isCompleted && (
-                  <motion.span
-                    animate={{ scale: [1, 1.25, 1], opacity: [0.75, 1, 0.75] }}
-                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                  <span
                     className="shrink-0 inline-flex items-center text-primary ml-0.5"
                     title="Completed today"
                   >
                     <Lucide.Sparkles size={11} />
-                  </motion.span>
+                  </span>
                 )}
               </span>
               <span className="text-[11px] font-bold text-foreground font-mono ml-1 shrink-0">{energyLevel}%</span>
             </div>
             <div className="h-1.5 w-full bg-secondary/80 rounded-full overflow-hidden">
-              <motion.div 
-                initial={{ width: 0 }}
-                animate={{ width: `${energyLevel}%` }}
-                transition={{ duration: 1.5, ease: "easeOut" }}
-                className="h-full bg-gradient-to-r from-primary/50 to-primary relative"
-              >
-                 <motion.div
-                   animate={{ x: ['-100%', '200%'] }}
-                   transition={{ duration: 2, repeat: Infinity, ease: "linear", delay: 1 }}
-                   className="absolute inset-0 w-1/2 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12"
-                 />
-              </motion.div>
+              <div 
+                style={{ width: `${energyLevel}%` }}
+                className="h-full bg-gradient-to-r from-primary/50 to-primary transition-all duration-500"
+              />
             </div>
           </div>
         </div>
 
         {/* DOWN/BOTTOM SECTION: Full Habit Name & Multi-line Description */}
         <div className="min-w-0 pt-0.5">
-          <motion.h3 layout className="text-sm font-bold tracking-tight text-foreground block leading-snug">
+          <h3 className="text-sm font-bold tracking-tight text-foreground block leading-snug">
             <span className="break-words">{habit.name}</span>
-          </motion.h3>
+          </h3>
           {habit.description && (
             <p className="text-[11.5px] text-muted-foreground font-normal mt-0.5 leading-relaxed break-words line-clamp-2">
               {habit.description}
@@ -344,28 +248,23 @@ const PremiumHabitCard: React.FC<PremiumHabitCardProps> = ({
           )}
         </div>
 
-        {/* Streaks & Category Tags + Action Controls */}
-        <div className="flex items-center justify-between gap-1.5 text-[10.5px] font-semibold flex-wrap">
-          <div className="flex flex-wrap items-center gap-1.5">
-            <div className="flex items-center gap-1 bg-surface-elevated/95 px-2 py-0.5 rounded-lg border border-border/70 shadow-2xs">
-              <motion.div
-                animate={{ rotate: [-5, 5, -5], scale: [1, 1.15, 1] }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <Lucide.Flame size={12} className={habit.streakCount > 0 ? "text-amber-400 fill-amber-400" : "text-amber-400/60"} />
-              </motion.div>
+        {/* Streaks & Category Tags + Action Controls - STRICT SINGLE LINE */}
+        <div className="flex items-center justify-between gap-1.5 text-[10px] sm:text-[10.5px] font-semibold flex-nowrap w-full">
+          <div className="flex items-center gap-1.5 flex-nowrap overflow-hidden min-w-0 flex-1">
+            <div className="flex items-center gap-1 bg-surface-elevated/95 px-2 py-0.5 rounded-lg border border-border/70 shadow-2xs shrink-0" title={`Current streak: ${habit.streakCount} days`}>
+              <Lucide.Flame size={12} className={habit.streakCount > 0 ? "text-amber-400 fill-amber-400" : "text-amber-400/60"} />
               <span className={habit.streakCount > 0 ? "text-amber-400 font-bold" : "text-secondary font-medium"}>{habit.streakCount}d</span>
             </div>
 
-            <div className="flex items-center gap-1 bg-surface-elevated/95 px-2 py-0.5 rounded-lg border border-border/70 shadow-2xs">
+            <div className="flex items-center gap-1 bg-surface-elevated/95 px-2 py-0.5 rounded-lg border border-border/70 shadow-2xs shrink-0" title={`Best streak: ${habit.longestStreak} days`}>
               <Lucide.Trophy size={12} className={habit.longestStreak > 0 ? "text-amber-400" : "text-amber-400/60"} />
               <span className={habit.longestStreak > 0 ? "text-amber-400 font-bold" : "text-secondary font-medium"}>Best: {habit.longestStreak}</span>
             </div>
 
             {category && (
-              <div className="flex items-center gap-1 bg-surface-elevated/95 px-2 py-0.5 rounded-lg border border-border/70 shadow-2xs max-w-full">
+              <div className="flex items-center gap-1 bg-surface-elevated/95 px-2 py-0.5 rounded-lg border border-border/70 shadow-2xs min-w-0 truncate shrink" title={`Category: ${category.name}`}>
                 <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: category.color }} />
-                <span className="text-foreground/90 font-medium truncate max-w-[120px]">{category.name}</span>
+                <span className="text-foreground/90 font-medium truncate">{category.name}</span>
               </div>
             )}
           </div>

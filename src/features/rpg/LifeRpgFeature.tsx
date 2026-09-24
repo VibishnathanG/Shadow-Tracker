@@ -305,9 +305,9 @@ export default function LifeRpgFeature() {
                   transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
                 />
               )}
-              <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-3xl bg-surface-elevated border-2 border-primary/40 flex items-center justify-center text-primary shadow-2xl relative overflow-hidden group shrink-0">
+                <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-3xl bg-surface-elevated border-2 border-primary/40 flex items-center justify-center text-primary shadow-2xl relative overflow-hidden group shrink-0">
                 <Lucide.Crown size={34} className={!isEco ? "animate-bounce-subtle" : ""} />
-                <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded-md bg-primary text-primary-foreground text-[9px] font-black uppercase tracking-wider">
+                <div className="absolute bottom-1 right-1 px-2 py-0.5 rounded-md bg-primary text-primary-foreground text-[11px] font-black uppercase tracking-wider">
                   Lv.{currentLevel}
                 </div>
               </div>
@@ -335,7 +335,7 @@ export default function LifeRpgFeature() {
                 {characterTitle}
               </p>
 
-              <p className="text-[11px] sm:text-xs text-muted-foreground font-medium">
+              <p className="text-xs text-muted-foreground font-medium">
                 Lifetime XP: <strong className="text-foreground font-mono">{lifetimeXp.toLocaleString()}</strong> • 4-Pillar Life OS
               </p>
             </div>
@@ -370,7 +370,7 @@ export default function LifeRpgFeature() {
               </motion.div>
             </div>
 
-            <div className="flex justify-between items-center text-[11px] font-semibold text-muted-foreground pt-0.5">
+            <div className="flex justify-between items-center text-xs font-semibold text-muted-foreground pt-0.5">
               <span>{Math.max(0, xpForNextLevel - currentXp).toLocaleString()} XP to Level {Math.min(100, currentLevel + 1)}</span>
               <button
                 type="button"
@@ -398,7 +398,7 @@ export default function LifeRpgFeature() {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="filter-pill text-[11px] font-bold text-muted-foreground">
+            <span className="filter-pill text-xs font-bold text-muted-foreground">
               Universal Algorithm
             </span>
           </div>
@@ -420,14 +420,14 @@ export default function LifeRpgFeature() {
                     </div>
                     <div>
                       <h3 className="text-base font-black text-foreground tracking-tight">{tree.name}</h3>
-                      <p className="text-[11px] text-muted-foreground font-medium">{tree.sub}</p>
+                      <p className="text-xs text-muted-foreground font-medium">{tree.sub}</p>
                     </div>
                   </div>
                   <div className="text-right">
                     <span className={`filter-pill text-xs font-black font-mono ${tree.color} ${tree.border} ${tree.badgeBg}`}>
                       Tier {tree.level} / 10
                     </span>
-                    <span className="block text-[9px] text-muted-foreground font-semibold mt-1">
+                    <span className="block text-xs text-muted-foreground font-medium mt-1">
                       {tree.statDesc}
                     </span>
                   </div>
@@ -435,7 +435,7 @@ export default function LifeRpgFeature() {
 
                 {/* Milestone Nodes Grid */}
                 <div className="space-y-2">
-                  <div className="flex justify-between items-center text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
+                  <div className="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-muted-foreground">
                     <span>Pillar Milestones</span>
                     <span>Requirement</span>
                   </div>
@@ -462,15 +462,15 @@ export default function LifeRpgFeature() {
                             {isUnlocked ? (
                               <Lucide.CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
                             ) : isCurrentTarget ? (
-                              <span className="text-[9px] font-black uppercase text-amber-400 bg-amber-500/15 px-1.5 py-0.5 rounded">Next</span>
+                              <span className="text-[11px] font-bold uppercase text-amber-400 bg-amber-500/15 px-2 py-0.5 rounded-full">Next</span>
                             ) : (
                               <Lucide.Lock size={12} className="text-muted-foreground shrink-0" />
                             )}
                           </div>
-                          <p className="text-[11px] text-muted-foreground font-medium leading-relaxed">
+                          <p className="text-xs text-muted-foreground font-medium leading-relaxed">
                             {node.desc}
                           </p>
-                          <div className="text-[9px] font-mono text-secondary font-bold">
+                          <div className="text-[11px] font-mono text-secondary font-semibold">
                             Tier {node.minLevel} Prerequisite
                           </div>
                         </div>
@@ -525,7 +525,7 @@ export default function LifeRpgFeature() {
                     <h3 className="text-xs font-black uppercase tracking-wider text-foreground">
                       {q.title}
                     </h3>
-                    <span className="filter-pill text-[10px] font-black text-amber-400 border-amber-500/30 bg-amber-500/15 py-0.5 px-2.5">
+                    <span className="filter-pill text-xs font-bold text-amber-400 border-amber-500/30 bg-amber-500/15 py-0.5 px-2.5">
                       +{q.xpReward} XP
                     </span>
                   </div>
@@ -550,7 +550,7 @@ export default function LifeRpgFeature() {
                 </div>
 
                 <div className="pt-1 flex items-center justify-between border-t border-border/50">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground capitalize">
+                  <span className="text-xs font-semibold tracking-wider text-muted-foreground capitalize">
                     Pillar: {q.category}
                   </span>
 
@@ -621,13 +621,13 @@ export default function LifeRpgFeature() {
                     <div>
                       <h4 className="text-xs font-black text-foreground flex items-center gap-2">
                         {m.title}
-                        {isCurrent && <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary text-primary-foreground font-extrabold">CURRENT</span>}
+                        {isCurrent && <span className="text-[11px] px-2 py-0.5 rounded-full bg-primary text-primary-foreground font-bold">CURRENT</span>}
                       </h4>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">{m.perk}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{m.perk}</p>
                     </div>
                   </div>
 
-                  <span className="filter-pill text-[10px] font-extrabold text-secondary">
+                  <span className="filter-pill text-xs font-bold text-secondary">
                     {m.badge}
                   </span>
                 </div>
@@ -649,7 +649,7 @@ export default function LifeRpgFeature() {
               <Lucide.Sparkles size={40} className={!isEco ? 'animate-pulse' : ''} />
             </div>
             <div>
-              <span className="text-[10px] font-black text-primary uppercase tracking-widest">
+              <span className="text-xs font-bold text-primary uppercase tracking-widest">
                 Current Ascension Tier
               </span>
               <h3 className="text-2xl font-black text-foreground tracking-tight">
@@ -662,7 +662,7 @@ export default function LifeRpgFeature() {
           </div>
 
           <div className="p-4 rounded-2xl bg-surface-elevated/80 border border-border text-left space-y-2 text-xs font-medium">
-            <h4 className="font-black text-foreground uppercase tracking-wider text-[11px]">Universal Ascension Rule</h4>
+            <h4 className="font-black text-foreground uppercase tracking-wider text-xs">Universal Ascension Rule</h4>
             <p className="text-muted-foreground leading-relaxed">
               All XP is strictly earned from real-life actions (tasks completed, habits checked, focus scores logged, and journal entries written). As you reach higher levels, exponential scaling rewards long-term discipline.
             </p>
