@@ -227,7 +227,7 @@ const PremiumHabitCard: React.FC<PremiumHabitCardProps> = ({
 
         {/* DOWN/BOTTOM SECTION: Full Habit Name & Multi-line Description */}
         <div className="min-w-0 pt-0.5">
-          <h3 className="text-sm font-bold tracking-tight text-foreground block leading-snug">
+          <h3 className="text-sm item-title tracking-tight block leading-snug">
             <span className="break-words">{habit.name}</span>
           </h3>
           {habit.description && (
@@ -262,9 +262,17 @@ const PremiumHabitCard: React.FC<PremiumHabitCardProps> = ({
             </div>
 
             {category && (
-              <div className="flex items-center gap-1 bg-surface-elevated/95 px-2 py-0.5 rounded-lg border border-border/70 shadow-2xs min-w-0 truncate shrink" title={`Category: ${category.name}`}>
+              <div 
+                className="group/cat relative flex items-center gap-1 bg-surface-elevated/95 px-2 py-0.5 rounded-lg border border-border/70 shadow-2xs min-w-0 max-w-[140px] truncate shrink hover:max-w-none hover:z-30 transition-all cursor-default" 
+                title={`Category: ${category.name}`}
+              >
                 <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: category.color }} />
                 <span className="text-foreground/90 font-medium truncate">{category.name}</span>
+                {/* Instant floating tooltip on hover ensuring full category is always 100% visible */}
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover/cat:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-surface-elevated/98 border border-border text-[11px] font-bold text-foreground shadow-xl whitespace-nowrap z-50 pointer-events-none backdrop-blur-md">
+                  <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: category.color }} />
+                  <span>{category.name}</span>
+                </div>
               </div>
             )}
           </div>

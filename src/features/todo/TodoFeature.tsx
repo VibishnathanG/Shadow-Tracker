@@ -1092,18 +1092,18 @@ export default function TodoFeature() {
           </div>
         </div>
 
-        {/* Search, Priority & Sort Row (No Category!) */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+        {/* Search, Priority & Sort Row — Compact Single Row */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-0.5">
           {/* Search Box */}
-          <div className="relative sm:col-span-2">
-            <Lucide.Search className="absolute left-3 top-2.5 text-muted-foreground pointer-events-none" size={15} />
+          <div className="relative flex-1 min-w-0">
+            <Lucide.Search className="absolute left-3 top-2.5 text-muted-foreground pointer-events-none" size={14} />
             <input
               type="text"
               maxLength={80}
               placeholder="Search ToDos..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full text-xs sm:text-sm !pl-9 !pr-8 py-2 bg-surface-elevated rounded-xl border border-border/60 text-foreground placeholder-muted-foreground focus:border-emerald-500 focus:outline-none transition-all"
+              className="w-full text-xs sm:text-sm !pl-8.5 !pr-8 py-2 bg-surface-elevated rounded-xl border border-border/60 text-foreground placeholder-muted-foreground focus:border-emerald-500 focus:outline-none transition-all"
             />
             {searchQuery && (
               <button
@@ -1116,11 +1116,11 @@ export default function TodoFeature() {
           </div>
 
           {/* Priority Select */}
-          <div className="relative">
+          <div className="relative w-full sm:w-44 shrink-0">
             <select
               value={priorityFilter}
               onChange={e => setPriorityFilter(e.target.value as TodoFilterPriority)}
-              className="w-full text-xs sm:text-sm pl-3 pr-8 py-2 bg-surface-elevated rounded-xl border border-border/60 text-foreground outline-none appearance-none cursor-pointer focus:border-emerald-500 transition-all"
+              className="w-full text-xs sm:text-sm pl-3 pr-8 py-2 bg-surface-elevated rounded-xl border border-border/60 text-foreground outline-none appearance-none cursor-pointer focus:border-emerald-500 transition-all font-medium"
             >
               <option value="all">All Priorities</option>
               <option value="high">High Priority (🔥)</option>
@@ -1131,11 +1131,11 @@ export default function TodoFeature() {
           </div>
 
           {/* Sort By Select */}
-          <div className="relative sm:col-span-3">
+          <div className="relative w-full sm:w-48 shrink-0">
             <select
               value={sortBy}
               onChange={e => setSortBy(e.target.value as TodoSortOption)}
-              className="w-full text-xs sm:text-sm pl-3 pr-8 py-2 bg-surface-elevated rounded-xl border border-border/60 text-foreground outline-none appearance-none cursor-pointer focus:border-emerald-500 transition-all"
+              className="w-full text-xs sm:text-sm pl-3 pr-8 py-2 bg-surface-elevated rounded-xl border border-border/60 text-foreground outline-none appearance-none cursor-pointer focus:border-emerald-500 transition-all font-medium"
             >
               <option value="createdAt_desc">Sort: Newest First</option>
               <option value="createdAt_asc">Sort: Oldest First</option>
@@ -1233,10 +1233,10 @@ export default function TodoFeature() {
                     {/* Title */}
                     <h4
                       onClick={() => handleToggleComplete(todo.id)}
-                      className={`text-sm font-bold line-clamp-2 leading-snug cursor-pointer select-none transition-all ${
+                      className={`text-sm item-title line-clamp-2 leading-snug cursor-pointer select-none transition-all ${
                         todo.isCompleted
-                          ? 'line-through text-muted-foreground'
-                          : 'text-foreground hover:text-emerald-400'
+                          ? 'line-through'
+                          : 'hover:text-emerald-400'
                       }`}
                     >
                       {todo.title}
@@ -1345,10 +1345,10 @@ export default function TodoFeature() {
                         {/* Title */}
                         <h3
                           onClick={() => handleToggleComplete(todo.id)}
-                          className={`text-sm sm:text-base font-bold tracking-tight cursor-pointer select-none transition-all ${
+                          className={`text-sm sm:text-base item-title tracking-tight cursor-pointer select-none transition-all ${
                             todo.isCompleted
-                              ? 'line-through text-muted-foreground'
-                              : 'text-foreground hover:text-emerald-400'
+                              ? 'line-through'
+                              : 'hover:text-emerald-400'
                           }`}
                         >
                           {todo.title}

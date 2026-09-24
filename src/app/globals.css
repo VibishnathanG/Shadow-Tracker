@@ -318,6 +318,58 @@ html[data-theme="midnight"] .text-secondary, html[data-theme="purple"] .text-sec
   color: #cbd5e1 !important; /* Bright high-contrast secondary */
 }
 
+/* Distinctive Item Titles for Tasks, Habits, and ToDos */
+.item-title,
+.card-item-title {
+  font-weight: 750 !important;
+  letter-spacing: -0.015em !important;
+  line-height: 1.35 !important;
+  transition: color 0.15s ease;
+}
+
+/* White / Light Theme: Leave as it is (pure ink black) */
+html[data-theme="white"] .item-title,
+html[data-theme="light"] .item-title,
+.theme-white .item-title,
+.theme-light .item-title {
+  color: #0f172a !important;
+}
+
+/* Multi-Color Dark & Creamy White Mixed Theme ("Spectrum") */
+html[data-theme="spectrum"] .item-title,
+.theme-spectrum .item-title,
+.theme-midnight .item-title,
+.theme-purple .item-title,
+.theme-pine .item-title {
+  color: #f1f5f9 !important; /* Luminous crisp ice-white */
+}
+
+/* Obsidian Theme: Soft radiant lavender-white (accentuates purple palette) */
+html[data-theme="obsidian"] .item-title,
+.theme-obsidian .item-title {
+  color: #faf5ff !important;
+}
+
+/* OneDark Theme: Crisp icy azure-white */
+html[data-theme="onedark"] .item-title,
+.theme-onedark .item-title {
+  color: #f0f6fc !important;
+}
+
+/* Cyberpunk Theme: Luminous neon ice white */
+html[data-theme="cyberpunk"] .item-title,
+.theme-cyberpunk .item-title {
+  color: #fdf4ff !important;
+}
+
+/* Dim completed titles correctly */
+.item-title.line-through,
+.line-through.item-title {
+  color: var(--text-muted, #94a3b8) !important;
+  text-shadow: none !important;
+  opacity: 0.75 !important;
+}
+
 /* Glass & Layer Tokens (legacy — kept for CommandBar and other special components) */
 .glass-panel {
   background: var(--card);

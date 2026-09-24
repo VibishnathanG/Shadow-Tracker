@@ -636,8 +636,8 @@ export const TasksFeature: React.FC = () => {
                     task.isCompleted ? 'opacity-65 bg-surface-elevated/50 border-border/30' : ''
                   }`}
                 >
-                  <div className="space-y-2">
-                    {/* Row 1: Checkbox + Assignee (left) & Kanban Status (right) */}
+                    <div className="space-y-2">
+                      {/* Line 1: Checkbox + Assignee (left) & Category (right) */}
                       <div className="flex items-center justify-between gap-1.5 w-full flex-nowrap overflow-hidden">
                         <div className="flex items-center gap-1.5 min-w-0 flex-nowrap">
                           <button
@@ -674,7 +674,23 @@ export const TasksFeature: React.FC = () => {
                           </span>
                         </div>
 
-                        {/* Label 2: Kanban Progress (second to hide on narrow cards) */}
+                        {/* Label 2: Category (top-right) */}
+                        {taskCategory ? (
+                          <span className="text-[11px] font-medium text-muted-foreground hidden min-[240px]:inline-flex items-center gap-1.5 bg-surface-elevated/90 border border-border/60 px-2 py-0.5 rounded-full shrink-0 truncate max-w-[130px] ml-auto" title={`Category: ${taskCategory.name}`}>
+                            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: taskCategory.color }} />
+                            <span className="truncate">{taskCategory.name}</span>
+                          </span>
+                        ) : (
+                          <span className="text-[11px] font-medium text-muted-foreground/70 hidden min-[240px]:inline-flex items-center gap-1.5 bg-surface-elevated/70 border border-border/50 px-2 py-0.5 rounded-full shrink-0 truncate ml-auto">
+                            <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-muted-foreground/40" />
+                            <span>General</span>
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Line 2: Kanban Progress (bottom-left) & Priority (bottom-right) */}
+                      <div className="flex items-center justify-between gap-1.5 w-full flex-nowrap overflow-hidden">
+                        {/* Label 3: Kanban Progress */}
                         {(() => {
                           const status = task.status || (task.isCompleted ? 'done' : 'todo');
                           const statusConfig = {
@@ -684,27 +700,11 @@ export const TasksFeature: React.FC = () => {
                           }[status] || { label: 'To Do', color: 'text-sky-700 dark:text-sky-400 bg-sky-500/10 border-sky-500/25' };
 
                           return (
-                            <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${statusConfig.color} shrink-0 hidden min-[240px]:inline-flex`}>
+                            <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${statusConfig.color} shrink-0 hidden min-[220px]:inline-flex`}>
                               {statusConfig.label}
                             </span>
                           );
                         })()}
-                      </div>
-
-                      {/* Row 2: Category (left, first to hide if screen width is limited) & Priority (right) */}
-                      <div className="flex items-center justify-between gap-1.5 w-full flex-nowrap overflow-hidden">
-                        {/* Label 3: Category */}
-                        {taskCategory ? (
-                          <span className="text-[11px] font-medium text-muted-foreground hidden min-[280px]:inline-flex items-center gap-1.5 bg-surface-elevated/90 border border-border/60 px-2 py-0.5 rounded-full shrink-0 truncate max-w-[130px]" title={`Category: ${taskCategory.name}`}>
-                            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: taskCategory.color }} />
-                            <span className="truncate">{taskCategory.name}</span>
-                          </span>
-                        ) : (
-                          <span className="text-[11px] font-medium text-muted-foreground/70 hidden min-[280px]:inline-flex items-center gap-1.5 bg-surface-elevated/70 border border-border/50 px-2 py-0.5 rounded-full shrink-0 truncate">
-                            <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-muted-foreground/40" />
-                            <span>General</span>
-                          </span>
-                        )}
 
                         {/* Label 4: Priority / Severity */}
                         <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border shrink-0 ml-auto ${
@@ -718,7 +718,7 @@ export const TasksFeature: React.FC = () => {
                         </span>
                       </div>
 
-                      <h4 className={`text-sm font-bold line-clamp-2 leading-snug ${task.isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                      <h4 className={`text-sm item-title line-clamp-2 leading-snug ${task.isCompleted ? 'line-through text-muted-foreground' : ''}`}>
                         {task.title}
                       </h4>
 
@@ -852,7 +852,7 @@ export const TasksFeature: React.FC = () => {
                     </motion.button>
 
                     <div className="min-w-0">
-                      <h3 className={`text-base font-bold transition-colors ${task.isCompleted ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                      <h3 className={`text-base item-title transition-colors ${task.isCompleted ? 'line-through text-muted-foreground' : ''}`}>
                         {task.title}
                       </h3>
                       {task.description && (
