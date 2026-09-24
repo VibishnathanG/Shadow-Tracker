@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Shadow Tracker",
-  "version": "6.1.0",
+  "version": "7.0.0",
   "identifier": "com.shadowtracker.app",
   "build": {
     "frontendDist": "../out",
