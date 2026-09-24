@@ -642,6 +642,7 @@ const DEFAULT_SETTINGS: Settings = {
   unlockedBadges: [],
   githubSyncOnLaunch: true,
   ecoMode: false,
+  disableGpuAcceleration: false,
   minimizeToTray: true,
   habitGracePeriodDays: 3,
   alias: 'Shadow',

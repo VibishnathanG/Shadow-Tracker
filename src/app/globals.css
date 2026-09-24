@@ -92,8 +92,41 @@ html, body, input, textarea, select, button {
   text-rendering: optimizeLegibility;
 }
 
-/* Zero-CPU Idle Freeze when Hidden or Eco/Low-GPU Mode active */
+/* Core GPU Hardware Acceleration & Dynamic Graphics Killswitch (Zero-GPU Mode) */
+html.no-gpu,
+html.no-gpu *,
+html.no-gpu *::before,
+html.no-gpu *::after,
+html.gpu-disabled,
+html.gpu-disabled *,
+html.gpu-disabled *::before,
+html.gpu-disabled *::after {
+  animation: none !important;
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  animation-play-state: paused !important;
+  transition: none !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+  transform: none !important;
+  will-change: auto !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+/* Zero-CPU Idle Freeze when Hidden, Minimized or Blurred in Background */
+html.is-hidden,
 html.is-hidden *,
+html.is-hidden *::before,
+html.is-hidden *::after,
+html.window-blurred,
+html.window-blurred *,
+html.window-blurred *::before,
+html.window-blurred *::after,
 html.eco-mode *,
 html.low-gpu-mode *,
 html.eco-mode *::before,
@@ -113,19 +146,28 @@ html.low-gpu-mode .animate-pulse,
 html.eco-mode .animate-bounce,
 html.low-gpu-mode .animate-bounce,
 html.eco-mode .animate-pulse-slow,
-html.low-gpu-mode .animate-pulse-slow {
+html.low-gpu-mode .animate-pulse-slow,
+html.is-hidden .animate-spin,
+html.window-blurred .animate-spin {
   animation: none !important;
 }
 
 /* Halt framer-motion GPU layers when hidden or in eco mode — prevents idle GPU compositing */
-html.is-hidden [style*="transform"], html.eco-mode [style*="transform"], html.low-gpu-mode [style*="transform"] {
+html.is-hidden [style*="transform"],
+html.window-blurred [style*="transform"],
+html.eco-mode [style*="transform"],
+html.low-gpu-mode [style*="transform"],
+html.no-gpu [style*="transform"] {
   will-change: auto !important;
 }
 
-/* GPU performance hints for interactive elements */
-button, a, [role="button"] {
-  will-change: auto;
-  transform: translateZ(0);
+/* Ensure Task, ToDo, and status badge labels never collapse below legible 11px on Windows WebView2 */
+.task-badge-label,
+[class*="text-[7.5px]"],
+[class*="text-[8px]"],
+[class*="text-[8.5px]"] {
+  font-size: 11px !important;
+  line-height: 1.15 !important;
 }
 
 /* Mobile Performance Boost & Minimal Ambient Canvas */

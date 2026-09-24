@@ -17,7 +17,7 @@ import { DayReviewModal } from '@/components/DayReviewModal';
 import { renderCritterComponent, CritterType, ALL_CRITTERS, DashboardIdleCrittersOverlay } from '@/components/AmbientCritters';
 
 // --- Tile Hologram GIF-Art ---
-const useIsEco = () => useShadowTrackerStore((s) => Boolean(s.settings.ecoMode || s.settings.lowGpuMode));
+const useIsEco = () => useShadowTrackerStore((s) => Boolean(s.settings.ecoMode || s.settings.lowGpuMode || s.settings.disableGpuAcceleration));
 
 const TileArtCompanion = ({ variant = 0, cycleTrigger = 0 }: { variant?: number; cycleTrigger?: number }) => {
   const isEco = useIsEco();
@@ -38,6 +38,7 @@ const TileArtCompanion = ({ variant = 0, cycleTrigger = 0 }: { variant?: number;
   useEffect(() => {
     if (isEco) return;
     const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
       const chosen = ALL_CRITTERS[Math.floor(Math.random() * ALL_CRITTERS.length)];
       setActiveCritter(chosen);
       setCritterKey((k) => k + 1);
@@ -363,6 +364,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   // Wisp wisdom stays for at least 10s (auto-cycles every 12 seconds)
   useEffect(() => {
     const timer = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
       const allLines = getAllWispLines(wispCustomLines);
       if (allLines.length === 0) return;
       setWispSpeechIndex(prev => (prev + 1) % allLines.length);

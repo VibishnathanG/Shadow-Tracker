@@ -597,6 +597,7 @@ const StaticEternalRings: React.FC<{ theme: string }> = ({ theme }) => {
    ───────────────────────────────────────────────────────────── */
 export const ThemeAmbientBackground: React.FC<ThemeAmbientBackgroundProps> = React.memo(({ theme }) => {
   const [isHidden, setIsHidden] = React.useState(false);
+  const isGpuDisabled = useShadowTrackerStore((s) => Boolean(s.settings.disableGpuAcceleration));
   const isEcoOrLowGpu = useShadowTrackerStore((s) => Boolean(s.settings.ecoMode || s.settings.lowGpuMode));
 
   React.useEffect(() => {
@@ -609,8 +610,21 @@ export const ThemeAmbientBackground: React.FC<ThemeAmbientBackgroundProps> = Rea
         document.documentElement.classList.remove('is-hidden');
       }
     };
+
+    const handleBlur = () => {
+      if (!document.hasFocus()) {
+        document.documentElement.classList.add('window-blurred');
+      }
+    };
+
+    const handleFocus = () => {
+      document.documentElement.classList.remove('window-blurred');
+    };
+
     handleVisibility();
     document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('blur', handleBlur);
+    window.addEventListener('focus', handleFocus);
 
     // Listen for Tauri native window backgrounding / eco mode event
     if (typeof window !== 'undefined' && ((window as any).__TAURI__ || (window as any).__TAURI_INTERNALS__)) {
@@ -623,10 +637,35 @@ export const ThemeAmbientBackground: React.FC<ThemeAmbientBackgroundProps> = Rea
             });
           }
         }).catch(() => {});
+
+        listen<{ enabled: boolean }>('shadow-eco-mode', (e) => {
+          if (e.payload && typeof e.payload.enabled === 'boolean') {
+            setIsHidden(e.payload.enabled);
+            if (e.payload.enabled) {
+              document.documentElement.classList.add('is-hidden', 'window-blurred');
+            } else {
+              document.documentElement.classList.remove('is-hidden', 'window-blurred');
+            }
+          }
+        }).catch(() => {});
+
+        listen<{ minimized?: boolean; hidden?: boolean; focused?: boolean }>('shadow-window-state', (e) => {
+          const isBackground = Boolean(e.payload?.minimized || e.payload?.hidden || (typeof e.payload?.focused === 'boolean' && !e.payload.focused));
+          setIsHidden(isBackground);
+          if (isBackground) {
+            document.documentElement.classList.add('is-hidden', 'window-blurred');
+          } else {
+            document.documentElement.classList.remove('is-hidden', 'window-blurred');
+          }
+        }).catch(() => {});
       }).catch(() => {});
     }
 
-    return () => document.removeEventListener('visibilitychange', handleVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('blur', handleBlur);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   React.useEffect(() => {
@@ -636,11 +675,6 @@ export const ThemeAmbientBackground: React.FC<ThemeAmbientBackgroundProps> = Rea
       document.documentElement.classList.remove('eco-mode', 'low-gpu-mode');
     }
   }, [isEcoOrLowGpu]);
-
-  // When hidden or minimized in background, unmount completely to guarantee 0.0% CPU
-  if (isHidden) {
-    return null;
-  }
 
   const getBgColor = () => {
     switch (theme) {
@@ -656,6 +690,17 @@ export const ThemeAmbientBackground: React.FC<ThemeAmbientBackgroundProps> = Rea
       default: return '#16181d';
     }
   };
+
+  // When GPU hardware acceleration is disabled or window is hidden/minimized, render static color only (0% GPU/CPU)
+  if (isGpuDisabled || isHidden) {
+    return (
+      <div
+        className="theme-ambient-canvas fixed inset-0 z-0 pointer-events-none overflow-hidden"
+        style={{ backgroundColor: getBgColor() }}
+        aria-hidden="true"
+      />
+    );
+  }
 
   const renderThemeAnimation = () => {
     // If Eco Mode is enabled, render static SVG without any Framer Motion RAF loops!

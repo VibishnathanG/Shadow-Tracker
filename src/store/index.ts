@@ -222,6 +222,7 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
         badgesResetTimestamp: new Date().toISOString(),
         ecoMode: isMobileDevice(),
         lowGpuMode: isMobileDevice(),
+        disableGpuAcceleration: false,
         minimizeToTray: true,
         habitGracePeriodDays: 3,
         taskAssignees: ['Shadow', 'Core Lead', 'Operator'],

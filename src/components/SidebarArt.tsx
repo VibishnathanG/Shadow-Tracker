@@ -7,6 +7,10 @@ export const SidebarArt: React.FC = React.memo(() => {
   const { settings } = useShadowTrackerStore();
   const theme = settings.theme || 'obsidian';
 
+  if (settings.disableGpuAcceleration) {
+    return null;
+  }
+
   if (theme === 'obsidian') {
     return (
       <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.25] mix-blend-screen">

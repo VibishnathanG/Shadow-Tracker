@@ -1275,7 +1275,7 @@ export const renderCritterComponent = (
 // --- GLOBAL IDLE WANDERER ---
 // Completely disabled when ecoMode or lowGpuMode is enabled!
 export const DashboardIdleCrittersOverlay: React.FC = () => {
-  const isEco = useShadowTrackerStore((s) => Boolean(s.settings.ecoMode || s.settings.lowGpuMode));
+  const isEco = useShadowTrackerStore((s) => Boolean(s.settings.ecoMode || s.settings.lowGpuMode || s.settings.disableGpuAcceleration));
   const [activeCritter, setActiveCritter] = useState<CritterType | null>(null);
   const [direction, setDirection] = useState<'ltr' | 'rtl'>('ltr');
   const [critterKey, setCritterKey] = useState<number>(0);
@@ -1286,7 +1286,7 @@ export const DashboardIdleCrittersOverlay: React.FC = () => {
   const lastSpawnTimeRef = useRef<number>(0);
 
   const triggerRoam = useCallback(() => {
-    if (isEco || isRoamingRef.current) return;
+    if (isEco || isRoamingRef.current || (typeof document !== 'undefined' && document.hidden)) return;
     
     // Cooldown: at least 34 seconds between idle wanders
     const now = Date.now();
@@ -1327,6 +1327,7 @@ export const DashboardIdleCrittersOverlay: React.FC = () => {
 
     // Idle Checker: checks every 3 seconds if user has been inactive for > 12 seconds
     const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
       const idleTimeSec = (Date.now() - lastActiveRef.current) / 1000;
       if (idleTimeSec >= 12 && !isRoamingRef.current) {
         triggerRoam();

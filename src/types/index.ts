@@ -158,6 +158,7 @@ export interface Settings {
   lastOneDriveSyncTimestamp?: number;
   ecoMode?: boolean;
   lowGpuMode?: boolean;
+  disableGpuAcceleration?: boolean;
   minimizeToTray?: boolean;
   habitGracePeriodDays?: number;
   taskAssignees?: string[];

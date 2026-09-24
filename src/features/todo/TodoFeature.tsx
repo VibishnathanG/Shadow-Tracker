@@ -1205,7 +1205,7 @@ export default function TodoFeature() {
 
                       <div className="flex items-center gap-1.5 shrink-0">
                         <span
-                          className={`px-1 py-[1px] rounded text-[7.5px] font-medium shrink-0 ${
+                          className={`px-1.5 py-0.5 rounded-md text-[10.5px] font-medium shrink-0 ${
                             todo.priority === 'high'
                               ? 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/25'
                               : todo.priority === 'medium'
@@ -1397,7 +1397,7 @@ export default function TodoFeature() {
                       <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-xs">
                         {/* Priority Badge */}
                         <span
-                          className={`px-1 py-[1px] rounded text-[7.5px] font-medium shrink-0 ${
+                          className={`px-1.5 py-0.5 rounded-md text-[10.5px] font-medium shrink-0 ${
                             todo.priority === 'high'
                               ? 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/25'
                               : todo.priority === 'medium'

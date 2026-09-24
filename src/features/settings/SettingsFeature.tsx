@@ -1290,14 +1290,20 @@ export const SettingsFeature: React.FC = () => {
                     { id: 'soundEnabled', label: '🔔 Sound Notifications', checked: settings.soundEnabled },
                     { id: 'stickyTaskNotifications', label: '📌 Sticky Task Notifications (YES/NO Actions)', checked: Boolean(settings.stickyTaskNotifications) },
                     { id: 'showCompletedTasks', label: '👁️ Show Completed Tasks', checked: settings.showCompletedTasks },
-                    { id: 'ecoMode', label: '🌱 Eco Mode (Freezes All Background Animations & Minimal CPU)', checked: Boolean(settings.ecoMode || settings.lowGpuMode) },
+                    { id: 'ecoMode', label: '🌱 Eco Mode (Freezes Background Animations & Reduces CPU)', checked: Boolean(settings.ecoMode || settings.lowGpuMode) },
+                    { id: 'disableGpuAcceleration', label: '⚡ GPU Hardware Acceleration & Dynamic Graphics', checked: !settings.disableGpuAcceleration, subtitle: 'Turn OFF to strip GPU acceleration, 3D ambient companions, and all animations to the core (0% GPU/CPU pressure).' },
                     { id: 'minimizeToTray', label: '📥 Minimize to System Tray (Eco Suspend)', checked: Boolean(settings.minimizeToTray ?? true) },
                   ].map((setting) => (
                     <label 
                       key={setting.id} 
                       className="group flex items-center justify-between cursor-pointer select-none p-3 rounded-2xl bg-surface-elevated/40 hover:bg-surface-elevated/80 transition-all border border-border/40 hover:border-border/80 gap-3 shadow-2xs"
                     >
-                      <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors flex-1 pr-2">{setting.label}</span>
+                      <div className="flex-1 pr-2">
+                        <span className="text-xs font-bold text-foreground group-hover:text-primary transition-colors block">{setting.label}</span>
+                        {'subtitle' in setting && setting.subtitle && (
+                          <span className="text-[10px] text-muted-foreground block mt-0.5 leading-tight">{setting.subtitle}</span>
+                        )}
+                      </div>
                       <div className={`toggle-track ${setting.checked ? 'active' : ''}`} data-checked={setting.checked}>
                         <div className="toggle-handle" />
                       </div>
@@ -1308,6 +1314,8 @@ export const SettingsFeature: React.FC = () => {
                           const checked = e.target.checked;
                           if (setting.id === 'ecoMode') {
                             updateSettings({ ecoMode: checked, lowGpuMode: checked });
+                          } else if (setting.id === 'disableGpuAcceleration') {
+                            updateSettings({ disableGpuAcceleration: !checked });
                           } else {
                             updateSettings({ [setting.id]: checked });
                           }
@@ -2088,6 +2096,7 @@ export const SettingsFeature: React.FC = () => {
                   appScale: 100,
                   ecoMode: false,
                   lowGpuMode: false,
+                  disableGpuAcceleration: false,
                 });
                 resetAllViewPreferences();
                 alert('✅ Theme restored to Spectrum and interface preferences reset to default! Your personal data is 100% safe.');

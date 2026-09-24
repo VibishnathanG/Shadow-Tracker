@@ -142,10 +142,12 @@ pub fn run() {
                     WindowEvent::CloseRequested { api, .. } => {
                         api.prevent_close();
                         let _ = w.hide();
+                        let _ = app_handle.emit("shadow-window-state", serde_json::json!({ "hidden": true, "minimized": true, "focused": false }));
                         let _ = app_handle.emit("shadow-eco-mode", serde_json::json!({ "enabled": true }));
                     }
                     WindowEvent::Resized(_) => {
                         let is_min = w.is_minimized().unwrap_or(false);
+                        let _ = app_handle.emit("shadow-window-state", serde_json::json!({ "minimized": is_min }));
                         if is_min && MINIMIZE_TO_TRAY.load(Ordering::Relaxed) {
                             let _ = w.hide();
                             let _ = app_handle.emit("shadow-eco-mode", serde_json::json!({ "enabled": true }));
@@ -154,9 +156,9 @@ pub fn run() {
                         }
                     }
                     WindowEvent::Focused(focused) => {
-                        if *focused {
-                            let _ = app_handle.emit("shadow-eco-mode", serde_json::json!({ "enabled": ECO_MODE.load(Ordering::Relaxed) }));
-                        }
+                        let is_min = w.is_minimized().unwrap_or(false);
+                        let _ = app_handle.emit("shadow-window-state", serde_json::json!({ "focused": *focused, "minimized": is_min }));
+                        let _ = app_handle.emit("shadow-eco-mode", serde_json::json!({ "enabled": is_min || !(*focused) || ECO_MODE.load(Ordering::Relaxed) }));
                     }
                     _ => {}
                 });

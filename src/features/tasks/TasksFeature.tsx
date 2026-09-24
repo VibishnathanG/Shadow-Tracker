@@ -667,8 +667,8 @@ export const TasksFeature: React.FC = () => {
                         </button>
 
                         {/* Label 1: Assignee */}
-                        <span className="text-[8px] font-medium text-primary bg-primary/10 px-1 py-[1px] rounded flex items-center gap-0.5 shrink-0 max-w-[80px]" title={`Assignee: ${task.assignee || defaultAssignee}`}>
-                          <Lucide.User size={8} className="shrink-0 opacity-75" />
+                        <span className="text-[10.5px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded-md flex items-center gap-1 shrink-0 max-w-[110px]" title={`Assignee: ${task.assignee || defaultAssignee}`}>
+                          <Lucide.User size={10.5} className="shrink-0 opacity-75" />
                           <span className="truncate">{task.assignee || defaultAssignee}</span>
                         </span>
 
@@ -682,7 +682,7 @@ export const TasksFeature: React.FC = () => {
                           }[status] || { label: 'To Do', color: 'text-sky-700 dark:text-sky-400 bg-sky-500/10 border-sky-500/20' };
 
                           return (
-                            <span className={`text-[7.5px] font-medium px-1 py-[1px] rounded border ${statusConfig.color} shrink-0`}>
+                            <span className={`text-[10.5px] font-medium px-1.5 py-0.5 rounded-md border ${statusConfig.color} shrink-0`}>
                               {statusConfig.label}
                             </span>
                           );
@@ -690,20 +690,20 @@ export const TasksFeature: React.FC = () => {
 
                         {/* Label 3: Category */}
                         {taskCategory ? (
-                          <span className="text-[8px] font-medium text-muted-foreground flex items-center gap-1 bg-surface-elevated/70 px-1 py-[1px] rounded shrink-0 truncate max-w-[85px]" title={`Category: ${taskCategory.name}`}>
-                            <span className="w-1 h-1 rounded-full shrink-0" style={{ backgroundColor: taskCategory.color }} />
+                          <span className="text-[10.5px] font-medium text-muted-foreground flex items-center gap-1 bg-surface-elevated/80 px-1.5 py-0.5 rounded-md shrink-0 truncate max-w-[110px]" title={`Category: ${taskCategory.name}`}>
+                            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: taskCategory.color }} />
                             <span className="truncate">{taskCategory.name}</span>
                           </span>
                         ) : (
-                          <span className="text-[8px] font-medium text-muted-foreground/60 flex items-center gap-1 bg-surface-elevated/60 px-1 py-[1px] rounded shrink-0 truncate">
-                            <span className="w-1 h-1 rounded-full shrink-0 bg-muted-foreground/40" />
+                          <span className="text-[10.5px] font-medium text-muted-foreground/70 flex items-center gap-1 bg-surface-elevated/70 px-1.5 py-0.5 rounded-md shrink-0 truncate">
+                            <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-muted-foreground/40" />
                             <span>General</span>
                           </span>
                         )}
                       </div>
 
                       {/* Label 4: Priority / Severity */}
-                      <span className={`text-[7.5px] font-medium px-1 py-[1px] rounded border shrink-0 ${
+                      <span className={`text-[10.5px] font-medium px-1.5 py-0.5 rounded-md border shrink-0 ${
                         task.priority === 'high' 
                           ? 'text-rose-700 dark:text-rose-400 bg-rose-500/10 border-rose-500/20' 
                           : task.priority === 'medium' 
@@ -727,8 +727,8 @@ export const TasksFeature: React.FC = () => {
 
                   <div className="flex items-center justify-between pt-2 border-t border-border/40 text-xs mt-auto">
                     {/* Label 5: Due Date */}
-                    <span className="text-[8px] font-medium text-muted-foreground flex items-center gap-0.5 bg-surface-elevated/70 px-1 py-[1px] rounded shrink-0">
-                      <Lucide.Calendar size={8} className="text-primary/70 shrink-0" /> {format(new Date(task.dueDate), 'MMM dd')}
+                    <span className="text-[10.5px] font-medium text-muted-foreground flex items-center gap-1 bg-surface-elevated/80 px-1.5 py-0.5 rounded-md shrink-0">
+                      <Lucide.Calendar size={11} className="text-primary/70 shrink-0" /> {format(new Date(task.dueDate), 'MMM dd')}
                     </span>
                     <div className="flex items-center gap-1">
                       {!task.isCompleted && (
@@ -859,8 +859,8 @@ export const TasksFeature: React.FC = () => {
                       
                       <div className="flex flex-wrap items-center gap-1.5 mt-2">
                         {/* 1. Assignee */}
-                        <span className="text-[8px] font-medium text-primary bg-primary/10 flex items-center gap-0.5 px-1 py-[1px] rounded shrink-0 max-w-[80px]" title={`Assignee: ${task.assignee || defaultAssignee}`}>
-                          <Lucide.User size={8} className="shrink-0 opacity-75" />
+                        <span className="text-[11px] font-medium text-primary bg-primary/10 flex items-center gap-1 px-2 py-0.5 rounded-md shrink-0 max-w-[110px]" title={`Assignee: ${task.assignee || defaultAssignee}`}>
+                          <Lucide.User size={11} className="shrink-0 opacity-75" />
                           <span className="truncate">{task.assignee || defaultAssignee}</span>
                         </span>
 
@@ -874,7 +874,7 @@ export const TasksFeature: React.FC = () => {
                           }[status] || { label: 'To Do', color: 'text-sky-700 dark:text-sky-400 bg-sky-500/10 border-sky-500/20' };
 
                           return (
-                            <span className={`text-[7.5px] font-medium px-1 py-[1px] rounded border ${statusConfig.color} shrink-0`}>
+                            <span className={`text-[11px] font-medium px-2 py-0.5 rounded-md border ${statusConfig.color} shrink-0`}>
                               {statusConfig.label}
                             </span>
                           );
@@ -882,19 +882,19 @@ export const TasksFeature: React.FC = () => {
 
                         {/* 3. Category */}
                         {taskCategory ? (
-                          <span className="text-[8px] font-medium text-muted-foreground flex items-center gap-1 bg-surface-elevated/70 px-1 py-[1px] rounded shrink-0 truncate max-w-[85px]" title={`Category: ${taskCategory.name}`}>
-                            <span className="w-1 h-1 rounded-full shrink-0" style={{ backgroundColor: taskCategory.color }} />
+                          <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1.5 bg-surface-elevated/80 px-2 py-0.5 rounded-md shrink-0 truncate max-w-[110px]" title={`Category: ${taskCategory.name}`}>
+                            <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: taskCategory.color }} />
                             <span className="truncate">{taskCategory.name}</span>
                           </span>
                         ) : (
-                          <span className="text-[8px] font-medium text-muted-foreground/70 flex items-center gap-1 bg-surface-elevated/70 px-1 py-[1px] rounded shrink-0 truncate">
-                            <span className="w-1 h-1 rounded-full shrink-0 bg-muted-foreground/40" />
+                          <span className="text-[11px] font-medium text-muted-foreground/70 flex items-center gap-1.5 bg-surface-elevated/70 px-2 py-0.5 rounded-md shrink-0 truncate">
+                            <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-muted-foreground/40" />
                             <span>General</span>
                           </span>
                         )}
 
                         {/* 4. Priority / Severity */}
-                        <span className={`text-[7.5px] font-medium px-1 py-[1px] rounded border shrink-0 ${
+                        <span className={`text-[11px] font-medium px-2 py-0.5 rounded-md border shrink-0 ${
                           task.priority === 'high' 
                             ? 'text-rose-700 dark:text-rose-400 bg-rose-500/10 border-rose-500/20' 
                             : task.priority === 'medium' 
@@ -905,13 +905,13 @@ export const TasksFeature: React.FC = () => {
                         </span>
 
                         {/* 5. Due Date */}
-                        <span className="text-[8px] font-medium text-muted-foreground flex items-center gap-0.5 bg-surface-elevated/70 px-1 py-[1px] rounded shrink-0">
-                          <Lucide.Calendar size={8} className="text-primary/70 shrink-0" /> {format(new Date(task.dueDate), 'MMM dd')}
+                        <span className="text-[11px] font-medium text-muted-foreground flex items-center gap-1 bg-surface-elevated/80 px-2 py-0.5 rounded-md shrink-0">
+                          <Lucide.Calendar size={11} className="text-primary/70 shrink-0" /> {format(new Date(task.dueDate), 'MMM dd')}
                         </span>
 
                         {task.isRecurring && (
-                          <span className="text-[8px] font-medium text-primary bg-primary/10 flex items-center gap-0.5 px-1 py-[1px] rounded shrink-0">
-                            <Lucide.Repeat size={8} /> {task.recurrencePattern}
+                          <span className="text-[11px] font-medium text-primary bg-primary/10 flex items-center gap-1 px-2 py-0.5 rounded-md shrink-0">
+                            <Lucide.Repeat size={11} /> {task.recurrencePattern}
                           </span>
                         )}
                       </div>

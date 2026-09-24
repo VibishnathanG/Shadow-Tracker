@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 import { useShadowTrackerStore } from '@/store';
 import { getTodayDateString } from '@/lib/dateUtils';
 import { GlobalBadgeCelebration } from './GlobalBadgeCelebration';
@@ -111,6 +111,7 @@ export const Layout: React.FC<LayoutProps> = ({
   const [isWizardModalOpen, setIsWizardModalOpen] = useState(false);
   const [dayReviewModal, setDayReviewModal] = useState<'morning' | 'evening' | null>(null);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [isBackground, setIsBackground] = useState(false);
 
   // OneDrive auto-sync
   useOneDriveAutoSync();
@@ -143,7 +144,7 @@ export const Layout: React.FC<LayoutProps> = ({
     return <Lucide.Sparkles size={size} className="text-indigo-400" />;
   };
 
-  // Sync theme + scale + eco/low-gpu mode + activeTab
+  // Sync theme + scale + eco/low-gpu mode + GPU hardware acceleration + activeTab
   useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove('theme-light', 'theme-white', 'theme-obsidian', 'theme-onedark', 'theme-cyberpunk', 'theme-midnight', 'theme-pine', 'theme-purple', 'theme-spectrum', 'dark', 'light');
@@ -167,20 +168,27 @@ export const Layout: React.FC<LayoutProps> = ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (root.style as any).zoom = settings.appScale ? `${settings.appScale}%` : '100%';
 
-    const isEco = Boolean(settings.lowGpuMode || settings.ecoMode);
+    const isGpuDisabled = Boolean(settings.disableGpuAcceleration);
+    if (isGpuDisabled) {
+      root.classList.add('no-gpu', 'gpu-disabled');
+    } else {
+      root.classList.remove('no-gpu', 'gpu-disabled');
+    }
+
+    const isEco = Boolean(settings.lowGpuMode || settings.ecoMode || isGpuDisabled);
     if (isEco) {
       root.classList.add('eco-mode', 'low-gpu-mode');
     } else {
       root.classList.remove('eco-mode', 'low-gpu-mode');
     }
-  }, [settings.theme, settings.appScale, settings.lowGpuMode, settings.ecoMode, activeTab]);
+  }, [settings.theme, settings.appScale, settings.lowGpuMode, settings.ecoMode, settings.disableGpuAcceleration, activeTab]);
 
   // Sync minimizeToTray & ecoMode to Tauri Rust commands + listen for tray eco toggle events
   useEffect(() => {
     if (typeof window !== 'undefined' && (window as any).__TAURI_INTERNALS__) {
       import('@tauri-apps/api/core').then(({ invoke }) => {
         invoke('set_minimize_to_tray', { enabled: settings.minimizeToTray ?? true }).catch(() => {});
-        invoke('set_eco_mode', { enabled: Boolean(settings.lowGpuMode || settings.ecoMode) }).catch(() => {});
+        invoke('set_eco_mode', { enabled: Boolean(settings.lowGpuMode || settings.ecoMode || settings.disableGpuAcceleration) }).catch(() => {});
       });
 
       import('@tauri-apps/api/event').then(({ listen }) => {
@@ -191,7 +199,75 @@ export const Layout: React.FC<LayoutProps> = ({
         return unlisten;
       });
     }
-  }, [settings.minimizeToTray, settings.lowGpuMode, settings.ecoMode, updateSettings]);
+  }, [settings.minimizeToTray, settings.lowGpuMode, settings.ecoMode, settings.disableGpuAcceleration, updateSettings]);
+
+  // Listen for window blur, visibility change, and Tauri window events to freeze CPU when backgrounded/minimized
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleVisibility = () => {
+      const hidden = document.hidden;
+      setIsBackground(hidden);
+      if (hidden) {
+        document.documentElement.classList.add('is-hidden', 'window-blurred');
+      } else {
+        document.documentElement.classList.remove('is-hidden', 'window-blurred');
+      }
+    };
+
+    const handleBlur = () => {
+      if (document.hidden) {
+        setIsBackground(true);
+        document.documentElement.classList.add('window-blurred');
+      }
+    };
+
+    const handleFocus = () => {
+      setIsBackground(false);
+      document.documentElement.classList.remove('window-blurred', 'is-hidden');
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('blur', handleBlur);
+    window.addEventListener('focus', handleFocus);
+
+    let unlistenEco: (() => void) | undefined;
+    let unlistenState: (() => void) | undefined;
+
+    if ((window as any).__TAURI_INTERNALS__) {
+      import('@tauri-apps/api/event').then(({ listen }) => {
+        listen<{ enabled: boolean }>('shadow-eco-mode', (e) => {
+          if (e.payload && typeof e.payload.enabled === 'boolean') {
+            setIsBackground(e.payload.enabled);
+            if (e.payload.enabled) {
+              document.documentElement.classList.add('is-hidden', 'window-blurred');
+            } else {
+              document.documentElement.classList.remove('is-hidden', 'window-blurred');
+            }
+          }
+        }).then(unlisten => { unlistenEco = unlisten; }).catch(() => {});
+
+        listen<{ minimized?: boolean; hidden?: boolean; focused?: boolean }>('shadow-window-state', (e) => {
+          const bg = Boolean(e.payload?.minimized || e.payload?.hidden || (typeof e.payload?.focused === 'boolean' && !e.payload.focused && e.payload?.minimized));
+          if (bg) {
+            setIsBackground(true);
+            document.documentElement.classList.add('is-hidden', 'window-blurred');
+          } else if (e.payload?.focused === true) {
+            setIsBackground(false);
+            document.documentElement.classList.remove('is-hidden', 'window-blurred');
+          }
+        }).then(unlisten => { unlistenState = unlisten; }).catch(() => {});
+      }).catch(() => {});
+    }
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('blur', handleBlur);
+      window.removeEventListener('focus', handleFocus);
+      if (unlistenEco) unlistenEco();
+      if (unlistenState) unlistenState();
+    };
+  }, []);
 
   // Request notification permission on first launch (non-intrusive, one time)
   useEffect(() => {
@@ -261,8 +337,15 @@ export const Layout: React.FC<LayoutProps> = ({
     );
   }
 
+  const isGpuDisabled = Boolean(settings.disableGpuAcceleration);
+  const isFreezeActive = isGpuDisabled || isBackground;
+
   return (
-    <div className="flex-1 flex flex-col md:flex-row min-h-screen">
+    <MotionConfig
+      reducedMotion={isFreezeActive ? "always" : "user"}
+      transition={isFreezeActive ? { duration: 0 } : undefined}
+    >
+      <div className="flex-1 flex flex-col md:flex-row min-h-screen">
       <ThemeAmbientBackground theme={settings.theme} />
       <NotificationScheduler />
       <InAppNotificationOverlay />
@@ -687,6 +770,7 @@ export const Layout: React.FC<LayoutProps> = ({
         onClose={() => setIsAiModalOpen(false)}
       />
     </div>
+    </MotionConfig>
   );
 };
 
