@@ -9,7 +9,7 @@
 <p align="center">
   <a href="https://hub.docker.com/r/vibishnathang/shadow-tracker"><img src="https://img.shields.io/docker/pulls/vibishnathang/shadow-tracker?style=flat-square&logo=docker&label=Docker%20Pulls&color=0db7ed" alt="Docker Pulls" /></a>
   <a href="https://hub.docker.com/r/vibishnathang/shadow-tracker"><img src="https://img.shields.io/docker/v/vibishnathang/shadow-tracker?sort=semver&style=flat-square&logo=docker&label=Docker%20Hub&color=blue" alt="Docker Hub Version" /></a>
-  <a href="https://github.com/VibishnathanG/Shadow-Tracker/releases"><img src="https://img.shields.io/badge/Release-v6.0.0-emerald?style=flat-square&logo=github" alt="Release v6.0.0" /></a>
+  <a href="https://github.com/VibishnathanG/Shadow-Tracker/releases"><img src="https://img.shields.io/badge/Release-v8.0.0-emerald?style=flat-square&logo=github" alt="Release v8.0.0" /></a>
   <img src="https://img.shields.io/badge/Platforms-Web%20%7C%20Docker%20%7C%20Android%20%7C%20Windows-blue?style=flat-square" alt="Supported Platforms" />
   <img src="https://img.shields.io/badge/License-GPL--3.0-purple?style=flat-square" alt="License: GPL-3.0" />
 </p>
@@ -21,9 +21,9 @@
 Watch a 3-minute complete tour of Shadow Tracker in action:
 
 <p align="center">
-  <a href="https://github.com/VibishnathanG/Shadow-Tracker/raw/main/public/app-looks/Shadow-Tracker-Look.mp4" title="Watch full 3-minute walkthrough video">
-    <img src="./public/app-looks/demo-preview.gif" alt="Shadow Tracker Live Walkthrough Preview" width="100%" />
-  </a>
+  <video src="https://github.com/VibishnathanG/Shadow-Tracker/raw/main/public/app-looks/Shadow-Tracker-Look.mp4" controls="controls" width="100%" style="max-width: 100%; border-radius: 8px;">
+    <a href="https://github.com/VibishnathanG/Shadow-Tracker/raw/main/public/app-looks/Shadow-Tracker-Look.mp4">Watch Shadow-Tracker-Look.mp4</a>
+  </video>
 </p>
 
 ---
