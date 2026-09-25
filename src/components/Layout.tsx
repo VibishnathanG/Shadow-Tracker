@@ -448,7 +448,7 @@ export const Layout: React.FC<LayoutProps> = ({
       {/* Main Content */}
       <div className="flex-1 md:pl-72 flex flex-col min-h-screen w-full">
         {/* Mobile Header */}
-        <header className="md:hidden flex items-center justify-between px-5 py-4 bg-surface/90 backdrop-blur-xl border-b border-border sticky top-0 z-40 select-none shadow-sm">
+        <header className="md:hidden flex items-center justify-between px-5 py-4 bg-surface/98 backdrop-blur-xl border-b border-border sticky top-0 z-40 select-none shadow-sm">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center shrink-0">
               <AppLogo size={24} theme={settings.theme} />
@@ -536,7 +536,7 @@ export const Layout: React.FC<LayoutProps> = ({
               initial={{ opacity: 0, y: 30, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.95 }}
-              className="md:hidden fixed bottom-20 right-4 left-4 z-50 bg-surface/95 backdrop-blur-2xl border border-border/60 rounded-3xl p-3 shadow-2xl flex flex-col gap-1 overflow-hidden"
+              className="md:hidden fixed bottom-20 right-4 left-4 z-50 bg-surface/98 backdrop-blur-sm border border-border/60 rounded-3xl p-3 shadow-2xl flex flex-col gap-1 overflow-hidden"
             >
               <div className="grid grid-cols-2 gap-2">
                 {navItems.filter(i => !['dashboard', 'habits', 'tasks'].includes(i.id)).map(item => {
@@ -569,7 +569,7 @@ export const Layout: React.FC<LayoutProps> = ({
         const MoreActiveIcon = activeMoreItem ? ((Lucide[activeMoreItem.icon as keyof typeof Lucide] || Lucide.Zap) as React.ElementType) : null;
 
         return (
-          <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex w-full bg-surface/90 backdrop-blur-2xl border-t border-border/60 px-2 py-1.5 justify-between select-none shadow-2xl items-center gap-1 pb-[max(0.6rem,env(safe-area-inset-bottom))]">
+          <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex w-full bg-surface/98 backdrop-blur-sm border-t border-border/60 px-2 py-1.5 justify-between select-none shadow-2xl items-center gap-1 pb-[max(0.6rem,env(safe-area-inset-bottom))]">
             {/* 1. Dashboard */}
             <button
               onClick={() => { setActiveTab('dashboard'); setIsMoreMenuOpen(false); }}

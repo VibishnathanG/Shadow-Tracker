@@ -66,8 +66,8 @@ export const Onboarding: React.FC = () => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background p-4 md:p-6 select-none overflow-hidden">
       {/* Dynamic background lights */}
-      <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-primary/10 rounded-full blur-[100px] animate-pulse-slow"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-[100px] animate-pulse-slow"></div>
+      <div className="absolute top-1/4 left-1/4 w-80 h-80 bg-primary/10 rounded-full blur-[100px] animate-pulse-slow [will-change:transform,opacity]"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-[100px] animate-pulse-slow [will-change:transform,opacity]"></div>
 
       <motion.div
         initial={{ opacity: 0, scale: 0.96 }}

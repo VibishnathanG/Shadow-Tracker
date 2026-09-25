@@ -13,7 +13,7 @@ export const SidebarArt: React.FC = React.memo(() => {
 
   if (theme === 'obsidian') {
     return (
-      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.25] mix-blend-screen">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.25]">
         <svg viewBox="0 0 200 600" className="w-full h-full text-[#ff4770]/80 animate-pulse-scale-subtle">
           {/* Geometric lines radiating out from a central Wolf emblem */}
           <circle cx="100" cy="300" r="130" stroke="currentColor" strokeWidth="0.3" fill="none" strokeDasharray="2 8" />
@@ -68,7 +68,7 @@ export const SidebarArt: React.FC = React.memo(() => {
 
   if (theme === 'midnight') {
     return (
-      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.25] mix-blend-screen">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.25]">
         <svg viewBox="0 0 200 600" className="w-full h-full text-emerald-400/80 animate-pulse-scale-subtle">
           {/* Geometric lines radiating out from a central fox emblem */}
           <circle cx="100" cy="300" r="120" stroke="currentColor" strokeWidth="0.3" fill="none" strokeDasharray="2 8" />
@@ -96,7 +96,7 @@ export const SidebarArt: React.FC = React.memo(() => {
 
   if (theme === 'onedark') {
     return (
-      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.22] mix-blend-screen">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-[0.22]">
         <svg viewBox="0 0 200 600" className="w-full h-full text-[#5299d3]/80 animate-pulse-scale-subtle">
           {/* Geometric lines radiating out from a central eagle emblem */}
           <circle cx="100" cy="300" r="130" stroke="currentColor" strokeWidth="0.3" fill="none" strokeDasharray="2 8" />

@@ -208,7 +208,7 @@ const TileArtBadges = () => {
   if (isEco) return null;
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
-      <div className="absolute w-[200%] h-[200%] -top-1/2 -left-1/2 bg-[radial-gradient(circle_at_center,var(--primary)_0%,transparent_60%)] mix-blend-screen animate-pulse-ambient-glow [animation-duration:8s]" />
+      <div className="absolute w-[200%] h-[200%] -top-1/2 -left-1/2 bg-[radial-gradient(circle_at_center,var(--primary)_0%,transparent_60%)] animate-pulse-ambient-glow [animation-duration:8s]" />
     </div>
   );
 };

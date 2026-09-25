@@ -298,7 +298,7 @@ export default function LifeRpgFeature() {
       <div className="tile p-5 sm:p-8 rounded-3xl relative overflow-hidden border border-border/80 shadow-xl">
         {/* Background glow animation (disabled in Eco Mode) */}
         {!isEco && (
-          <div className="absolute -top-20 -right-20 w-96 h-96 bg-primary/20 rounded-full blur-[100px] pointer-events-none animate-pulse" />
+          <div className="absolute -top-20 -right-20 w-96 h-96 bg-primary/20 rounded-full blur-[100px] pointer-events-none animate-pulse [will-change:transform,opacity]" />
         )}
         {!isEco && (
           <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-cyan-500/15 rounded-full blur-[100px] pointer-events-none" />
@@ -653,7 +653,7 @@ export default function LifeRpgFeature() {
         <div className="space-y-6 py-2 text-center">
           <div className="flex flex-col items-center space-y-3">
             <div className="w-20 h-20 rounded-3xl bg-primary/15 border-2 border-primary/40 text-primary flex items-center justify-center shadow-lg">
-              <Lucide.Sparkles size={40} className={!isEco ? 'animate-pulse' : ''} />
+              <Lucide.Sparkles size={40} className={!isEco ? 'animate-pulse [will-change:transform,opacity]' : ''} />
             </div>
             <div>
               <span className="text-xs font-bold text-primary uppercase tracking-widest">

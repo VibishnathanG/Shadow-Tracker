@@ -371,7 +371,7 @@ export const TasksFeature: React.FC = () => {
 
   return (
     <div className="space-y-6 relative min-h-[600px]">
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 opacity-[0.05] mix-blend-screen flex items-center justify-center">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 opacity-[0.05] flex items-center justify-center">
         <svg
           viewBox="0 0 800 800"
           className="w-full h-full max-w-[900px] text-primary animate-spin-cw [animation-duration:180s]"

@@ -373,7 +373,7 @@ const DynamicBackground: React.FC<{ vibe: string }> = ({ vibe }) => {
   }
   if (vibe === 'prism') {
     return (
-      <div className="absolute inset-0 bg-slate-950 overflow-hidden flex items-center justify-center mix-blend-screen">
+      <div className="absolute inset-0 bg-slate-950 overflow-hidden flex items-center justify-center">
         <motion.div className="absolute w-64 h-64 bg-pink-500/30 blur-2xl rounded-full" animate={{ x: [50, -50, 50], y: [50, -50, 50] }} transition={{ duration: 8, repeat: Infinity, ease: "linear" }} />
         <motion.div className="absolute w-64 h-64 bg-cyan-500/30 blur-2xl rounded-full" animate={{ x: [-50, 50, -50], y: [-50, 50, -50] }} transition={{ duration: 7, repeat: Infinity, ease: "linear" }} />
         <motion.div className="absolute w-64 h-64 bg-yellow-500/30 blur-2xl rounded-full" animate={{ x: [0, 50, -50, 0], y: [50, 0, -50, 50] }} transition={{ duration: 9, repeat: Infinity, ease: "linear" }} />

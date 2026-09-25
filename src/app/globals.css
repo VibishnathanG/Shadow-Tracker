@@ -271,21 +271,33 @@ html.no-gpu [style*="transform"] {
 }
 
 .animate-spin-cw {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
   animation: spin-cw linear infinite;
   transform-origin: center center;
 }
 
 .animate-spin-ccw {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
   animation: spin-ccw linear infinite;
   transform-origin: center center;
 }
 
 .animate-pulse-ambient-glow {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
   animation: pulse-ambient-glow 3.5s ease-in-out infinite;
   transform-origin: center center;
 }
 
 .animate-float-sparkle {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
   animation: float-sparkle ease-in-out infinite;
   transform-origin: center center;
 }
@@ -309,10 +321,16 @@ html.no-gpu [style*="transform"] {
 }
 
 .animate-beam-scan-vertical {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
   animation: beam-scan-vertical 5s linear infinite;
 }
 
 .animate-beam-scan-x {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
   animation: beam-scan-x 3s linear infinite;
 }
 
@@ -2413,6 +2431,9 @@ body.modal-open {
   50% { transform: scale(1.03); }
 }
 .animate-pulse-scale-subtle {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
   animation: pulse-scale-subtle 6s ease-in-out infinite;
   will-change: transform;
 }
