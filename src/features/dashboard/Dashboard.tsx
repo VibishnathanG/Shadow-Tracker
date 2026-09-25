@@ -15,6 +15,7 @@ import { getMascotStatus, getContextualCoaching, ALL_BADGES, BadgeDefinition, ge
 import ExplorerFeature from '@/features/explorer/ExplorerFeature';
 import { DayReviewModal } from '@/components/DayReviewModal';
 import { renderCritterComponent, CritterType, ALL_CRITTERS, DashboardIdleCrittersOverlay } from '@/components/AmbientCritters';
+import { isWindowActive } from '@/lib/windowState';
 
 // --- Tile Hologram GIF-Art ---
 const useIsEco = () => useShadowTrackerStore((s) => Boolean(s.settings.ecoMode || s.settings.lowGpuMode || s.settings.disableGpuAcceleration));
@@ -26,7 +27,7 @@ const TileArtCompanion = ({ variant = 0, cycleTrigger = 0 }: { variant?: number;
 
   // Trigger roaming critter whenever user cycles quote or clicks card
   useEffect(() => {
-    if (isEco || cycleTrigger === 0) return;
+    if (isEco || cycleTrigger === 0 || !isWindowActive()) return;
     const chosen = ALL_CRITTERS[cycleTrigger % ALL_CRITTERS.length];
     setActiveCritter(chosen);
     setCritterKey((k) => k + 1);
@@ -38,7 +39,7 @@ const TileArtCompanion = ({ variant = 0, cycleTrigger = 0 }: { variant?: number;
   useEffect(() => {
     if (isEco) return;
     const interval = setInterval(() => {
-      if (typeof document !== 'undefined' && document.hidden) return;
+      if (!isWindowActive()) return;
       const chosen = ALL_CRITTERS[Math.floor(Math.random() * ALL_CRITTERS.length)];
       setActiveCritter(chosen);
       setCritterKey((k) => k + 1);
@@ -57,77 +58,63 @@ const TileArtCompanion = ({ variant = 0, cycleTrigger = 0 }: { variant?: number;
       {variant === 0 && (
         // Form 0: Celestial Float - Ethereal floating harmonic wave ripples and levitating starlight orbs
         <svg className="w-full h-full absolute inset-0 opacity-40 [html[data-theme='white']_&]:opacity-25" viewBox="0 0 400 200" preserveAspectRatio="none">
-          <motion.path
+          <path
             d="M 0 100 Q 100 40 200 100 T 400 100"
             fill="none"
             stroke="var(--primary)"
             strokeWidth="1.2"
             strokeDasharray="4 6"
-            animate={{ d: [
-              "M 0 100 Q 100 40 200 100 T 400 100",
-              "M 0 90 Q 100 130 200 90 T 400 90",
-              "M 0 100 Q 100 40 200 100 T 400 100"
-            ]}}
-            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+            className="animate-pulse-ambient-glow [animation-duration:7s]"
           />
-          <motion.path
+          <path
             d="M 0 140 Q 120 80 240 140 T 400 130"
             fill="none"
             stroke="var(--primary)"
             strokeWidth="0.8"
             opacity="0.6"
-            animate={{ d: [
-              "M 0 140 Q 120 80 240 140 T 400 130",
-              "M 0 120 Q 120 160 240 120 T 400 140",
-              "M 0 140 Q 120 80 240 140 T 400 130"
-            ]}}
-            transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+            className="animate-pulse-ambient-glow [animation-duration:9s]"
           />
-          <motion.circle cx="310" cy="50" r="18" fill="var(--primary)" opacity="0.12" animate={{ scale: [1, 1.25, 1], y: [-6, 6, -6] }} transition={{ duration: 6, repeat: Infinity }} />
-          <motion.circle cx="80" cy="150" r="14" fill="var(--primary)" opacity="0.1" animate={{ scale: [1, 1.3, 1], y: [6, -6, 6] }} transition={{ duration: 5.5, repeat: Infinity }} />
+          <circle cx="310" cy="50" r="18" fill="var(--primary)" opacity="0.12" className="animate-float-sparkle [animation-duration:6s]" />
+          <circle cx="80" cy="150" r="14" fill="var(--primary)" opacity="0.1" className="animate-float-sparkle [animation-duration:5.5s]" />
         </svg>
       )}
 
       {variant === 1 && (
         // Form 1: Orbital Synergy - Concentric mathematical gyroscope rings and orbiting celestial particles
         <svg className="w-full h-full absolute inset-0 opacity-45 [html[data-theme='white']_&]:opacity-30" viewBox="0 0 400 200">
-          <motion.circle
+          <circle
             cx="320" cy="100" r="65"
             fill="none"
             stroke="var(--primary)"
             strokeWidth="1.2"
             strokeDasharray="8 6"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 16, repeat: Infinity, ease: "linear" }}
+            className="animate-spin-cw [animation-duration:16s]"
             style={{ transformOrigin: "320px 100px" }}
           />
-          <motion.circle
+          <circle
             cx="320" cy="100" r="45"
             fill="none"
             stroke="var(--primary)"
             strokeWidth="1"
             strokeDasharray="4 8"
             opacity="0.7"
-            animate={{ rotate: -360 }}
-            transition={{ duration: 11, repeat: Infinity, ease: "linear" }}
+            className="animate-spin-ccw [animation-duration:11s]"
             style={{ transformOrigin: "320px 100px" }}
           />
-          <motion.circle
+          <circle
             cx="320" cy="35" r="3"
             fill="var(--primary)"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 16, repeat: Infinity, ease: "linear" }}
+            className="animate-spin-cw [animation-duration:16s]"
             style={{ transformOrigin: "320px 100px" }}
           />
-          <motion.circle
+          <circle
             cx="70" cy="60" r="28"
             fill="none"
             stroke="var(--primary)"
             strokeWidth="0.8"
             strokeDasharray="6 6"
             opacity="0.5"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 14, repeat: Infinity, ease: "linear" }}
+            className="animate-spin-cw [animation-duration:14s]"
             style={{ transformOrigin: "70px 60px" }}
           />
         </svg>
@@ -145,11 +132,10 @@ const TileArtCompanion = ({ variant = 0, cycleTrigger = 0 }: { variant?: number;
           </defs>
           <polygon points="310,30 360,60 360,130 310,160 260,130 260,60" fill="none" stroke="var(--primary)" strokeWidth="1" strokeDasharray="6 4" opacity="0.6" />
           <polygon points="310,48 345,70 345,120 310,142 275,120 275,70" fill="var(--primary)" opacity="0.08" stroke="var(--primary)" strokeWidth="0.8" />
-          <motion.rect
+          <rect
             x="240" y="20" width="140" height="8"
             fill="url(#prismLaser)"
-            animate={{ y: [20, 150, 20] }}
-            transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+            className="animate-scan-beam-y"
           />
           <line x1="0" y1="100" x2="200" y2="100" stroke="var(--primary)" strokeWidth="0.6" strokeDasharray="4 8" opacity="0.4" />
         </svg>
@@ -169,23 +155,25 @@ const TileArtCompanion = ({ variant = 0, cycleTrigger = 0 }: { variant?: number;
             { cx: 120, cy: 130, r: 2.8, d: 2.6 },
             { cx: 200, cy: 40, r: 1.8, d: 3 }
           ].map((pt, idx) => (
-            <motion.circle
+            <circle
               key={idx}
               cx={pt.cx} cy={pt.cy} r={pt.r}
               fill="var(--primary)"
-              animate={{ opacity: [0.25, 0.9, 0.25], scale: [0.8, 1.35, 0.8] }}
-              transition={{ duration: pt.d, repeat: Infinity, ease: "easeInOut", delay: idx * 0.3 }}
-              style={{ transformOrigin: `${pt.cx}px ${pt.cy}px` }}
+              className="animate-float-sparkle"
+              style={{
+                transformOrigin: `${pt.cx}px ${pt.cy}px`,
+                animationDuration: `${pt.d}s`,
+                animationDelay: `${idx * 0.3}s`,
+              }}
             />
           ))}
-          <motion.circle
+          <circle
             cx="320" cy="90" r="35"
             fill="none"
             stroke="var(--primary)"
             strokeWidth="0.8"
             strokeDasharray="4 8"
-            animate={{ scale: [0.9, 1.15, 0.9], opacity: [0.2, 0.5, 0.2] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            className="animate-pulse-ambient-glow [animation-duration:4s]"
             style={{ transformOrigin: "320px 90px" }}
           />
         </svg>
@@ -219,7 +207,7 @@ const TileArtBadges = () => {
   if (isEco) return null;
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
-      <motion.div className="absolute w-[200%] h-[200%] -top-1/2 -left-1/2 bg-[radial-gradient(circle_at_center,var(--primary)_0%,transparent_60%)] mix-blend-screen" animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }} transition={{ duration: 8, repeat: Infinity }} />
+      <div className="absolute w-[200%] h-[200%] -top-1/2 -left-1/2 bg-[radial-gradient(circle_at_center,var(--primary)_0%,transparent_60%)] mix-blend-screen animate-pulse-ambient-glow [animation-duration:8s]" />
     </div>
   );
 };
@@ -229,10 +217,9 @@ const TileArtMission = () => {
   if (isEco) return null;
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.15]">
-      <motion.svg className="w-full h-full text-primary" viewBox="0 0 100 100" preserveAspectRatio="none">
-        <path d="M0 50 Q 25 10 50 50 T 100 50" fill="none" stroke="currentColor" strokeWidth="0.5" />
-        <motion.path d="M0 50 Q 25 10 50 50 T 100 50" fill="none" stroke="currentColor" strokeWidth="1" animate={{ pathLength: [0, 1, 0] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' as const }} />
-      </motion.svg>
+      <svg className="w-full h-full text-primary" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <path d="M0 50 Q 25 10 50 50 T 100 50" fill="none" stroke="currentColor" strokeWidth="0.8" opacity="0.6" />
+      </svg>
     </div>
   );
 };
@@ -243,7 +230,7 @@ const TileArtTimeline = () => {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.05]">
       <div className="w-full h-full bg-[linear-gradient(currentColor_1px,transparent_1px),linear-gradient(90deg,currentColor_1px,transparent_1px)] bg-[size:20px_20px] text-primary" />
-      <motion.div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/50 to-transparent h-1/2 w-full" animate={{ y: ['-100%', '200%'] }} transition={{ duration: 5, repeat: Infinity, ease: 'linear' as const }} />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/50 to-transparent h-1/2 w-full animate-beam-scan-vertical" />
     </div>
   );
 };
@@ -253,11 +240,11 @@ const TileArtAnalytics = () => {
   if (isEco) return null;
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
-      <motion.svg className="w-full h-full text-emerald-400" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <svg className="w-full h-full text-emerald-400" viewBox="0 0 100 100" preserveAspectRatio="none">
         {[...Array(5)].map((_, i) => (
-          <motion.circle key={i} cx="50" cy="100" r={20 + i * 15} fill="none" stroke="currentColor" strokeWidth="0.5" animate={{ r: [20 + i * 15, 30 + i * 15], opacity: [1, 0] }} transition={{ duration: 4, repeat: Infinity, delay: i * 0.5 }} />
+          <circle key={i} cx="50" cy="100" r={20 + i * 15} fill="none" stroke="currentColor" strokeWidth="0.5" opacity={0.6 - i * 0.1} />
         ))}
-      </motion.svg>
+      </svg>
     </div>
   );
 };
@@ -267,7 +254,7 @@ const TileArtHabits = () => {
   if (isEco) return null;
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
-      <motion.div className="absolute w-[150%] h-[150%] -top-1/4 -left-1/4 bg-gradient-to-tr from-purple-500/30 to-transparent" animate={{ rotate: [0, 360] }} transition={{ duration: 20, repeat: Infinity, ease: 'linear' as const }} style={{ transformOrigin: 'center' }} />
+      <div className="absolute w-[150%] h-[150%] -top-1/4 -left-1/4 bg-gradient-to-tr from-purple-500/30 to-transparent animate-spin-cw [animation-duration:20s]" />
     </div>
   );
 };

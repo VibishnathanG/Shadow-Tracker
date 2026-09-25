@@ -293,21 +293,12 @@ export default function WizardFeature() {
           {[...Array(6)].map((_, i) => (
             <motion.div
               key={i}
-              className="absolute w-1.5 h-1.5 rounded-full bg-cyan-300 shadow-sm shadow-cyan-300"
+              className="absolute w-1.5 h-1.5 rounded-full bg-cyan-300 shadow-sm shadow-cyan-300 animate-float-spark-vertical"
               style={{
                 left: `${10 + (i * 15) % 80}%`,
-                bottom: '10%'
-              }}
-              animate={{
-                y: [-5, -90],
-                opacity: [0, 0.9, 0],
-                scale: [0.5, 1.2, 0.5]
-              }}
-              transition={{
-                duration: 3 + (i % 3),
-                repeat: Infinity,
-                delay: i * 0.4,
-                ease: 'easeInOut'
+                bottom: '10%',
+                animationDuration: `${3 + (i % 3)}s`,
+                animationDelay: `${i * 0.4}s`,
               }}
             />
           ))}
@@ -318,11 +309,9 @@ export default function WizardFeature() {
           {/* Compact Mascot Centerpiece with Dual Arcane Rune Rings */}
           <div className="shrink-0 flex flex-col items-center justify-center relative py-1">
             {/* Arcane Rune Ring Outer (Clockwise rotation) */}
-            <motion.svg
-              className="absolute w-32 h-32 sm:w-36 sm:h-36 text-purple-400/50 pointer-events-none"
+            <svg
+              className="absolute w-32 h-32 sm:w-36 sm:h-36 text-purple-400/50 pointer-events-none animate-spin-cw [animation-duration:38s]"
               viewBox="0 0 200 200"
-              animate={{ rotate: 360 }}
-              transition={{ duration: 38, repeat: Infinity, ease: 'linear' }}
             >
               <circle cx="100" cy="100" r="95" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="6 8 14 6" />
               <circle cx="100" cy="100" r="88" fill="none" stroke="currentColor" strokeWidth="0.75" opacity="0.6" />
@@ -335,14 +324,12 @@ export default function WizardFeature() {
                   className="fill-cyan-300"
                 />
               ))}
-            </motion.svg>
+            </svg>
 
             {/* Arcane Rune Ring Inner (Counter-Clockwise rotation) */}
-            <motion.svg
-              className="absolute w-26 h-26 sm:w-30 sm:h-30 text-cyan-400/50 pointer-events-none"
+            <svg
+              className="absolute w-26 h-26 sm:w-30 sm:h-30 text-cyan-400/50 pointer-events-none animate-spin-ccw [animation-duration:28s]"
               viewBox="0 0 200 200"
-              animate={{ rotate: -360 }}
-              transition={{ duration: 28, repeat: Infinity, ease: 'linear' }}
             >
               <circle cx="100" cy="100" r="82" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="4 6 12 4" />
               <polygon
@@ -359,7 +346,7 @@ export default function WizardFeature() {
                 strokeWidth="0.8"
                 opacity="0.4"
               />
-            </motion.svg>
+            </svg>
 
             {/* Floating Animated Avatar Container */}
             <motion.div
@@ -391,14 +378,12 @@ export default function WizardFeature() {
               </div>
 
               {/* Companion Badge */}
-              <motion.div
-                animate={{ scale: [1, 1.12, 1], opacity: [0.85, 1, 0.85] }}
-                transition={{ duration: 2.2, repeat: Infinity }}
-                className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-purple-950/95 border border-cyan-400/60 shadow-md shadow-purple-500/50 flex items-center gap-1 text-[8.5px] font-black text-cyan-300 uppercase tracking-wider whitespace-nowrap"
+              <div
+                className="absolute -bottom-1 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-purple-950/95 border border-cyan-400/60 shadow-md shadow-purple-500/50 flex items-center gap-1 text-[8.5px] font-black text-cyan-300 uppercase tracking-wider whitespace-nowrap animate-pulse-ambient-glow [animation-duration:2.2s]"
               >
                 <Lucide.Sparkles size={9} className="text-cyan-300" />
                 <span>Shadow Wizard</span>
-              </motion.div>
+              </div>
             </motion.div>
           </div>
 

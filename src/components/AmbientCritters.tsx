@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useShadowTrackerStore } from '@/store';
+import { isWindowActive, subscribeWindowState } from '@/lib/windowState';
 
 export type CritterType = 
   | 'spider' 
@@ -1286,7 +1287,7 @@ export const DashboardIdleCrittersOverlay: React.FC = () => {
   const lastSpawnTimeRef = useRef<number>(0);
 
   const triggerRoam = useCallback(() => {
-    if (isEco || isRoamingRef.current || (typeof document !== 'undefined' && document.hidden)) return;
+    if (isEco || isRoamingRef.current || !isWindowActive()) return;
     
     // Cooldown: at least 34 seconds between idle wanders
     const now = Date.now();
@@ -1320,6 +1321,13 @@ export const DashboardIdleCrittersOverlay: React.FC = () => {
       lastActiveRef.current = Date.now();
     };
 
+    const unsubscribe = subscribeWindowState((active) => {
+      if (!active) {
+        setActiveCritter(null);
+        isRoamingRef.current = false;
+      }
+    });
+
     window.addEventListener('mousemove', handleUserActivity, { passive: true });
     window.addEventListener('keydown', handleUserActivity, { passive: true });
     window.addEventListener('scroll', handleUserActivity, { passive: true });
@@ -1327,7 +1335,7 @@ export const DashboardIdleCrittersOverlay: React.FC = () => {
 
     // Idle Checker: checks every 3 seconds if user has been inactive for > 12 seconds
     const interval = setInterval(() => {
-      if (typeof document !== 'undefined' && document.hidden) return;
+      if (!isWindowActive()) return;
       const idleTimeSec = (Date.now() - lastActiveRef.current) / 1000;
       if (idleTimeSec >= 12 && !isRoamingRef.current) {
         triggerRoam();
@@ -1335,6 +1343,7 @@ export const DashboardIdleCrittersOverlay: React.FC = () => {
     }, 3000);
 
     return () => {
+      unsubscribe();
       window.removeEventListener('mousemove', handleUserActivity);
       window.removeEventListener('keydown', handleUserActivity);
       window.removeEventListener('scroll', handleUserActivity);

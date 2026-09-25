@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
 import { useShadowTrackerStore } from '@/store';
+import { useWindowState } from '@/lib/windowState';
 
 interface ThemeAmbientBackgroundProps {
   theme: string;
@@ -15,11 +15,8 @@ interface ThemeAmbientBackgroundProps {
 const OneDarkBackground = React.memo(() => (
   <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-60 overflow-hidden" style={{ transform: 'scale(1.2)' }}>
     {/* Outermost ring — slow clockwise (hidden on mobile for minimal look) */}
-    <motion.div
-      className="mobile-hide-symbol absolute w-[860px] h-[860px]"
-      animate={{ rotate: 360 }}
-      transition={{ duration: 90, repeat: Infinity, ease: 'linear' }}
-      style={{ willChange: 'transform' }}
+    <div
+      className="mobile-hide-symbol absolute w-[860px] h-[860px] animate-spin-cw [animation-duration:90s]"
     >
       <svg viewBox="0 0 900 900" className="w-full h-full">
         <circle cx="450" cy="450" r="430" fill="none" stroke="#61afef" strokeWidth="0.8" strokeDasharray="8 20" opacity="0.22" />
@@ -40,14 +37,11 @@ const OneDarkBackground = React.memo(() => (
           );
         })}
       </svg>
-    </motion.div>
+    </div>
 
     {/* Middle counter-rotating ring */}
-    <motion.div
-      className="absolute w-[680px] h-[680px]"
-      animate={{ rotate: -360 }}
-      transition={{ duration: 60, repeat: Infinity, ease: 'linear' }}
-      style={{ willChange: 'transform' }}
+    <div
+      className="absolute w-[680px] h-[680px] animate-spin-ccw [animation-duration:60s]"
     >
       <svg viewBox="0 0 700 700" className="w-full h-full">
         <circle cx="350" cy="350" r="330" fill="none" stroke="#61afef" strokeWidth="1.8" strokeDasharray="4 14" opacity="0.2" />
@@ -60,14 +54,11 @@ const OneDarkBackground = React.memo(() => (
           />
         ))}
       </svg>
-    </motion.div>
+    </div>
 
     {/* Inner breathing geometric HUD ring */}
-    <motion.div
-      className="absolute w-[440px] h-[440px]"
-      animate={{ rotate: 360, scale: [1, 1.03, 1] }}
-      transition={{ rotate: { duration: 35, repeat: Infinity, ease: 'linear' }, scale: { duration: 4.5, repeat: Infinity, ease: 'easeInOut' } }}
-      style={{ willChange: 'transform' }}
+    <div
+      className="absolute w-[440px] h-[440px] animate-hud-ring"
     >
       <svg viewBox="0 0 450 450" className="w-full h-full">
         <polygon points="225,45 395,365 55,365" fill="none" stroke="#61afef" strokeWidth="1.2" strokeDasharray="6 8" opacity="0.2" />
@@ -75,14 +66,12 @@ const OneDarkBackground = React.memo(() => (
         <circle cx="225" cy="225" r="140" fill="none" stroke="#61afef" strokeWidth="1.6" opacity="0.2" />
         <circle cx="225" cy="225" r="120" fill="none" stroke="#61afef" strokeWidth="0.6" strokeDasharray="3 8" opacity="0.15" />
       </svg>
-    </motion.div>
+    </div>
 
     {/* Soft core glow */}
-    <motion.div
-      className="absolute w-[220px] h-[220px] rounded-full"
+    <div
+      className="absolute w-[220px] h-[220px] rounded-full animate-pulse-ambient-glow"
       style={{ background: 'radial-gradient(circle, rgba(97,175,239,0.14) 0%, rgba(97,175,239,0.03) 55%, transparent 70%)' }}
-      animate={{ scale: [1, 1.25, 1], opacity: [0.5, 0.85, 0.5] }}
-      transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
     />
   </div>
 ));
@@ -99,11 +88,8 @@ const ObsidianBackground = React.memo(() => (
     <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(168,85,247,0.14),rgba(255,255,255,0.02)_60%,transparent_80%)]" />
 
     {/* Outer celestial rings — rotating slowly (hidden on mobile for minimal appearance) */}
-    <motion.div
-      className="mobile-hide-symbol absolute w-[820px] h-[820px]"
-      animate={{ rotate: 360 }}
-      transition={{ duration: 110, repeat: Infinity, ease: 'linear' }}
-      style={{ willChange: 'transform' }}
+    <div
+      className="mobile-hide-symbol absolute w-[820px] h-[820px] animate-spin-cw [animation-duration:110s]"
     >
       <svg viewBox="0 0 800 800" className="w-full h-full">
         <circle cx="400" cy="400" r="380" fill="none" stroke="#a855f7" strokeWidth="0.8" strokeDasharray="6 18" opacity="0.3" />
@@ -123,14 +109,11 @@ const ObsidianBackground = React.memo(() => (
           );
         })}
       </svg>
-    </motion.div>
+    </div>
 
     {/* Middle counter-rotating ring with purple & white sacred geometry */}
-    <motion.div
-      className="absolute w-[580px] h-[580px]"
-      animate={{ rotate: -360 }}
-      transition={{ duration: 75, repeat: Infinity, ease: 'linear' }}
-      style={{ willChange: 'transform' }}
+    <div
+      className="absolute w-[580px] h-[580px] animate-spin-ccw [animation-duration:75s]"
     >
       <svg viewBox="0 0 600 600" className="w-full h-full">
         <circle cx="300" cy="300" r="270" fill="none" stroke="#c084fc" strokeWidth="1.2" strokeDasharray="12 12" opacity="0.3" />
@@ -147,14 +130,11 @@ const ObsidianBackground = React.memo(() => (
           );
         })}
       </svg>
-    </motion.div>
+    </div>
 
     {/* Central Abstract Crossed Celestial Swords in Purple & Brilliant White (Subtle Ambient) */}
-    <motion.div
-      className="absolute w-[360px] h-[360px] flex items-center justify-center opacity-[0.38]"
-      animate={{ rotate: [-8, 8, -8], scale: [0.98, 1.02, 0.98] }}
-      transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut' }}
-      style={{ willChange: 'transform' }}
+    <div
+      className="absolute w-[360px] h-[360px] flex items-center justify-center opacity-[0.38] animate-sword-float"
     >
       <svg viewBox="0 0 300 300" className="w-full h-full drop-shadow-[0_0_7px_rgba(168,85,247,0.14)]">
         {/* Sword 1: Slanted left-to-right (-45 deg) */}
@@ -189,23 +169,20 @@ const ObsidianBackground = React.memo(() => (
         <circle cx="150" cy="150" r="18" fill="none" stroke="#ffffff" strokeWidth="1.4" opacity="0.3" />
         <circle cx="150" cy="150" r="8" fill="#a855f7" opacity="0.22" />
       </svg>
-    </motion.div>
+    </div>
 
     {/* Floating purple & white blade sparks (hidden on mobile for minimal look) */}
     {Array.from({ length: 6 }).map((_, i) => (
-      <motion.div
+      <div
         key={i}
-        className="mobile-hide-symbol absolute w-1 h-8 bg-gradient-to-b from-[#a855f7] via-[#ffffff] to-transparent rounded-full opacity-14"
+        className="mobile-hide-symbol absolute w-1 h-8 bg-gradient-to-b from-[#a855f7] via-[#ffffff] to-transparent rounded-full opacity-14 animate-float-spark-vertical"
         style={{
           left: `${15 + (i * 14) % 75}%`,
           top: `${20 + (i * 17) % 65}%`,
           transform: `rotate(${30 + i * 25}deg)`,
+          animationDuration: `${4 + i}s`,
+          animationDelay: `${i * 0.4}s`,
         }}
-        animate={{
-          y: [-15, 15, -15],
-          opacity: [0.08, 0.22, 0.08],
-        }}
-        transition={{ duration: 4 + i, repeat: Infinity, ease: 'easeInOut' }}
       />
     ))}
   </div>
@@ -270,44 +247,33 @@ const CyberpunkBackground = React.memo(() => {
 
       {/* Floating 3D Isometric Wireframe Cubes (hidden on mobile for minimal appearance) */}
       {cubes.map((c, idx) => (
-        <motion.div
+        <div
           key={idx}
           className="mobile-hide-symbol absolute"
-          style={{ left: `${c.x}%`, top: `${c.y}%` }}
-          animate={{
-            y: [-25, 25, -25],
-            x: [-10, 10, -10],
-            rotate: c.rot,
-            scale: [0.95, 1.05, 0.95],
+          style={{
+            left: `${c.x}%`,
+            top: `${c.y}%`,
+            transform: `rotate(${c.rot[0]}deg)`,
           }}
-          transition={{ duration: c.duration, repeat: Infinity, ease: 'easeInOut', delay: c.delay }}
         >
           <IsometricCube size={c.size} stroke={c.stroke} opacity={0.65} />
-        </motion.div>
+        </div>
       ))}
 
       {/* Central Concentric Neon Ring Wave */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <motion.div
-          className="w-[500px] h-[500px] rounded-full border border-dashed border-rose-500/20"
-          animate={{ rotate: 360, scale: [0.98, 1.03, 0.98] }}
-          transition={{ rotate: { duration: 50, repeat: Infinity, ease: 'linear' }, scale: { duration: 6, repeat: Infinity, ease: 'easeInOut' } }}
+        <div
+          className="w-[500px] h-[500px] rounded-full border border-dashed border-rose-500/20 animate-spin-cw [animation-duration:50s]"
         >
           <div className="w-full h-full flex items-center justify-center">
             <div className="w-[360px] h-[360px] rounded-full border border-cyan-400/20" />
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );
 });
 CyberpunkBackground.displayName = 'CyberpunkBackground';
-
-
-/* ─────────────────────────────────────────────────────────────
-   4. MONOKAI PURPLE: VIBRANT VIOLET & MONOKAI AMBER/ORANGE CELESTIAL RINGS
-   Light-theme minimal purple aesthetic with warm yellow-orange geometric accents
-
 
 
 /* ─────────────────────────────────────────────────────────────
@@ -335,11 +301,8 @@ const MultiColorPurpleBackground = React.memo(() => {
 
       {/* Intersecting Concentric Rings in Indigo, Cyan, Amber & Creamy White */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <motion.div
-          className="w-[740px] h-[740px]"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 90, repeat: Infinity, ease: 'linear' }}
-          style={{ willChange: 'transform' }}
+        <div
+          className="w-[740px] h-[740px] animate-spin-cw [animation-duration:90s]"
         >
           <svg viewBox="0 0 700 700" className="w-full h-full">
             <circle cx="350" cy="350" r="330" fill="none" stroke="#6366f1" strokeWidth="0.9" strokeDasharray="6 16" opacity="0.35" />
@@ -354,27 +317,24 @@ const MultiColorPurpleBackground = React.memo(() => {
               return <circle key={i} cx={x} cy={y} r="2.5" fill={i % 2 === 0 ? "#fdfbf7" : "#818cf8"} opacity="0.85" />;
             })}
           </svg>
-        </motion.div>
+        </div>
 
-        <motion.div
-          className="absolute w-[520px] h-[520px]"
-          animate={{ rotate: -360, scale: [0.97, 1.03, 0.97] }}
-          transition={{ rotate: { duration: 60, repeat: Infinity, ease: 'linear' }, scale: { duration: 6, repeat: Infinity, ease: 'easeInOut' } }}
-          style={{ willChange: 'transform' }}
+        <div
+          className="absolute w-[520px] h-[520px] animate-spin-ccw [animation-duration:60s]"
         >
           <svg viewBox="0 0 500 500" className="w-full h-full">
             <polygon points="250,45 455,250 250,455 45,250" fill="none" stroke="#10b981" strokeWidth="1" strokeDasharray="8 10" opacity="0.25" />
             <polygon points="250,85 415,250 250,415 85,250" fill="none" stroke="#06b6d4" strokeWidth="0.75" opacity="0.28" />
             <circle cx="250" cy="250" r="140" fill="none" stroke="#6366f1" strokeWidth="0.85" strokeDasharray="4 6" opacity="0.32" />
           </svg>
-        </motion.div>
+        </div>
       </div>
 
       {/* Multi-Hue Cosmic Stardust Motes */}
       {sparks.map((s, i) => (
-        <motion.div
+        <div
           key={i}
-          className="mobile-hide-symbol absolute rounded-full"
+          className="mobile-hide-symbol absolute rounded-full animate-float-sparkle"
           style={{
             left: `${s.x}%`,
             top: `${s.y}%`,
@@ -382,12 +342,9 @@ const MultiColorPurpleBackground = React.memo(() => {
             height: s.size,
             backgroundColor: s.color,
             boxShadow: `0 0 8px ${s.color}`,
+            animationDuration: `${s.duration}s`,
+            animationDelay: `${s.delay}s`,
           }}
-          animate={{
-            opacity: [0.2, 0.85, 0.2],
-            scale: [0.8, 1.3, 0.8],
-          }}
-          transition={{ duration: s.duration, repeat: Infinity, ease: 'easeInOut', delay: s.delay }}
         />
       ))}
     </div>
@@ -421,10 +378,7 @@ const EternalsGoldRunesBackground = React.memo(() => {
       <div className="absolute inset-0">
         <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 1440 900">
           {/* Main horizontal celestial circuit line with rune nodes */}
-          <motion.g
-            animate={{ opacity: [0.35, 0.65, 0.35] }}
-            transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
-          >
+          <g opacity="0.45">
             <path
               d="M -100,280 L 320,280 L 420,340 L 780,340 L 860,260 L 1200,260 L 1320,320 L 1600,320"
               fill="none"
@@ -450,13 +404,10 @@ const EternalsGoldRunesBackground = React.memo(() => {
                 </g>
               );
             })}
-          </motion.g>
+          </g>
 
           {/* Lower secondary filament circuit */}
-          <motion.g
-            animate={{ opacity: [0.25, 0.55, 0.25] }}
-            transition={{ duration: 9, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-          >
+          <g opacity="0.35">
             <path
               d="M -50,680 L 260,680 L 380,600 L 720,600 L 840,690 L 1180,690 L 1290,620 L 1550,620"
               fill="none"
@@ -471,18 +422,15 @@ const EternalsGoldRunesBackground = React.memo(() => {
                 <circle key={i} cx={cx} cy={cy} r="2.5" fill="#f59e0b" opacity="0.5" />
               );
             })}
-          </motion.g>
+          </g>
         </svg>
       </div>
 
       {/* Central Rotating Eternals Mandala & Cosmic Rune Circles */}
       <div className="absolute inset-0 flex items-center justify-center">
         {/* Outer slow golden celestial ring */}
-        <motion.div
-          className="w-[840px] h-[840px]"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 110, repeat: Infinity, ease: 'linear' }}
-          style={{ willChange: 'transform' }}
+        <div
+          className="w-[840px] h-[840px] animate-spin-cw [animation-duration:110s]"
         >
           <svg viewBox="0 0 800 800" className="w-full h-full">
             <circle cx="400" cy="400" r="380" fill="none" stroke="#d97706" strokeWidth="0.9" strokeDasharray="5 18 20 18" opacity="0.3" />
@@ -497,14 +445,11 @@ const EternalsGoldRunesBackground = React.memo(() => {
               );
             })}
           </svg>
-        </motion.div>
+        </div>
 
         {/* Middle counter-rotating Eternals sacred mandala */}
-        <motion.div
-          className="absolute w-[560px] h-[560px]"
-          animate={{ rotate: -360, scale: [0.98, 1.02, 0.98] }}
-          transition={{ rotate: { duration: 70, repeat: Infinity, ease: 'linear' }, scale: { duration: 8, repeat: Infinity, ease: 'easeInOut' } }}
-          style={{ willChange: 'transform' }}
+        <div
+          className="absolute w-[560px] h-[560px] animate-spin-ccw [animation-duration:70s]"
         >
           <svg viewBox="0 0 600 600" className="w-full h-full">
             <circle cx="300" cy="300" r="270" fill="none" stroke="#f59e0b" strokeWidth="1.1" strokeDasharray="14 14" opacity="0.32" />
@@ -525,14 +470,14 @@ const EternalsGoldRunesBackground = React.memo(() => {
             <polygon points="300,500 473,200 127,200" fill="none" stroke="#d97706" strokeWidth="0.9" opacity="0.25" />
             <circle cx="300" cy="300" r="100" fill="none" stroke="#fbbf24" strokeWidth="1.2" strokeDasharray="4 8" opacity="0.35" />
           </svg>
-        </motion.div>
+        </div>
       </div>
 
       {/* Floating Gold Cosmic Stardust Motes */}
       {goldenSparks.map((s, idx) => (
-        <motion.div
+        <div
           key={idx}
-          className="mobile-hide-symbol absolute rounded-full"
+          className="mobile-hide-symbol absolute rounded-full animate-float-sparkle"
           style={{
             left: `${s.x}%`,
             top: `${s.y}%`,
@@ -540,13 +485,9 @@ const EternalsGoldRunesBackground = React.memo(() => {
             height: s.size,
             backgroundColor: '#f59e0b',
             boxShadow: '0 0 8px rgba(245, 158, 11, 0.45)',
+            animationDuration: `${s.duration}s`,
+            animationDelay: `${s.delay}s`,
           }}
-          animate={{
-            y: [-25, 25, -25],
-            opacity: [s.opacity * 0.5, s.opacity, s.opacity * 0.5],
-            scale: [0.85, 1.25, 0.85],
-          }}
-          transition={{ duration: s.duration, repeat: Infinity, ease: 'easeInOut', delay: s.delay }}
         />
       ))}
     </div>
@@ -593,80 +534,12 @@ const StaticEternalRings: React.FC<{ theme: string }> = ({ theme }) => {
 
 
 /* ─────────────────────────────────────────────────────────────
-   MAIN AMBIENT WRAPPER WITH ECO MODE TOGGLE
+   MAIN AMBIENT WRAPPER WITH ZERO-CPU WINDOW STATE MONITORING
    ───────────────────────────────────────────────────────────── */
 export const ThemeAmbientBackground: React.FC<ThemeAmbientBackgroundProps> = React.memo(({ theme }) => {
-  const [isHidden, setIsHidden] = React.useState(false);
+  const isWindowActive = useWindowState();
   const isGpuDisabled = useShadowTrackerStore((s) => Boolean(s.settings.disableGpuAcceleration));
   const isEcoOrLowGpu = useShadowTrackerStore((s) => Boolean(s.settings.ecoMode || s.settings.lowGpuMode));
-
-  React.useEffect(() => {
-    const handleVisibility = () => {
-      const hidden = document.hidden;
-      setIsHidden(hidden);
-      if (hidden) {
-        document.documentElement.classList.add('is-hidden');
-      } else {
-        document.documentElement.classList.remove('is-hidden');
-      }
-    };
-
-    const handleBlur = () => {
-      if (!document.hasFocus()) {
-        document.documentElement.classList.add('window-blurred');
-      }
-    };
-
-    const handleFocus = () => {
-      document.documentElement.classList.remove('window-blurred');
-    };
-
-    handleVisibility();
-    document.addEventListener('visibilitychange', handleVisibility);
-    window.addEventListener('blur', handleBlur);
-    window.addEventListener('focus', handleFocus);
-
-    // Listen for Tauri native window backgrounding / eco mode event
-    if (typeof window !== 'undefined' && ((window as any).__TAURI__ || (window as any).__TAURI_INTERNALS__)) {
-      import('@tauri-apps/api/event').then(({ listen }) => {
-        listen<{ ecoMode: boolean }>('shadow-tray-eco-toggle', (e) => {
-          if (e.payload && typeof e.payload.ecoMode === 'boolean') {
-            useShadowTrackerStore.getState().updateSettings({
-              ecoMode: e.payload.ecoMode,
-              lowGpuMode: e.payload.ecoMode,
-            });
-          }
-        }).catch(() => {});
-
-        listen<{ enabled: boolean }>('shadow-eco-mode', (e) => {
-          if (e.payload && typeof e.payload.enabled === 'boolean') {
-            setIsHidden(e.payload.enabled);
-            if (e.payload.enabled) {
-              document.documentElement.classList.add('is-hidden', 'window-blurred');
-            } else {
-              document.documentElement.classList.remove('is-hidden', 'window-blurred');
-            }
-          }
-        }).catch(() => {});
-
-        listen<{ minimized?: boolean; hidden?: boolean; focused?: boolean }>('shadow-window-state', (e) => {
-          const isBackground = Boolean(e.payload?.minimized || e.payload?.hidden || (typeof e.payload?.focused === 'boolean' && !e.payload.focused));
-          setIsHidden(isBackground);
-          if (isBackground) {
-            document.documentElement.classList.add('is-hidden', 'window-blurred');
-          } else {
-            document.documentElement.classList.remove('is-hidden', 'window-blurred');
-          }
-        }).catch(() => {});
-      }).catch(() => {});
-    }
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibility);
-      window.removeEventListener('blur', handleBlur);
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, []);
 
   React.useEffect(() => {
     if (isEcoOrLowGpu) {
@@ -691,8 +564,8 @@ export const ThemeAmbientBackground: React.FC<ThemeAmbientBackgroundProps> = Rea
     }
   };
 
-  // When GPU hardware acceleration is disabled or window is hidden/minimized, render static color only (0% GPU/CPU)
-  if (isGpuDisabled || isHidden) {
+  // When GPU hardware acceleration is disabled or window is hidden/minimized/inactive on other monitor, render static color only (0% GPU/CPU)
+  if (isGpuDisabled || !isWindowActive) {
     return (
       <div
         className="theme-ambient-canvas fixed inset-0 z-0 pointer-events-none overflow-hidden"
@@ -703,7 +576,7 @@ export const ThemeAmbientBackground: React.FC<ThemeAmbientBackgroundProps> = Rea
   }
 
   const renderThemeAnimation = () => {
-    // If Eco Mode is enabled, render static SVG without any Framer Motion RAF loops!
+    // If Eco Mode is enabled, render static SVG without any animations!
     if (isEcoOrLowGpu) {
       return <StaticEternalRings theme={theme} />;
     }

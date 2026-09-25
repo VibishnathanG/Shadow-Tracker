@@ -66,7 +66,7 @@ html {
   min-height: 100%;
   touch-action: pan-y;
   background-color: var(--bg-canvas, #09100d);
-  scroll-behavior: smooth;
+  scroll-behavior: auto; /* auto allows snappy, immediate 1:1 hardware scroll */
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: none;
 }
@@ -118,7 +118,7 @@ html.gpu-disabled *::after {
   filter: none !important;
 }
 
-/* Zero-CPU Idle Freeze when Hidden, Minimized or Blurred in Background */
+/* Zero-CPU Idle Freeze when Hidden, Inactive, Minimized, or Blurred in Background */
 html.is-hidden,
 html.is-hidden *,
 html.is-hidden *::before,
@@ -127,16 +127,24 @@ html.window-blurred,
 html.window-blurred *,
 html.window-blurred *::before,
 html.window-blurred *::after,
+html.window-inactive,
+html.window-inactive *,
+html.window-inactive *::before,
+html.window-inactive *::after,
 html.eco-mode *,
 html.low-gpu-mode *,
 html.eco-mode *::before,
 html.low-gpu-mode *::before,
 html.eco-mode *::after,
 html.low-gpu-mode *::after {
-  animation: none !important;
   animation-play-state: paused !important;
   transition: none !important;
   will-change: auto !important;
+}
+
+html.no-gpu *,
+html.gpu-disabled * {
+  animation: none !important;
 }
 
 html.eco-mode .animate-spin,
@@ -148,30 +156,139 @@ html.low-gpu-mode .animate-bounce,
 html.eco-mode .animate-pulse-slow,
 html.low-gpu-mode .animate-pulse-slow,
 html.is-hidden .animate-spin,
-html.window-blurred .animate-spin {
+html.window-blurred .animate-spin,
+html.window-inactive .animate-spin {
   animation: none !important;
 }
 
 /* Deep zero-CPU/GPU Idle Freeze when Hidden, Minimized or Blurred in Background */
 html.is-hidden,
-html.window-blurred {
+html.window-blurred,
+html.window-inactive {
   content-visibility: auto;
 }
 
 html.is-hidden .theme-ambient-canvas,
 html.window-blurred .theme-ambient-canvas,
+html.window-inactive .theme-ambient-canvas,
 html.is-hidden canvas,
-html.window-blurred canvas {
+html.window-blurred canvas,
+html.window-inactive canvas {
   display: none !important;
 }
 
-/* Halt framer-motion GPU layers when hidden or in eco mode — prevents idle GPU compositing */
+/* Halt GPU compositor layers when hidden, inactive, or in eco mode — prevents idle GPU compositing */
 html.is-hidden [style*="transform"],
 html.window-blurred [style*="transform"],
+html.window-inactive [style*="transform"],
 html.eco-mode [style*="transform"],
 html.low-gpu-mode [style*="transform"],
 html.no-gpu [style*="transform"] {
   will-change: auto !important;
+}
+
+/* Pure CSS GPU Keyframes for 0% CPU Ambient Background & Watermark Animations */
+@keyframes spin-cw {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes spin-ccw {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(-360deg); }
+}
+
+@keyframes pulse-ambient-glow {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.22); opacity: 0.85; }
+}
+
+@keyframes float-sparkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 0.85; transform: scale(1.3); }
+}
+
+@keyframes float-spark-vertical {
+  0%, 100% { transform: translateY(-12px); opacity: 0.08; }
+  50% { transform: translateY(12px); opacity: 0.24; }
+}
+
+@keyframes scan-beam-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(120px); }
+}
+
+@keyframes sword-float {
+  0%, 100% { transform: rotate(-8deg) scale(0.98); }
+  50% { transform: rotate(8deg) scale(1.02); }
+}
+
+@keyframes hud-ring {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.03); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+@keyframes beam-scan-vertical {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(200%); }
+}
+
+@keyframes beam-scan-x {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+
+.animate-spin-cw {
+  animation: spin-cw linear infinite;
+  transform-origin: center center;
+}
+
+.animate-spin-ccw {
+  animation: spin-ccw linear infinite;
+  transform-origin: center center;
+}
+
+.animate-pulse-ambient-glow {
+  animation: pulse-ambient-glow 3.5s ease-in-out infinite;
+  transform-origin: center center;
+}
+
+.animate-float-sparkle {
+  animation: float-sparkle ease-in-out infinite;
+  transform-origin: center center;
+}
+
+.animate-float-spark-vertical {
+  animation: float-spark-vertical 5s ease-in-out infinite;
+}
+
+.animate-scan-beam-y {
+  animation: scan-beam-y 3.5s ease-in-out infinite;
+}
+
+.animate-sword-float {
+  animation: sword-float 16s ease-in-out infinite;
+  transform-origin: center center;
+}
+
+.animate-hud-ring {
+  animation: hud-ring 35s linear infinite;
+  transform-origin: center center;
+}
+
+.animate-beam-scan-vertical {
+  animation: beam-scan-vertical 5s linear infinite;
+}
+
+.animate-beam-scan-x {
+  animation: beam-scan-x 3s linear infinite;
+}
+
+/* Content visibility auto for ultra-smooth list scrolling */
+.content-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 80px;
 }
 
 /* Ensure Task, ToDo, and small status badge labels never collapse below legible 11.5px */
@@ -188,6 +305,18 @@ html.no-gpu [style*="transform"] {
 }
 
 /* Mobile Performance Boost & Minimal Ambient Canvas */
+@media (max-width: 768px), (hover: none) {
+  /* Disable heavy backdrop-filters on mobile devices to achieve silky 60fps/120fps scrolling */
+  aside,
+  header,
+  .tile,
+  .tile-solid,
+  [class*="backdrop-blur"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
 @media (max-width: 639px) {
   .tile, main, section {
     transform: translateZ(0);

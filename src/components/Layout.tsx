@@ -20,6 +20,7 @@ import CustomDialogOverlay from './CustomDialogOverlay';
 import { DayReviewModal } from './DayReviewModal';
 import { AiNeuralLogo } from './AiNeuralLogo';
 import dynamic from 'next/dynamic';
+import { useWindowState } from '@/lib/windowState';
 
 const AiAssistantModal = dynamic(() => import('@/features/ai/AiAssistantModal'), { ssr: false });
 
@@ -111,7 +112,7 @@ export const Layout: React.FC<LayoutProps> = ({
   const [isWizardModalOpen, setIsWizardModalOpen] = useState(false);
   const [dayReviewModal, setDayReviewModal] = useState<'morning' | 'evening' | null>(null);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
-  const [isBackground, setIsBackground] = useState(false);
+  const isWindowActive = useWindowState();
 
   // OneDrive auto-sync
   useOneDriveAutoSync();
@@ -201,76 +202,6 @@ export const Layout: React.FC<LayoutProps> = ({
     }
   }, [settings.minimizeToTray, settings.lowGpuMode, settings.ecoMode, settings.disableGpuAcceleration, updateSettings]);
 
-  // Listen for window blur, visibility change, and Tauri window events to freeze CPU when backgrounded/minimized
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const handleVisibility = () => {
-      const hidden = document.hidden;
-      setIsBackground(hidden);
-      if (hidden) {
-        document.documentElement.classList.add('is-hidden', 'window-blurred');
-      } else {
-        document.documentElement.classList.remove('is-hidden', 'window-blurred');
-      }
-    };
-
-    const handleBlur = () => {
-      setIsBackground(true);
-      document.documentElement.classList.add('window-blurred');
-    };
-
-    const handleFocus = () => {
-      setIsBackground(false);
-      document.documentElement.classList.remove('window-blurred', 'is-hidden');
-    };
-
-    document.addEventListener('visibilitychange', handleVisibility);
-    window.addEventListener('blur', handleBlur);
-    window.addEventListener('focus', handleFocus);
-
-    let unlistenEco: (() => void) | undefined;
-    let unlistenState: (() => void) | undefined;
-
-    if ((window as any).__TAURI_INTERNALS__) {
-      import('@tauri-apps/api/event').then(({ listen }) => {
-        listen<{ enabled: boolean }>('shadow-eco-mode', (e) => {
-          if (e.payload && typeof e.payload.enabled === 'boolean') {
-            setIsBackground(e.payload.enabled);
-            if (e.payload.enabled) {
-              document.documentElement.classList.add('is-hidden', 'window-blurred');
-            } else {
-              document.documentElement.classList.remove('is-hidden', 'window-blurred');
-            }
-          }
-        }).then(unlisten => { unlistenEco = unlisten; }).catch(() => {});
-
-        listen<{ minimized?: boolean; hidden?: boolean; focused?: boolean }>('shadow-window-state', (e) => {
-          const isInactive = Boolean(
-            e.payload?.minimized ||
-            e.payload?.hidden ||
-            (typeof e.payload?.focused === 'boolean' && !e.payload.focused)
-          );
-          if (isInactive) {
-            setIsBackground(true);
-            document.documentElement.classList.add('is-hidden', 'window-blurred');
-          } else if (e.payload?.focused === true) {
-            setIsBackground(false);
-            document.documentElement.classList.remove('is-hidden', 'window-blurred');
-          }
-        }).then(unlisten => { unlistenState = unlisten; }).catch(() => {});
-      }).catch(() => {});
-    }
-
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibility);
-      window.removeEventListener('blur', handleBlur);
-      window.removeEventListener('focus', handleFocus);
-      if (unlistenEco) unlistenEco();
-      if (unlistenState) unlistenState();
-    };
-  }, []);
-
   // Request notification permission on first launch (non-intrusive, one time)
   useEffect(() => {
     const notifAsked = sessionStorage.getItem('shadow_notif_asked');
@@ -340,7 +271,7 @@ export const Layout: React.FC<LayoutProps> = ({
   }
 
   const isGpuDisabled = Boolean(settings.disableGpuAcceleration);
-  const isFreezeActive = isGpuDisabled || isBackground;
+  const isFreezeActive = isGpuDisabled || !isWindowActive;
 
   return (
     <MotionConfig

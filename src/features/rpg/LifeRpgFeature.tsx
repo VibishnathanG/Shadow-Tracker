@@ -299,10 +299,8 @@ export default function LifeRpgFeature() {
             <div className="relative shrink-0">
               {/* Hologram Rings (disabled in eco mode) */}
               {!isEco && (
-                <motion.div
-                  className="absolute -inset-2 rounded-3xl border border-dashed border-primary/40 pointer-events-none"
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 30, repeat: Infinity, ease: 'linear' }}
+                <div
+                  className="absolute -inset-2 rounded-3xl border border-dashed border-primary/40 pointer-events-none animate-spin-cw [animation-duration:30s]"
                 />
               )}
                 <div className="w-16 h-16 sm:w-24 sm:h-24 rounded-3xl bg-surface-elevated border-2 border-primary/40 flex items-center justify-center text-primary shadow-2xl relative overflow-hidden group shrink-0">
@@ -361,10 +359,8 @@ export default function LifeRpgFeature() {
                 className="h-full bg-gradient-to-r from-primary via-purple-400 to-cyan-400 rounded-full shadow-md relative overflow-hidden"
               >
                 {!isEco && (
-                  <motion.div
-                    className="absolute inset-0 bg-white/25 w-1/3 -skew-x-12"
-                    animate={{ x: [' -100%', '400%'] }}
-                    transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                  <div
+                    className="absolute inset-0 bg-white/25 w-1/3 -skew-x-12 animate-beam-scan-x"
                   />
                 )}
               </motion.div>

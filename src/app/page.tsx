@@ -11,6 +11,7 @@ import { MotionConfig } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useViewPreference } from '@/lib/viewPreferences';
+import { initWindowStateManager, useWindowState } from '@/lib/windowState';
 
 const PageFallback = () => (
   <div className="min-h-[50vh] flex flex-col items-center justify-center p-8">
@@ -39,9 +40,11 @@ export default function Home() {
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const isWindowActive = useWindowState();
 
   // Mount/initialize
   useEffect(() => {
+    const cleanupWindowState = initWindowStateManager();
     setMounted(true);
     setSelectedDate(getTodayDateString());
     init();
@@ -55,6 +58,7 @@ export default function Home() {
     setIsMobile(window.innerWidth < 640);
     window.addEventListener('resize', checkMobile, { passive: true });
     return () => {
+      cleanupWindowState();
       clearTimeout(resizeTimer);
       window.removeEventListener('resize', checkMobile);
     };
@@ -123,7 +127,7 @@ export default function Home() {
 
   return (
     <ErrorBoundary>
-      <MotionConfig reducedMotion={isEcoOrLowGpu || isMobile ? 'always' : 'never'}>
+      <MotionConfig reducedMotion={isEcoOrLowGpu || isMobile || !isWindowActive ? 'always' : 'never'}>
         <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
           {renderActiveFeature()}
         </Layout>

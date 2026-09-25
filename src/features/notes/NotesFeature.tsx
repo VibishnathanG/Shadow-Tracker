@@ -11,25 +11,21 @@ import { MarkdownRenderer } from '@/components/MarkdownRenderer';
 
 const AmbientArt = React.memo(() => (
   <div className="dashboard-watermark absolute inset-0 overflow-hidden pointer-events-none z-0">
-    <motion.div
-      className="absolute top-[-20%] right-[-10%] text-primary"
-      animate={{ rotate: 360, scale: [1, 1.05, 1] }}
-      transition={{ rotate: { duration: 60, repeat: Infinity, ease: "linear" }, scale: { duration: 10, repeat: Infinity, ease: "easeInOut" } }}
+    <div
+      className="absolute top-[-20%] right-[-10%] text-primary animate-spin-cw [animation-duration:60s]"
     >
       <svg width="600" height="600" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
         <path fill="currentColor" d="M45.7,-76.3C58.9,-69.3,69.1,-55.3,77.3,-40.5C85.5,-25.7,91.7,-10.1,90.4,5C89.1,20.1,80.3,34.7,70,47.1C59.7,59.5,47.9,69.7,33.9,76.5C19.9,83.3,3.7,86.7,-11.4,84.5C-26.5,82.3,-40.5,74.5,-53.4,64.2C-66.3,53.9,-78.1,41.1,-84.6,25.8C-91.1,10.5,-92.3,-7.3,-86.6,-22.6C-80.9,-37.9,-68.3,-50.7,-54.1,-59.4C-39.9,-68.1,-24.1,-72.7,-8,-74.6C8.1,-76.5,24.3,-75.7,45.7,-76.3Z" transform="translate(100 100)" />
       </svg>
-    </motion.div>
+    </div>
 
-    <motion.div
-      className="absolute bottom-[-15%] left-[-15%] text-primary"
-      animate={{ scale: [1, 1.15, 1], opacity: [0.02, 0.04, 0.02] }}
-      transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+    <div
+      className="absolute bottom-[-15%] left-[-15%] text-primary opacity-[0.03] animate-pulse-ambient-glow [animation-duration:15s]"
     >
       <svg width="500" height="500" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
         <path fill="currentColor" d="M42.7,-73.4C56.6,-66.1,69.8,-56.3,79.5,-43.3C89.2,-30.3,95.4,-14.1,93.5,1.5C91.6,17.1,81.6,32.1,70.5,45.2C59.4,58.3,47.2,69.5,33.1,76.3C19,83.1,3,85.5,-12.3,83.1C-27.6,80.7,-42.2,73.5,-54.3,62.8C-66.4,52.1,-76,37.9,-81.4,22.1C-86.8,6.3,-88,-11.1,-82.7,-26.4C-77.4,-41.7,-65.6,-54.9,-51.7,-62.4C-37.8,-69.9,-21.8,-71.7,-5.3,-65.4C11.2,-59.1,28.8,-80.7,42.7,-73.4Z" transform="translate(100 100)" />
       </svg>
-    </motion.div>
+    </div>
   </div>
 ));
 AmbientArt.displayName = 'AmbientArt';

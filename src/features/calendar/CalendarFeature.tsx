@@ -177,10 +177,8 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
   return (
     <div className="relative grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-start">
       <div className="dashboard-watermark absolute inset-0 pointer-events-none -z-10 overflow-hidden">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 300, repeat: Infinity, ease: 'linear' }}
-          className={`absolute -top-[40%] -left-[40%] w-[180%] h-[180%] origin-center ${isWhiteTheme ? 'text-primary/20' : 'text-primary/10'}`}
+        <div
+          className={`absolute -top-[40%] -left-[40%] w-[180%] h-[180%] origin-center animate-spin-cw [animation-duration:300s] ${isWhiteTheme ? 'text-primary/20' : 'text-primary/10'}`}
         >
           <svg viewBox="0 0 1000 1000" className="w-full h-full text-current">
             <defs>
@@ -193,7 +191,7 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
             <circle cx="500" cy="500" r="280" fill="none" stroke="currentColor" strokeWidth="0.6" strokeDasharray="6 15" opacity="0.6" />
             <circle cx="500" cy="500" r="160" fill="url(#calBgGlow)" opacity="0.4" />
           </svg>
-        </motion.div>
+        </div>
       </div>
 
       <div className="md:col-span-2 space-y-4">

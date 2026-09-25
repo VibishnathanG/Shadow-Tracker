@@ -349,50 +349,42 @@ export const TasksFeature: React.FC = () => {
   return (
     <div className="space-y-6 relative min-h-[600px]">
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 opacity-[0.05] mix-blend-screen flex items-center justify-center">
-        <motion.svg
+        <svg
           viewBox="0 0 800 800"
-          className="w-full h-full max-w-[900px] text-primary"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 180, repeat: Infinity, ease: 'linear' }}
+          className="w-full h-full max-w-[900px] text-primary animate-spin-cw [animation-duration:180s]"
         >
           <circle cx="400" cy="400" r="350" stroke="currentColor" strokeWidth="0.8" fill="none" strokeDasharray="12 8" />
-          <motion.circle
+          <circle
             cx="400" cy="400" r="250"
             stroke="currentColor" strokeWidth="0.6" fill="none"
             strokeDasharray="6 14"
-            animate={{ rotate: -360 }}
-            transition={{ duration: 90, repeat: Infinity, ease: 'linear' }}
+            className="animate-spin-ccw [animation-duration:90s]"
             style={{ transformOrigin: '400px 400px' }}
           />
-          <motion.circle
+          <circle
             cx="400" cy="400" r="150"
             stroke="currentColor" strokeWidth="0.5" fill="none"
             strokeDasharray="4 20"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 60, repeat: Infinity, ease: 'linear' }}
+            className="animate-spin-cw [animation-duration:60s]"
             style={{ transformOrigin: '400px 400px' }}
           />
           <circle cx="400" cy="400" r="3" fill="currentColor" opacity="0.4" />
-          <motion.line
+          <line
             x1="50" y1="400" x2="750" y2="400"
             stroke="currentColor" strokeWidth="0.4"
             strokeDasharray="2 6"
-            animate={{ y1: [200, 600, 200], y2: [200, 600, 200] }}
-            transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
           />
           {[0, 60, 120, 180, 240, 300].map((deg) => (
-            <motion.circle
+            <circle
               key={deg}
               cx={400 + 300 * Math.cos((deg * Math.PI) / 180)}
               cy={400 + 300 * Math.sin((deg * Math.PI) / 180)}
               r="4"
               fill="currentColor"
               opacity="0.3"
-              animate={{ opacity: [0.15, 0.5, 0.15] }}
-              transition={{ duration: 4, repeat: Infinity, delay: deg / 120 }}
             />
           ))}
-        </motion.svg>
+        </svg>
       </div>
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 relative z-10">

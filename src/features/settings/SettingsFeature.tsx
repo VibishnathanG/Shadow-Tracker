@@ -46,44 +46,44 @@ import { fireConfetti } from '@/lib/confetti';
 
 const TileArtDisplaySettings = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.1] select-none z-0">
-    <motion.svg className="w-full h-full text-primary" viewBox="0 0 100 100" preserveAspectRatio="none">
-      <motion.line x1="0" y1="20" x2="100" y2="20" stroke="currentColor" strokeWidth="0.3" animate={{ x1: [-20, 100], x2: [0, 120] }} transition={{ duration: 7, repeat: Infinity, ease: 'linear' }} />
-      <motion.line x1="0" y1="50" x2="100" y2="50" stroke="currentColor" strokeWidth="0.3" animate={{ x1: [100, -20], x2: [120, 0] }} transition={{ duration: 9, repeat: Infinity, ease: 'linear' }} />
-      <motion.line x1="0" y1="80" x2="100" y2="80" stroke="currentColor" strokeWidth="0.3" animate={{ x1: [-40, 80], x2: [-20, 100] }} transition={{ duration: 6, repeat: Infinity, ease: 'linear' }} />
-    </motion.svg>
+    <svg className="w-full h-full text-primary" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <line x1="0" y1="20" x2="100" y2="20" stroke="currentColor" strokeWidth="0.3" strokeDasharray="4 6" opacity="0.6" />
+      <line x1="0" y1="50" x2="100" y2="50" stroke="currentColor" strokeWidth="0.3" strokeDasharray="6 4" opacity="0.4" />
+      <line x1="0" y1="80" x2="100" y2="80" stroke="currentColor" strokeWidth="0.3" strokeDasharray="3 5" opacity="0.5" />
+    </svg>
   </div>
 );
 
 const TileArtCategories = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.1] select-none z-0">
-    <motion.svg className="w-full h-full text-primary" viewBox="0 0 100 100" preserveAspectRatio="none">
+    <svg className="w-full h-full text-primary" viewBox="0 0 100 100" preserveAspectRatio="none">
       <circle cx="20" cy="35" r="1" fill="currentColor" />
       <circle cx="80" cy="65" r="1" fill="currentColor" />
       <circle cx="50" cy="50" r="1.5" fill="currentColor" />
       <line x1="20" y1="35" x2="50" y2="50" stroke="currentColor" strokeWidth="0.2" strokeDasharray="1 1" />
       <line x1="80" y1="65" x2="50" y2="50" stroke="currentColor" strokeWidth="0.2" strokeDasharray="1 1" />
-      <motion.circle cx="50" cy="50" r="6" fill="none" stroke="currentColor" strokeWidth="0.3" animate={{ scale: [1, 2.5, 1], opacity: [0.3, 0.8, 0.3] }} transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }} />
-    </motion.svg>
+      <circle cx="50" cy="50" r="6" fill="none" stroke="currentColor" strokeWidth="0.3" opacity="0.6" />
+    </svg>
   </div>
 );
 
 const TileArtSync = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.1] select-none z-0">
-    <motion.svg className="w-full h-full text-primary" viewBox="0 0 100 100" preserveAspectRatio="none">
-      <motion.path d="M 30,60 Q 50,30 70,60" fill="none" stroke="currentColor" strokeWidth="0.6" animate={{ opacity: [0.2, 0.9, 0.2] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }} />
-      <motion.path d="M 20,60 Q 50,20 80,60" fill="none" stroke="currentColor" strokeWidth="0.4" animate={{ opacity: [0.1, 0.7, 0.1] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 0.6 }} />
-      <motion.path d="M 10,60 Q 50,10 90,60" fill="none" stroke="currentColor" strokeWidth="0.3" animate={{ opacity: [0.05, 0.5, 0.05] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 1.2 }} />
-    </motion.svg>
+    <svg className="w-full h-full text-primary" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <path d="M 30,60 Q 50,30 70,60" fill="none" stroke="currentColor" strokeWidth="0.6" opacity="0.6" />
+      <path d="M 20,60 Q 50,20 80,60" fill="none" stroke="currentColor" strokeWidth="0.4" opacity="0.4" />
+      <path d="M 10,60 Q 50,10 90,60" fill="none" stroke="currentColor" strokeWidth="0.3" opacity="0.3" />
+    </svg>
   </div>
 );
 
 const TileArtDanger = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.08] select-none z-0">
-    <motion.svg className="w-full h-full text-red-500" viewBox="0 0 100 100" preserveAspectRatio="none">
-      <motion.line x1="0" y1="0" x2="100" y2="100" stroke="currentColor" strokeWidth="0.3" animate={{ opacity: [0.1, 0.6, 0.1] }} transition={{ duration: 5, repeat: Infinity }} />
-      <motion.line x1="100" y1="0" x2="0" y2="100" stroke="currentColor" strokeWidth="0.3" animate={{ opacity: [0.1, 0.6, 0.1] }} transition={{ duration: 5, repeat: Infinity, delay: 2.5 }} />
-      <motion.rect x="40" y="40" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="0.3" transform="rotate(45 50 50)" animate={{ scale: [0.95, 1.05, 0.95] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }} />
-    </motion.svg>
+    <svg className="w-full h-full text-red-500" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <line x1="0" y1="0" x2="100" y2="100" stroke="currentColor" strokeWidth="0.3" opacity="0.4" />
+      <line x1="100" y1="0" x2="0" y2="100" stroke="currentColor" strokeWidth="0.3" opacity="0.4" />
+      <rect x="40" y="40" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="0.3" transform="rotate(45 50 50)" opacity="0.5" />
+    </svg>
   </div>
 );
 
@@ -186,10 +186,10 @@ const OneDriveSyncTile: React.FC<OneDriveSyncTileProps> = ({ onDiagnosticError }
       className="tile settings-tile p-6 sm:p-8 space-y-5 flex flex-col justify-between relative overflow-hidden lg:col-span-1"
     >
       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.07] select-none z-0">
-        <motion.svg className="w-full h-full text-sky-400" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <motion.path d="M 10,70 Q 30,50 50,60 Q 70,70 90,40" fill="none" stroke="currentColor" strokeWidth="0.8" animate={{ opacity: [0.2, 0.9, 0.2], pathLength: [0, 1, 0] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }} />
-          <motion.circle cx="50" cy="55" r="15" fill="none" stroke="currentColor" strokeWidth="0.5" animate={{ scale: [0.9, 1.2, 0.9] }} transition={{ duration: 4, repeat: Infinity }} />
-        </motion.svg>
+        <svg className="w-full h-full text-sky-400" viewBox="0 0 100 100" preserveAspectRatio="none">
+          <path d="M 10,70 Q 30,50 50,60 Q 70,70 90,40" fill="none" stroke="currentColor" strokeWidth="0.8" opacity="0.6" />
+          <circle cx="50" cy="55" r="15" fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.5" />
+        </svg>
       </div>
 
       <div className="relative z-10">
@@ -1113,11 +1113,9 @@ export const SettingsFeature: React.FC = () => {
       className="relative space-y-8 w-full max-w-[1700px] mx-auto pb-12 overflow-hidden"
     >
       <div className="absolute inset-0 pointer-events-none select-none opacity-[0.05]" aria-hidden="true">
-        <motion.svg
-          className="absolute -top-20 -right-20 text-primary"
+        <svg
+          className="absolute -top-20 -right-20 text-primary animate-spin-cw [animation-duration:80s]"
           width="320" height="320" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="0.8"
-          animate={{ rotate: 360 }}
-          transition={{ repeat: Infinity, duration: 80, ease: "linear" }}
         >
           <circle cx="50" cy="50" r="18" />
           <circle cx="50" cy="50" r="8" />
@@ -1129,12 +1127,10 @@ export const SettingsFeature: React.FC = () => {
               transform={`rotate(${angle} 50 50)`}
             />
           ))}
-        </motion.svg>
-        <motion.svg
-          className="absolute -bottom-16 -left-16 text-primary"
+        </svg>
+        <svg
+          className="absolute -bottom-16 -left-16 text-primary animate-spin-ccw [animation-duration:60s]"
           width="240" height="240" viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="0.8"
-          animate={{ rotate: -360 }}
-          transition={{ repeat: Infinity, duration: 60, ease: "linear" }}
         >
           <circle cx="50" cy="50" r="16" />
           <circle cx="50" cy="50" r="6" />
@@ -1146,7 +1142,7 @@ export const SettingsFeature: React.FC = () => {
               transform={`rotate(${angle} 50 50)`}
             />
           ))}
-        </motion.svg>
+        </svg>
       </div>
 
       <motion.div variants={itemVariants} className="flex flex-col gap-2">
@@ -1658,15 +1654,14 @@ export const SettingsFeature: React.FC = () => {
             className="lg:col-span-1 tile settings-tile p-6 sm:p-8 flex flex-col gap-5 relative overflow-hidden"
           >
             <div className="absolute -bottom-12 -right-12 text-primary/10 pointer-events-none select-none">
-              <motion.svg 
+              <svg 
+                className="animate-spin-cw [animation-duration:60s]"
                 width="180" height="180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round"
-                animate={{ rotate: 360 }}
-                transition={{ repeat: Infinity, duration: 60, ease: "linear" }}
               >
                 <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
                 <polyline points="3.29 7 12 12 20.71 7" />
                 <line x1="12" y1="22" x2="12" y2="12" />
-              </motion.svg>
+              </svg>
             </div>
 
             <div className="relative z-10 flex flex-col gap-4">
