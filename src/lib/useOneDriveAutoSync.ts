@@ -14,7 +14,6 @@ import { useShadowTrackerStore } from '@/store';
 import { performFullBidirectionalSync } from '@/lib/oneDriveSync';
 
 export function useOneDriveAutoSync() {
-  const { tasks, habits, dailyLogs, notes, categories, settings } = useShadowTrackerStore();
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isMounted = useRef(false);
   const isVisible = useRef(true);
@@ -54,11 +53,41 @@ export function useOneDriveAutoSync() {
     }, 3000);
   }, []);
 
-  // 1. Sync on Zustand Store domain updates
+  // 1. Sync on Zustand Store domain updates via external subscription (zero React re-renders)
   useEffect(() => {
-    triggerDebouncedSync();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tasks, habits, dailyLogs, notes, categories, settings.oneDriveSyncEnabled, settings.oneDriveSyncFile, triggerDebouncedSync]);
+    let prevTasks = useShadowTrackerStore.getState().tasks;
+    let prevHabits = useShadowTrackerStore.getState().habits;
+    let prevDailyLogs = useShadowTrackerStore.getState().dailyLogs;
+    let prevNotes = useShadowTrackerStore.getState().notes;
+    let prevCategories = useShadowTrackerStore.getState().categories;
+    let prevSyncEnabled = useShadowTrackerStore.getState().settings.oneDriveSyncEnabled;
+    let prevSyncFile = useShadowTrackerStore.getState().settings.oneDriveSyncFile;
+
+    const unsub = useShadowTrackerStore.subscribe((state) => {
+      if (
+        state.tasks !== prevTasks ||
+        state.habits !== prevHabits ||
+        state.dailyLogs !== prevDailyLogs ||
+        state.notes !== prevNotes ||
+        state.categories !== prevCategories ||
+        state.settings.oneDriveSyncEnabled !== prevSyncEnabled ||
+        state.settings.oneDriveSyncFile !== prevSyncFile
+      ) {
+        prevTasks = state.tasks;
+        prevHabits = state.habits;
+        prevDailyLogs = state.dailyLogs;
+        prevNotes = state.notes;
+        prevCategories = state.categories;
+        prevSyncEnabled = state.settings.oneDriveSyncEnabled;
+        prevSyncFile = state.settings.oneDriveSyncFile;
+        triggerDebouncedSync();
+      }
+    });
+
+    return () => {
+      unsub();
+    };
+  }, [triggerDebouncedSync]);
 
   // 2. Sync on External Local/Health/Diet/Money/RPG updates
   useEffect(() => {

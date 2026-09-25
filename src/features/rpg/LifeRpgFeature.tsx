@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import { useShadowTrackerStore } from '@/store';
+import { useShallow } from 'zustand/react/shallow';
 import confetti from 'canvas-confetti';
 import { getXpForLevel, getCharacterTitle, getCumulativeXpForLevel } from './rpgLevels';
 import Modal from '@/components/Modal';
@@ -94,7 +95,17 @@ const MILESTONES = [
 ];
 
 export default function LifeRpgFeature() {
-  const { xp, level, settings, tasks, habits, notes, addXp } = useShadowTrackerStore();
+  const { xp, level, settings, tasks, habits, notes, addXp } = useShadowTrackerStore(
+    useShallow(state => ({
+      xp: state.xp,
+      level: state.level,
+      settings: state.settings,
+      tasks: state.tasks,
+      habits: state.habits,
+      notes: state.notes,
+      addXp: state.addXp,
+    }))
+  );
   const isEco = useShadowTrackerStore((s) => Boolean(s.settings.ecoMode || s.settings.lowGpuMode));
 
   const currentLevel = Math.min(100, Math.max(1, level || 1));

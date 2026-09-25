@@ -373,7 +373,7 @@ export const SettingsFeature: React.FC = () => {
         setSelectedPurgeYear(years[0]);
       }
     });
-  }, [tasks, habits]);
+  }, [tasks.length, habits.length]);
 
   const handleExportYear = useCallback(async () => {
     if (!selectedPurgeYear) return;

@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Lucide } from '@/components/icons';
 import { useShadowTrackerStore } from '@/store';
+import { useShallow } from 'zustand/react/shallow';
 import { fireConfetti } from '@/lib/confetti';
 import { getTodayDateString, formatDateString, getMonthGridDates } from '@/lib/dateUtils';
 import { format, addDays, addWeeks, subWeeks, addMonths, subMonths, isSameMonth, parseISO } from 'date-fns';
@@ -32,7 +33,14 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
     categories,
     updateTask,
     toggleTaskCompletion,
-  } = useShadowTrackerStore();
+  } = useShadowTrackerStore(
+    useShallow(state => ({
+      tasks: state.tasks,
+      categories: state.categories,
+      updateTask: state.updateTask,
+      toggleTaskCompletion: state.toggleTaskCompletion,
+    }))
+  );
 
   const todayStr = useMemo(() => getTodayDateString(), []);
 

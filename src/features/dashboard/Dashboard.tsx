@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import { fireConfetti } from '@/lib/confetti';
 import { useShadowTrackerStore } from '@/store';
+import { useShallow } from 'zustand/react/shallow';
 import { getTodayDateString, formatDateString } from '@/lib/dateUtils';
 import EmptyState from '@/components/EmptyState';
 import Modal from '@/components/Modal';
@@ -258,6 +259,19 @@ const TileArtHabits = () => {
     </div>
   );
 };
+
+const BADGE_DEAL_ANIMATIONS = ALL_BADGES.map((_, i) => {
+  const pseudoRandom = (seed: number) => {
+    const x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
+  };
+  return {
+    dealX: (pseudoRandom(i * 13) - 0.5) * 800,
+    dealY: (pseudoRandom(i * 17) - 0.5) * 600,
+    dealRotate: (pseudoRandom(i * 23) - 0.5) * 360,
+    dealDelay: i * 0.1,
+  };
+});
 // ----------------------------
 
 interface DashboardProps {
@@ -280,7 +294,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
     level,
     unlockedBadges,
     settings,
-  } = useShadowTrackerStore();
+  } = useShadowTrackerStore(
+    useShallow(state => ({
+      tasks: state.tasks,
+      habits: state.habits,
+      dailyLogs: state.dailyLogs,
+      categories: state.categories,
+      addTask: state.addTask,
+      toggleTaskCompletion: state.toggleTaskCompletion,
+      toggleHabitCompletion: state.toggleHabitCompletion,
+      xp: state.xp,
+      level: state.level,
+      unlockedBadges: state.unlockedBadges,
+      settings: state.settings,
+    }))
+  );
 
   const [inlineTaskTitle, setInlineTaskTitle] = useState('');
   const [inlineTaskPriority, setInlineTaskPriority] = useState<'low' | 'medium' | 'high'>('medium');
@@ -690,17 +718,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 const isTargetBlackBadge = ['badge-first-task', 'badge-first-note', 'badge-streak-3', 'badge-streak-7'].includes(b.id) || ['First Spark', 'Mindful Mind', 'Triple Streak', 'Weekly Streak'].includes(b.name);
 
                 const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
-
-                const pseudoRandom = (seed: number) => {
-                  const x = Math.sin(seed) * 10000;
-                  return x - Math.floor(x);
-                };
-                
-                const dealX = (pseudoRandom(i * 13) - 0.5) * 800;
-                const dealY = (pseudoRandom(i * 17) - 0.5) * 600;
-                const dealRotate = (pseudoRandom(i * 23) - 0.5) * 360;
-                
-                const dealDelay = i * 0.1; 
+                const animData = BADGE_DEAL_ANIMATIONS[i];
 
                 const physics = isUnlocked
                   ? { type: "spring" as const, stiffness: 100, damping: 8, mass: 1 }
@@ -708,7 +726,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
                 const initialAnim = isMobile 
                   ? { opacity: 0, scale: 0.95 }
-                  : { opacity: 0, scale: 0.1, x: dealX, y: dealY, rotate: dealRotate };
+                  : { opacity: 0, scale: 0.1, x: animData.dealX, y: animData.dealY, rotate: animData.dealRotate };
 
                 const animateTarget = isMobile
                   ? { opacity: isUnlocked ? 1 : 0.7, scale: 1 }
@@ -716,7 +734,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
                 const animTransition = isMobile
                   ? { duration: 0.2, delay: i * 0.02 }
-                  : { ...physics, delay: dealDelay };
+                  : { ...physics, delay: animData.dealDelay };
 
                 return (
                   <motion.div

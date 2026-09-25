@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import Modal from '@/components/Modal';
 import { useShadowTrackerStore } from '@/store';
+import { useShallow } from 'zustand/react/shallow';
 import EmptyState from '@/components/EmptyState';
 import { useViewPreference } from '@/lib/viewPreferences';
 import { getHabitDateStatus, parseDateString, getTodayDateString } from '@/lib/dateUtils';
@@ -70,7 +71,19 @@ const WEEK_THEME_COLORS = [
 ];
 
 const HabitsMonthlyGridCard: React.FC = () => {
-  const { habits, categories, notes, saveNote, toggleHabitCompletion, markHabitUncompleted, clearHabitUncompleted, settings, updateSettings } = useShadowTrackerStore();
+  const { habits, categories, notes, saveNote, toggleHabitCompletion, markHabitUncompleted, clearHabitUncompleted, settings, updateSettings } = useShadowTrackerStore(
+    useShallow(state => ({
+      habits: state.habits,
+      categories: state.categories,
+      notes: state.notes,
+      saveNote: state.saveNote,
+      toggleHabitCompletion: state.toggleHabitCompletion,
+      markHabitUncompleted: state.markHabitUncompleted,
+      clearHabitUncompleted: state.clearHabitUncompleted,
+      settings: state.settings,
+      updateSettings: state.updateSettings,
+    }))
+  );
   const graceDays = settings?.habitGracePeriodDays ?? 3;
   const [currentMonthDate, setCurrentMonthDate] = useState<Date>(new Date());
   const [matrixViewMode, setMatrixViewMode] = useViewPreference('analyticsMatrixViewMode') as ['month' | 'week', (v: 'month' | 'week') => void];
@@ -141,6 +154,16 @@ const HabitsMonthlyGridCard: React.FC = () => {
 
     return weeks;
   }, [daysInMonth]);
+
+  const weekDataByDateStr = useMemo(() => {
+    const map = new Map<string, { weekGroup: typeof weekGroups[0]; weekIdx: number; weekDays: Date[] }>();
+    weekGroups.forEach((w, wIdx) => {
+      w.days.forEach(d => {
+        map.set(format(d, 'yyyy-MM-dd'), { weekGroup: w, weekIdx: wIdx, weekDays: w.days });
+      });
+    });
+    return map;
+  }, [weekGroups]);
 
   const resetToToday = useCallback(() => {
     const today = new Date();
@@ -312,9 +335,9 @@ const HabitsMonthlyGridCard: React.FC = () => {
     return daysInMonth.map(date => {
       const dateStr = format(date, 'yyyy-MM-dd');
       
-      // Find week group containing this date
-      const weekGroup = weekGroups.find(w => w.days.some(d => format(d, 'yyyy-MM-dd') === dateStr));
-      const weekDays = weekGroup ? weekGroup.days : [date];
+      // Fast O(1) week group lookup
+      const weekInfo = weekDataByDateStr.get(dateStr);
+      const weekDays = weekInfo ? weekInfo.weekDays : [date];
 
       let scheduledCount = 0;
       let doneCount = 0;
@@ -340,15 +363,15 @@ const HabitsMonthlyGridCard: React.FC = () => {
         percentage
       };
     });
-  }, [daysInMonth, habits, weekGroups, evaluateHabitDaySchedule]);
+  }, [daysInMonth, habits, weekDataByDateStr, evaluateHabitDaySchedule]);
 
   const activeHabits = useMemo(() => habits.filter(h => !h.isSoftDeleted), [habits]);
 
+  const categoryMap = useMemo(() => new Map(categories.map(c => [c.id, c.color])), [categories]);
   const getCategoryColor = useCallback((catId?: string) => {
     if (!catId) return '#8b5cf6';
-    const cat = categories.find(c => c.id === catId);
-    return cat ? cat.color : '#8b5cf6';
-  }, [categories]);
+    return categoryMap.get(catId) || '#8b5cf6';
+  }, [categoryMap]);
 
   // Daily Progress Chart Path calculation
   const chartHeight = 45;
@@ -588,10 +611,10 @@ const HabitsMonthlyGridCard: React.FC = () => {
                       const dateStr = format(date, 'yyyy-MM-dd');
                       const isCurrent = isToday(date);
                       
-                      const weekGroup = weekGroups.find(w => w.days.some(d => format(d, 'yyyy-MM-dd') === dateStr));
-                      const weekDays = weekGroup ? weekGroup.days : [date];
-                      const weekIdx = weekGroups.findIndex(w => w.days.some(d => format(d, 'yyyy-MM-dd') === dateStr));
-                      const theme = WEEK_THEME_COLORS[(weekIdx >= 0 ? weekIdx : 0) % WEEK_THEME_COLORS.length];
+                      const weekInfo = weekDataByDateStr.get(dateStr);
+                      const weekDays = weekInfo ? weekInfo.weekDays : [date];
+                      const weekIdx = weekInfo ? weekInfo.weekIdx : 0;
+                      const theme = WEEK_THEME_COLORS[weekIdx % WEEK_THEME_COLORS.length];
 
                       const evalState = evaluateHabitDaySchedule(habit, date, weekDays);
 
@@ -857,7 +880,7 @@ const HabitsMonthlyGridCard: React.FC = () => {
    ========================================================= */
 
 const TasksHeatmapCard: React.FC = () => {
-  const { tasks } = useShadowTrackerStore();
+  const tasks = useShadowTrackerStore(state => state.tasks);
 
   const heatmapDays = useMemo(() => {
     const today = new Date();
@@ -948,7 +971,13 @@ const TasksHeatmapCard: React.FC = () => {
 };
 
 export const AnalyticsFeature = () => {
-  const { dailyLogs, tasks, habits } = useShadowTrackerStore();
+  const { dailyLogs, tasks, habits } = useShadowTrackerStore(
+    useShallow(state => ({
+      dailyLogs: state.dailyLogs,
+      tasks: state.tasks,
+      habits: state.habits,
+    }))
+  );
   const [hoveredPoint, setHoveredPoint] = useState<{ 
     x: number; 
     y: number; 

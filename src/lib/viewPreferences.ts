@@ -164,7 +164,7 @@ export function useViewPreference<K extends keyof ViewPreferences>(
     const handleChange = (e: Event) => {
       const customEvent = e as CustomEvent<{ key: keyof ViewPreferences; value: any }>;
       if (customEvent.detail && customEvent.detail.key === key) {
-        setValue(customEvent.detail.value);
+        setValue(prev => (prev === customEvent.detail.value ? prev : customEvent.detail.value));
       }
     };
 

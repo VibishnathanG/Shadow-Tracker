@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import { fireConfetti } from '@/lib/confetti';
 import { useShadowTrackerStore } from '@/store';
+import { useShallow } from 'zustand/react/shallow';
 import { getTodayDateString, formatDateString } from '@/lib/dateUtils';
 import EmptyState from '@/components/EmptyState';
 import Modal from '@/components/Modal';
@@ -17,6 +18,12 @@ import { calculateTaskExecutionTimes } from '@/lib/taskScheduling';
 import { TaskPlannerView } from './TaskPlannerView';
 import { TaskKanbanView } from './TaskKanbanView';
 import { useViewPreference } from '@/lib/viewPreferences';
+
+const TASK_STATUS_CONFIG = {
+  done: { label: 'Done', color: 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/25' },
+  in_progress: { label: 'In Progress', color: 'text-amber-800 dark:text-amber-400 bg-amber-500/10 border-amber-500/25' },
+  todo: { label: 'To Do', color: 'text-sky-700 dark:text-sky-400 bg-sky-500/10 border-sky-500/25' },
+} as const;
 
 export const TasksFeature: React.FC = () => {
   const {
@@ -31,7 +38,21 @@ export const TasksFeature: React.FC = () => {
     addReminder,
     updateReminder,
     updateSettings,
-  } = useShadowTrackerStore();
+  } = useShadowTrackerStore(
+    useShallow(state => ({
+      tasks: state.tasks,
+      categories: state.categories,
+      reminders: state.reminders,
+      settings: state.settings,
+      addTask: state.addTask,
+      updateTask: state.updateTask,
+      toggleTaskCompletion: state.toggleTaskCompletion,
+      deleteTask: state.deleteTask,
+      addReminder: state.addReminder,
+      updateReminder: state.updateReminder,
+      updateSettings: state.updateSettings,
+    }))
+  );
 
   // Top Workspace Switcher: 'list' vs 'planner' vs 'kanban' (Persisted)
   const [workspaceView, setWorkspaceView] = useViewPreference('tasksWorkspaceView') as ['list' | 'planner' | 'kanban', (v: 'list' | 'planner' | 'kanban') => void];
@@ -346,6 +367,8 @@ export const TasksFeature: React.FC = () => {
     });
   }, [tasks, activeTab, dateFilter, selectedMonth, searchQuery, priorityFilter, categoryFilter]);
 
+  const categoryMap = useMemo(() => new Map(categories.map(c => [c.id, c])), [categories]);
+
   return (
     <div className="space-y-6 relative min-h-[600px]">
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 opacity-[0.05] mix-blend-screen flex items-center justify-center">
@@ -614,7 +637,7 @@ export const TasksFeature: React.FC = () => {
           /* Grid View: High-Density Cards to View More Tasks at Once */
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 relative z-10">
             {filteredTasks.map((task) => {
-              const taskCategory = categories.find(c => c.id === task.categoryId);
+              const taskCategory = task.categoryId ? categoryMap.get(task.categoryId) : undefined;
 
               return (
                 <motion.div
@@ -685,11 +708,7 @@ export const TasksFeature: React.FC = () => {
                         {/* Label 3: Kanban Progress */}
                         {(() => {
                           const status = task.status || (task.isCompleted ? 'done' : 'todo');
-                          const statusConfig = {
-                            done: { label: 'Done', color: 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/25' },
-                            in_progress: { label: 'In Progress', color: 'text-amber-800 dark:text-amber-400 bg-amber-500/10 border-amber-500/25' },
-                            todo: { label: 'To Do', color: 'text-sky-700 dark:text-sky-400 bg-sky-500/10 border-sky-500/25' },
-                          }[status] || { label: 'To Do', color: 'text-sky-700 dark:text-sky-400 bg-sky-500/10 border-sky-500/25' };
+                          const statusConfig = TASK_STATUS_CONFIG[status as keyof typeof TASK_STATUS_CONFIG] || TASK_STATUS_CONFIG.todo;
 
                           return (
                             <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${statusConfig.color} shrink-0 hidden min-[220px]:inline-flex`}>
@@ -772,7 +791,7 @@ export const TasksFeature: React.FC = () => {
           /* List View: Full Detailed Cards */
           <div className="space-y-3 relative z-10">
             {filteredTasks.map((task) => {
-              const taskCategory = categories.find(c => c.id === task.categoryId);
+              const taskCategory = task.categoryId ? categoryMap.get(task.categoryId) : undefined;
               
               return (
                 <motion.div
@@ -863,11 +882,7 @@ export const TasksFeature: React.FC = () => {
                         {/* 2. Kanban Progress */}
                         {(() => {
                           const status = task.status || (task.isCompleted ? 'done' : 'todo');
-                          const statusConfig = {
-                            done: { label: 'Done', color: 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/25' },
-                            in_progress: { label: 'In Progress', color: 'text-amber-800 dark:text-amber-400 bg-amber-500/10 border-amber-500/25' },
-                            todo: { label: 'To Do', color: 'text-sky-700 dark:text-sky-400 bg-sky-500/10 border-sky-500/25' },
-                          }[status] || { label: 'To Do', color: 'text-sky-700 dark:text-sky-400 bg-sky-500/10 border-sky-500/25' };
+                          const statusConfig = TASK_STATUS_CONFIG[status as keyof typeof TASK_STATUS_CONFIG] || TASK_STATUS_CONFIG.todo;
 
                           return (
                             <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full border ${statusConfig.color} shrink-0`}>
@@ -1511,7 +1526,7 @@ export const TasksFeature: React.FC = () => {
         title="Task Overview & Specifications"
       >
         {viewingTask && (() => {
-          const taskCategory = categories.find(c => c.id === viewingTask.categoryId);
+          const taskCategory = viewingTask.categoryId ? categoryMap.get(viewingTask.categoryId) : undefined;
           const currentStatus = viewingTask.status || (viewingTask.isCompleted ? 'done' : 'todo');
 
           return (

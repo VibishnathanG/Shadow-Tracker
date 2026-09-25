@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { Lucide } from '@/components/icons';
 import { useShadowTrackerStore } from '@/store';
+import { useShallow } from 'zustand/react/shallow';
 import { fireConfetti } from '@/lib/confetti';
 import { format, parseISO } from 'date-fns';
 import type { Task, Category, TaskStatus, EisenhowerQuadrant } from '@/types';
@@ -22,7 +23,15 @@ export const TaskKanbanView: React.FC<TaskKanbanViewProps> = ({
     updateTask,
     toggleTaskCompletion,
     deleteTask,
-  } = useShadowTrackerStore();
+  } = useShadowTrackerStore(
+    useShallow(state => ({
+      tasks: state.tasks,
+      categories: state.categories,
+      updateTask: state.updateTask,
+      toggleTaskCompletion: state.toggleTaskCompletion,
+      deleteTask: state.deleteTask,
+    }))
+  );
 
   // Mode: 'columns' (To Do / In Progress / Done) vs 'matrix' (Eisenhower 4-Quadrant)
   const [boardMode, setBoardMode] = useState<'columns' | 'matrix'>('columns');

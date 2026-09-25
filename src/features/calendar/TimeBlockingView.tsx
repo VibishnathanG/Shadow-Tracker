@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import { useShadowTrackerStore } from '@/store';
+import { useShallow } from 'zustand/react/shallow';
 import confetti from 'canvas-confetti';
 import Modal from '@/components/Modal';
 
@@ -33,7 +34,12 @@ const STORAGE_KEY = 'shadow_timeline_blocks_v1';
 export const TimeBlockingView: React.FC<{
   selectedDate: string;
 }> = ({ selectedDate }) => {
-  const { tasks, addXp } = useShadowTrackerStore();
+  const { tasks, addXp } = useShadowTrackerStore(
+    useShallow(state => ({
+      tasks: state.tasks,
+      addXp: state.addXp,
+    }))
+  );
   const [blocks, setBlocks] = useState<TimeBlock[]>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -44,11 +50,15 @@ export const TimeBlockingView: React.FC<{
     return [];
   });
 
-  // Save changes
+  // Save changes (debounced)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(blocks));
-    }
+    if (typeof window === 'undefined') return;
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(blocks));
+      } catch (e) {}
+    }, 300);
+    return () => clearTimeout(timer);
   }, [blocks]);
 
   const dateBlocks = useMemo(() => {
@@ -73,6 +83,7 @@ export const TimeBlockingView: React.FC<{
 
   useEffect(() => {
     const timer = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
       const now = new Date();
       setCurrentTimeMinutes(now.getHours() * 60 + now.getMinutes());
     }, 60000);

@@ -5,6 +5,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import { useShadowTrackerStore } from '@/store';
+import { useShallow } from 'zustand/react/shallow';
 import { getTodayDateString } from '@/lib/dateUtils';
 import { format, parseISO } from 'date-fns';
 import { MarkdownRenderer } from '@/components/MarkdownRenderer';
@@ -75,7 +76,13 @@ function stripMarkdown(text: string): string {
 }
 
 export const NotesFeature: React.FC = () => {
-  const { notes, saveNote, deleteNote } = useShadowTrackerStore();
+  const { notes, saveNote, deleteNote } = useShadowTrackerStore(
+    useShallow(state => ({
+      notes: state.notes,
+      saveNote: state.saveNote,
+      deleteNote: state.deleteNote,
+    }))
+  );
   const todayStr = getTodayDateString();
 
   const [selectedNoteId, setSelectedNoteId] = useState<string>(todayStr);
@@ -297,11 +304,11 @@ export const NotesFeature: React.FC = () => {
             className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-3 min-h-0 pb-2"
             onScroll={(e) => {
               const target = e.currentTarget;
-              if (target.scrollHeight - target.scrollTop <= target.clientHeight + 120) {
-                if (visibleCount < filteredNotes.length) {
-                  setVisibleCount(prev => Math.min(prev + 25, filteredNotes.length));
+              requestAnimationFrame(() => {
+                if (target.scrollHeight - target.scrollTop <= target.clientHeight + 120) {
+                  setVisibleCount(prev => (prev < filteredNotes.length ? Math.min(prev + 25, filteredNotes.length) : prev));
                 }
-              }
+              });
             }}
           >
             <AnimatePresence mode="popLayout">
@@ -311,7 +318,6 @@ export const NotesFeature: React.FC = () => {
                 const cleanSnippet = stripMarkdown(n.content);
                 return (
                   <motion.div
-                    layout
                     variants={itemVariants}
                     whileHover={{ 
                       scale: 1.02, 
@@ -322,7 +328,7 @@ export const NotesFeature: React.FC = () => {
                     whileTap={{ scale: 0.95 }}
                     key={n.id}
                     onClick={() => setSelectedNoteId(n.id)}
-                    className={`relative p-4 border rounded-2xl cursor-pointer transition-all space-y-2 overflow-hidden backdrop-blur-xl ${
+                    className={`relative p-4 border rounded-2xl cursor-pointer transition-colors space-y-2 overflow-hidden backdrop-blur-xl ${
                       isSelected
                         ? 'bg-primary text-primary-foreground border-primary shadow-primary/30 shadow-lg'
                         : 'bg-card/80 border-border/80 hover:border-primary/50 hover:bg-card text-foreground'
@@ -342,12 +348,12 @@ export const NotesFeature: React.FC = () => {
                         {format(parseISO(n.date), 'EEE, MMM dd, yyyy')}
                       </span>
                     </div>
-                    <motion.h4 layout="position" className="relative z-10 text-base font-extrabold truncate leading-tight">
+                    <h4 className="relative z-10 text-base font-extrabold truncate leading-tight">
                       {n.title || 'Untitled Entry'}
-                    </motion.h4>
-                    <motion.p layout="position" className={`relative z-10 text-xs line-clamp-2 leading-relaxed font-medium ${isSelected ? 'text-primary-foreground/90' : 'text-muted-foreground'}`}>
+                    </h4>
+                    <p className={`relative z-10 text-xs line-clamp-2 leading-relaxed font-medium ${isSelected ? 'text-primary-foreground/90' : 'text-muted-foreground'}`}>
                       {cleanSnippet || 'No content...'}
-                    </motion.p>
+                    </p>
                   </motion.div>
                 );
               })
@@ -643,7 +649,7 @@ export const NotesFeature: React.FC = () => {
                     placeholder="How was today? What goals did you reach? Record thoughts in Markdown (# Header, **bold**, - [ ] task, ```code)..."
                     value={noteContent}
                     onChange={(e) => handleContentChange(e.target.value)}
-                    className="w-full flex-1 min-h-0 text-sm p-4 bg-secondary/20 backdrop-blur-sm border border-border/60 rounded-2xl text-foreground placeholder:text-muted-foreground outline-none resize-none focus:bg-background focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all font-mono leading-relaxed custom-scrollbar shadow-xs overflow-y-auto"
+                    className="w-full flex-1 min-h-0 text-sm p-4 bg-secondary/20 border border-border/60 rounded-2xl text-foreground placeholder:text-muted-foreground outline-none resize-none focus:bg-background focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors font-mono leading-relaxed custom-scrollbar shadow-xs overflow-y-auto"
                   />
                 </div>
               </div>

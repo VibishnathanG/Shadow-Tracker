@@ -5,6 +5,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import { useShadowTrackerStore } from '@/store';
+import { useShallow } from 'zustand/react/shallow';
 import { getTodayDateString } from '@/lib/dateUtils';
 
 interface CommandBarProps {
@@ -22,7 +23,15 @@ export const CommandBar: React.FC<CommandBarProps> = ({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
   
-  const { addTask, addHabit, updateSettings, settings, importBackup } = useShadowTrackerStore();
+  const { addTask, addHabit, updateSettings, settings, importBackup } = useShadowTrackerStore(
+    useShallow(state => ({
+      addTask: state.addTask,
+      addHabit: state.addHabit,
+      updateSettings: state.updateSettings,
+      settings: state.settings,
+      importBackup: state.importBackup,
+    }))
+  );
 
   useEffect(() => {
     if (isOpen) {

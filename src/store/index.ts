@@ -760,27 +760,35 @@ export const useShadowTrackerStore = create<ShadowTrackerStore>((set, get) => ({
   },
 
   recalculateDailyLogStats: async (date) => {
-    const activeTasks = get().tasks.filter(t => !t.isSoftDeleted);
-    const tasksDue = activeTasks.filter(t => t.dueDate === date);
-    const completedTasks = tasksDue.filter(t => t.isCompleted);
+    let totalTasksCount = 0;
+    let completedTasksCount = 0;
+    for (const t of get().tasks) {
+      if (!t.isSoftDeleted && t.dueDate === date) {
+        totalTasksCount++;
+        if (t.isCompleted) completedTasksCount++;
+      }
+    }
     
-    const activeHabits = get().habits.filter(h => !h.isSoftDeleted);
-    const completedHabitsCount = activeHabits.filter(h => h.completedDates.includes(date)).length;
-    
-    // Filter habits scheduled for this specific date
     const dateObj = parseDateString(date);
     const dayOfWeek = dateObj.getDay();
-    const scheduledHabits = activeHabits.filter(h => {
-      if (h.frequency === 'daily') return true;
-      if (h.frequency === 'custom') {
-        return h.customDays && h.customDays.length > 0 ? h.customDays.includes(dayOfWeek) : true;
-      }
-      return true;
-    });
+    let completedHabitsCount = 0;
+    let activeHabitsCount = 0;
 
-    const totalTasksCount = tasksDue.length;
-    const completedTasksCount = completedTasks.length;
-    const activeHabitsCount = scheduledHabits.length;
+    for (const h of get().habits) {
+      if (h.isSoftDeleted) continue;
+      if (h.completedDates && h.completedDates.includes(date)) {
+        completedHabitsCount++;
+      }
+      if (h.frequency === 'daily') {
+        activeHabitsCount++;
+      } else if (h.frequency === 'custom') {
+        if (!h.customDays || h.customDays.length === 0 || h.customDays.includes(dayOfWeek)) {
+          activeHabitsCount++;
+        }
+      } else {
+        activeHabitsCount++;
+      }
+    }
 
     let focusScore = 0;
     

@@ -4,6 +4,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import { useShadowTrackerStore } from '@/store';
+import { useShallow } from 'zustand/react/shallow';
 import { getTodayDateString, formatDateString, getHabitDateStatus, parseDateString } from '@/lib/dateUtils';
 import EmptyState from '@/components/EmptyState';
 import Modal from '@/components/Modal';
@@ -361,7 +362,22 @@ export const HabitsFeature: React.FC = () => {
     addReminder,
     updateReminder,
     settings,
-  } = useShadowTrackerStore();
+  } = useShadowTrackerStore(
+    useShallow(state => ({
+      habits: state.habits,
+      categories: state.categories,
+      reminders: state.reminders,
+      addHabit: state.addHabit,
+      updateHabit: state.updateHabit,
+      toggleHabitCompletion: state.toggleHabitCompletion,
+      markHabitUncompleted: state.markHabitUncompleted,
+      clearHabitUncompleted: state.clearHabitUncompleted,
+      deleteHabit: state.deleteHabit,
+      addReminder: state.addReminder,
+      updateReminder: state.updateReminder,
+      settings: state.settings,
+    }))
+  );
   const graceDays = settings?.habitGracePeriodDays ?? 3;
 
   const [habitFilter, setHabitFilter] = useViewPreference('habitsFilter') as ['all' | 'today' | 'yesterday' | 'tomorrow' | 'pending-today' | 'completed-today', (v: 'all' | 'today' | 'yesterday' | 'tomorrow' | 'pending-today' | 'completed-today') => void];
@@ -561,6 +577,19 @@ export const HabitsFeature: React.FC = () => {
 
   const daysOfWeekLabels = useMemo(() => ['S', 'M', 'T', 'W', 'T', 'F', 'S'], []);
 
+  const completionsByDate = useMemo(() => {
+    const counts: Record<string, number> = {};
+    habits.forEach(h => {
+      if (h.isSoftDeleted) return;
+      (h.completedDates || []).forEach(d => {
+        counts[d] = (counts[d] || 0) + 1;
+      });
+    });
+    return counts;
+  }, [habits]);
+
+  const categoryMap = useMemo(() => new Map(categories.map(c => [c.id, c])), [categories]);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -592,7 +621,7 @@ export const HabitsFeature: React.FC = () => {
             <div className="flex gap-1 items-center justify-start min-w-max">
               {globalHeatmapDays.map((date) => {
                 const dateStr = formatDateString(date);
-                const completions = habits.filter(h => h.completedDates.includes(dateStr)).length;
+                const completions = completionsByDate[dateStr] || 0;
                 const ratio = habits.length > 0 ? completions / habits.length : 0;
                 
                 let bgClass = 'bg-surface-elevated/80 border border-border/80 hover:border-primary/50';
@@ -654,7 +683,7 @@ export const HabitsFeature: React.FC = () => {
             const isCompleted = habit.completedDates.includes(activeDateStr);
             const isUncompleted = Boolean(habit.uncompletedDates?.includes(activeDateStr) || habit.missedReasons?.[activeDateStr]);
             const reasonText = habit.missedReasons?.[activeDateStr];
-            const category = categories.find(c => c.id === habit.categoryId);
+            const category = habit.categoryId ? categoryMap.get(habit.categoryId) : undefined;
 
             return (
               <PremiumHabitCard

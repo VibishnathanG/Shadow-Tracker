@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 import { useShadowTrackerStore } from '@/store';
+import { useShallow } from 'zustand/react/shallow';
 import { getTodayDateString } from '@/lib/dateUtils';
 import { GlobalBadgeCelebration } from './GlobalBadgeCelebration';
 import { GlobalCelebrationNotice } from './GlobalCelebrationNotice';
@@ -105,7 +106,14 @@ export const Layout: React.FC<LayoutProps> = ({
   setActiveTab,
   children,
 }) => {
-  const { settings, updateSettings, isLoading, dailyLogs } = useShadowTrackerStore();
+  const { settings, updateSettings, isLoading, dailyLogs } = useShadowTrackerStore(
+    useShallow(state => ({
+      settings: state.settings,
+      updateSettings: state.updateSettings,
+      isLoading: state.isLoading,
+      dailyLogs: state.dailyLogs,
+    }))
+  );
   const [mounted, setMounted] = useState(false);
   const [commandBarOpen, setCommandBarOpen] = useState(false);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);

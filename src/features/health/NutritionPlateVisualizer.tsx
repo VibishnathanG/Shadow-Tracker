@@ -610,7 +610,7 @@ export default function NutritionPlateVisualizer({
           {editingItem && (
             <div 
               onClick={() => setEditingItem(null)}
-              className="fixed inset-0 z-[100000] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm cursor-pointer overflow-y-auto"
+              className="fixed inset-0 z-[100000] flex items-center justify-center p-3 sm:p-4 bg-black/85 cursor-pointer overflow-y-auto"
             >
               <motion.div
                 onClick={(e) => e.stopPropagation()}

@@ -5,6 +5,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import { useShadowTrackerStore } from '@/store';
+import { useShallow } from 'zustand/react/shallow';
 import { getTodayDateString, formatDateString, getMonthGridDates, getWeekDates, parseDateString } from '@/lib/dateUtils';
 import { format, addMonths, subMonths, addWeeks, subWeeks, isSameMonth } from 'date-fns';
 import { TimeBlockingView } from './TimeBlockingView';
@@ -65,7 +66,19 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
     toggleTaskCompletion,
     toggleHabitCompletion,
     settings,
-  } = useShadowTrackerStore();
+  } = useShadowTrackerStore(
+    useShallow(state => ({
+      tasks: state.tasks,
+      habits: state.habits,
+      dailyLogs: state.dailyLogs,
+      notes: state.notes,
+      updateDailyLog: state.updateDailyLog,
+      saveNote: state.saveNote,
+      toggleTaskCompletion: state.toggleTaskCompletion,
+      toggleHabitCompletion: state.toggleHabitCompletion,
+      settings: state.settings,
+    }))
+  );
   
   const isWhiteTheme = settings?.theme === 'light' || settings?.theme === 'white';
 
@@ -164,12 +177,13 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
   
   const tasksByDate = useMemo(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const map = new Map<string, any[]>();
+    const map = new Map<string, { tasks: any[]; completedCount: number }>();
     tasks.forEach(t => {
       if (!t.dueDate) return;
-      const arr = map.get(t.dueDate) || [];
-      arr.push(t);
-      map.set(t.dueDate, arr);
+      const entry = map.get(t.dueDate) || { tasks: [], completedCount: 0 };
+      entry.tasks.push(t);
+      if (t.isCompleted) entry.completedCount++;
+      map.set(t.dueDate, entry);
     });
     return map;
   }, [tasks]);
@@ -283,7 +297,7 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
                       const dayScore = dayLog?.focusScore ?? 0;
                       const dayHabitsCompleted = habitCompletionMap.get(dateStr) || 0;
                       const hasNote = notesMap.get(dateStr) || false;
-                      const dayTasks = tasksByDate.get(dateStr) || [];
+                      const dayTasks = tasksByDate.get(dateStr)?.tasks || [];
                       const hasTasks = dayTasks.length > 0;
                       const dayMood = dayLog?.mood;
 
@@ -359,8 +373,9 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
                     const dayLog = dailyLogsMap.get(dateStr);
                     const dayScore = dayLog?.focusScore ?? 0;
                     
-                    const dayTasks = tasksByDate.get(dateStr) || [];
-                    const dayCompletedTasks = dayTasks.filter(t => t.isCompleted);
+                    const dayTaskEntry = tasksByDate.get(dateStr);
+                    const dayTasks = dayTaskEntry?.tasks || [];
+                    const dayCompletedCount = dayTaskEntry?.completedCount || 0;
                     const dayHabitsCompleted = habitCompletionMap.get(dateStr) || 0;
                     const hasNote = notesMap.get(dateStr) || false;
 
@@ -402,7 +417,7 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
                               {dayTasks.length > 0 ? `${dayTasks.length} Tasks Scheduled` : 'No Tasks'}
                             </h4>
                             <div className={`text-sm font-semibold flex items-center gap-3 mt-1 ${isSelected ? 'text-primary-foreground/90' : 'text-muted-foreground'}`}>
-                              {dayTasks.length > 0 && <span>{dayCompletedTasks.length}/{dayTasks.length} Done</span>}
+                              {dayTasks.length > 0 && <span>{dayCompletedCount}/{dayTasks.length} Done</span>}
                               {dayHabitsCompleted > 0 && <span className="flex items-center gap-1"><Lucide.CheckCircle2 size={14} className={isSelected ? '' : 'text-primary'} /> {dayHabitsCompleted} Habits</span>}
                               {hasNote && <span className="flex items-center gap-1"><Lucide.BookOpen size={14} className={isSelected ? '' : 'text-purple-500'} /> Note</span>}
                             </div>

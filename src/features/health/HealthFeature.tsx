@@ -111,9 +111,10 @@ export default function HealthFeature() {
 
   const isExternalSyncRef = React.useRef(false);
 
-  // Persist changes
+  // Persist changes (debounced by 300ms)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window === 'undefined') return;
+    const timer = setTimeout(() => {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(healthMap));
         if (isExternalSyncRef.current) {
@@ -124,7 +125,8 @@ export default function HealthFeature() {
       } catch (e) {
         console.error('Error saving health data:', e);
       }
-    }
+    }, 300);
+    return () => clearTimeout(timer);
   }, [healthMap]);
 
   // Listen for external updates (Cloud sync, backup restoration, multi-tab sync)
@@ -377,6 +379,7 @@ export default function HealthFeature() {
   const past7Days = useMemo(() => {
     const list = [];
     const base = new Date();
+    const waterGoal = currentData.waterGoalMl || 2500;
     for (let i = 6; i >= 0; i--) {
       const d = new Date(base);
       d.setDate(d.getDate() - i);
@@ -385,10 +388,15 @@ export default function HealthFeature() {
       const dayData = healthMap[str];
       const ml = dayData?.waterIntakeMl || 0;
       const sleep = dayData?.sleepHours || 0;
-      list.push({ date: str, dayName, ml, sleep });
+      const heightPct = Math.min(100, Math.round((ml / waterGoal) * 100));
+      const isGoalMet = ml >= waterGoal;
+      const displayMl = ml > 0
+        ? (ml >= 1000 ? `${(ml / 1000).toFixed(1).replace('.0', '')}L` : `${ml}`)
+        : '0';
+      list.push({ date: str, dayName, ml, sleep, heightPct, isGoalMet, displayMl });
     }
     return list;
-  }, [healthMap]);
+  }, [healthMap, currentData.waterGoalMl]);
 
   const waterPct = Math.min(100, Math.round((currentData.waterIntakeMl / (currentData.waterGoalMl || 2500)) * 100));
 
@@ -752,12 +760,7 @@ export default function HealthFeature() {
               </div>
               <div className="flex items-end justify-between gap-1.5 sm:gap-2 h-20 pt-2 pb-1">
                 {past7Days.map((d) => {
-                  const heightPct = Math.min(100, Math.round((d.ml / (currentData.waterGoalMl || 2500)) * 100));
-                  const isGoalMet = d.ml >= (currentData.waterGoalMl || 2500);
                   const isSelected = d.date === selectedDate;
-                  const displayMl = d.ml > 0
-                    ? (d.ml >= 1000 ? `${(d.ml / 1000).toFixed(1).replace('.0', '')}L` : `${d.ml}`)
-                    : '0';
 
                   return (
                     <button
@@ -771,17 +774,17 @@ export default function HealthFeature() {
                     >
                       {/* Numeric Water Volume in ml/L displayed directly above the bar */}
                       <span className={`text-[8.5px] sm:text-[9.5px] font-mono font-black transition-colors ${
-                        isSelected ? 'text-sky-400 font-black' : isGoalMet ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'
+                        isSelected ? 'text-sky-400 font-black' : d.isGoalMet ? 'text-foreground' : 'text-muted-foreground group-hover:text-foreground'
                       }`}>
-                        {displayMl}
+                        {d.displayMl}
                       </span>
                       <div className="w-full bg-secondary/70 rounded-t-md relative h-full flex items-end overflow-hidden border-t border-x border-border/40">
                         <div
-                          style={{ height: `${heightPct}%` }}
+                          style={{ height: `${d.heightPct}%` }}
                           className={`w-full rounded-t-md transition-all ${
                             isSelected
                               ? 'bg-sky-400 shadow-xs shadow-sky-400/50'
-                              : isGoalMet
+                              : d.isGoalMet
                               ? 'bg-sky-500'
                               : 'bg-sky-500/40 group-hover:bg-sky-500/60'
                           }`}

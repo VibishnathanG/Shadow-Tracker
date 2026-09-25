@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import { useShadowTrackerStore } from '@/store';
+import { useShallow } from 'zustand/react/shallow';
 import { getCharacterTitle, getXpForLevel } from '@/features/rpg/rpgLevels';
 import confetti from 'canvas-confetti';
 import { useViewPreference } from '@/lib/viewPreferences';
@@ -117,7 +118,14 @@ const VIBE_CATEGORIES = [
 ];
 
 export default function WizardFeature() {
-  const { level = 1, xp = 0, settings, addXp } = useShadowTrackerStore();
+  const { level = 1, xp = 0, settings, addXp } = useShadowTrackerStore(
+    useShallow(state => ({
+      level: state.level,
+      xp: state.xp,
+      settings: state.settings,
+      addXp: state.addXp,
+    }))
+  );
   const title = getCharacterTitle(level);
   const currentLevelBaseXp = getXpForLevel(level);
   const nextLvlXp = getXpForLevel(level + 1);
@@ -353,11 +361,11 @@ export default function WizardFeature() {
               onClick={handleCommuneMascot}
               whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.94 }}
-              animate={{
+              animate={settings?.ecoMode || settings?.lowGpuMode ? undefined : {
                 y: [-4, 4, -4],
                 rotate: [-0.5, 0.5, -0.5]
               }}
-              transition={{
+              transition={settings?.ecoMode || settings?.lowGpuMode ? undefined : {
                 duration: 4.2,
                 repeat: Infinity,
                 ease: 'easeInOut'

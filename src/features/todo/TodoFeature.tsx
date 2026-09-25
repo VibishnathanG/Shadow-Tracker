@@ -90,44 +90,49 @@ export default function TodoFeature() {
     saveStoredTodos(newTodos);
   }, []);
 
-  // 15-Day Activity Graph calculation (optimized: computed only when graph is toggled open)
+  // 15-Day Activity Graph calculation (optimized: single-pass O(N) bucketing)
   const last15DaysGraph = useMemo(() => {
     if (!showGraph) {
       return { days: [], maxVal: 1 };
     }
-    const days: Array<{
-      dateStr: string;
-      label: string;
-      committed: number;
-      completed: number;
-    }> = [];
 
     const today = new Date();
+    const dateList: Array<{ dateStr: string; label: string }> = [];
+    const dateSet = new Set<string>();
+
     for (let i = 14; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
       const dateStr = d.toISOString().substring(0, 10);
       const label = `${d.getMonth() + 1}/${d.getDate()}`;
-
-      // Committed count: due date is dateStr, or created date is dateStr
-      const committed = todos.filter(t => {
-        if (t.dueDate) {
-          return t.dueDate === dateStr;
-        }
-        return t.createdAt.substring(0, 10) === dateStr;
-      }).length;
-
-      // Completed count: completed and (due date is dateStr, or updated/created date is dateStr)
-      const completed = todos.filter(t => {
-        if (!t.isCompleted) return false;
-        if (t.dueDate) {
-          return t.dueDate === dateStr;
-        }
-        return t.updatedAt.substring(0, 10) === dateStr || t.createdAt.substring(0, 10) === dateStr;
-      }).length;
-
-      days.push({ dateStr, label, committed, completed });
+      dateList.push({ dateStr, label });
+      dateSet.add(dateStr);
     }
+
+    const committedMap: Record<string, number> = {};
+    const completedMap: Record<string, number> = {};
+
+    // Single O(N) pass over todos
+    todos.forEach(t => {
+      const committedDate = t.dueDate || t.createdAt.substring(0, 10);
+      if (dateSet.has(committedDate)) {
+        committedMap[committedDate] = (committedMap[committedDate] || 0) + 1;
+      }
+
+      if (t.isCompleted) {
+        const completedDate = t.dueDate || (t.updatedAt ? t.updatedAt.substring(0, 10) : t.createdAt.substring(0, 10));
+        if (dateSet.has(completedDate)) {
+          completedMap[completedDate] = (completedMap[completedDate] || 0) + 1;
+        }
+      }
+    });
+
+    const days = dateList.map(({ dateStr, label }) => ({
+      dateStr,
+      label,
+      committed: committedMap[dateStr] || 0,
+      completed: completedMap[dateStr] || 0,
+    }));
 
     const maxVal = Math.max(1, ...days.map(d => Math.max(d.committed, d.completed)));
     return { days, maxVal };

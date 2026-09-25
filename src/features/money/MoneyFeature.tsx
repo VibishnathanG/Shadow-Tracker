@@ -4,6 +4,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useShadowTrackerStore } from '@/store';
+import { useShallow } from 'zustand/react/shallow';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
@@ -87,6 +88,7 @@ const EditableCurrencyInput = ({
 }) => {
   const [isFocused, setIsFocused] = useState(false);
   const [localText, setLocalText] = useState(value > 0 ? value.toString() : '');
+  const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!isFocused) {
@@ -97,8 +99,11 @@ const EditableCurrencyInput = ({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value.replace(/[^0-9.]/g, '');
     setLocalText(raw);
-    const num = parseFloat(raw);
-    onChange(isNaN(num) ? 0 : num);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      const num = parseFloat(raw);
+      onChange(isNaN(num) ? 0 : num);
+    }, 250);
   };
 
   const handleFocus = () => {
@@ -107,6 +112,7 @@ const EditableCurrencyInput = ({
   };
 
   const handleBlur = () => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     setIsFocused(false);
     const num = parseFloat(localText.replace(/[^0-9.]/g, ''));
     if (!isNaN(num) && num > 0) {
@@ -133,7 +139,12 @@ const EditableCurrencyInput = ({
 };
 
 export default function MoneyFeature() {
-  const { settings, updateSettings } = useShadowTrackerStore();
+  const { settings, updateSettings } = useShadowTrackerStore(
+    useShallow(state => ({
+      settings: state.settings,
+      updateSettings: state.updateSettings,
+    }))
+  );
   const [currentDate, setCurrentDate] = useState(new Date());
   const [expenses, setExpenses] = useState<Expense[]>([]);
   
@@ -253,12 +264,16 @@ export default function MoneyFeature() {
     };
   }, []);
 
-  // Save expenses
+  // Save expenses (debounced)
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('shadow_money_expenses_v4', JSON.stringify(expenses));
-      useShadowTrackerStore.getState().checkAndUnlockBadges();
-    }
+    if (typeof window === 'undefined') return;
+    const timer = setTimeout(() => {
+      try {
+        localStorage.setItem('shadow_money_expenses_v4', JSON.stringify(expenses));
+        useShadowTrackerStore.getState().checkAndUnlockBadges();
+      } catch (e) {}
+    }, 400);
+    return () => clearTimeout(timer);
   }, [expenses]);
 
   // Form Inputs for Day Expense Modal

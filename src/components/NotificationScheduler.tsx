@@ -271,11 +271,13 @@ export const NotificationScheduler = () => {
         let body = reminder.title || 'You have a scheduled notification.';
 
         if (reminder.taskId) {
-          const task = tasks.find((t) => t.id === reminder.taskId);
+          const currentTasks = useShadowTrackerStore.getState().tasks;
+          const task = currentTasks.find((t) => t.id === reminder.taskId);
           title = task ? `🎯 Task: ${task.title}` : '🎯 Task Reminder';
           if (!reminder.title && task) body = 'Time to focus and execute this task!';
         } else if (reminder.habitId) {
-          const habit = habits.find((h) => h.id === reminder.habitId);
+          const currentHabits = useShadowTrackerStore.getState().habits;
+          const habit = currentHabits.find((h) => h.id === reminder.habitId);
           title = habit ? `🔥 Habit: ${habit.name}` : '🔥 Habit Reminder';
           if (!reminder.title && habit)
             body = `Keep your streak alive! (${habit.streakCount} day streak)`;
@@ -322,7 +324,7 @@ export const NotificationScheduler = () => {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [reminders, tasks, habits, settings.soundEnabled, settings.stickyTaskNotifications, updateReminder]);
+  }, [reminders, settings.soundEnabled, settings.stickyTaskNotifications, updateReminder]);
 
   return null;
 };

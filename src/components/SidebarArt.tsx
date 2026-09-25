@@ -52,7 +52,7 @@ export const SidebarArt: React.FC = React.memo(() => {
       <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-20">
         {/* Scanline grid */}
         <div
-          className="absolute inset-0 animate-pan-y-scanline"
+          className="absolute inset-x-0 -top-[30px] bottom-0 animate-pan-y-scanline"
           style={{
             backgroundImage: 'repeating-linear-gradient(0deg, rgba(0,229,255,0.08) 0px, transparent 1px, transparent 30px)',
           }}
