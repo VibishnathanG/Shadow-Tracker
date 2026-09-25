@@ -393,7 +393,7 @@ export default function HealthFeature() {
   const waterPct = Math.min(100, Math.round((currentData.waterIntakeMl / (currentData.waterGoalMl || 2500)) * 100));
 
   return (
-    <div className="space-y-6 animate-fadeIn pb-16">
+    <div className="space-y-6 pb-16">
       {/* Top Banner & Health Score Hero */}
       <div className="tile settings-tile p-5 sm:p-7 rounded-3xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-80 h-80 bg-rose-500/10 blur-[90px] pointer-events-none rounded-full" />

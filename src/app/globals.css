@@ -130,13 +130,7 @@ html.window-blurred *::after,
 html.window-inactive,
 html.window-inactive *,
 html.window-inactive *::before,
-html.window-inactive *::after,
-html.eco-mode *,
-html.low-gpu-mode *,
-html.eco-mode *::before,
-html.low-gpu-mode *::before,
-html.eco-mode *::after,
-html.low-gpu-mode *::after {
+html.window-inactive *::after {
   animation-play-state: paused !important;
   transition: none !important;
   will-change: auto !important;
@@ -155,10 +149,47 @@ html.eco-mode .animate-bounce,
 html.low-gpu-mode .animate-bounce,
 html.eco-mode .animate-pulse-slow,
 html.low-gpu-mode .animate-pulse-slow,
+html.eco-mode .animate-spin-cw,
+html.low-gpu-mode .animate-spin-cw,
+html.eco-mode .animate-spin-ccw,
+html.low-gpu-mode .animate-spin-ccw,
+html.eco-mode .animate-pulse-ambient-glow,
+html.low-gpu-mode .animate-pulse-ambient-glow,
+html.eco-mode .animate-float-sparkle,
+html.low-gpu-mode .animate-float-sparkle,
+html.eco-mode .animate-float-spark-vertical,
+html.low-gpu-mode .animate-float-spark-vertical,
+html.eco-mode .animate-scan-beam-y,
+html.low-gpu-mode .animate-scan-beam-y,
+html.eco-mode .animate-sword-float,
+html.low-gpu-mode .animate-sword-float,
+html.eco-mode .animate-hud-ring,
+html.low-gpu-mode .animate-hud-ring,
+html.eco-mode .animate-beam-scan-vertical,
+html.low-gpu-mode .animate-beam-scan-vertical,
+html.eco-mode .animate-beam-scan-x,
+html.low-gpu-mode .animate-beam-scan-x,
+html.eco-mode .animate-pulse-scale-subtle,
+html.low-gpu-mode .animate-pulse-scale-subtle,
+html.eco-mode .animate-pan-y-scanline,
+html.low-gpu-mode .animate-pan-y-scanline,
 html.is-hidden .animate-spin,
 html.window-blurred .animate-spin,
 html.window-inactive .animate-spin {
   animation: none !important;
+}
+
+/* Ensure one-shot entrance animations are NEVER paused or stuck at opacity 0 */
+html.eco-mode .animate-fadeIn,
+html.low-gpu-mode .animate-fadeIn,
+html.is-hidden .animate-fadeIn,
+html.window-blurred .animate-fadeIn,
+html.window-inactive .animate-fadeIn,
+html.no-gpu .animate-fadeIn,
+html.gpu-disabled .animate-fadeIn {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
 }
 
 /* Deep zero-CPU/GPU Idle Freeze when Hidden, Minimized or Blurred in Background */
@@ -2330,7 +2361,7 @@ body.modal-open {
   to { opacity: 1; transform: translateY(0); }
 }
 .animate-fadeIn {
-  animation: fadeInUp 0.3s ease-out;
+  animation: fadeInUp 0.3s ease-out forwards;
 }
 
 /* Typography Overrides */

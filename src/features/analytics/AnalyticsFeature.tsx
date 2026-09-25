@@ -961,12 +961,10 @@ export const AnalyticsFeature = () => {
   } | null>(null);
 
   const stats = useMemo(() => {
-    if (dailyLogs.length === 0) return null;
-
     const sortedLogs = [...dailyLogs].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     const chartLogs = sortedLogs.slice(-15);
     const totalLogs = dailyLogs.length;
-    const averageFocusScore = Math.round(dailyLogs.reduce((acc, log) => acc + log.focusScore, 0) / (totalLogs || 1));
+    const averageFocusScore = totalLogs > 0 ? Math.round(dailyLogs.reduce((acc, log) => acc + log.focusScore, 0) / totalLogs) : 0;
     const longestHabitStreak = habits.reduce((max, h) => Math.max(max, h.longestStreak), 0);
     const totalCompletedHabits = habits.reduce((total, h) => total + h.completedDates.length, 0);
     const completedTasks = tasks.filter(t => t.isCompleted);
@@ -1038,15 +1036,6 @@ export const AnalyticsFeature = () => {
     return { points: pts, linePath: lp, areaPath: ap };
   }, [stats?.chartLogs, tasks, habits, chartWidth, chartHeight, padding.left, padding.top, padding.right, padding.bottom]);
 
-  if (!stats) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 opacity-50">
-        <Lucide.Activity size={48} className="text-primary mb-4 animate-pulse" />
-        <p className="text-sm font-medium uppercase tracking-widest text-muted-foreground">Gathering Intelligence...</p>
-      </div>
-    );
-  }
-
   const {
     chartLogs,
     averageFocusScore,
@@ -1059,7 +1048,7 @@ export const AnalyticsFeature = () => {
   } = stats;
 
   return (
-    <div className="space-y-6 animate-fadeIn pb-16 relative">
+    <div className="space-y-6 pb-16 relative">
       <BackgroundDecorations />
       
       {/* Header */}
