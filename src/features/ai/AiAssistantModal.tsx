@@ -510,17 +510,6 @@ Click **"Day-to-Day Prompts"** or **"Tools & Engine"** above, or type your reque
                 </div>
               )}
 
-              {/* 4. Sovereign Privacy Advisory */}
-              <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs space-y-2">
-                <div className="flex items-center gap-2 text-emerald-400 font-bold">
-                  <Lucide.ShieldCheck size={16} />
-                  <span>100% Sovereign Privacy Supported</span>
-                </div>
-                <p className="text-muted-foreground leading-relaxed text-[11.5px]">
-                  Your data is processed directly by the OpenAI-compatible endpoint you specify. For absolute air-gapped sovereign privacy, point to a local model (Ollama or LM Studio at <code className="text-foreground font-mono bg-background/50 px-1 py-0.5 rounded">http://localhost:11434/v1</code>). No private data ever touches external cloud servers.
-                </p>
-              </div>
-
               {/* 5. Provider & Key Configuration */}
               <div className="space-y-3.5 p-4 rounded-xl bg-surface-elevated/50 border border-border">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">

@@ -481,7 +481,7 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
                     title={item.label}
                   >
                     <IconComponent size={17} className={isSelected ? 'text-white stroke-[2.5px]' : 'stroke-[2px]'} />
-                    <span className="text-[9.5px] mt-1 capitalize truncate max-w-full font-extrabold">{item.label}</span>
+                    
                   </motion.button>
                 );
               })}

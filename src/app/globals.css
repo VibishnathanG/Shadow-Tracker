@@ -1147,17 +1147,17 @@ html.theme-pine[data-active-tab="settings"] {
 --------------------------------------------------------- */
 html[data-theme="obsidian"],
 html.theme-obsidian {
-  --bg-canvas: #07060a;
-  --bg-surface: rgba(18, 10, 31, 0.60);
-  --bg-surface-elevated: rgba(28, 16, 48, 0.65);
-  --border-subtle: rgba(147, 64, 230, 0.24);
-  --border-focus: #ab66ea;
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
+  --bg-canvas: #0c0a10;
+  --bg-surface: rgba(24, 20, 32, 0.70);
+  --bg-surface-elevated: rgba(32, 28, 42, 0.75);
+  --border-subtle: rgba(168, 85, 247, 0.22);
+  --border-focus: #c084fc;
+  --text-primary: #ffffff;
+  --text-secondary: #f1f5f9;
   --text-muted: #94a3b8;
-  --accent-primary: #873ad3;
-  --accent-primary-hover: #782ebd;
-  --accent-surface: rgba(135, 58, 211, 0.18);
+  --accent-primary: #a855f7;
+  --accent-primary-hover: #9333ea;
+  --accent-surface: rgba(168, 85, 247, 0.16);
 
   --background: var(--bg-canvas);
   --surface: var(--bg-surface);
@@ -1165,17 +1165,17 @@ html.theme-obsidian {
   --border: var(--border-subtle);
   --accent: var(--accent-surface);
   --accent-strong: var(--accent-primary);
-  --accent-secondary: #f8fafc;
-  --success: #129168;
-  --warning: #c77f0a;
-  --danger: #c8344e;
+  --accent-secondary: #f97316;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
   --foreground: var(--text-primary);
   --card: var(--bg-surface);
   --card-foreground: var(--text-primary);
   --popover: var(--bg-surface-elevated);
   --popover-foreground: var(--text-primary);
   --primary: var(--accent-primary);
-  --primary-foreground: #07060a;
+  --primary-foreground: #ffffff;
   --secondary: var(--bg-surface-elevated);
   --secondary-foreground: var(--text-secondary);
   --muted: var(--bg-surface-elevated);
@@ -1186,23 +1186,22 @@ html.theme-obsidian {
   --theme-heading-font: var(--font-inter), 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --theme-radius: var(--radius-lg);
   --theme-border: 1px solid var(--border-subtle);
-  --theme-shadow: 0 12px 36px rgba(0, 0, 0, 0.65), 0 0 8px rgba(147, 64, 230, 0.08);
-  --theme-blur: 16px;
-  --theme-glow: 0 0 10px rgba(147, 64, 230, 0.12);
-  --theme-noise-opacity: 0.015;
+  --theme-shadow: 0 12px 36px rgba(0, 0, 0, 0.75), 0 0 12px rgba(168, 85, 247, 0.10);
+  --theme-blur: 20px;
+  --theme-glow: 0 0 12px rgba(168, 85, 247, 0.15);
+  --theme-noise-opacity: 0.02;
 
-  /* Frosted Glassy Black-Purple gradient on pitch black */
-  --tile-bg: linear-gradient(145deg, rgba(23, 14, 40, 0.65) 0%, rgba(9, 6, 18, 0.75) 100%);
-  --tile-border: rgba(147, 64, 230, 0.20);
-  --tile-highlight: rgba(203, 213, 225, 0.10);
+  --tile-bg: linear-gradient(145deg, rgba(30, 24, 42, 0.75) 0%, rgba(18, 14, 24, 0.85) 100%);
+  --tile-border: rgba(168, 85, 247, 0.20);
+  --tile-highlight: rgba(255, 255, 255, 0.08);
   --sheen-opacity-1: 0.08;
   --sheen-opacity-2: 0.02;
   --sheen-subtle: 0.04;
-  --tile-hover-border: #cbd5e1;
-  --tile-hover-gradient: linear-gradient(135deg, rgba(147, 64, 230, 0.12) 0%, rgba(203, 213, 225, 0.04) 100%);
-  --tile-hover-shadow: 0 10px 28px rgba(147, 64, 230, 0.12), 0 0 1px 1px rgba(203, 213, 225, 0.10);
-  --primary-pill-bg: rgba(147, 64, 230, 0.20);
-  --primary-pill-text: #cbd5e1;
+  --tile-hover-border: #f97316;
+  --tile-hover-gradient: linear-gradient(135deg, rgba(168, 85, 247, 0.15) 0%, rgba(249, 115, 22, 0.08) 100%);
+  --tile-hover-shadow: 0 10px 28px rgba(168, 85, 247, 0.15), 0 0 2px 1px rgba(249, 115, 22, 0.25);
+  --primary-pill-bg: rgba(168, 85, 247, 0.20);
+  --primary-pill-text: #ffffff;
   color-scheme: dark !important;
 }
 
@@ -1210,8 +1209,8 @@ html[data-theme="obsidian"],
 html.theme-obsidian,
 html[data-theme="obsidian"] body,
 html.theme-obsidian body {
-  background-color: #07060a !important;
-  background-image: radial-gradient(ellipse at 50% 0%, #1a0c30 0%, #07060a 100%) !important;
+  background-color: #0c0a10 !important;
+  background-image: radial-gradient(ellipse at 50% 0%, #191326 0%, #0c0a10 100%) !important;
   background-attachment: fixed !important;
 }
 
@@ -1298,9 +1297,9 @@ html.theme-cyberpunk {
   --text-primary: #f8fafc;
   --text-secondary: #cbd5e1;
   --text-muted: #94a3b8;
-  --accent-primary: #d4566a;
-  --accent-primary-hover: #be2e44;
-  --accent-surface: rgba(230, 95, 116, 0.15);
+  --accent-primary: #c95d6e;
+  --accent-primary-hover: #b44558;
+  --accent-surface: rgba(201, 93, 110, 0.15);
 
   --background: var(--bg-canvas);
   --surface: var(--bg-surface);
@@ -1311,7 +1310,7 @@ html.theme-cyberpunk {
   --accent-secondary: #28a0d2;
   --success: #2ab783;
   --warning: #e5a919;
-  --danger: #e65f74;
+  --danger: #db5e71;
   --foreground: var(--text-primary);
   --card: var(--bg-surface);
   --card-foreground: var(--text-primary);
@@ -1582,10 +1581,10 @@ html[data-theme="cyberpunk"] .btn-glass-pill.active,
 html.theme-cyberpunk .btn-glass-pill.active,
 html[data-theme="cyberpunk"] button.active:not(.nav-item),
 html.theme-cyberpunk button.active:not(.nav-item) {
-  background-color: #fb7185 !important;
+  background-color: #e56b7c !important;
   color: #f1f5f9 !important;
-  border-color: #f43f5e !important;
-  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.12), 0 2px 7px -1px rgba(244, 63, 94, 0.18) !important;
+  border-color: #d84558 !important;
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.12), 0 2px 7px -1px rgba(216, 69, 88, 0.18) !important;
 }
 
 /* 2. Form Controls, Inputs, Selects, and Switch Toggles */

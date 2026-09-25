@@ -504,7 +504,7 @@ const StaticEternalRings: React.FC<{ theme: string }> = ({ theme }) => {
   const colorMap: Record<string, { stroke: string; accent: string; opacity: number }> = {
     light: { stroke: '#d97706', accent: '#f59e0b', opacity: 0.05 },
     white: { stroke: '#d97706', accent: '#f59e0b', opacity: 0.05 },
-    obsidian: { stroke: '#a855f7', accent: '#ffffff', opacity: 0.035 },
+    obsidian: { stroke: '#a855f7', accent: '#f97316', opacity: 0.035 },
     onedark: { stroke: '#60a5fa', accent: '#2563eb', opacity: 0.025 },
     cyberpunk: { stroke: '#38bdf8', accent: '#fb7185', opacity: 0.025 },
     midnight: { stroke: '#a855f7', accent: '#06b6d4', opacity: 0.04 },
@@ -553,7 +553,7 @@ export const ThemeAmbientBackground: React.FC<ThemeAmbientBackgroundProps> = Rea
     switch (theme) {
       case 'light':
       case 'white': return '#edf2f7'; // Cool porcelain canvas so warm creamy tiles pop out!
-      case 'obsidian': return '#07060a'; // Pure pitch black
+      case 'obsidian': return '#0c0a10'; // Pure pitch black
       case 'onedark': return '#16181d';
       case 'cyberpunk': return '#10131a';
       case 'midnight':
