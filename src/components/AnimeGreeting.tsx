@@ -277,8 +277,8 @@ const DynamicBackground: React.FC<{ vibe: string }> = ({ vibe }) => {
           <motion.div
             key={bar.id}
             className="absolute bottom-0 w-8 bg-gradient-to-t from-yellow-500/40 to-transparent"
-            style={{ left: bar.left, height: bar.h0 }}
-            animate={{ height: [bar.h0, bar.h1, bar.h2] }}
+            style={{ left: bar.left, height: bar.h0, transformOrigin: 'bottom' }}
+            animate={{ scaleY: ['100%', '300%', '100%'] }}
             transition={{ duration: bar.duration, repeat: Infinity, ease: "easeInOut" }}
           />
         ))}
@@ -402,7 +402,7 @@ const DynamicBackground: React.FC<{ vibe: string }> = ({ vibe }) => {
     return (
       <div className="absolute inset-0 bg-black overflow-hidden">
         {matrixLines.map((line) => (
-          <motion.div key={line.id} className="absolute w-1 bg-gradient-to-b from-transparent via-green-500 to-white/80 rounded-full" style={{ left: line.left, height: line.height, top: '-100%' }} animate={{ top: '200%' }} transition={{ duration: line.duration, repeat: Infinity, ease: "linear", delay: line.delay }} />
+          <motion.div key={line.id} className="absolute w-1 bg-gradient-to-b from-transparent via-green-500 to-white/80 rounded-full" style={{ left: line.left, height: line.height, top: '-100%' }} animate={{ y: '300vh' }} transition={{ duration: line.duration, repeat: Infinity, ease: "linear", delay: line.delay }} />
         ))}
       </div>
     );
@@ -472,7 +472,7 @@ const DynamicBackground: React.FC<{ vibe: string }> = ({ vibe }) => {
       <div className="absolute inset-0 bg-slate-950 overflow-hidden">
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 10px 10px, #0ff 2px, transparent 0)', backgroundSize: '40px 40px' }} />
         {[...Array(5)].map((_, i) => (
-          <motion.div key={i} className="absolute h-[2px] bg-cyan-400 shadow-[0_0_8px_#0ff]" style={{ top: `${(i + 1) * 20}%`, left: '-100%', width: '50%' }} animate={{ left: ['-50%', '150%'] }} transition={{ duration: 3, delay: i * 0.5, repeat: Infinity, ease: "linear" }} />
+          <motion.div key={i} className="absolute h-[2px] bg-cyan-400 shadow-[0_0_8px_#0ff]" style={{ top: `${(i + 1) * 20}%`, left: '-100%', width: '50%' }} animate={{ x: ['0vw', '200vw'] }} transition={{ duration: 3, delay: i * 0.5, repeat: Infinity, ease: "linear" }} />
         ))}
       </div>
     );

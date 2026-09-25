@@ -674,7 +674,7 @@ export default function TodoFeature() {
               <Lucide.Plus size={17} className="stroke-[2.5]" />
             </button>
 
-            <input
+            <input name="inline-todo-input" 
               ref={inlineInputRef}
               type="text"
               maxLength={120}
@@ -686,42 +686,6 @@ export default function TodoFeature() {
 
             {/* Quick Action Buttons */}
             <div className="flex items-center gap-1 shrink-0">
-              {/* Due Date Trigger */}
-              <button
-                type="button"
-                onClick={() => {
-                  setIsInlineOptionsOpen(true);
-                  setInlineActiveTab(inlineActiveTab === 'due' ? 'none' : 'due');
-                }}
-                className={`hidden sm:flex p-1.5 sm:px-2 sm:py-1 rounded-xl border text-xs font-semibold items-center gap-1 transition-all cursor-pointer ${
-                  inlineDueDate
-                    ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/40 shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground border-border/60 hover:bg-surface-elevated'
-                }`}
-                title="Set Due Date"
-              >
-                <Lucide.Calendar size={14} className={inlineDueDate ? 'text-emerald-700 dark:text-emerald-400' : ''} />
-                <span className="hidden md:inline">{inlineDueDate || 'Due Date'}</span>
-              </button>
-
-              {/* Reminder Alert Trigger */}
-              <button
-                type="button"
-                onClick={() => {
-                  setIsInlineOptionsOpen(true);
-                  setInlineActiveTab(inlineActiveTab === 'reminder' ? 'none' : 'reminder');
-                }}
-                className={`hidden sm:flex p-1.5 sm:px-2 sm:py-1 rounded-xl border text-xs font-semibold items-center gap-1 transition-all cursor-pointer ${
-                  inlineEnableReminder
-                    ? 'bg-cyan-500/20 text-cyan-800 dark:text-cyan-300 border-cyan-500/40 shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground border-border/60 hover:bg-surface-elevated'
-                }`}
-                title="Configure Reminder Notification"
-              >
-                <Lucide.Bell size={14} className={inlineEnableReminder ? 'text-cyan-700 dark:text-cyan-400 animate-pulse' : ''} />
-                <span className="hidden md:inline">{inlineEnableReminder ? 'Alert Set' : 'Reminder'}</span>
-              </button>
-
               {/* Priority Toggle */}
               <button
                 type="button"
@@ -822,14 +786,14 @@ export default function TodoFeature() {
                       Next Week
                     </button>
 
-                    <input
+                    <input name="inline-todo-input" 
                       type="date"
                       value={inlineDueDate}
                       onChange={e => setInlineDueDate(e.target.value)}
                       className="px-2.5 py-1 bg-secondary rounded-lg border border-border text-foreground font-medium outline-none focus:border-emerald-500"
                     />
 
-                    <input
+                    <input name="inline-todo-input" 
                       type="time"
                       value={inlineDueTime}
                       onChange={e => setInlineDueTime(e.target.value)}
@@ -852,7 +816,7 @@ export default function TodoFeature() {
                 {/* Reminder Notification Section */}
                 <div className="space-y-2 pt-2 border-t border-border/40">
                   <label className="flex items-center gap-2 cursor-pointer">
-                    <input
+                    <input name="inline-todo-input" 
                       type="checkbox"
                       checked={inlineEnableReminder}
                       onChange={e => {
@@ -925,7 +889,7 @@ export default function TodoFeature() {
 
                       <div className="flex items-center gap-2 pt-1">
                         <span className="text-[10px] text-muted-foreground font-semibold">Custom:</span>
-                        <input
+                        <input name="inline-todo-input" 
                           type="datetime-local"
                           value={inlineReminderTime}
                           onChange={e => setInlineReminderTime(e.target.value)}
@@ -954,7 +918,7 @@ export default function TodoFeature() {
                 {/* Optional Recurrence */}
                 <div className="space-y-2 pt-2 border-t border-border/40">
                   <label className="flex items-center gap-2 cursor-pointer">
-                    <input
+                    <input name="inline-todo-input" 
                       type="checkbox"
                       checked={inlineIsRecurring}
                       onChange={e => setInlineIsRecurring(e.target.checked)}
@@ -1014,7 +978,7 @@ export default function TodoFeature() {
                   )}
 
                   <div className="flex items-center gap-2">
-                    <input
+                    <input name="inline-todo-input" 
                       type="text"
                       maxLength={80}
                       placeholder="Add sub-task item..."
@@ -1102,7 +1066,7 @@ export default function TodoFeature() {
           {/* Search Box */}
           <div className="relative flex-1 min-w-0">
             <Lucide.Search className="absolute left-3 top-2.5 text-muted-foreground pointer-events-none" size={14} />
-            <input
+            <input name="inline-todo-input" 
               type="text"
               maxLength={80}
               placeholder="Search ToDos..."
@@ -1465,7 +1429,7 @@ export default function TodoFeature() {
                             {todo.subtasks.map(sub => (
                               <div key={sub.id} className="flex items-center justify-between gap-2 px-2 py-1 hover:bg-surface-elevated rounded-lg transition-colors group/sub">
                                 <label className="flex items-center gap-2.5 cursor-pointer flex-1 min-w-0">
-                                  <input
+                                  <input name="inline-todo-input" 
                                     type="checkbox"
                                     checked={sub.isCompleted}
                                     onChange={() => handleToggleCardSubtask(todo.id, sub.id)}
@@ -1486,7 +1450,7 @@ export default function TodoFeature() {
 
                             {/* Add Inline Subtask */}
                             <div className="flex items-center gap-2 pt-1">
-                              <input
+                              <input name="inline-todo-input" 
                                 type="text"
                                 placeholder="Add checklist item..."
                                 value={expandedSubtaskTodoId === todo.id ? cardSubtaskInput : ''}
@@ -1532,7 +1496,7 @@ export default function TodoFeature() {
               <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Title *</label>
               <span className="text-[10px] text-muted-foreground font-mono">{editTitle.length}/120</span>
             </div>
-            <input
+            <input name="inline-todo-input" 
               type="text"
               required
               maxLength={120}
@@ -1574,189 +1538,10 @@ export default function TodoFeature() {
             <Lucide.ChevronDown className="absolute right-3.5 top-9 text-muted-foreground pointer-events-none" size={16} />
           </div>
 
-          {/* Due Date & Time Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Due Date</label>
-              <input
-                type="date"
-                value={editDueDate}
-                onChange={e => setEditDueDate(e.target.value)}
-                className="w-full text-sm px-4 py-2 bg-secondary rounded-xl text-foreground border border-border focus:border-emerald-500 outline-none"
-              />
-            </div>
-
-            <NiceTimePicker
-              value={editDueTime}
-              onChange={setEditDueTime}
-              label="Due Time"
-            />
-          </div>
-
-          {/* Reminder Notification Alert */}
-          <div className="space-y-2.5 pt-2 border-t border-border/40">
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <input
-                type="checkbox"
-                checked={editEnableReminder}
-                onChange={e => {
-                  const checked = e.target.checked;
-                  setEditEnableReminder(checked);
-                  if (checked) {
-                    if (editDueDate) {
-                      setEditReminderTime(`${editDueDate}T${editDueTime || '09:00'}`);
-                    } else {
-                      setEditReminderTime(`${getTodayDateString()}T09:00`);
-                    }
-                  } else {
-                    setEditReminderTime('');
-                  }
-                }}
-                className="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-500 bg-secondary border-border cursor-pointer"
-              />
-              <span className="text-xs font-bold text-foreground group-hover:text-emerald-400 transition-colors flex items-center gap-1.5">
-                <Lucide.Bell size={14} className="text-emerald-400" />
-                Enable Notification Alert
-              </span>
-            </label>
-
-            {editEnableReminder && (
-              <div className="space-y-2.5 bg-emerald-950/20 border border-emerald-500/30 p-3 rounded-2xl">
-                {editDueDate ? (
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
-                        <Lucide.CalendarCheck size={13} />
-                        Derived Notification from Due Date
-                      </span>
-                      <span className="text-[10px] text-muted-foreground font-mono">
-                        Due: {editDueDate} {editDueTime || '(No time set)'}
-                      </span>
-                    </div>
-
-                    <div className="flex flex-wrap gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setEditReminderTime(`${editDueDate}T${editDueTime || '09:00'}`)}
-                        className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
-                          editReminderTime === `${editDueDate}T${editDueTime || '09:00'}`
-                            ? 'bg-emerald-500 text-black border-emerald-400 shadow-xs'
-                            : 'bg-secondary/60 text-muted-foreground hover:text-foreground border-border/50'
-                        }`}
-                      >
-                        🔔 At Due Time ({editDueTime || '09:00'})
-                      </button>
-
-                      {editDueTime && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const [h, m] = editDueTime.split(':').map(Number);
-                            const totalM = h * 60 + m - 60;
-                            const prevH = Math.max(0, Math.floor(totalM / 60));
-                            const prevM = Math.max(0, totalM % 60);
-                            const timeStr = `${String(prevH).padStart(2, '0')}:${String(prevM).padStart(2, '0')}`;
-                            setEditReminderTime(`${editDueDate}T${timeStr}`);
-                          }}
-                          className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
-                            editReminderTime.startsWith(editDueDate) && editReminderTime !== `${editDueDate}T${editDueTime}` && editReminderTime !== `${editDueDate}T09:00`
-                              ? 'bg-emerald-500 text-black border-emerald-400 shadow-xs'
-                              : 'bg-secondary/60 text-muted-foreground hover:text-foreground border-border/50'
-                          }`}
-                        >
-                          ⏱️ 1 Hour Before
-                        </button>
-                      )}
-
-                      <button
-                        type="button"
-                        onClick={() => setEditReminderTime(`${editDueDate}T09:00`)}
-                        className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
-                          editReminderTime === `${editDueDate}T09:00`
-                            ? 'bg-emerald-500 text-black border-emerald-400 shadow-xs'
-                            : 'bg-secondary/60 text-muted-foreground hover:text-foreground border-border/50'
-                        }`}
-                      >
-                        🌅 Morning of Due Date (09:00)
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <span className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
-                      <Lucide.Clock size={13} />
-                      Preconfigured Reminder Options
-                    </span>
-                    <div className="flex flex-wrap gap-1.5">
-                      {[
-                        { label: '🌅 Morning (09:00)', time: '09:00', daysAhead: 0 },
-                        { label: '☀️ Afternoon (14:00)', time: '14:00', daysAhead: 0 },
-                        { label: '🌙 Evening (20:00)', time: '20:00', daysAhead: 0 },
-                        { label: '⏭️ Tomorrow 09:00', time: '09:00', daysAhead: 1 },
-                      ].map(preset => {
-                        const targetDate = preset.daysAhead === 0 
-                          ? getTodayDateString() 
-                          : formatDateString(addDays(parseISO(getTodayDateString()), 1));
-                        const targetIso = `${targetDate}T${preset.time}`;
-                        const isSelected = editReminderTime === targetIso;
-                        return (
-                          <button
-                            key={preset.label}
-                            type="button"
-                            onClick={() => setEditReminderTime(targetIso)}
-                            className={`px-2.5 py-1 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
-                              isSelected
-                                ? 'bg-emerald-500 text-black border-emerald-400 shadow-xs'
-                                : 'bg-secondary/60 text-muted-foreground hover:text-foreground border-border/50'
-                            }`}
-                          >
-                            {preset.label}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                <div className="pt-2 border-t border-emerald-500/20 space-y-2">
-                  <button
-                    type="button"
-                    onClick={() => setEditCustomReminderExpanded(prev => !prev)}
-                    className="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 transition-colors flex items-center gap-1 cursor-pointer"
-                  >
-                    <span>{editCustomReminderExpanded ? 'Hide Custom Alert Picker' : 'Set Custom Date & Time'}</span>
-                    <Lucide.ChevronDown size={13} className={`transition-transform duration-200 ${editCustomReminderExpanded ? 'rotate-180' : ''}`} />
-                  </button>
-
-                  {editCustomReminderExpanded && (
-                    <div className="space-y-1 pt-1">
-                      <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                        Custom Alert Datetime
-                      </label>
-                      <input
-                        type="datetime-local"
-                        value={editReminderTime}
-                        onChange={e => setEditReminderTime(e.target.value)}
-                        className="w-full text-xs px-3 py-2 bg-secondary rounded-xl text-foreground border border-border focus:border-emerald-500 outline-none"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {editReminderTime && (
-                  <div className="text-[11px] font-mono text-emerald-300 bg-emerald-950/40 px-3 py-1.5 rounded-xl border border-emerald-500/20 flex items-center gap-1.5">
-                    <Lucide.BellRing size={12} className="shrink-0" />
-                    <span>Alert set for: <strong>{editReminderTime.replace('T', ' ')}</strong></span>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
           {/* Recurrence Schedule Selector */}
           <div className="space-y-2.5 pt-2 border-t border-border/40">
             <label className="flex items-center gap-3 cursor-pointer group">
-              <input
+              <input name="inline-todo-input" 
                 type="checkbox"
                 checked={editIsRecurring}
                 onChange={e => setEditIsRecurring(e.target.checked)}
@@ -1805,7 +1590,7 @@ export default function TodoFeature() {
                 {editSubtasks.map(sub => (
                   <div key={sub.id} className="flex items-center justify-between gap-2 px-3 py-1.5 bg-secondary/50 rounded-xl border border-border/40">
                     <label className="flex items-center gap-2 cursor-pointer flex-1 min-w-0">
-                      <input
+                      <input name="inline-todo-input" 
                         type="checkbox"
                         checked={sub.isCompleted}
                         onChange={() => handleToggleEditSubtask(sub.id)}
@@ -1829,7 +1614,7 @@ export default function TodoFeature() {
 
             {/* Add Subtask Input */}
             <div className="flex items-center gap-2 pt-1">
-              <input
+              <input name="inline-todo-input" 
                 type="text"
                 maxLength={80}
                 placeholder="Add sub-task item..."

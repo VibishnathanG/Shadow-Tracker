@@ -510,39 +510,6 @@ Click **"Day-to-Day Prompts"** or **"Tools & Engine"** above, or type your reque
                 </div>
               )}
 
-              {/* 3. Max Context Ceiling & Auto-Refresh Setting */}
-              <div className="space-y-3 p-4 rounded-xl bg-surface-elevated/50 border border-border">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                    <Lucide.Gauge size={14} className="text-primary" />
-                    Max Session Context Ceiling
-                  </label>
-                  <span className="text-[11px] font-mono font-bold text-foreground">
-                    {maxContextTokens.toLocaleString()} tokens
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                  {MAX_CONTEXT_PRESETS.map((preset) => (
-                    <button
-                      key={preset.value}
-                      type="button"
-                      onClick={() => handleMaxContextChange(preset.value)}
-                      className={`px-3 py-2 rounded-xl border text-xs font-bold transition-all text-center ${
-                        maxContextTokens === preset.value
-                          ? 'bg-primary text-primary-foreground border-primary shadow-xs'
-                          : 'bg-surface text-muted-foreground hover:text-foreground border-border'
-                      }`}
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
-                </div>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  * When the session reaches this token threshold, older conversation turns are automatically flushed while retaining your initial tracker JSON context in memory for optimal speed and cost efficiency.
-                </p>
-              </div>
-
               {/* 4. Sovereign Privacy Advisory */}
               <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs space-y-2">
                 <div className="flex items-center gap-2 text-emerald-400 font-bold">
