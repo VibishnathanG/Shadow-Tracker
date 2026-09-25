@@ -21,9 +21,15 @@
 Watch a 3-minute complete tour of Shadow Tracker in action:
 
 <p align="center">
-  <video src="https://github.com/VibishnathanG/Shadow-Tracker/raw/main/public/app-looks/Shadow-Tracker-Look.mp4" controls="controls" width="100%" style="max-width: 100%; border-radius: 8px;">
-    <a href="https://github.com/VibishnathanG/Shadow-Tracker/raw/main/public/app-looks/Shadow-Tracker-Look.mp4">Watch Shadow-Tracker-Look.mp4</a>
-  </video>
+  <a href="https://github.com/VibishnathanG/Shadow-Tracker/blob/main/public/app-looks/Shadow-Tracker-Look.mp4" title="Watch full 3-minute walkthrough video on GitHub">
+    <img src="./public/app-looks/demo-preview.gif" alt="Shadow Tracker Live Walkthrough Preview" width="100%" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/VibishnathanG/Shadow-Tracker/blob/main/public/app-looks/Shadow-Tracker-Look.mp4">
+    <img src="https://img.shields.io/badge/▶%EF%B8%8F_Watch_Full_Walkthrough_Video-Shadow--Tracker--Look.mp4-8b5cf6?style=for-the-badge" alt="Watch Full Video" />
+  </a>
 </p>
 
 ---
