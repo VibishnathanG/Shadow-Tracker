@@ -14,13 +14,14 @@
   <img src="https://img.shields.io/badge/License-GPL--3.0-purple?style=flat-square" alt="License: GPL-3.0" />
 </p>
 
+
 ---
 
 ## App Walkthrough
 
 <p align="center">
   <video
-    src="https://github.com/VibishnathanG/Shadow-Tracker/raw/refs/heads/main/public/app-looks/Shadow-Tracker-Look.mp4"
+    src="[https://github.com/VibishnathanG/Shadow-Tracker/raw/refs/heads/main/public/app-looks/Shadow-Tracker-Look.mp4](https://github.com/user-attachments/assets/ae747306-b127-4888-a1af-8860482880da)"
     controls
     muted
     preload="metadata"
