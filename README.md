@@ -16,11 +16,22 @@
 
 ---
 
-## App-Walkthrough-Video
+## App Walkthrough
 
-Watch a 3-minute complete tour of Shadow Tracker in action:
+<p align="center">
+  <video
+    src="https://github.com/VibishnathanG/Shadow-Tracker/raw/refs/heads/main/public/app-looks/Shadow-Tracker-Look.mp4"
+    controls
+    muted
+    preload="metadata"
+    width="900">
+  </video>
+</p>
 
-https://github.com/VibishnathanG/Shadow-Tracker/raw/main/public/app-looks/Shadow-Tracker-Look.mp4
+<p align="center">
+  <strong>Shadow Tracker Life OS</strong><br>
+  <sub>Habits · Tasks · Health · Budget · Local AI</sub>
+</p>
 
 ---
 
