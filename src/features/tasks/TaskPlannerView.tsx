@@ -62,7 +62,7 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
 
   // Non-deleted tasks
   const activeTasks = useMemo(() => {
-    return tasks.filter(t => !t.isSoftDeleted);
+    return tasks.filter(t => !t.isSoftDeleted && !t.isSimple && t.dueDate !== '');
   }, [tasks]);
 
   // Overdue tasks: dueDate < today and not completed
@@ -448,7 +448,7 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
                           </span>
                         </div>
                         <span className="text-[10px] font-black text-rose-400 shrink-0 font-mono">
-                          {format(parseISO(task.dueDate), 'd MMM')}
+                          {task.dueDate ? format(parseISO(task.dueDate), 'd MMM') : 'No Date'}
                         </span>
                       </div>
 

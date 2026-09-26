@@ -31,20 +31,20 @@ export function GlobalCelebrationNotice() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -20, scale: 0.95 }}
           transition={{ type: "spring", stiffness: 450, damping: 25 }}
-          className="fixed top-8 left-1/2 -translate-x-1/2 z-50 pointer-events-none bg-surface-elevated opacity-100 border-2 border-primary text-foreground px-6 py-3.5 rounded-full shadow-[0_15px_45px_rgba(0,0,0,0.7)] flex items-center gap-3.5 select-none"
+          className="fixed top-6 sm:top-8 left-1/2 -translate-x-1/2 z-[99999] pointer-events-none bg-surface-elevated border-2 border-primary text-foreground px-3 py-2 sm:px-6 sm:py-3.5 rounded-full shadow-[0_15px_45px_rgba(0,0,0,0.8)] flex items-center gap-2 sm:gap-3.5 select-none max-w-[90vw] overflow-hidden"
         >
-          <div className="p-2 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center shrink-0">
+          <div className="p-1.5 sm:p-2 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center shrink-0">
             {celebrationNotice.type === 'routine' ? (
-              <Lucide.Flame size={18} className="text-amber-500 fill-amber-500" />
+              <Lucide.Flame size={16} className="text-amber-500 fill-amber-500 sm:w-[18px] sm:h-[18px]" />
             ) : (
-              <Lucide.CheckCircle2 size={18} className="text-emerald-500" />
+              <Lucide.CheckCircle2 size={16} className="text-emerald-500 sm:w-[18px] sm:h-[18px]" />
             )}
           </div>
-          <div className="flex flex-col min-w-0">
-            <span className="text-[10px] font-black uppercase tracking-widest text-primary leading-none">{celebrationNotice.title}</span>
-            <span className="text-sm font-extrabold text-foreground truncate max-w-[200px] mt-0.5 leading-tight">{celebrationNotice.subtitle}</span>
+          <div className="flex flex-col min-w-0 flex-1">
+            <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-primary leading-none">{celebrationNotice.title}</span>
+            <span className="text-xs sm:text-sm font-extrabold text-foreground truncate mt-0.5 leading-tight">{celebrationNotice.subtitle}</span>
           </div>
-          <span className="text-xs font-black uppercase tracking-wider px-3.5 py-1 rounded-full bg-primary/15 border border-primary/30 text-primary shrink-0 shadow-2xs">
+          <span className="text-[10px] sm:text-xs font-black uppercase tracking-wider px-2 py-0.5 sm:px-3.5 sm:py-1 rounded-full bg-primary/15 border border-primary/30 text-primary shrink-0 shadow-2xs whitespace-nowrap">
             {celebrationNotice.flowText}
           </span>
         </motion.div>

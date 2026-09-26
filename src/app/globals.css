@@ -94,11 +94,11 @@ html, body, input, textarea, select, button {
 
 /* Core GPU Hardware Acceleration & Dynamic Graphics Killswitch (Zero-GPU Mode) */
 html.no-gpu,
-html.no-gpu *:not(.toggle-handle):not(.toggle-track),
+html.no-gpu *:not(.toggle-handle):not(.toggle-track):not(.keep-glow),
 html.no-gpu *::before,
 html.no-gpu *::after,
 html.gpu-disabled,
-html.gpu-disabled *:not(.toggle-handle):not(.toggle-track),
+html.gpu-disabled *:not(.toggle-handle):not(.toggle-track):not(.keep-glow),
 html.gpu-disabled *::before,
 html.gpu-disabled *::after {
   animation: none !important;
@@ -147,8 +147,8 @@ html.is-user-idle [aria-busy="true"] * {
   animation-play-state: running !important;
 }
 
-html.no-gpu *,
-html.gpu-disabled * {
+html.no-gpu *:not(.keep-glow),
+html.gpu-disabled *:not(.keep-glow) {
   animation: none !important;
 }
 

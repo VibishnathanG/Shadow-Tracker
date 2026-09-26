@@ -1018,11 +1018,11 @@ export default function TodoFeature() {
         </form>
       </div>
 
-      {/* Status Tabs + Filter Controls Toolbar (Clean & Category-Free) */}
-      <div className="tile p-3 sm:p-4 rounded-2xl space-y-2.5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+      {/* Unified Compact Toolbar */}
+      <div className="tile p-2.5 rounded-2xl">
+        <div className="flex flex-col xl:flex-row xl:items-center gap-2">
           {/* Status Filter Pills */}
-          <div className="pill-group overflow-x-auto scrollbar-none">
+          <div className="pill-group overflow-x-auto scrollbar-none flex-nowrap shrink-0">
             {(['all', 'active', 'completed', 'starred'] as TodoFilterStatus[]).map(tab => {
               const isActive = statusFilter === tab;
               return (
@@ -1030,7 +1030,7 @@ export default function TodoFeature() {
                   key={tab}
                   type="button"
                   onClick={() => setStatusFilter(tab)}
-                  className={`filter-pill ${isActive ? 'active' : ''}`}
+                  className={`filter-pill text-xs px-3 ${isActive ? 'active' : ''}`}
                 >
                   {tab === 'starred' ? '⭐ Starred' : tab.charAt(0).toUpperCase() + tab.slice(1)}
                 </button>
@@ -1038,81 +1038,78 @@ export default function TodoFeature() {
             })}
           </div>
 
-          {/* View Mode Toggle: List vs Grid */}
-          <div className="pill-group shrink-0 self-start sm:self-auto">
-            <button
-              type="button"
-              onClick={() => setViewMode('list')}
-              className={`filter-pill ${viewMode === 'list' ? 'active' : ''}`}
-              title="List View with full details"
-            >
-              <Lucide.ListFilter size={14} />
-              <span>List</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('grid')}
-              className={`filter-pill ${viewMode === 'grid' ? 'active' : ''}`}
-              title="Grid View (high density)"
-            >
-              <Lucide.LayoutGrid size={14} />
-              <span>Grid</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Search, Priority & Sort Row — Compact Single Row */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-0.5">
           {/* Search Box */}
           <div className="relative flex-1 min-w-0">
-            <Lucide.Search className="absolute left-3 top-2.5 text-muted-foreground pointer-events-none" size={14} />
+            <Lucide.Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" size={13} />
             <input name="inline-todo-input" 
               type="text"
               maxLength={80}
               placeholder="Search ToDos..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full text-xs sm:text-sm !pl-8.5 !pr-8 py-2 bg-surface-elevated rounded-xl border border-border/60 text-foreground placeholder-muted-foreground focus:border-emerald-500 focus:outline-none transition-all"
+              className="w-full text-xs !pl-7 !pr-6 py-2 bg-surface-elevated rounded-xl border border-border/60 text-foreground placeholder-muted-foreground focus:border-emerald-500 focus:outline-none transition-all"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-2 text-muted-foreground hover:text-foreground p-0.5 rounded-lg"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded-lg"
               >
-                <Lucide.X size={13} />
+                <Lucide.X size={12} />
               </button>
             )}
           </div>
 
-          {/* Priority Select */}
-          <div className="relative w-full sm:w-44 shrink-0">
-            <select
-              value={priorityFilter}
-              onChange={e => setPriorityFilter(e.target.value as TodoFilterPriority)}
-              className="w-full text-xs sm:text-sm pl-3 pr-8 py-2 bg-surface-elevated rounded-xl border border-border/60 text-foreground outline-none appearance-none cursor-pointer focus:border-emerald-500 transition-all font-medium"
-            >
-              <option value="all">All Priorities</option>
-              <option value="high">High Priority (🔥)</option>
-              <option value="medium">Medium Priority (⚡)</option>
-              <option value="low">Low Priority (☕)</option>
-            </select>
-            <Lucide.ChevronDown className="absolute right-2.5 top-2.5 text-muted-foreground pointer-events-none" size={14} />
-          </div>
+          <div className="flex items-center gap-2 shrink-0 overflow-x-auto scrollbar-none">
+            {/* Priority Select */}
+            <div className="relative shrink-0 w-28">
+              <select
+                value={priorityFilter}
+                onChange={e => setPriorityFilter(e.target.value as TodoFilterPriority)}
+                className="w-full text-xs pl-2.5 pr-6 py-2 bg-surface-elevated rounded-xl border border-border/60 text-foreground outline-none appearance-none cursor-pointer focus:border-emerald-500 transition-all font-medium"
+              >
+                <option value="all">All Priorities</option>
+                <option value="high">High (🔥)</option>
+                <option value="medium">Medium (⚡)</option>
+                <option value="low">Low (☕)</option>
+              </select>
+              <Lucide.ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" size={12} />
+            </div>
 
-          {/* Sort By Select */}
-          <div className="relative w-full sm:w-48 shrink-0">
-            <select
-              value={sortBy}
-              onChange={e => setSortBy(e.target.value as TodoSortOption)}
-              className="w-full text-xs sm:text-sm pl-3 pr-8 py-2 bg-surface-elevated rounded-xl border border-border/60 text-foreground outline-none appearance-none cursor-pointer focus:border-emerald-500 transition-all font-medium"
-            >
-              <option value="createdAt_desc">Sort: Newest First</option>
-              <option value="createdAt_asc">Sort: Oldest First</option>
-              <option value="priority_desc">Sort: Highest Priority</option>
-              <option value="dueDate_asc">Sort: Due Date</option>
-              <option value="alphabetical">Sort: Alphabetical</option>
-            </select>
-            <Lucide.ChevronDown className="absolute right-2.5 top-2.5 text-muted-foreground pointer-events-none" size={14} />
+            {/* Sort Select */}
+            <div className="relative shrink-0 w-32">
+              <select
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value as TodoSortOption)}
+                className="w-full text-xs pl-2.5 pr-6 py-2 bg-surface-elevated rounded-xl border border-border/60 text-foreground outline-none appearance-none cursor-pointer focus:border-emerald-500 transition-all font-medium"
+              >
+                <option value="createdAt_desc">Sort: Newest</option>
+                <option value="createdAt_asc">Sort: Oldest</option>
+                <option value="priority_desc">Sort: Priority</option>
+                <option value="dueDate_asc">Sort: Due Date</option>
+                <option value="alphabetical">Sort: A-Z</option>
+              </select>
+              <Lucide.ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" size={12} />
+            </div>
+
+            {/* View Mode Toggle */}
+            <div className="pill-group shrink-0">
+              <button
+                type="button"
+                onClick={() => setViewMode('list')}
+                className={`filter-pill text-xs px-2.5 ${viewMode === 'list' ? 'active' : ''}`}
+                title="List View"
+              >
+                <Lucide.ListFilter size={13} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('grid')}
+                className={`filter-pill text-xs px-2.5 ${viewMode === 'grid' ? 'active' : ''}`}
+                title="Grid View"
+              >
+                <Lucide.LayoutGrid size={13} />
+              </button>
+            </div>
           </div>
         </div>
       </div>

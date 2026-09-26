@@ -671,7 +671,7 @@ export const settingsStorage = {
           alias: finalAlias,
           ecoMode: finalEco,
           lowGpuMode: typeof parsed.lowGpuMode === 'boolean' ? parsed.lowGpuMode : finalEco,
-          disableGpuAcceleration: typeof parsed.disableGpuAcceleration === 'boolean' ? parsed.disableGpuAcceleration : false,
+          disableGpuAcceleration: typeof parsed.disableGpuAcceleration === 'boolean' ? parsed.disableGpuAcceleration : isMobileDevice(),
           taskAssignees: Array.isArray(parsed.taskAssignees) && parsed.taskAssignees.length > 0 ? parsed.taskAssignees : DEFAULT_SETTINGS.taskAssignees,
           defaultAssignee: parsed.defaultAssignee || DEFAULT_SETTINGS.defaultAssignee,
           customSubscriptionPresets: parsed.customSubscriptionPresets,
@@ -684,7 +684,7 @@ export const settingsStorage = {
           alias: 'Shadow',
           ecoMode: true,
           lowGpuMode: true,
-          disableGpuAcceleration: false,
+          disableGpuAcceleration: isMobileDevice(),
           taskAssignees: DEFAULT_SETTINGS.taskAssignees,
           defaultAssignee: DEFAULT_SETTINGS.defaultAssignee,
         };
@@ -696,7 +696,7 @@ export const settingsStorage = {
       ...DEFAULT_SETTINGS,
       ecoMode: true,
       lowGpuMode: true,
-      disableGpuAcceleration: false,
+      disableGpuAcceleration: isMobileDevice(),
     };
   },
 

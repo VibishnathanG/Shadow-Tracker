@@ -48,7 +48,7 @@ export const TaskKanbanView: React.FC<TaskKanbanViewProps> = ({
 
   // Active non-deleted tasks
   const activeTasks = useMemo(() => {
-    return tasks.filter(t => !t.isSoftDeleted);
+    return tasks.filter(t => !t.isSoftDeleted && !t.isSimple && t.dueDate !== '');
   }, [tasks]);
 
   // Helper to normalize task status
@@ -347,7 +347,7 @@ export const TaskKanbanView: React.FC<TaskKanbanViewProps> = ({
                           )}
 
                           <span className="px-1.5 py-0.5 rounded bg-surface border border-border/60 text-muted-foreground font-mono">
-                            {format(parseISO(task.dueDate), 'd MMM')}
+                            {task.dueDate ? format(parseISO(task.dueDate), 'd MMM') : 'No Date'}
                           </span>
                         </div>
 
@@ -649,7 +649,7 @@ export const TaskKanbanView: React.FC<TaskKanbanViewProps> = ({
                         </span>
                       </div>
                       <span className="text-[10px] font-bold font-mono text-rose-400 shrink-0">
-                        {format(parseISO(task.dueDate), 'd MMM')}
+                        {task.dueDate ? format(parseISO(task.dueDate), 'd MMM') : 'No Date'}
                       </span>
                     </div>
                   ))
@@ -732,7 +732,7 @@ export const TaskKanbanView: React.FC<TaskKanbanViewProps> = ({
                         </span>
                       </div>
                       <span className="text-[10px] font-bold font-mono text-sky-400 shrink-0">
-                        {format(parseISO(task.dueDate), 'd MMM')}
+                        {task.dueDate ? format(parseISO(task.dueDate), 'd MMM') : 'No Date'}
                       </span>
                     </div>
                   ))
@@ -815,7 +815,7 @@ export const TaskKanbanView: React.FC<TaskKanbanViewProps> = ({
                         </span>
                       </div>
                       <span className="text-[10px] font-bold font-mono text-amber-400 shrink-0">
-                        {format(parseISO(task.dueDate), 'd MMM')}
+                        {task.dueDate ? format(parseISO(task.dueDate), 'd MMM') : 'No Date'}
                       </span>
                     </div>
                   ))
@@ -898,7 +898,7 @@ export const TaskKanbanView: React.FC<TaskKanbanViewProps> = ({
                         </span>
                       </div>
                       <span className="text-[10px] font-bold font-mono text-purple-400 shrink-0">
-                        {format(parseISO(task.dueDate), 'd MMM')}
+                        {task.dueDate ? format(parseISO(task.dueDate), 'd MMM') : 'No Date'}
                       </span>
                     </div>
                   ))

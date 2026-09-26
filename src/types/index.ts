@@ -14,6 +14,7 @@ export type TaskStatus = 'todo' | 'in_progress' | 'done';
 export type EisenhowerQuadrant = 'urgent_important' | 'not_urgent_important' | 'urgent_not_important' | 'neither';
 
 export interface Task {
+  isSimple?: boolean;
   id: string;
   title: string;
   description?: string;
@@ -190,3 +191,17 @@ export interface BackupData {
   archiveYear?: string;
 }
 
+
+export interface SimpleTask {
+  id: string;
+  name: string;
+  description: string;
+  notes: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  deadline: string;
+  hasNotification: boolean;
+  notificationTime: string;
+  isCompleted: boolean;
+  createdAt: string;
+  updatedAt: string;
+}

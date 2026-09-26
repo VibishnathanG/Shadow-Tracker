@@ -166,10 +166,9 @@ const TileArtCompanion = ({ variant = 0, cycleTrigger = 0 }: { variant?: number;
 
 const TileArtBadges = () => {
   const isEco = useIsEco();
-  if (isEco) return null;
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
-      <div className="absolute w-[200%] h-[200%] -top-1/2 -left-1/2 bg-[radial-gradient(circle_at_center,var(--primary)_0%,transparent_60%)] animate-pulse-ambient-glow [animation-duration:8s]" />
+    <div className={`absolute inset-0 overflow-hidden pointer-events-none ${isEco ? 'opacity-30' : 'opacity-10'}`}>
+      <div className={`keep-glow absolute w-[200%] h-[200%] -top-1/2 -left-1/2 bg-[radial-gradient(circle_at_center,var(--primary)_0%,transparent_60%)] ${isEco ? 'scale-110 opacity-70' : 'animate-pulse-ambient-glow [animation-duration:8s]'}`} />
     </div>
   );
 };
@@ -712,7 +711,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           window.dispatchEvent(new CustomEvent('badgeUnlocked', { detail: b.id }));
                         }
                       }}
-                      className={`w-full min-h-[82px] sm:min-h-[98px] lg:min-h-[104px] p-1.5 sm:p-2.5 lg:p-3 relative rounded-2xl border flex flex-col items-center justify-center gap-1 sm:gap-1.5 text-center transition-all duration-200 ease-out group ${
+                      className={`keep-glow w-full min-h-[82px] sm:min-h-[98px] lg:min-h-[104px] p-1.5 sm:p-2.5 lg:p-3 relative rounded-2xl border flex flex-col items-center justify-center gap-1 sm:gap-1.5 text-center transition-all duration-200 ease-out group ${
                         isUnlocked 
                           ? `${b.color} cursor-pointer shadow-[0_0_12px_currentColor] hover:-translate-y-1 hover:scale-[1.04] hover:shadow-[0_0_20px_currentColor] hover:z-20 ${
                               (settings.theme === 'light' || settings.theme === 'white' || settings.theme === 'midnight' || settings.theme === 'pine' || settings.theme === 'purple')
@@ -726,7 +725,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     >
                       {isUnlocked && (
                         <div
-                          className="absolute inset-0 rounded-2xl pointer-events-none border border-cyan-400/50 bg-cyan-500/5 shadow-[0_0_10px_currentColor,inset_0_0_6px_currentColor]"
+                          className="keep-glow absolute inset-0 rounded-2xl pointer-events-none border border-cyan-400/50 bg-cyan-500/5 shadow-[0_0_10px_currentColor,inset_0_0_6px_currentColor]"
                         />
                       )}
 

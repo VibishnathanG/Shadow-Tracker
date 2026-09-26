@@ -17,6 +17,7 @@ import type { Task, TaskStatus, EisenhowerQuadrant } from '@/types';
 import { calculateTaskExecutionTimes } from '@/lib/taskScheduling';
 import { TaskPlannerView } from './TaskPlannerView';
 import { TaskKanbanView } from './TaskKanbanView';
+import { TaskSimpleView } from './TaskSimpleView';
 import { useViewPreference } from '@/lib/viewPreferences';
 
 const TASK_STATUS_CONFIG = {
@@ -55,7 +56,7 @@ export const TasksFeature: React.FC = () => {
   );
 
   // Top Workspace Switcher: 'list' vs 'planner' vs 'kanban' (Persisted)
-  const [workspaceView, setWorkspaceView] = useViewPreference('tasksWorkspaceView') as ['list' | 'planner' | 'kanban', (v: 'list' | 'planner' | 'kanban') => void];
+  const [workspaceView, setWorkspaceView] = useViewPreference('tasksWorkspaceView') as ['list' | 'planner' | 'kanban' | 'simple', (v: 'list' | 'planner' | 'kanban' | 'simple') => void];
 
   const [activeTab, setActiveTab] = useViewPreference('tasksActiveTab') as ['pending' | 'completed' | 'all', (v: 'pending' | 'completed' | 'all') => void];
   const [dateFilter, setDateFilter] = useViewPreference('tasksDateFilter') as ['all' | 'today' | 'tomorrow' | 'this-week' | 'overdue' | 'month', (v: 'all' | 'today' | 'tomorrow' | 'this-week' | 'overdue' | 'month') => void];
@@ -343,6 +344,7 @@ export const TasksFeature: React.FC = () => {
     const weekEndStr = formatDateString(addDays(parseISO(todayStr), 7));
 
     return tasks.filter(task => {
+      if (task.isSimple || task.dueDate === '') return false;
       if (activeTab === 'pending' && task.isCompleted) return false;
       if (activeTab === 'completed' && !task.isCompleted) return false;
 
@@ -466,6 +468,14 @@ export const TasksFeature: React.FC = () => {
             <Lucide.Kanban size={14} className={workspaceView === 'kanban' ? 'text-white shrink-0' : 'text-purple-400 shrink-0'} />
             <span className="font-bold truncate">Kanban</span>
           </button>
+          <button
+            type="button"
+            onClick={() => setWorkspaceView('simple')}
+            className={`filter-pill w-full sm:w-auto justify-center sm:justify-start gap-1.5 sm:gap-2.5 !py-2 !px-2 sm:!px-4 text-xs ${workspaceView === 'simple' ? 'active' : ''}`}
+          >
+            <Lucide.Zap size={14} className={workspaceView === 'simple' ? 'text-white shrink-0' : 'text-emerald-400 shrink-0'} />
+            <span className="font-bold truncate">Simple</span>
+          </button>
         </div>
       </div>
 
@@ -473,6 +483,8 @@ export const TasksFeature: React.FC = () => {
         <TaskPlannerView onOpenAddModal={openAddModal} onOpenEditModal={openEditModal} />
       ) : workspaceView === 'kanban' ? (
         <TaskKanbanView onOpenAddModal={openAddModal} onOpenEditModal={openEditModal} />
+      ) : workspaceView === 'simple' ? (
+        <TaskSimpleView />
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-surface border border-border/60 p-3 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative z-10">
