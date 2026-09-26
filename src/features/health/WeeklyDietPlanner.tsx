@@ -14,7 +14,7 @@ import {
 } from './dietPlansData';
 import { getUserBiometrics } from './weightFeasibility';
 import CustomDietPlanModal from './CustomDietPlanModal';
-import confetti from 'canvas-confetti';
+import confetti from '@/lib/confetti';
 
 interface WeeklyDietPlannerProps {
   onCopyDayToPlate?: (meals: DietMeal[]) => void;

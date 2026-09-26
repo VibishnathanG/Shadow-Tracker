@@ -11,7 +11,7 @@ import {
   PRESET_DIET_PLANS,
   saveCustomDietPlan,
 } from './dietPlansData';
-import confetti from 'canvas-confetti';
+import confetti from '@/lib/confetti';
 
 interface CustomDietPlanModalProps {
   isOpen: boolean;

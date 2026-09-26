@@ -19,7 +19,7 @@ import {
   UserBiometrics,
 } from './weightFeasibility';
 import CustomWorkoutPlanModal from './CustomWorkoutPlanModal';
-import confetti from 'canvas-confetti';
+import confetti from '@/lib/confetti';
 
 export interface ExerciseLogItem {
   id: string;

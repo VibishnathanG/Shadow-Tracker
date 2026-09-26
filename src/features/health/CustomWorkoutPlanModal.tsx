@@ -10,7 +10,7 @@ import {
   WorkoutExercise,
   saveCustomWorkoutPlan,
 } from './workoutPlansData';
-import confetti from 'canvas-confetti';
+import confetti from '@/lib/confetti';
 
 interface CustomWorkoutPlanModalProps {
   isOpen: boolean;

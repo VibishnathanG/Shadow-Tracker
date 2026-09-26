@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
 
 interface AiNeuralLogoProps {
   size?: number;
@@ -65,9 +64,13 @@ export const AiNeuralLogo: React.FC<AiNeuralLogoProps> = ({
           className="[html[data-theme='white']_&]:stroke-blue-400"
         />
 
-        {/* 3. Smooth Circle Animation Revolving Around "AI" Wordings */}
-        {isAnimated ? (
-          <motion.circle
+        {/* 3 & 4. Revolving Orbit Track & Particle (Pure CSS GPU-accelerated rotation — ZERO Framer Motion CPU overhead) */}
+        <g 
+          className={isAnimated ? "animate-spin-cw [animation-duration:3.5s]" : ""}
+          style={{ transformOrigin: "50px 50px" }}
+        >
+          {/* Revolving Orbit Arc */}
+          <circle
             cx="50"
             cy="50"
             r="36"
@@ -76,46 +79,24 @@ export const AiNeuralLogo: React.FC<AiNeuralLogoProps> = ({
             strokeWidth="2.8"
             strokeLinecap="round"
             strokeDasharray="55 180"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 3.5, repeat: Infinity, ease: 'linear' }}
-            style={{ transformOrigin: '50px 50px' }}
             className="[html[data-theme='white']_&]:stroke-blue-600"
           />
-        ) : (
+
+          {/* Revolving Orbit Particle (Orbital Electron around the AI Text) */}
           <circle
             cx="50"
-            cy="50"
-            r="36"
-            fill="none"
-            stroke="var(--primary)"
-            strokeWidth="2"
-            strokeDasharray="45 180"
-            className="[html[data-theme='white']_&]:stroke-blue-600"
+            cy="14"
+            r="3.5"
+            fill="var(--primary)"
+            className="[html[data-theme='white']_&]:fill-blue-600"
           />
-        )}
-
-        {/* 4. Revolving Orbit Particle (Orbital Electron around the AI Text) */}
-        {isAnimated && (
-          <motion.g
-            animate={{ rotate: 360 }}
-            transition={{ duration: 3.5, repeat: Infinity, ease: 'linear' }}
-            style={{ transformOrigin: '50px 50px' }}
-          >
-            <circle
-              cx="50"
-              cy="14"
-              r="3.5"
-              fill="var(--primary)"
-              className="[html[data-theme='white']_&]:fill-blue-600"
-            />
-            <circle
-              cx="50"
-              cy="14"
-              r="1.5"
-              fill="#ffffff"
-            />
-          </motion.g>
-        )}
+          <circle
+            cx="50"
+            cy="14"
+            r="1.5"
+            fill="#ffffff"
+          />
+        </g>
 
         {/* 5. Crystal Clear, Bold "AI" Wording at Exact Center */}
         {/* Dark / Neon Themes */}

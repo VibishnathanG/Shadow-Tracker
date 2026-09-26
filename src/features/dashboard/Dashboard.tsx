@@ -26,7 +26,7 @@ const TileArtCompanion = ({ variant = 0, cycleTrigger = 0 }: { variant?: number;
   const [activeCritter, setActiveCritter] = useState<CritterType | null>(null);
   const [critterKey, setCritterKey] = useState<number>(0);
 
-  // Trigger roaming critter whenever user cycles quote or clicks card
+  // Trigger roaming critter only when user actively clicks card to cycle wisdom
   useEffect(() => {
     if (isEco || cycleTrigger === 0 || !isWindowActive()) return;
     const chosen = ALL_CRITTERS[cycleTrigger % ALL_CRITTERS.length];
@@ -36,26 +36,13 @@ const TileArtCompanion = ({ variant = 0, cycleTrigger = 0 }: { variant?: number;
     return () => clearTimeout(timer);
   }, [cycleTrigger, isEco]);
 
-  // Periodic random ambient critter (awakens every 36s, reduced frequency so it's not too often)
-  useEffect(() => {
-    if (isEco) return;
-    const interval = setInterval(() => {
-      if (!isWindowActive()) return;
-      const chosen = ALL_CRITTERS[Math.floor(Math.random() * ALL_CRITTERS.length)];
-      setActiveCritter(chosen);
-      setCritterKey((k) => k + 1);
-      setTimeout(() => setActiveCritter(null), 6500);
-    }, 36000);
-    return () => clearInterval(interval);
-  }, [isEco]);
-
   if (isEco) return null;
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 select-none">
       {/* Base Harmonic Ambient Glow Field */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_25%,color-mix(in_srgb,var(--primary)_14%,transparent)_0%,transparent_65%)]" />
 
-      {/* Dynamic Abstract Art synchronized with active Wisp Animation Form */}
+      {/* Dynamic Abstract Art synchronized with active Wisp Animation Form (Pure Crisp Vector Graphics — 0% CPU) */}
       {variant === 0 && (
         // Form 0: Celestial Float - Ethereal floating harmonic wave ripples and levitating starlight orbs
         <svg className="w-full h-full absolute inset-0 opacity-40 [html[data-theme='white']_&]:opacity-25" viewBox="0 0 400 200" preserveAspectRatio="none">
@@ -65,7 +52,6 @@ const TileArtCompanion = ({ variant = 0, cycleTrigger = 0 }: { variant?: number;
             stroke="var(--primary)"
             strokeWidth="1.2"
             strokeDasharray="4 6"
-            className="animate-pulse-ambient-glow [animation-duration:7s]"
           />
           <path
             d="M 0 140 Q 120 80 240 140 T 400 130"
@@ -73,10 +59,9 @@ const TileArtCompanion = ({ variant = 0, cycleTrigger = 0 }: { variant?: number;
             stroke="var(--primary)"
             strokeWidth="0.8"
             opacity="0.6"
-            className="animate-pulse-ambient-glow [animation-duration:9s]"
           />
-          <circle cx="310" cy="50" r="18" fill="var(--primary)" opacity="0.12" className="animate-float-sparkle [animation-duration:6s]" />
-          <circle cx="80" cy="150" r="14" fill="var(--primary)" opacity="0.1" className="animate-float-sparkle [animation-duration:5.5s]" />
+          <circle cx="310" cy="50" r="18" fill="var(--primary)" opacity="0.12" />
+          <circle cx="80" cy="150" r="14" fill="var(--primary)" opacity="0.1" />
         </svg>
       )}
 
@@ -89,8 +74,7 @@ const TileArtCompanion = ({ variant = 0, cycleTrigger = 0 }: { variant?: number;
             stroke="var(--primary)"
             strokeWidth="1.2"
             strokeDasharray="8 6"
-            className="animate-spin-cw [animation-duration:16s]"
-            style={{ transformOrigin: "320px 100px" }}
+            opacity="0.75"
           />
           <circle
             cx="320" cy="100" r="45"
@@ -98,15 +82,12 @@ const TileArtCompanion = ({ variant = 0, cycleTrigger = 0 }: { variant?: number;
             stroke="var(--primary)"
             strokeWidth="1"
             strokeDasharray="4 8"
-            opacity="0.7"
-            className="animate-spin-ccw [animation-duration:11s]"
-            style={{ transformOrigin: "320px 100px" }}
+            opacity="0.6"
           />
           <circle
             cx="320" cy="35" r="3"
             fill="var(--primary)"
-            className="animate-spin-cw [animation-duration:16s]"
-            style={{ transformOrigin: "320px 100px" }}
+            opacity="0.8"
           />
           <circle
             cx="70" cy="60" r="28"
@@ -115,29 +96,15 @@ const TileArtCompanion = ({ variant = 0, cycleTrigger = 0 }: { variant?: number;
             strokeWidth="0.8"
             strokeDasharray="6 6"
             opacity="0.5"
-            className="animate-spin-cw [animation-duration:14s]"
-            style={{ transformOrigin: "70px 60px" }}
           />
         </svg>
       )}
 
       {variant === 2 && (
-        // Form 2: Prismatic Sentinel - Faceted geometric prism mesh with subtle holographic beam
+        // Form 2: Prismatic Sentinel - Faceted geometric prism mesh
         <svg className="w-full h-full absolute inset-0 opacity-40 [html[data-theme='white']_&]:opacity-25" viewBox="0 0 400 200">
-          <defs>
-            <linearGradient id="prismLaser" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="var(--primary)" stopOpacity="0" />
-              <stop offset="50%" stopColor="var(--primary)" stopOpacity="0.35" />
-              <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
-            </linearGradient>
-          </defs>
           <polygon points="310,30 360,60 360,130 310,160 260,130 260,60" fill="none" stroke="var(--primary)" strokeWidth="1" strokeDasharray="6 4" opacity="0.6" />
           <polygon points="310,48 345,70 345,120 310,142 275,120 275,70" fill="var(--primary)" opacity="0.08" stroke="var(--primary)" strokeWidth="0.8" />
-          <rect
-            x="240" y="20" width="140" height="8"
-            fill="url(#prismLaser)"
-            className="animate-scan-beam-y"
-          />
           <line x1="0" y1="100" x2="200" y2="100" stroke="var(--primary)" strokeWidth="0.6" strokeDasharray="4 8" opacity="0.4" />
         </svg>
       )}
@@ -149,23 +116,18 @@ const TileArtCompanion = ({ variant = 0, cycleTrigger = 0 }: { variant?: number;
           <line x1="330" y1="120" x2="370" y2="70" stroke="var(--primary)" strokeWidth="0.8" strokeDasharray="3 4" opacity="0.4" />
           <line x1="60" y1="80" x2="120" y2="130" stroke="var(--primary)" strokeWidth="0.8" strokeDasharray="3 4" opacity="0.4" />
           {[
-            { cx: 280, cy: 60, r: 2.5, d: 2 },
-            { cx: 330, cy: 120, r: 3, d: 2.4 },
-            { cx: 370, cy: 70, r: 2, d: 1.8 },
-            { cx: 60, cy: 80, r: 2.2, d: 2.2 },
-            { cx: 120, cy: 130, r: 2.8, d: 2.6 },
-            { cx: 200, cy: 40, r: 1.8, d: 3 }
+            { cx: 280, cy: 60, r: 2.5 },
+            { cx: 330, cy: 120, r: 3 },
+            { cx: 370, cy: 70, r: 2 },
+            { cx: 60, cy: 80, r: 2.2 },
+            { cx: 120, cy: 130, r: 2.8 },
+            { cx: 200, cy: 40, r: 1.8 }
           ].map((pt, idx) => (
             <circle
               key={idx}
               cx={pt.cx} cy={pt.cy} r={pt.r}
               fill="var(--primary)"
-              className="animate-float-sparkle"
-              style={{
-                transformOrigin: `${pt.cx}px ${pt.cy}px`,
-                animationDuration: `${pt.d}s`,
-                animationDelay: `${idx * 0.3}s`,
-              }}
+              opacity="0.7"
             />
           ))}
           <circle
@@ -174,8 +136,7 @@ const TileArtCompanion = ({ variant = 0, cycleTrigger = 0 }: { variant?: number;
             stroke="var(--primary)"
             strokeWidth="0.8"
             strokeDasharray="4 8"
-            className="animate-pulse-ambient-glow [animation-duration:4s]"
-            style={{ transformOrigin: "320px 90px" }}
+            opacity="0.4"
           />
         </svg>
       )}

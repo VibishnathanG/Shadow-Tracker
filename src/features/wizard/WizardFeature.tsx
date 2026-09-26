@@ -7,7 +7,7 @@ import { Lucide } from '@/components/icons';
 import { useShadowTrackerStore } from '@/store';
 import { useShallow } from 'zustand/react/shallow';
 import { getCharacterTitle, getXpForLevel } from '@/features/rpg/rpgLevels';
-import confetti from 'canvas-confetti';
+import confetti from '@/lib/confetti';
 import { useViewPreference } from '@/lib/viewPreferences';
 import {
   BUILTIN_WISP_MOTIVATIONAL_LINES,

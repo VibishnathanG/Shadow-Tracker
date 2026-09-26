@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import { useShadowTrackerStore } from '@/store';
 import { getTodayDateString } from '@/lib/dateUtils';
-import confetti from 'canvas-confetti';
+import confetti from '@/lib/confetti';
 import dynamic from 'next/dynamic';
 import NutritionPlateVisualizer, { LoggedFood, MealType } from './NutritionPlateVisualizer';
 import { DietMeal } from './dietPlansData';

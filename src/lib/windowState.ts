@@ -54,9 +54,40 @@ export const initWindowStateManager = (): (() => void) => {
   if (typeof window === 'undefined') return () => {};
 
   let leaveTimer: ReturnType<typeof setTimeout> | null = null;
+  let idleTimer: ReturnType<typeof setTimeout> | null = null;
+  const IDLE_TIMEOUT_MS = 3500; // 3.5s of zero user activity freezes all ambient CSS animations
+  let lastActivityTime = 0;
+
+  const setIdle = (idle: boolean) => {
+    if (typeof document === 'undefined') return;
+    if (idle) {
+      document.documentElement.classList.add('is-user-idle');
+    } else {
+      document.documentElement.classList.remove('is-user-idle');
+    }
+  };
+
+  const handleUserActivity = () => {
+    const now = Date.now();
+    if (typeof document !== 'undefined' && document.documentElement.classList.contains('is-user-idle')) {
+      setIdle(false);
+    }
+    // Throttle idle timer reset to avoid overhead on rapid cursor motion
+    if (now - lastActivityTime > 400) {
+      lastActivityTime = now;
+      if (idleTimer) clearTimeout(idleTimer);
+      if (!document.hidden && (typeof document.hasFocus === 'function' ? document.hasFocus() : true)) {
+        idleTimer = setTimeout(() => {
+          setIdle(true);
+        }, IDLE_TIMEOUT_MS);
+      }
+    }
+  };
 
   const handleBlur = () => {
     if (leaveTimer) clearTimeout(leaveTimer);
+    if (idleTimer) clearTimeout(idleTimer);
+    setIdle(true);
     notifyListeners(false);
   };
 
@@ -64,15 +95,19 @@ export const initWindowStateManager = (): (() => void) => {
     if (leaveTimer) clearTimeout(leaveTimer);
     if (!document.hidden) {
       notifyListeners(true);
+      handleUserActivity();
     }
   };
 
   const handleVisibility = () => {
     if (document.hidden) {
+      if (idleTimer) clearTimeout(idleTimer);
+      setIdle(true);
       notifyListeners(false);
     } else {
       const hasFocus = typeof document.hasFocus === 'function' ? document.hasFocus() : true;
       notifyListeners(hasFocus);
+      if (hasFocus) handleUserActivity();
     }
   };
 
@@ -95,6 +130,7 @@ export const initWindowStateManager = (): (() => void) => {
     // Only wake up if document is visible
     if (!document.hidden) {
       notifyListeners(true);
+      handleUserActivity();
     }
   };
 
@@ -106,10 +142,20 @@ export const initWindowStateManager = (): (() => void) => {
   document.addEventListener('mouseleave', handleMouseLeave);
   document.addEventListener('mouseenter', handleMouseEnter);
 
+  // Active user interaction listeners to pause ambient CPU load during reading / idle
+  window.addEventListener('mousemove', handleUserActivity, { passive: true });
+  window.addEventListener('keydown', handleUserActivity, { passive: true });
+  window.addEventListener('scroll', handleUserActivity, { passive: true });
+  window.addEventListener('touchstart', handleUserActivity, { passive: true });
+  window.addEventListener('pointerdown', handleUserActivity, { passive: true });
+
   // Sync initial state on mount
   if (typeof document !== 'undefined') {
     const initialActive = !document.hidden && (typeof document.hasFocus === 'function' ? document.hasFocus() : true);
     notifyListeners(initialActive);
+    if (initialActive) {
+      handleUserActivity();
+    }
   }
 
   // Tauri native window listeners
@@ -135,6 +181,7 @@ export const initWindowStateManager = (): (() => void) => {
 
   return () => {
     if (leaveTimer) clearTimeout(leaveTimer);
+    if (idleTimer) clearTimeout(idleTimer);
     window.removeEventListener('blur', handleBlur);
     window.removeEventListener('focus', handleFocus);
     document.removeEventListener('visibilitychange', handleVisibility);
@@ -142,6 +189,11 @@ export const initWindowStateManager = (): (() => void) => {
     window.removeEventListener('pagehide', handleBlur);
     document.removeEventListener('mouseleave', handleMouseLeave);
     document.removeEventListener('mouseenter', handleMouseEnter);
+    window.removeEventListener('mousemove', handleUserActivity);
+    window.removeEventListener('keydown', handleUserActivity);
+    window.removeEventListener('scroll', handleUserActivity);
+    window.removeEventListener('touchstart', handleUserActivity);
+    window.removeEventListener('pointerdown', handleUserActivity);
     if (unlistenState) unlistenState();
   };
 };

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import { useShadowTrackerStore } from '@/store';
 import { useShallow } from 'zustand/react/shallow';
-import confetti from 'canvas-confetti';
+import confetti from '@/lib/confetti';
 import Modal from '@/components/Modal';
 
 export interface TimeBlock {

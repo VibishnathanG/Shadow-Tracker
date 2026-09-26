@@ -118,7 +118,7 @@ html.gpu-disabled *::after {
   filter: none !important;
 }
 
-/* Zero-CPU Idle Freeze when Hidden, Inactive, Minimized, or Blurred in Background */
+/* Zero-CPU Idle Freeze when Hidden, Inactive, Minimized, Blurred, or Active User Idle */
 html.is-hidden,
 html.is-hidden *,
 html.is-hidden *::before,
@@ -130,10 +130,21 @@ html.window-blurred *::after,
 html.window-inactive,
 html.window-inactive *,
 html.window-inactive *::before,
-html.window-inactive *::after {
+html.window-inactive *::after,
+html.is-user-idle,
+html.is-user-idle *,
+html.is-user-idle *::before,
+html.is-user-idle *::after {
   animation-play-state: paused !important;
   transition: none !important;
   will-change: auto !important;
+}
+
+/* Ensure active loading indicators continue running smoothly even when user is idle */
+html.is-user-idle .animate-spin,
+html.is-user-idle [role="status"] *,
+html.is-user-idle [aria-busy="true"] * {
+  animation-play-state: running !important;
 }
 
 html.no-gpu *,
@@ -185,6 +196,7 @@ html.low-gpu-mode .animate-fadeIn,
 html.is-hidden .animate-fadeIn,
 html.window-blurred .animate-fadeIn,
 html.window-inactive .animate-fadeIn,
+html.is-user-idle .animate-fadeIn,
 html.no-gpu .animate-fadeIn,
 html.gpu-disabled .animate-fadeIn {
   animation: none !important;
@@ -303,19 +315,31 @@ html.no-gpu [style*="transform"] {
 }
 
 .animate-float-spark-vertical {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
   animation: float-spark-vertical 5s ease-in-out infinite;
 }
 
 .animate-scan-beam-y {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
   animation: scan-beam-y 3.5s ease-in-out infinite;
 }
 
 .animate-sword-float {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
   animation: sword-float 16s ease-in-out infinite;
   transform-origin: center center;
 }
 
 .animate-hud-ring {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
   animation: hud-ring 35s linear infinite;
   transform-origin: center center;
 }
