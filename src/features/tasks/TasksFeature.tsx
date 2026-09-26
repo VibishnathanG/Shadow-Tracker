@@ -994,8 +994,8 @@ export const TasksFeature: React.FC = () => {
         onClose={() => setIsModalOpen(false)}
         title={editingTask ? 'Edit Focus Task' : 'Schedule New Task'}
       >
-        <form onSubmit={handleSave} className="space-y-5">
-          <div className="space-y-1.5">
+        <form onSubmit={handleSave} className="space-y-4">
+          <div className="space-y-1">
             <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Task Title</label>
             <input
               type="text"
@@ -1004,7 +1004,7 @@ export const TasksFeature: React.FC = () => {
               placeholder="e.g. Design app interface"
               value={formTitle}
               onChange={(e) => setFormTitle(e.target.value)}
-              className="w-full text-sm px-4 py-3 bg-surface-elevated rounded-xl text-foreground placeholder:text-muted-foreground border border-border/40 focus:border-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+              className="w-full text-sm px-3 py-2 bg-surface-elevated rounded-xl text-foreground placeholder:text-muted-foreground border border-border/40 focus:border-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all"
             />
             {formTitle.length >= 120 && (
               <span className="text-xs text-amber-500 font-medium px-1 block animate-fadeIn">

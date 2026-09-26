@@ -272,7 +272,7 @@ Click **"Day-to-Day Prompts"** or **"Tools & Engine"** above, or type your reque
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-background/80 backdrop-blur-md overflow-hidden">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-background/80 backdrop-blur-md overflow-hidden">
         <motion.div
           initial={{ opacity: 0, scale: 0.96, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -281,23 +281,23 @@ Click **"Day-to-Day Prompts"** or **"Tools & Engine"** above, or type your reque
           className="w-full max-w-3xl max-h-[92vh] flex flex-col bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden relative"
         >
           {/* Modal Top Bar */}
-          <div className="flex items-center justify-between px-5 py-3.5 border-b border-border/80 bg-surface-elevated/70 shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-primary/10 border border-primary/30 flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
-                <AiNeuralLogo size={28} />
+          <div className="flex items-center justify-between px-4 py-2.5 border-b border-border/80 bg-surface-elevated/70 shrink-0">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
+                <AiNeuralLogo size={20} />
               </div>
               <div>
-                <h2 className="text-sm sm:text-base font-extrabold text-foreground flex items-center gap-2">
-                  <span>Shadow AI Assistant</span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                <h2 className="text-sm font-extrabold text-foreground flex items-center gap-1.5">
+                  <span>Shadow AI</span>
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
                     Autonomous Engine
                   </span>
                 </h2>
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-[10px] text-muted-foreground">
                   {stage === 'config'
-                    ? 'Configure Context Timeframe, Memory Ceilings & Sovereign Privacy'
+                    ? 'Configure Context Timeframe & Settings'
                     : withContext
-                    ? `Context: ${selectedWindow.toUpperCase()} (~${compiledContext?.tokenEstimate || 0} tokens) • Limit: ${maxContextTokens.toLocaleString()} tokens`
+                    ? `Context: ${selectedWindow.toUpperCase()} (~${compiledContext?.tokenEstimate || 0} tokens) • Limit: ${maxContextTokens.toLocaleString()}`
                     : 'Zero-Context Session'}
                 </p>
               </div>
@@ -351,19 +351,19 @@ Click **"Day-to-Day Prompts"** or **"Tools & Engine"** above, or type your reque
           {/* Modal Body */}
           {stage === 'config' ? (
             /* ================= STAGE 1: PRE-FLIGHT CONTEXT & PROVIDER ================= */
-            <div className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
               {/* 1. Context Mode Selector */}
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                   <Lucide.BrainCircuit size={14} className="text-primary" />
                   1. Context Feeding Preference
                 </label>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setWithContext(true)}
-                    className={`p-3.5 rounded-xl border text-left transition-all ${
+                    className={`p-2.5 rounded-xl border text-left transition-all ${
                       withContext
                         ? 'bg-primary/10 border-primary shadow-sm shadow-primary/20 text-foreground'
                         : 'bg-surface-elevated/50 border-border text-muted-foreground hover:bg-surface-elevated'
@@ -384,7 +384,7 @@ Click **"Day-to-Day Prompts"** or **"Tools & Engine"** above, or type your reque
                   <button
                     type="button"
                     onClick={() => setWithContext(false)}
-                    className={`p-3.5 rounded-xl border text-left transition-all ${
+                    className={`p-2.5 rounded-xl border text-left transition-all ${
                       !withContext
                         ? 'bg-primary/10 border-primary shadow-sm shadow-primary/20 text-foreground'
                         : 'bg-surface-elevated/50 border-border text-muted-foreground hover:bg-surface-elevated'

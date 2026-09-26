@@ -92,7 +92,7 @@ export const Modal: React.FC<ModalProps> = ({
             className={`relative w-full ${sizeClasses[size]} glass-panel bg-surface-elevated border-2 border-primary/40 text-foreground rounded-2xl shadow-2xl overflow-hidden z-10 flex flex-col max-h-[88vh] sm:max-h-[85vh] my-auto`}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-border/60 shrink-0 bg-surface">
+            <div className="flex items-center justify-between px-4 sm:px-5 py-2.5 border-b border-border/60 shrink-0 bg-surface">
               <h2 className="text-base sm:text-lg font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text text-transparent">
                 {title}
               </h2>
@@ -106,7 +106,7 @@ export const Modal: React.FC<ModalProps> = ({
             </div>
 
             {/* Content body */}
-            <div className="px-4 sm:px-6 py-4 overflow-y-auto flex-1 text-sm scrollbar-thin pb-6">
+            <div className="px-4 sm:px-5 py-3 overflow-y-auto flex-1 text-sm scrollbar-thin pb-4">
               {children}
             </div>
           </motion.div>
