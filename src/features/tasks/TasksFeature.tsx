@@ -100,13 +100,14 @@ export const TasksFeature: React.FC = () => {
   const [formDesc, setFormDesc] = useState('');
   const [formStartDate, setFormStartDate] = useState(getTodayDateString());
   const [formDueDate, setFormDueDate] = useState(getTodayDateString());
-  const [formScheduledDate, setFormScheduledDate] = useState('');
+  
   const [formScheduledTime, setFormScheduledTime] = useState('');
   const [formEstimatedHours, setFormEstimatedHours] = useState<number | string>(1);
   const [formPriority, setFormPriority] = useState<'low' | 'medium' | 'high'>('medium');
   const [formCategoryId, setFormCategoryId] = useState('');
   const [formIsRecurring, setFormIsRecurring] = useState(false);
-  const [formRecurrencePattern, setFormRecurrencePattern] = useState<'daily' | 'weekly' | 'monthly' | null>('daily');
+  const [formRecurrencePattern, setFormRecurrencePattern] = useState<'daily' | 'weekly' | 'monthly' | 'custom' | null>('daily');
+  const [formRecurrenceCustomDays, setFormRecurrenceCustomDays] = useState<number[]>([]);
   const [formStatus, setFormStatus] = useState<TaskStatus>('todo');
   const [formQuadrant, setFormQuadrant] = useState<EisenhowerQuadrant>('not_urgent_important');
   const [formAssignee, setFormAssignee] = useState(defaultAssignee);
@@ -132,11 +133,11 @@ export const TasksFeature: React.FC = () => {
     return calculateTaskExecutionTimes({
       startDate: formStartDate,
       dueDate: formDueDate,
-      scheduledDate: formScheduledDate || formStartDate || formDueDate,
+      scheduledDate: formStartDate || formDueDate,
       scheduledTime: formScheduledTime || '09:00',
       estimatedHours: parsedHours,
     });
-  }, [formStartDate, formDueDate, formScheduledDate, formScheduledTime, parsedHours]);
+  }, [formStartDate, formDueDate, formScheduledTime, parsedHours]);
 
   // Keep viewingTask in sync with store tasks
   useEffect(() => {
@@ -199,7 +200,6 @@ export const TasksFeature: React.FC = () => {
     setFormDesc('');
     setFormStartDate(today);
     setFormDueDate(initialDue);
-    setFormScheduledDate(initialDue);
     setFormScheduledTime('09:00');
     setFormEstimatedHours(1);
     setFormPriority(initialQuadrant === 'urgent_important' ? 'high' : 'medium');
@@ -208,6 +208,7 @@ export const TasksFeature: React.FC = () => {
     setFormCategoryId('');
     setFormIsRecurring(false);
     setFormRecurrencePattern('daily');
+    setFormRecurrenceCustomDays([]);
     setFormAssignee(defaultAssignee);
     setFormAdditionalDetails('');
     setFormNotifyOnStart(false);
@@ -226,7 +227,6 @@ export const TasksFeature: React.FC = () => {
     const initialStart = task.startDate || task.scheduledDate || task.dueDate || getTodayDateString();
     setFormStartDate(initialStart);
     setFormDueDate(task.dueDate);
-    setFormScheduledDate(task.scheduledDate || task.dueDate || '');
     setFormScheduledTime(task.scheduledTime || '');
     const hours = task.estimatedHours ?? (task.estimatedMinutes ? Math.max(1, Math.round(task.estimatedMinutes / 60)) : 1);
     setFormEstimatedHours(hours);
@@ -239,6 +239,7 @@ export const TasksFeature: React.FC = () => {
     setFormCategoryId(task.categoryId || '');
     setFormIsRecurring(task.isRecurring);
     setFormRecurrencePattern(task.recurrencePattern || 'daily');
+      setFormRecurrenceCustomDays(task.recurrenceCustomDays || []);
     setFormAssignee(task.assignee || defaultAssignee);
     setFormAdditionalDetails(task.additionalDetails || '');
     setFormNotifyOnStart(Boolean(task.notifyOnStart));
@@ -277,7 +278,7 @@ export const TasksFeature: React.FC = () => {
         description: formDesc.trim() || undefined,
         startDate: formStartDate || undefined,
         dueDate: formDueDate,
-        scheduledDate: formScheduledDate || undefined,
+        scheduledDate: formStartDate || undefined,
         scheduledTime: formScheduledTime.trim() || undefined,
         estimatedHours: parsedHours,
         estimatedMinutes: parsedHours * 60,
@@ -285,6 +286,7 @@ export const TasksFeature: React.FC = () => {
         categoryId: formCategoryId || undefined,
         isRecurring: formIsRecurring,
         recurrencePattern: formIsRecurring ? formRecurrencePattern : null,
+        recurrenceCustomDays: (formIsRecurring && formRecurrencePattern === 'custom') ? formRecurrenceCustomDays : undefined,
         status: formStatus,
         matrixQuadrant: formQuadrant,
         isCompleted: formStatus === 'done',
@@ -331,7 +333,7 @@ export const TasksFeature: React.FC = () => {
     } finally {
       setIsModalOpen(false);
     }
-  }, [formTitle, formDesc, formStartDate, formDueDate, formScheduledDate, formScheduledTime, parsedHours, executionTimes, formPriority, formCategoryId, formIsRecurring, formRecurrencePattern, formStatus, formQuadrant, formAssignee, formAdditionalDetails, defaultAssignee, formNotifyOnStart, formNotifyOnEnd, formEnableNotification, formNotifyTime, formNotifyDays, editingTask, updateTask, addTask, reminders, addReminder, updateReminder]);
+  }, [formTitle, formDesc, formStartDate, formDueDate, formScheduledTime, parsedHours, executionTimes, formPriority, formCategoryId, formIsRecurring, formRecurrencePattern, formRecurrenceCustomDays, formStatus, formQuadrant, formAssignee, formAdditionalDetails, defaultAssignee, formNotifyOnStart, formNotifyOnEnd, formEnableNotification, formNotifyTime, formNotifyDays, editingTask, updateTask, addTask, reminders, addReminder, updateReminder]);
 
   const handleSnooze = useCallback(async (id: string, dateStr: string) => {
     const nextDate = formatDateString(addDays(parseISO(dateStr), 1));
@@ -412,7 +414,7 @@ export const TasksFeature: React.FC = () => {
         </svg>
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 relative z-10">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 relative z-10">
         <div>
           <h2 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">Tasks Workspace</h2>
         </div>
@@ -421,7 +423,7 @@ export const TasksFeature: React.FC = () => {
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.96 }}
             onClick={() => setIsAssigneeModalOpen(true)}
-            className="btn-glass-pill text-xs font-black py-2.5 px-3.5 shadow-md flex items-center gap-1.5 cursor-pointer border border-border/70 hover:border-primary/50 text-foreground"
+            className="btn-glass-pill text-xs font-black py-2 px-3.5 shadow-md flex items-center gap-1.5 cursor-pointer border border-border/70 hover:border-primary/50 text-foreground"
             title="Manage Assignees & Default User"
           >
             <Lucide.Users size={16} className="text-primary" />
@@ -431,7 +433,7 @@ export const TasksFeature: React.FC = () => {
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.96 }}
             onClick={() => openAddModal()}
-            className="btn-glass-pill active text-xs font-black py-2.5 px-4 shadow-md flex items-center gap-1.5 cursor-pointer"
+            className="btn-glass-pill active text-xs font-black py-2 px-4 shadow-md flex items-center gap-1.5 cursor-pointer"
           >
             <Lucide.Plus size={16} />
             <span>Create Task</span>
@@ -487,7 +489,7 @@ export const TasksFeature: React.FC = () => {
         <TaskSimpleView />
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-surface border border-border/60 p-3 rounded-2xl shadow-sm hover:shadow-md transition-shadow relative z-10">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-surface border border-border/60 p-3 rounded-xl shadow-sm hover:shadow-md transition-shadow relative z-10">
             <div className="sm:col-span-2 relative group">
               <Lucide.Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-hover:text-primary transition-colors pointer-events-none z-10" size={17} />
               <input
@@ -496,7 +498,7 @@ export const TasksFeature: React.FC = () => {
             placeholder="Search tasks..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full text-sm !pl-11 pr-4 py-2.5 bg-surface-elevated rounded-xl border border-transparent focus:border-border hover:bg-surface-elevated/80 focus:bg-surface-elevated text-foreground outline-none transition-all focus:ring-2 focus:ring-primary/20"
+            className="w-full text-sm !pl-11 pr-4 py-2 bg-surface-elevated rounded-xl border border-transparent focus:border-border hover:bg-surface-elevated/80 focus:bg-surface-elevated text-foreground outline-none transition-all focus:ring-2 focus:ring-primary/20"
           />
         </div>
 
@@ -504,7 +506,7 @@ export const TasksFeature: React.FC = () => {
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
-            className="w-full text-sm pl-4 pr-9 py-2.5 bg-surface-elevated rounded-xl border border-transparent text-secondary focus:text-foreground hover:bg-surface-elevated/80 cursor-pointer outline-none transition-all focus:ring-2 focus:ring-primary/20 appearance-none font-bold"
+            className="w-full text-sm pl-4 pr-9 py-2 bg-surface-elevated rounded-xl border border-transparent text-secondary focus:text-foreground hover:bg-surface-elevated/80 cursor-pointer outline-none transition-all focus:ring-2 focus:ring-primary/20 appearance-none font-bold"
           >
             <option value="all">All Priorities</option>
             <option value="high">High Priority</option>
@@ -518,7 +520,7 @@ export const TasksFeature: React.FC = () => {
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
-            className="w-full text-sm pl-4 pr-9 py-2.5 bg-surface-elevated rounded-xl border border-transparent text-secondary focus:text-foreground hover:bg-surface-elevated/80 cursor-pointer outline-none transition-all focus:ring-2 focus:ring-primary/20 appearance-none font-bold"
+            className="w-full text-sm pl-4 pr-9 py-2 bg-surface-elevated rounded-xl border border-transparent text-secondary focus:text-foreground hover:bg-surface-elevated/80 cursor-pointer outline-none transition-all focus:ring-2 focus:ring-primary/20 appearance-none font-bold"
           >
             <option value="all">All Categories</option>
             {categories.map(c => (
@@ -659,11 +661,11 @@ export const TasksFeature: React.FC = () => {
                   whileHover={{ y: -2 }}
                   transition={{ duration: 0.15 }}
                   onClick={() => setViewingTask(task)}
-                  className={`p-3.5 bg-surface border border-border/80 hover:border-primary/50 hover:shadow-lg rounded-2xl transition-all flex flex-col justify-between gap-3 cursor-pointer ${
+                  className={`p-2.5 bg-surface border border-border/80 hover:border-primary/50 hover:shadow-lg rounded-xl transition-all flex flex-col justify-between gap-3 cursor-pointer ${
                     task.isCompleted ? 'opacity-65 bg-surface-elevated/50 border-border/30' : ''
                   }`}
                 >
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                       {/* Line 1: Checkbox + Assignee (left) & Category (right) */}
                       <div className="flex items-center justify-between gap-1.5 w-full flex-nowrap overflow-hidden">
                         <div className="flex items-center gap-1.5 min-w-0 flex-nowrap">
@@ -813,11 +815,11 @@ export const TasksFeature: React.FC = () => {
                   whileHover={{ y: -2, scale: 1.005 }}
                   transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
                   onClick={() => setViewingTask(task)}
-                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-surface border border-border/80 hover:border-primary/50 hover:shadow-lg rounded-2xl transition-all duration-150 gap-4 cursor-pointer ${
+                  className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-surface border border-border/80 hover:border-primary/50 hover:shadow-lg rounded-xl transition-all duration-150 gap-3 cursor-pointer ${
                     task.isCompleted ? 'opacity-65 bg-surface-elevated/50 border-border/30' : ''
                   }`}
                 >
-                  <div className="flex items-start gap-4 flex-1 min-w-0">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
                     <motion.button
                       layout
                       whileTap={{ scale: 0.9 }}
@@ -1006,7 +1008,7 @@ export const TasksFeature: React.FC = () => {
         onClose={() => setIsModalOpen(false)}
         title={editingTask ? 'Edit Focus Task' : 'Schedule New Task'}
       >
-        <form onSubmit={handleSave} className="space-y-4">
+        <form onSubmit={handleSave} className="space-y-3">
           <div className="space-y-1">
             <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Task Title</label>
             <input
@@ -1033,7 +1035,7 @@ export const TasksFeature: React.FC = () => {
               value={formDesc}
               onChange={(e) => setFormDesc(e.target.value)}
               rows={2}
-              className="w-full text-sm px-4 py-2.5 bg-surface-elevated rounded-xl text-foreground placeholder:text-muted-foreground border border-border/40 focus:border-primary outline-none resize-none focus:ring-2 focus:ring-primary/20 transition-all"
+              className="w-full text-sm px-3 py-1.5 bg-surface-elevated rounded-xl text-foreground placeholder:text-muted-foreground border border-border/40 focus:border-primary outline-none resize-none focus:ring-2 focus:ring-primary/20 transition-all"
             />
             {formDesc.length >= 500 && (
               <span className="text-xs text-amber-500 font-medium px-1 block animate-fadeIn">
@@ -1043,8 +1045,8 @@ export const TasksFeature: React.FC = () => {
           </div>
 
           {/* Start Date & Due Date */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
               <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <Lucide.Calendar size={13} className="text-primary" /> Start Date
               </label>
@@ -1054,16 +1056,14 @@ export const TasksFeature: React.FC = () => {
                 value={formStartDate}
                 onChange={(e) => {
                   setFormStartDate(e.target.value);
-                  if (!formScheduledDate) {
-                    setFormScheduledDate(e.target.value);
-                  }
+                  
                   setSpillError(null);
                 }}
-                className="w-full text-sm px-4 py-2.5 bg-surface-elevated rounded-xl text-foreground border border-border/40 focus:border-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                className="w-full text-sm px-3 py-1.5 bg-surface-elevated rounded-xl text-foreground border border-border/40 focus:border-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <Lucide.CalendarCheck size={13} className="text-primary" /> Due Date
               </label>
@@ -1075,52 +1075,35 @@ export const TasksFeature: React.FC = () => {
                   setFormDueDate(e.target.value);
                   setSpillError(null);
                 }}
-                className="w-full text-sm px-4 py-2.5 bg-surface-elevated rounded-xl text-foreground border border-border/40 focus:border-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                className="w-full text-sm px-3 py-1.5 bg-surface-elevated rounded-xl text-foreground border border-border/40 focus:border-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
               />
             </div>
           </div>
 
-          {/* Schedule Date & Time */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <Lucide.Calendar size={13} className="text-primary" /> Schedule Date
-              </label>
-              <input
-                type="date"
-                value={formScheduledDate}
-                onChange={(e) => {
-                  setFormScheduledDate(e.target.value);
-                  setSpillError(null);
-                }}
-                className="w-full text-sm px-4 py-2.5 bg-surface-elevated rounded-xl text-foreground border border-border/40 focus:border-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <Lucide.Clock size={13} className="text-primary" /> Schedule Time
-              </label>
-              <input
-                type="time"
-                value={formScheduledTime}
-                onChange={(e) => {
-                  setFormScheduledTime(e.target.value);
-                  setSpillError(null);
-                }}
-                className="w-full text-sm px-4 py-2.5 bg-surface-elevated rounded-xl text-foreground border border-border/40 focus:border-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
-              />
-            </div>
+          {/* Schedule Time */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <Lucide.Clock size={13} className="text-primary" /> Schedule Time
+            </label>
+            <input
+              type="time"
+              value={formScheduledTime}
+              onChange={(e) => {
+                setFormScheduledTime(e.target.value);
+                setSpillError(null);
+              }}
+              className="w-full text-sm px-3 py-1.5 bg-surface-elevated rounded-xl text-foreground border border-border/40 focus:border-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+            />
           </div>
 
           {/* Priority & Estimated Duration (Integer Hours with hrs label and quick chips) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2 relative">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1.5 relative">
               <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Priority</label>
               <select 
                 value={formPriority}
                 onChange={(e) => setFormPriority(e.target.value as 'low' | 'medium' | 'high')}
-                className="w-full text-sm pl-4 pr-9 py-2.5 bg-secondary rounded-xl text-foreground font-semibold border border-border/60 focus:border-primary outline-none appearance-none cursor-pointer"
+                className="w-full text-sm pl-4 pr-9 py-2 bg-secondary rounded-xl text-foreground font-semibold border border-border/60 focus:border-primary outline-none appearance-none cursor-pointer"
               >
                 <option value="low">Low Priority</option>
                 <option value="medium">Medium Priority</option>
@@ -1129,7 +1112,7 @@ export const TasksFeature: React.FC = () => {
               <Lucide.ChevronDown className="absolute right-3.5 top-[34px] text-muted-foreground pointer-events-none" size={15} />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <Lucide.Timer size={13} className="text-primary" /> Estimated Duration
               </label>
@@ -1145,7 +1128,7 @@ export const TasksFeature: React.FC = () => {
                     setSpillError(null);
                   }}
                   placeholder="1"
-                  className="w-full text-sm font-bold pl-4 pr-12 py-2.5 bg-surface-elevated rounded-xl text-foreground border border-border/40 focus:border-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
+                  className="w-full text-sm font-bold pl-4 pr-12 py-2 bg-surface-elevated rounded-xl text-foreground border border-border/40 focus:border-primary outline-none focus:ring-2 focus:ring-primary/20 transition-all font-mono"
                 />
                 <span className="absolute right-4 text-xs font-black uppercase text-muted-foreground tracking-wider pointer-events-none">
                   hrs
@@ -1177,13 +1160,13 @@ export const TasksFeature: React.FC = () => {
 
           {/* Spillover Warning Banner */}
           {executionTimes.isSpillover && (
-            <div className="p-3.5 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs space-y-2.5 animate-fadeIn">
+            <div className="p-2.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs space-y-1.5.5 animate-fadeIn">
               <div className="flex items-start gap-2.5">
                 <Lucide.AlertTriangle size={18} className="text-amber-400 shrink-0 mt-0.5" />
                 <div className="min-w-0 flex-1">
-                  <span className="font-bold block text-amber-200">Estimated Completion Exceeds Due Date Limit</span>
-                  <span className="text-[11px] text-amber-300/80 leading-relaxed block mt-0.5">
-                    Starting on {executionTimes.startDateStr} at {executionTimes.startTimeStr} + {parsedHours} hrs finishes on <strong className="text-amber-200">{executionTimes.spillFormatted}</strong>, which spills past the Due Date ({formDueDate}).
+                  <span className="font-bold block text-amber-700 dark:text-amber-200">Estimated Completion Exceeds Due Date Limit</span>
+                  <span className="text-[11px] text-amber-700/80 dark:text-amber-300/80 leading-relaxed block mt-0.5">
+                    Starting on {executionTimes.startDateStr} at {executionTimes.startTimeStr} + {parsedHours} hrs finishes on <strong className="text-amber-700 dark:text-amber-200">{executionTimes.spillFormatted}</strong>, which spills past the Due Date ({formDueDate}).
                   </span>
                 </div>
               </div>
@@ -1194,7 +1177,7 @@ export const TasksFeature: React.FC = () => {
                     setFormDueDate(executionTimes.spillDate);
                     setSpillError(null);
                   }}
-                  className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-xs transition-all shadow-sm cursor-pointer flex items-center gap-1.5"
+                  className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 dark:hover:bg-amber-400 text-white dark:text-black font-black text-xs transition-all shadow-sm cursor-pointer flex items-center gap-1.5"
                 >
                   <Lucide.CalendarPlus size={14} />
                   <span>Extend Due Date to {executionTimes.spillDate}</span>
@@ -1210,12 +1193,12 @@ export const TasksFeature: React.FC = () => {
             </div>
           )}
 
-          <div className="space-y-2 relative">
+          <div className="space-y-1.5 relative">
             <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Category</label>
             <select
               value={formCategoryId}
               onChange={(e) => setFormCategoryId(e.target.value)}
-              className="w-full text-base pl-5 pr-10 py-3.5 bg-secondary rounded-2xl text-foreground font-semibold border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none appearance-none cursor-pointer"
+              className="w-full text-sm pl-3 pr-8 py-2 bg-secondary rounded-xl text-foreground font-semibold border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none appearance-none cursor-pointer"
             >
               <option value="">Uncategorized</option>
               {categories.map(c => (
@@ -1225,14 +1208,14 @@ export const TasksFeature: React.FC = () => {
             <Lucide.ChevronDown className="absolute right-4 top-[38px] text-muted-foreground pointer-events-none" size={16} />
           </div>
 
-          <div className="space-y-2 relative">
+          <div className="space-y-1.5 relative">
             <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <Lucide.User size={13} className="text-primary" /> Assignee
             </label>
             <select
               value={formAssignee}
               onChange={(e) => setFormAssignee(e.target.value)}
-              className="w-full text-base pl-5 pr-10 py-3.5 bg-secondary rounded-2xl text-foreground font-semibold border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none appearance-none cursor-pointer"
+              className="w-full text-sm pl-3 pr-8 py-2 bg-secondary rounded-xl text-foreground font-semibold border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none appearance-none cursor-pointer"
             >
               {assignees.map(user => (
                 <option key={user} value={user}>
@@ -1264,11 +1247,11 @@ export const TasksFeature: React.FC = () => {
                 }
               }}
               rows={5}
-              className="w-full text-xs font-mono px-4 py-2.5 bg-surface-elevated rounded-xl text-foreground placeholder:text-muted-foreground border border-border/40 focus:border-primary outline-none resize-y focus:ring-2 focus:ring-primary/20 transition-all leading-relaxed"
+              className="w-full text-xs font-mono px-3 py-1.5 bg-surface-elevated rounded-xl text-foreground placeholder:text-muted-foreground border border-border/40 focus:border-primary outline-none resize-y focus:ring-2 focus:ring-primary/20 transition-all leading-relaxed"
             />
           </div>
 
-          <div className="border-t border-border/40 pt-5 space-y-4">
+          <div className="border-t border-border/40 pt-5 space-y-3">
             <label className="flex items-center gap-3 cursor-pointer group">
               <input
                 type="checkbox"
@@ -1280,17 +1263,43 @@ export const TasksFeature: React.FC = () => {
             </label>
 
             {formIsRecurring && (
-              <div className="space-y-2 animate-fadeIn relative">
+              <div className="space-y-1.5 animate-fadeIn relative">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Recurrence Schedule</label>
                 <select 
                   value={formRecurrencePattern || ''}
-                  onChange={(e) => setFormRecurrencePattern(e.target.value as 'daily' | 'weekly' | 'monthly' | null)}
-                  className="w-full text-base pl-5 pr-10 py-3.5 bg-secondary rounded-2xl text-foreground font-semibold border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none appearance-none cursor-pointer"
+                  onChange={(e) => setFormRecurrencePattern(e.target.value as 'daily' | 'weekly' | 'monthly' | 'custom' | null)}
+                  className="w-full text-sm pl-3 pr-8 py-2 bg-secondary rounded-xl text-foreground font-semibold border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none appearance-none cursor-pointer"
                 >
                   <option value="daily">Every Day</option>
                   <option value="weekly">Every Week</option>
                   <option value="monthly">Every Month</option>
+                  <option value="custom">Custom Days</option>
                 </select>
+                
+                {formRecurrencePattern === 'custom' && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, idx) => (
+                      <button
+                        key={day}
+                        type="button"
+                        onClick={() => {
+                          if (formRecurrenceCustomDays.includes(idx)) {
+                            setFormRecurrenceCustomDays(formRecurrenceCustomDays.filter(d => d !== idx));
+                          } else {
+                            setFormRecurrenceCustomDays([...formRecurrenceCustomDays, idx]);
+                          }
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                          formRecurrenceCustomDays.includes(idx)
+                            ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                            : 'bg-surface-elevated hover:bg-secondary text-muted-foreground hover:text-foreground border-border/40'
+                        }`}
+                      >
+                        {day}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <Lucide.ChevronDown className="absolute right-4 top-[38px] text-muted-foreground pointer-events-none" size={16} />
                 <p className="text-xs text-muted-foreground leading-relaxed mt-2">
                   When completed, the app will automatically schedule the next task occurrence based on this rule.
@@ -1311,7 +1320,7 @@ export const TasksFeature: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <label className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
+              <label className={`p-3 rounded-xl border transition-all cursor-pointer flex items-start gap-3 ${
                 formNotifyOnStart 
                   ? 'bg-primary/15 border-primary text-foreground' 
                   : 'bg-surface-elevated/60 border-border/40 text-muted-foreground hover:text-foreground'
@@ -1332,7 +1341,7 @@ export const TasksFeature: React.FC = () => {
                 </div>
               </label>
 
-              <label className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
+              <label className={`p-3 rounded-xl border transition-all cursor-pointer flex items-start gap-3 ${
                 formNotifyOnEnd 
                   ? 'bg-primary/15 border-primary text-foreground' 
                   : 'bg-surface-elevated/60 border-border/40 text-muted-foreground hover:text-foreground'
@@ -1370,7 +1379,7 @@ export const TasksFeature: React.FC = () => {
               </label>
 
               {formEnableNotification && (
-                <div className="space-y-4 animate-fadeIn p-4 mt-2 bg-secondary/30 rounded-2xl border border-border/40">
+                <div className="space-y-3 animate-fadeIn p-4 mt-2 bg-secondary/30 rounded-xl border border-border/40">
                   <NiceTimePicker
                     value={formNotifyTime}
                     onChange={setFormNotifyTime}
@@ -1387,13 +1396,13 @@ export const TasksFeature: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex justify-end gap-3.5 border-t border-border/40 pt-5 mt-6">
+          <div className="flex justify-end gap-2.5 border-t border-border/40 pt-5 mt-6">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-5 py-2.5 text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-surface-elevated rounded-xl transition-all"
+              className="px-5 py-2 text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-surface-elevated rounded-xl transition-all"
             >
               Cancel
             </motion.button>
@@ -1401,7 +1410,7 @@ export const TasksFeature: React.FC = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               type="submit"
-              className="px-6 py-2.5 text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/95 rounded-xl shadow-md shadow-primary/25 transition-all"
+              className="px-6 py-2 text-sm font-bold text-primary-foreground bg-primary hover:bg-primary/95 rounded-xl shadow-md shadow-primary/25 transition-all"
             >
               {editingTask ? 'Apply Changes' : 'Schedule Task'}
             </motion.button>
@@ -1425,7 +1434,7 @@ export const TasksFeature: React.FC = () => {
               <select
                 value={defaultAssignee}
                 onChange={(e) => handleSetDefaultAssignee(e.target.value)}
-                className="w-full text-sm pl-4 pr-9 py-2.5 bg-surface-elevated rounded-xl text-foreground font-bold border border-border/60 focus:border-primary outline-none appearance-none cursor-pointer"
+                className="w-full text-sm pl-4 pr-9 py-2 bg-surface-elevated rounded-xl text-foreground font-bold border border-border/60 focus:border-primary outline-none appearance-none cursor-pointer"
               >
                 {assignees.map(user => (
                   <option key={user} value={user}>
@@ -1441,7 +1450,7 @@ export const TasksFeature: React.FC = () => {
           </div>
 
           {/* Current Assignees List */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
               <span>Team Members / Operators ({assignees.length})</span>
             </label>
@@ -1506,13 +1515,13 @@ export const TasksFeature: React.FC = () => {
                     handleAddAssignee();
                   }
                 }}
-                className="flex-1 text-sm px-3.5 py-2.5 bg-surface-elevated rounded-xl border border-border/40 text-foreground outline-none focus:ring-2 focus:ring-primary/20"
+                className="flex-1 text-sm px-3.5 py-2 bg-surface-elevated rounded-xl border border-border/40 text-foreground outline-none focus:ring-2 focus:ring-primary/20"
               />
               <button
                 type="button"
                 onClick={handleAddAssignee}
                 disabled={!newAssigneeName.trim()}
-                className="btn-glass-pill active text-xs font-black px-4 py-2.5 cursor-pointer disabled:opacity-40"
+                className="btn-glass-pill active text-xs font-black px-3 py-1.5 cursor-pointer disabled:opacity-40"
               >
                 Add
               </button>
@@ -1585,7 +1594,7 @@ export const TasksFeature: React.FC = () => {
               </div>
 
               {/* 5 Visible Labels Display Panel */}
-              <div className="p-3.5 rounded-2xl bg-surface-elevated/70 border border-border/50 space-y-2.5">
+              <div className="p-2.5 rounded-xl bg-surface-elevated/70 border border-border/50 space-y-1.5.5">
                 <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
                   Task Parameters &amp; Metadata
                 </span>
@@ -1713,7 +1722,7 @@ export const TasksFeature: React.FC = () => {
               </div>
 
               {/* Additional Details (Markdown Supported • 500 lines limit) */}
-              <div className="space-y-2 pt-2 border-t border-border/40">
+              <div className="space-y-1.5 pt-2 border-t border-border/40">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                     <Lucide.FileText size={13} className="text-primary" /> Additional Details (Markdown)
@@ -1726,11 +1735,11 @@ export const TasksFeature: React.FC = () => {
                 </div>
 
                 {viewingTask.additionalDetails && viewingTask.additionalDetails.trim() ? (
-                  <div className="p-4 rounded-2xl bg-surface-elevated border border-border/50 max-h-72 overflow-y-auto leading-relaxed text-xs">
+                  <div className="p-4 rounded-xl bg-surface-elevated border border-border/50 max-h-72 overflow-y-auto leading-relaxed text-xs">
                     <MarkdownRenderer content={viewingTask.additionalDetails} />
                   </div>
                 ) : (
-                  <div className="p-4 rounded-2xl bg-surface-elevated/40 border border-dashed border-border/60 text-xs text-muted-foreground italic text-center">
+                  <div className="p-4 rounded-xl bg-surface-elevated/40 border border-dashed border-border/60 text-xs text-muted-foreground italic text-center">
                     No markdown notes or steps provided yet. Click &quot;Edit Task&quot; below to add formatted details (up to 500 lines).
                   </div>
                 )}
@@ -1747,7 +1756,7 @@ export const TasksFeature: React.FC = () => {
                       fireConfetti();
                     }
                   }}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     viewingTask.isCompleted
                       ? 'bg-secondary text-muted-foreground hover:text-foreground'
                       : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-xs'
@@ -1786,7 +1795,7 @@ export const TasksFeature: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setViewingTask(null)}
-                    className="px-4 py-2 rounded-xl text-xs font-bold bg-secondary hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+                    className="px-3 py-1.5 rounded-xl text-xs font-bold bg-secondary hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-all cursor-pointer"
                   >
                     Close
                   </button>

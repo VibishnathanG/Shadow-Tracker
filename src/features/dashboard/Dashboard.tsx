@@ -7,6 +7,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import { fireConfetti } from '@/lib/confetti';
 import { useShadowTrackerStore } from '@/store';
+import { isHabitScheduledForDate } from '@/lib/habitUtils';
+
 import { useShallow } from 'zustand/react/shallow';
 import { getTodayDateString, formatDateString } from '@/lib/dateUtils';
 import EmptyState from '@/components/EmptyState';
@@ -17,6 +19,8 @@ import ExplorerFeature from '@/features/explorer/ExplorerFeature';
 import { DayReviewModal } from '@/components/DayReviewModal';
 import { renderCritterComponent, CritterType, ALL_CRITTERS, DashboardIdleCrittersOverlay } from '@/components/AmbientCritters';
 import { isWindowActive } from '@/lib/windowState';
+import { calculateDailyMicronutrients, getAgeGroupPreset } from '@/features/health/micronutrientData';
+import { getUserBiometrics } from '@/features/health/weightFeasibility';
 
 // --- Tile Hologram GIF-Art ---
 const useIsEco = () => useShadowTrackerStore((s) => Boolean(s.settings.ecoMode || s.settings.lowGpuMode || s.settings.disableGpuAcceleration));
@@ -278,9 +282,41 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [reviewMode, setReviewMode] = useState<'morning' | 'evening' | null>(null);
 
   const [isMounted, setIsMounted] = useState(false);
+  const [healthRdaCoverage, setHealthRdaCoverage] = useState<number>(0);
 
   useEffect(() => {
     setIsMounted(true);
+
+    const updateHealth = () => {
+      try {
+        const raw = localStorage.getItem('shadow_health_data_v1') || localStorage.getItem('shadow_health_data');
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          const today = getTodayDateString();
+          const todayHealth = parsed[today];
+          if (todayHealth?.loggedFoods?.length) {
+            const bio = getUserBiometrics();
+            const list = calculateDailyMicronutrients(todayHealth.loggedFoods, bio.sex || 'male', getAgeGroupPreset(bio.age || 28));
+            const cov = Math.round(list.reduce((acc, item) => acc + Math.min(100, item.percentage), 0) / (list.length || 1));
+            setHealthRdaCoverage(cov);
+            return;
+          }
+        }
+        setHealthRdaCoverage(0);
+      } catch (e) {
+        setHealthRdaCoverage(0);
+      }
+    };
+
+    updateHealth();
+    window.addEventListener('shadow_health_updated', updateHealth);
+    window.addEventListener('shadow_health_local_changed', updateHealth);
+    window.addEventListener('storage', updateHealth);
+    return () => {
+      window.removeEventListener('shadow_health_updated', updateHealth);
+      window.removeEventListener('shadow_health_local_changed', updateHealth);
+      window.removeEventListener('storage', updateHealth);
+    };
   }, []);
   
   // Data processing
@@ -300,7 +336,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const focusScore = todayLog?.focusScore ?? 0;
 
   const sessionEmoji = useMemo(() => {
-    const emojis = ['✨', '⚡️', '🚀', '🔥', '🌟', '🌅', '☕', '💪', '🎯', '⚔️'];
+    const emojis = ['✨', '⚡️', '🚀', '🔥', '🌟', '🌅', '💪', '🎯', '⚔️', '🦅', '🦁', '👑', '🌠', '🔮', '🌌'];
     return emojis[Math.floor(Math.random() * emojis.length)];
   }, []);
 
@@ -609,15 +645,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <button
           onClick={() => onNavigate('health')}
           className="tile settings-tile p-2.5 sm:p-3.5 rounded-2xl flex items-center justify-between border-rose-500/30 hover:border-rose-500/60 bg-rose-500/5 cursor-pointer transition-all active:scale-95 group"
-          title="Health & Vitality"
+          title="Health & Vitality: Macros & Vitamins RDA"
         >
           <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
             <span className="p-1.5 sm:p-2 rounded-xl bg-rose-500/15 text-rose-400 group-hover:scale-110 transition-transform">
               <Lucide.HeartPulse className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
             </span>
             <div className="text-left truncate">
-              <span className="text-xs font-black text-foreground block truncate">Health Hub</span>
-              <span className="text-[9.5px] sm:text-[10px] text-muted-foreground font-medium block truncate">Water &amp; Sleep</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-black text-foreground block truncate">Health Hub</span>
+                {healthRdaCoverage > 0 && (
+                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hidden xs:inline">
+                    {healthRdaCoverage}% RDA
+                  </span>
+                )}
+              </div>
+              <span className="text-[9.5px] sm:text-[10px] text-muted-foreground font-medium block truncate">
+                {healthRdaCoverage > 0 ? `Vitamins & Macros • ${healthRdaCoverage}% RDA` : 'Vitamins RDA & Diet'}
+              </span>
             </div>
           </div>
           <Lucide.ChevronRight size={14} className="text-rose-400/60 shrink-0 hidden sm:block" />
@@ -675,8 +720,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 const IconComponent = (Lucide[b.icon as keyof typeof Lucide] || Lucide.Award) as React.ElementType;
 
                 const isWhiteTheme = settings.theme === 'white' || settings.theme === 'light';
-                const isTargetBlackBadge = ['badge-first-task', 'badge-first-note', 'badge-streak-3', 'badge-streak-7'].includes(b.id) || ['First Spark', 'Mindful Mind', 'Triple Streak', 'Weekly Streak'].includes(b.name);
-
+                
                 const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
                 const animData = BADGE_DEAL_ANIMATIONS[i];
 
@@ -719,7 +763,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                                 : 'bg-gradient-to-b from-cyan-950/40 via-surface/90 to-surface border-cyan-500/30'
                             }` 
                           : (settings.theme === 'light' || settings.theme === 'white' || settings.theme === 'midnight' || settings.theme === 'pine' || settings.theme === 'purple')
-                            ? 'bg-slate-900/60 border-slate-800 text-slate-400 opacity-60 grayscale shadow-sm hover:scale-[1.02]'
+                            ? 'bg-slate-900/80 border-slate-700 text-slate-300 grayscale shadow-sm hover:scale-[1.02]'
                             : 'bg-surface/40 border-border/70 text-muted-foreground opacity-50 grayscale shadow-sm hover:scale-[1.02]'
                       }`}
                     >
@@ -746,21 +790,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       {/* High-Contrast Title & Subtitle */}
                       <div className="w-full flex flex-col items-center justify-center gap-0.5 select-none relative z-10">
                         <strong className={`block text-[10px] sm:text-[12.5px] lg:text-sm leading-tight font-bold tracking-tight text-center truncate max-w-full px-0.5 ${
-                          (isWhiteTheme && isTargetBlackBadge)
-                            ? 'text-black font-black'
-                            : (settings.theme === 'light' || settings.theme === 'white' || settings.theme === 'midnight' || settings.theme === 'pine' || settings.theme === 'purple')
+                          (settings.theme === 'light' || settings.theme === 'white' || settings.theme === 'midnight' || settings.theme === 'pine' || settings.theme === 'purple')
                               ? 'text-white' 
                               : 'text-foreground'
                         }`}>
                           {b.name}
                         </strong>
                         <span className={`block text-[8px] sm:text-[9.5px] lg:text-[10px] font-medium leading-tight text-center truncate max-w-full px-0.5 ${
-                          (isWhiteTheme && isTargetBlackBadge)
-                            ? 'text-neutral-900 font-bold'
-                            : isUnlocked 
+                          isUnlocked 
                               ? 'text-cyan-300' 
                               : (settings.theme === 'light' || settings.theme === 'white' || settings.theme === 'midnight' || settings.theme === 'pine' || settings.theme === 'purple')
-                                ? 'text-slate-400' 
+                                ? 'text-slate-300' 
                                 : 'text-muted-foreground'
                         }`}>
                           {b.subtitle}
@@ -975,13 +1015,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
           >
             <div className="grid grid-cols-2 gap-2 relative z-10">
               <motion.button 
-                whileHover={{ scale: 1.05, y: -4, boxShadow: "0 15px 35px -10px rgba(var(--primary-rgb), 0.4)", transition: { type: "spring" as const, stiffness: 400, damping: 20 } }}
+                whileHover={{ scale: 1.05, y: -4, boxShadow: "0 15px 35px -10px rgba(59, 130, 246, 0.4)", transition: { type: "spring" as const, stiffness: 400, damping: 20 } }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => { setQuickAddType('task'); setShowQuickAddModal(true); }}
-                className="group flex flex-col items-center justify-center gap-1.5 p-2.5 bg-foreground/5 hover:bg-surface-elevated border border-border hover:border-primary/50 rounded-xl text-sm font-semibold transition-all text-foreground hover:text-foreground shadow-sm"
+                className="group flex flex-col items-center justify-center gap-2 p-3 bg-foreground/5 hover:bg-surface-elevated border border-border hover:border-blue-400/50 rounded-xl text-sm font-semibold transition-all text-foreground hover:text-foreground shadow-sm"
               >
-                <div className="p-1.5 rounded-lg bg-primary/10 text-primary group-hover:scale-110 transition-transform shadow-inner">
-                  <Lucide.PlusSquare size={16} />
+                <div className="p-2 rounded-lg bg-blue-400/10 text-blue-400 group-hover:scale-110 transition-transform shadow-inner">
+                  <Lucide.PlusSquare size={18} />
                 </div>
                 <span>New Task</span>
               </motion.button>
@@ -1038,8 +1078,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
 
             <div className="relative z-10 flex-1 space-y-3 overflow-y-auto custom-scrollbar pr-1 pb-2 min-h-0">
-              {habits.length > 0 ? (
-                habits.map((habit, idx) => {
+              {habits.filter(h => isHabitScheduledForDate(h, todayStr)).length > 0 ? (
+                habits.filter(h => isHabitScheduledForDate(h, todayStr)).map((habit, idx) => {
                   const isCompletedToday = habit.completedDates.includes(todayStr);
 
                   return (
@@ -1296,7 +1336,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               const isUnlocked = unlockedBadges.includes(b.id);
               const IconComponent = (Lucide[b.icon as keyof typeof Lucide] || Lucide.Award) as React.ElementType;
               return (
-                <div key={b.id} className={`flex items-start gap-4 p-4 rounded-xl border transition-all ${isUnlocked ? b.color + ' border-current/20' : 'bg-surface border-border text-muted-foreground grayscale opacity-60'}`}>
+                <div key={b.id} className={`flex items-start gap-4 p-4 rounded-xl border transition-all ${isUnlocked ? b.color + ' border-current/20' : 'bg-surface border-border text-muted-foreground grayscale opacity-80'}`}>
                   <div className={`p-2 rounded-xl bg-current/10 ${isUnlocked ? 'drop-shadow-lg' : ''}`}>
                     <IconComponent size={24} />
                   </div>
@@ -1305,8 +1345,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       {b.name}
                       {isUnlocked && <Lucide.CheckCircle2 size={14} className="text-current" />}
                     </h4>
-                    <p className="text-xs font-semibold text-primary/80 mt-1 uppercase tracking-wider">{b.requirement}</p>
-                    <p className="text-xs mt-1">{b.description}</p>
+                    <p className="text-xs font-semibold text-foreground/70 mt-1 uppercase tracking-wider">{b.requirement}</p>
+                    <p className="text-xs mt-1 text-foreground/80 font-medium">{b.description}</p>
                   </div>
                 </div>
               );
@@ -1316,72 +1356,57 @@ export const Dashboard: React.FC<DashboardProps> = ({
       </Modal>
 
       {/* 4. Quick Add Floating Modal */}
-      <AnimatePresence>
-        {showQuickAddModal && (
-          <motion.div 
-            className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-6 select-none cursor-pointer"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowQuickAddModal(false)}
-          >
-            <motion.div 
-              className="w-full max-w-sm bg-surface-elevated border border-border rounded-2xl p-6 shadow-2xl space-y-5 ring-1 ring-white/5 relative overflow-hidden cursor-default"
-              initial={{ scale: 0.95, y: 15 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.95, y: 15 }}
-              onClick={(e) => e.stopPropagation()}
+      <Modal
+        isOpen={showQuickAddModal}
+        onClose={() => setShowQuickAddModal(false)}
+        title={`Add New ${quickAddType === 'task' ? 'Task' : 'Habit'}`}
+        size="sm"
+      >
+        <form onSubmit={handleQuickAddSubmit} className="space-y-4">
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Title</label>
+            <input
+              type="text"
+              required
+              autoFocus
+              placeholder="E.g., Complete project milestone..."
+              value={inlineTaskTitle}
+              onChange={(e) => setInlineTaskTitle(e.target.value)}
+              className="w-full text-sm px-3.5 py-2.5 bg-secondary border border-border focus:border-primary rounded-xl text-foreground placeholder:text-muted-foreground outline-none transition-all shadow-inner font-semibold"
+            />
+          </div>
+
+          <div className="space-y-1.5 relative">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Priority</label>
+            <select
+              value={inlineTaskPriority}
+              onChange={(e) => setInlineTaskPriority(e.target.value as 'low' | 'medium' | 'high')}
+              className="w-full text-sm pl-3.5 pr-9 py-2.5 bg-secondary border border-border focus:border-primary rounded-xl text-foreground outline-none cursor-pointer transition-all shadow-inner font-semibold appearance-none"
             >
-              <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-primary to-purple-500" />
-              
-              <div className="flex justify-between items-center pb-2 relative z-10">
-                <span className="text-base font-semibold text-foreground">Add new {quickAddType}</span>
-                <motion.button onClick={() => setShowQuickAddModal(false)} whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }} className="text-muted-foreground hover:text-foreground transition-colors p-1 rounded-md hover:bg-foreground/5">
-                  <Lucide.X size={18} />
-                </motion.button>
-              </div>
+              <option value="low">Low Priority</option>
+              <option value="medium">Medium Priority</option>
+              <option value="high">High Priority</option>
+            </select>
+            <Lucide.ChevronDown className="absolute right-3.5 top-8.5 text-muted-foreground pointer-events-none" size={16} />
+          </div>
 
-              <form onSubmit={handleQuickAddSubmit} className="space-y-5">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-muted-foreground">Title</label>
-                  <input
-                    type="text"
-                    required
-                    autoFocus
-                    placeholder="E.g., Read documentation..."
-                    value={inlineTaskTitle}
-                    onChange={(e) => setInlineTaskTitle(e.target.value)}
-                    className="w-full text-base px-4 py-2.5 bg-black/50 border border-border focus:border-primary/50 rounded-xl text-foreground placeholder-muted-foreground focus:ring-1 focus:ring-primary/50 focus:outline-none transition-all shadow-inner"
-                  />
-                </div>
-
-                <div className="space-y-2 relative">
-                  <label className="text-sm font-medium text-muted-foreground">Priority</label>
-                  <select
-                    value={inlineTaskPriority}
-                    onChange={(e) => setInlineTaskPriority(e.target.value as 'low' | 'medium' | 'high')}
-                    className="w-full text-base pl-4 pr-9 py-2.5 bg-black/50 border border-border focus:border-primary/50 rounded-xl text-foreground focus:outline-none cursor-pointer transition-all shadow-inner appearance-none"
-                  >
-                    <option value="low">Low Priority</option>
-                    <option value="medium">Medium Priority</option>
-                    <option value="high">High Priority</option>
-                  </select>
-                  <Lucide.ChevronDown className="absolute right-3.5 top-9 text-muted-foreground pointer-events-none" size={16} />
-                </div>
-
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.95 }}
-                  type="submit"
-                  className="w-full py-3 mt-2 bg-primary hover:bg-primary/90 text-white font-semibold text-base rounded-xl transition-all shadow-[0_4px_14px_rgba(139,92,246,0.3)] hover:shadow-[0_6px_20px_rgba(139,92,246,0.4)]"
-                >
-                  Create
-                </motion.button>
-              </form>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/60">
+            <button
+              type="button"
+              onClick={() => setShowQuickAddModal(false)}
+              className="px-4 py-2 text-xs font-bold text-muted-foreground hover:text-foreground hover:bg-white/5 rounded-xl transition-all cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-5 py-2 bg-primary hover:bg-primary/90 text-white font-bold text-xs rounded-xl transition-all shadow-md active:scale-95 cursor-pointer"
+            >
+              Create Task
+            </button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Nexus Companion Sanctum Modal */}
       <Modal

@@ -23,6 +23,10 @@ export const TaskSimpleView = () => {
   const [formDeadline, setFormDeadline] = useState('');
   const [formEnableNotif, setFormEnableNotif] = useState(false);
   const [formNotifTime, setFormNotifTime] = useState('09:00');
+  const [formIsRecurring, setFormIsRecurring] = useState(false);
+  const [formRecurrencePattern, setFormRecurrencePattern] = useState<'daily' | 'weekly' | 'monthly' | 'custom' | null>('daily');
+  const [formRecurrenceCustomDays, setFormRecurrenceCustomDays] = useState<number[]>([]);
+
   
   const [viewingTask, setViewingTask] = useState<any>(null);
 
@@ -35,6 +39,10 @@ export const TaskSimpleView = () => {
     setFormDeadline('');
     setFormEnableNotif(false);
     setFormNotifTime('09:00');
+    setFormIsRecurring(false);
+    setFormRecurrencePattern('daily');
+    setFormRecurrenceCustomDays([]);
+
     setIsModalOpen(true);
   };
 
@@ -53,6 +61,10 @@ export const TaskSimpleView = () => {
     } else {
       setFormEnableNotif(false);
       setFormNotifTime('09:00');
+    setFormIsRecurring(false);
+    setFormRecurrencePattern('daily');
+    setFormRecurrenceCustomDays([]);
+
     }
     
     setIsModalOpen(true);
@@ -66,6 +78,9 @@ export const TaskSimpleView = () => {
       let savedId = editingId;
       if (editingId) {
         await updateTask(editingId, {
+        isRecurring: formIsRecurring,
+        recurrencePattern: formIsRecurring ? formRecurrencePattern : null,
+        recurrenceCustomDays: (formIsRecurring && formRecurrencePattern === 'custom') ? formRecurrenceCustomDays : undefined,
           title: formTitle.trim(),
           description: formDesc.trim(),
           additionalDetails: formNotes.trim(),
@@ -74,6 +89,9 @@ export const TaskSimpleView = () => {
         });
       } else {
         const created = await addTask({
+        isRecurring: formIsRecurring,
+        recurrencePattern: formIsRecurring ? formRecurrencePattern : null,
+        recurrenceCustomDays: (formIsRecurring && formRecurrencePattern === 'custom') ? formRecurrenceCustomDays : undefined,
           title: formTitle.trim(),
           description: formDesc.trim(),
           additionalDetails: formNotes.trim(),
@@ -82,8 +100,6 @@ export const TaskSimpleView = () => {
           startDate: getTodayDateString(),
           scheduledDate: '',
           categoryId: '',
-          isRecurring: false,
-          recurrencePattern: null,
           status: 'todo',
           matrixQuadrant: 'not_urgent_important',
           assignee: settings.defaultAssignee || 'Shadow',
@@ -290,6 +306,61 @@ export const TaskSimpleView = () => {
             <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-xl text-xs font-bold bg-secondary hover:bg-secondary/80">Cancel</button>
             <button type="submit" disabled={!formTitle.trim()} className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-500 text-white hover:bg-emerald-600 disabled:opacity-50">Save Task</button>
           </div>
+        
+          <div className="border-t border-border/40 pt-5 space-y-3">
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={formIsRecurring}
+                onChange={(e) => setFormIsRecurring(e.target.checked)}
+                className="w-5 h-5 rounded text-primary focus:ring-primary bg-surface-elevated border-border/60 cursor-pointer"
+              />
+              <span className="text-sm font-bold text-foreground group-hover:text-primary transition-colors">Enable Recurrence</span>
+            </label>
+
+            {formIsRecurring && (
+              <div className="space-y-1.5 animate-fadeIn relative">
+                <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Recurrence Schedule</label>
+                <select 
+                  value={formRecurrencePattern || 'daily'}
+                  onChange={(e) => setFormRecurrencePattern(e.target.value as any)}
+                  className="w-full text-sm pl-3 pr-8 py-2 bg-secondary rounded-xl text-foreground font-semibold border border-border focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all outline-none appearance-none cursor-pointer"
+                >
+                  <option value="daily">Every Day</option>
+                  <option value="weekly">Every Week</option>
+                  <option value="monthly">Every Month</option>
+                  <option value="custom">Custom Days</option>
+                </select>
+                <Lucide.ChevronDown className="absolute right-4 top-[38px] text-muted-foreground pointer-events-none" size={16} />
+                
+                {formRecurrencePattern === 'custom' && (
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, idx) => (
+                      <button
+                        key={day}
+                        type="button"
+                        onClick={() => {
+                          if (formRecurrenceCustomDays.includes(idx)) {
+                            setFormRecurrenceCustomDays(formRecurrenceCustomDays.filter(d => d !== idx));
+                          } else {
+                            setFormRecurrenceCustomDays([...formRecurrenceCustomDays, idx]);
+                          }
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${
+                          formRecurrenceCustomDays.includes(idx)
+                            ? 'bg-primary text-primary-foreground border-primary shadow-sm'
+                            : 'bg-surface-elevated hover:bg-secondary text-muted-foreground hover:text-foreground border-border/40'
+                        }`}
+                      >
+                        {day}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
         </form>
       </Modal>
 

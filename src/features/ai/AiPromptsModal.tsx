@@ -274,15 +274,25 @@ export default function AiPromptsModal({ isOpen, onClose, onSelectPrompt }: AiPr
               </div>
 
               {/* Search Bar */}
-              <div className="relative">
-                <Lucide.Search size={15} className="absolute left-3.5 top-3 text-muted-foreground" />
+              <div className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl bg-background border border-border focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/30 transition-all">
+                <Lucide.Search size={16} className="text-muted-foreground shrink-0" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search prompts by keyword..."
-                  className="w-full pl-9 pr-4 py-2 rounded-xl bg-background border border-border text-foreground text-xs focus:outline-hidden focus:border-primary"
+                  className="w-full !bg-transparent !border-0 !p-0 !shadow-none text-foreground text-xs outline-none focus:outline-none focus:ring-0 placeholder:text-muted-foreground/60"
                 />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="text-muted-foreground hover:text-foreground p-0.5 rounded cursor-pointer"
+                    title="Clear search"
+                  >
+                    <Lucide.X size={14} />
+                  </button>
+                )}
               </div>
 
               {/* Prompts Grid */}

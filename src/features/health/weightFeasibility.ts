@@ -192,14 +192,24 @@ export function calculatePersonalizedFeasibility(params: {
       : Math.max(1200, Math.round(bmr * 0.85));
 
   // Physiological safe rate ceilings (% of body weight)
-  // Max safe loss: ~1.0% body weight / week (caps at 1.2kg/week for safety)
-  const maxSafeKgPerWeek = Math.min(1.2, Math.round((cur * 0.01) * 100) / 100);
-  // Recommended sweet spot: ~0.5% - 0.6% of body weight / week
-  const recommendedKgPerWeek = Math.max(0.3, Math.min(0.75, Math.round((cur * 0.006) * 100) / 100));
-  // Gentle recomp: ~0.3% of body weight / week
-  const gentleKgPerWeek = Math.max(0.2, Math.min(0.4, Math.round((cur * 0.0035) * 100) / 100));
-  // Athletic shred: ~0.8% of body weight / week
-  const athleticKgPerWeek = Math.max(0.4, Math.min(1.0, Math.round((cur * 0.008) * 100) / 100));
+  const isGaining = deltaKg > 0;
+
+  // Tailored scientific paces based on whether user is cutting or bulking
+  const maxSafeKgPerWeek = isGaining
+    ? 0.70
+    : Math.min(1.2, Math.round((cur * 0.01) * 100) / 100);
+
+  const recommendedKgPerWeek = isGaining
+    ? 0.35
+    : Math.max(0.3, Math.min(0.75, Math.round((cur * 0.006) * 100) / 100));
+
+  const gentleKgPerWeek = isGaining
+    ? 0.20
+    : Math.max(0.2, Math.min(0.4, Math.round((cur * 0.0035) * 100) / 100));
+
+  const athleticKgPerWeek = isGaining
+    ? 0.50
+    : Math.max(0.4, Math.min(1.0, Math.round((cur * 0.008) * 100) / 100));
 
   // Determine days and kgPerWeek based on inputs
   let safeDays = 30;
@@ -502,15 +512,15 @@ export function calculatePersonalizedFeasibility(params: {
 
   if (roundedKgPerWeek > 0.8) {
     return {
-      level: 1,
-      levelKey: 'danger',
-      title: '🚨 DANGER: DIRTY BULK / FAT ACCUMULATION',
-      badge: 'EXCESSIVE SURPLUS',
-      emoji: '🚨',
-      colorClass: 'text-rose-500',
-      bgClass: 'bg-rose-500/15',
-      borderClass: 'border-rose-500/50',
-      glowClass: 'shadow-rose-500/30',
+      level: 2,
+      levelKey: 'warning',
+      title: '⚠️ Rapid Surplus: Potential Fat Accumulation',
+      badge: 'HIGH CALORIC SURPLUS',
+      emoji: '⚠️',
+      colorClass: 'text-amber-400',
+      bgClass: 'bg-amber-500/10',
+      borderClass: 'border-amber-500/30',
+      glowClass: 'shadow-amber-500/15',
       deltaKg,
       direction: 'gain',
       days: safeDays,
@@ -518,13 +528,13 @@ export function calculatePersonalizedFeasibility(params: {
       pctBodyWeightPerWeek,
       dailyDeficitSurplusKcal: dailyKcalShift,
       targetDailyCalories,
-      safetyScore: 25,
-      summary: `Excessive weight gain rate (${roundedKgPerWeek} kg/wk, +${dailyKcalShift} kcal/day). 80%+ will be stored as body fat.`,
-      detailedAdvice: 'Natural muscle synthesis caps out at ~0.25 - 0.5 kg of muscle per month. Gaining faster leads to visceral fat, sluggishness, and insulin resistance.',
+      safetyScore: 50,
+      summary: `High weight gain rate (${roundedKgPerWeek} kg/wk, +${dailyKcalShift} kcal/day). At this surplus pace, excess energy will store primarily as body fat rather than lean muscle.`,
+      detailedAdvice: 'Natural muscle protein synthesis caps at ~0.25 - 0.4 kg/month for trained lifters. A moderate surplus of +250 to +350 kcal/day builds maximum lean muscle with minimal unwanted fat gain. Consider pacing closer to 0.35 kg/wk.',
       keyPoints: [
-        'Excess calories convert almost entirely to adipose fat',
-        'High burden on cardiovascular health and blood pressure',
-        'Recommendation: Cap weight gain at 0.25 - 0.4 kg/week',
+        'Excess surplus beyond muscle synthesis potential converts to adipose fat',
+        'Higher metabolic load, blood pressure variance, and sluggishness',
+        'Recommendation: Aim for 0.25 - 0.40 kg/week for a clean, sustainable bulk',
       ],
       bmi,
       bmiCategory,

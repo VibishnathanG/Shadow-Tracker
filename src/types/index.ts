@@ -24,7 +24,8 @@ export interface Task {
   priority: Priority;
   categoryId?: string;
   isRecurring: boolean;
-  recurrencePattern: 'daily' | 'weekly' | 'monthly' | null;
+  recurrencePattern: 'daily' | 'weekly' | 'monthly' | 'custom' | null;
+  recurrenceCustomDays?: number[];
   recurrenceId?: string; // Links recurring instances
   completedAt?: string;  // Datetime ISO string
   createdAt: string;

@@ -153,7 +153,14 @@ export const Layout: React.FC<LayoutProps> = ({
     return <Lucide.Sparkles size={size} className="text-indigo-400" />;
   };
 
-  // Sync theme + scale + eco/low-gpu mode + GPU hardware acceleration + activeTab
+  // Fast activeTab attribute update on navigation (zero theme churn)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.document.documentElement.setAttribute('data-active-tab', activeTab);
+    }
+  }, [activeTab]);
+
+  // Sync theme + scale + eco/low-gpu mode + GPU hardware acceleration
   useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove('theme-light', 'theme-white', 'theme-obsidian', 'theme-onedark', 'theme-cyberpunk', 'theme-midnight', 'theme-pine', 'theme-purple', 'theme-spectrum', 'dark', 'light');
@@ -164,7 +171,6 @@ export const Layout: React.FC<LayoutProps> = ({
 
     const semanticTheme = isLight ? 'white' : (isSpectrum ? 'spectrum' : currentTheme);
     root.setAttribute('data-theme', semanticTheme);
-    root.setAttribute('data-active-tab', activeTab);
 
     if (isLight) {
       root.classList.add('theme-light', 'theme-white', 'light');
@@ -190,7 +196,7 @@ export const Layout: React.FC<LayoutProps> = ({
     } else {
       root.classList.remove('eco-mode', 'low-gpu-mode');
     }
-  }, [settings.theme, settings.appScale, settings.lowGpuMode, settings.ecoMode, settings.disableGpuAcceleration, activeTab]);
+  }, [settings.theme, settings.appScale, settings.lowGpuMode, settings.ecoMode, settings.disableGpuAcceleration]);
 
   // Sync minimizeToTray & ecoMode to Tauri Rust commands + listen for tray eco toggle events
   useEffect(() => {
@@ -515,7 +521,7 @@ export const Layout: React.FC<LayoutProps> = ({
 
         {/* Main Content Area */}
         <main className="flex-1 flex flex-col p-4 md:p-8 max-w-7xl mx-auto w-full pb-20 md:pb-8 overflow-x-clip relative z-10">
-          <div key={activeTab}>
+          <div className="w-full">
             {children}
           </div>
         </main>

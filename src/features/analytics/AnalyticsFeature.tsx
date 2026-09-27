@@ -87,6 +87,16 @@ const HabitsMonthlyGridCard: React.FC = () => {
   const graceDays = settings?.habitGracePeriodDays ?? 3;
   const [currentMonthDate, setCurrentMonthDate] = useState<Date>(new Date());
   const [matrixViewMode, setMatrixViewMode] = useViewPreference('analyticsMatrixViewMode') as ['month' | 'week', (v: 'month' | 'week') => void];
+
+  const matrixScrollRef = React.useRef<HTMLDivElement>(null);
+
+  const scrollMatrix = (direction: 'left' | 'right') => {
+    if (matrixScrollRef.current) {
+      const scrollAmount = direction === 'left' ? -300 : 300;
+      matrixScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
+
   const [selectedWeekIdx, setSelectedWeekIdx] = useState<number>(0);
   const [reasonModal, setReasonModal] = useState<{ habit: typeof habits[0]; dateStr: string } | null>(null);
   const [presetReason, setPresetReason] = useState<string>('');
@@ -169,13 +179,28 @@ const HabitsMonthlyGridCard: React.FC = () => {
     const today = new Date();
     setCurrentMonthDate(today);
     const todayStr = format(today, 'yyyy-MM-dd');
-    const wIdx = weekGroups.findIndex(w => w.days.some(d => format(d, 'yyyy-MM-dd') === todayStr));
-    if (wIdx >= 0) {
-      setSelectedWeekIdx(wIdx);
-    } else {
-      setSelectedWeekIdx(0);
-    }
-  }, [weekGroups]);
+
+    const mStart = startOfMonth(today);
+    const mEnd = endOfMonth(today);
+    const mDays = eachDayOfInterval({ start: mStart, end: mEnd });
+    
+    let weekIndex = 1;
+    let currentWeek: Date[] = [];
+    let wIdx = 0;
+    
+    mDays.forEach((date, i) => {
+      currentWeek.push(date);
+      if (date.getDay() === 0 || i === mDays.length - 1) {
+        if (currentWeek.some(d => format(d, 'yyyy-MM-dd') === todayStr)) {
+          wIdx = weekIndex - 1;
+        }
+        weekIndex++;
+        currentWeek = [];
+      }
+    });
+
+    setSelectedWeekIdx(wIdx);
+  }, []);
 
   const displayWeekGroups = useMemo(() => {
     if (matrixViewMode === 'week' && weekGroups[selectedWeekIdx]) {
@@ -403,9 +428,7 @@ const HabitsMonthlyGridCard: React.FC = () => {
               <Lucide.FileEdit size={10} /> Tap 📝 to journal
             </span>
           </div>
-          <p className="text-[11px] text-muted-foreground font-normal mt-0.5">
-            Interactive schedule grid with habit checkboxes.
-          </p>
+          
         </div>
 
         <div className="flex flex-wrap items-center gap-2 shrink-0">
@@ -429,13 +452,35 @@ const HabitsMonthlyGridCard: React.FC = () => {
             </button>
           </div>
 
+          {/* Matrix Scroll Controls */}
+          {matrixViewMode === 'month' && (
+            <div className="flex items-center gap-1 bg-surface-elevated border border-border/80 rounded-xl p-1 shadow-sm shrink-0">
+              <button
+                type="button"
+                onClick={() => scrollMatrix('left')}
+                className="p-1 hover:bg-secondary text-muted-foreground hover:text-foreground rounded-lg transition-all cursor-pointer border-0 outline-none ring-0 focus:outline-none"
+                title="Scroll Matrix Left"
+              >
+                <Lucide.ChevronLeft size={16} />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollMatrix('right')}
+                className="p-1 hover:bg-secondary text-muted-foreground hover:text-foreground rounded-lg transition-all cursor-pointer border-0 outline-none ring-0 focus:outline-none"
+                title="Scroll Matrix Right"
+              >
+                <Lucide.ChevronRight size={16} />
+              </button>
+            </div>
+          )}
+          
           {/* Past Habit Lock-in Window Setting */}
           <div 
-            className="flex items-center gap-1.5 bg-surface-elevated border border-border/80 rounded-xl px-2.5 py-1.5 text-xs shadow-sm"
+            className="flex items-center gap-1 bg-surface-elevated border border-border/80 rounded-xl px-2 py-1 text-xs shadow-sm"
             title="Days allowed to retroactively fill/update past habits (1-10 days, default 3)"
           >
             <Lucide.Clock size={13} className="text-primary shrink-0" />
-            <span className="text-[11px] font-bold text-muted-foreground whitespace-nowrap">Past Lock-in:</span>
+            
             <select
               value={graceDays}
               onChange={(e) => {
@@ -444,11 +489,11 @@ const HabitsMonthlyGridCard: React.FC = () => {
                 setToastNotice(`Past lock-in window set to ${days} ${days === 1 ? 'day' : 'days'}`);
                 setTimeout(() => setToastNotice(null), 3000);
               }}
-              className="bg-transparent font-black text-foreground text-xs appearance-none border-0 outline-none ring-0 shadow-none cursor-pointer pr-1"
+              className="bg-transparent font-bold text-foreground text-xs appearance-none border-0 outline-none ring-0 shadow-none cursor-pointer pr-1"
             >
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(d => (
                 <option key={d} value={d} className="bg-surface text-foreground font-semibold">
-                  {d} {d === 1 ? 'day' : 'days'}{d === 3 ? ' (default)' : ''}{d === 10 ? ' (max)' : ''}
+                  {d} {d === 1 ? 'day' : 'days'}
                 </option>
               ))}
             </select>
@@ -515,7 +560,9 @@ const HabitsMonthlyGridCard: React.FC = () => {
       ) : (
         <div className="space-y-6">
           {/* Scrollable Monthly Grid */}
-          <div className="overflow-x-auto no-scrollbar md:custom-scrollbar pb-3">
+          <div className="relative group/matrix">
+            
+            <div ref={matrixScrollRef} className="overflow-x-auto no-scrollbar md:custom-scrollbar rounded-2xl border border-border bg-surface-elevated/30 overflow-hidden">
             <table className="w-full border-collapse select-none min-w-0 table-fixed">
               <colgroup>
                 <col className="w-36 sm:w-52" />
@@ -526,7 +573,7 @@ const HabitsMonthlyGridCard: React.FC = () => {
               <thead>
                 {/* Row 1: Week Headers */}
                 <tr>
-                  <th className="sticky left-0 bg-surface z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] text-left text-[10px] sm:text-xs font-black text-foreground uppercase tracking-wider border-b border-border/50 border-r border-border/40">
+                  <th className="sticky left-0 bg-background z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] text-left text-[10px] sm:text-xs font-black text-foreground uppercase tracking-wider border-b border-border/50 border-r border-border/80">
                     <div className="flex items-center gap-1.5 truncate">
                       <Lucide.CalendarDays size={13} className="text-primary shrink-0" />
                       <span className="truncate">{matrixViewMode === 'week' ? `WEEK ${weekGroups[selectedWeekIdx]?.weekNumber || 1}` : 'MONTHLY GRID'}</span>
@@ -539,9 +586,9 @@ const HabitsMonthlyGridCard: React.FC = () => {
                       <th 
                         key={week.weekNumber}
                         colSpan={week.days.length}
-                        className="p-0.5 sm:p-1 text-center border-b border-border/50 border-r border-border/40 last:border-r-0"
+                        className="p-0.5 sm:p-1 text-center border-b border-border/50 border-r border-border/80 last:border-r-0"
                       >
-                        <div className={`py-1 px-2.5 rounded-md sm:rounded-lg text-[9.5px] sm:text-[10.5px] font-black tracking-wider uppercase ${theme.bg} text-white shadow-xs border ${theme.border}`}>
+                        <div className={`py-1 px-2.5 rounded-md sm:rounded-lg text-[10px] sm:text-[11px] font-black tracking-wider uppercase ${theme.bg} text-white shadow-xs border ${theme.border}`}>
                           Week {week.weekNumber}
                         </div>
                       </th>
@@ -551,7 +598,7 @@ const HabitsMonthlyGridCard: React.FC = () => {
 
                 {/* Row 2: Day of Week Abbreviation & Day Number */}
                 <tr className="border-b border-border/60">
-                  <th className="sticky left-0 bg-surface z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] text-[10px] sm:text-xs font-bold text-muted-foreground uppercase text-left border-r border-border/40">
+                  <th className="sticky left-0 bg-background z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] text-[10px] sm:text-xs font-bold text-muted-foreground uppercase text-left border-r border-border/80">
                     <div className="flex items-center gap-1.5 truncate">
                       <Lucide.Repeat size={13} className="text-muted-foreground shrink-0" />
                       <span className="truncate">Habits ({activeHabits.length})</span>
@@ -566,15 +613,16 @@ const HabitsMonthlyGridCard: React.FC = () => {
                     return (
                       <th
                         key={dateStr}
-                        className={`p-0.5 text-center border-r border-border/30 last:border-r-0 transition-colors ${
-                          isCurrent ? 'bg-primary/10 border-x border-primary/30 rounded-t-md' : ''
+                        id={isCurrent ? 'matrix-col-today' : undefined}
+                        className={`p-0.5 text-center border-r border-border/60 last:border-r-0 transition-colors ${
+                          isCurrent ? 'bg-primary/[0.12] border-x-2 border-primary/50 rounded-t-md' : ''
                         }`}
                       >
                         <div className="flex flex-col items-center justify-center">
-                          <span className={`text-[7.5px] sm:text-[9px] font-bold uppercase tracking-tighter ${isCurrent ? 'text-primary' : 'text-muted-foreground'}`}>
+                          <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-tight ${isCurrent ? 'text-primary' : 'text-muted-foreground'}`}>
                             {dayOfWeek}
                           </span>
-                          <span className={`text-[9.5px] sm:text-xs font-extrabold ${isCurrent ? 'text-primary font-black scale-105' : 'text-foreground'}`}>
+                          <span className={`text-[11px] sm:text-[13px] font-black ${isCurrent ? 'text-primary font-black scale-105' : 'text-foreground'}`}>
                             {dayNum}
                           </span>
                         </div>
@@ -587,10 +635,10 @@ const HabitsMonthlyGridCard: React.FC = () => {
               <tbody>
                 {/* Habit Rows */}
                 {activeHabits.map((habit) => (
-                  <tr key={habit.id} className="border-b border-border/30 hover:bg-secondary/20 transition-colors group">
+                  <tr key={habit.id} className="border-b border-border/60 hover:bg-secondary/20 transition-colors group">
                     {/* Habit Name Column (Sticky Left) */}
-                    <td className="sticky left-0 bg-surface z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r border-border/40 text-left align-middle">
-                      <div className="flex items-center gap-2 font-bold text-[10px] sm:text-xs text-foreground group-hover:text-primary transition-colors min-w-0">
+                    <td className="sticky left-0 bg-background z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r border-border/80 text-left align-middle">
+                      <div className="flex items-center gap-2 font-bold text-[11px] sm:text-sm text-foreground group-hover:text-primary tracking-wide transition-colors min-w-0">
                         <div 
                           className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full shrink-0 shadow-xs"
                           style={{ backgroundColor: getCategoryColor(habit.categoryId) }}
@@ -621,7 +669,7 @@ const HabitsMonthlyGridCard: React.FC = () => {
                       return (
                         <td 
                           key={dateStr}
-                          className={`p-0.5 text-center align-middle relative group/cell border-r border-border/25 last:border-r-0 ${isCurrent ? 'bg-primary/5 border-x border-primary/20' : ''}`}
+                          className={`p-0.5 text-center align-middle relative group/cell border-r border-border/50 last:border-r-0 ${isCurrent ? 'bg-primary/[0.08] border-x-2 border-primary/40 shadow-sm' : ''}`}
                         >
                           <div className="relative w-full h-full flex items-center justify-center py-0.5">
                             <button
@@ -631,7 +679,7 @@ const HabitsMonthlyGridCard: React.FC = () => {
                                   await toggleHabitCompletion(habit.id, dateStr);
                                 }
                               }}
-                              className={`w-4.5 h-4.5 sm:w-5.5 sm:h-5.5 rounded-md sm:rounded-lg flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 ${
+                              className={`w-5 h-5 sm:w-6 sm:h-6 rounded-md sm:rounded-lg flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95 ${
                                 evalState.isCompleted
                                   ? `${theme.fill} text-white shadow-xs ${theme.shadow} border ${theme.border} ${evalState.isPastGracePeriod ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`
                                   : evalState.isMissed
@@ -645,11 +693,11 @@ const HabitsMonthlyGridCard: React.FC = () => {
                               title={evalState.tooltip}
                             >
                               {evalState.isCompleted ? (
-                                <Lucide.Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[3px]" />
+                                <Lucide.Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3.5px]" />
                               ) : evalState.isMissed ? (
-                                <Lucide.X className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[3px]" />
+                                <Lucide.X className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3.5px]" />
                               ) : !evalState.isScheduled ? (
-                                <span className="text-[8px] font-bold">-</span>
+                                <span className="text-[10px] font-black opacity-40">-</span>
                               ) : evalState.isFuture ? (
                                 <span className="w-1 h-1 rounded-full bg-muted-foreground/30" />
                               ) : (
@@ -689,14 +737,14 @@ const HabitsMonthlyGridCard: React.FC = () => {
 
                 {/* Summary Row 1: Progress % */}
                 <tr className="border-t-2 border-border/80 bg-surface-elevated/40 font-black text-xs sm:text-sm">
-                  <td className="sticky left-0 bg-surface z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r border-border/40 text-left align-middle text-muted-foreground uppercase tracking-wider font-black text-xs sm:text-sm">
+                  <td className="sticky left-0 bg-background z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r border-border/80 text-left align-middle text-muted-foreground uppercase tracking-wider font-black text-xs sm:text-sm">
                     Progress %
                   </td>
                   {displayDays.map(date => {
                     const dateStr = format(date, 'yyyy-MM-dd');
                     const stat = dailyStats.find(s => s.dateStr === dateStr) || { percentage: 0 };
                     return (
-                      <td key={`pct-${dateStr}`} className="p-0.5 text-center text-primary font-black text-[10px] sm:text-xs border-r border-border/25 last:border-r-0">
+                      <td key={`pct-${dateStr}`} className="p-0.5 text-center text-primary font-black text-[10px] sm:text-xs border-r border-border/50 last:border-r-0">
                         {stat.percentage}%
                       </td>
                     );
@@ -705,14 +753,14 @@ const HabitsMonthlyGridCard: React.FC = () => {
 
                 {/* Summary Row 2: Done */}
                 <tr className="bg-surface-elevated/20 font-black text-xs sm:text-sm">
-                  <td className="sticky left-0 bg-surface z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r border-border/40 text-left align-middle text-emerald-400 uppercase tracking-wider font-black text-xs sm:text-sm">
+                  <td className="sticky left-0 bg-background z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r border-border/80 text-left align-middle text-emerald-400 uppercase tracking-wider font-black text-xs sm:text-sm">
                     Done
                   </td>
                   {displayDays.map(date => {
                     const dateStr = format(date, 'yyyy-MM-dd');
                     const stat = dailyStats.find(s => s.dateStr === dateStr) || { doneCount: 0 };
                     return (
-                      <td key={`done-${dateStr}`} className="p-0.5 text-center text-emerald-400 font-black text-[10px] sm:text-xs border-r border-border/25 last:border-r-0">
+                      <td key={`done-${dateStr}`} className="p-0.5 text-center text-emerald-400 font-black text-[10px] sm:text-xs border-r border-border/50 last:border-r-0">
                         {stat.doneCount}
                       </td>
                     );
@@ -721,14 +769,14 @@ const HabitsMonthlyGridCard: React.FC = () => {
 
                 {/* Summary Row 3: Not Done */}
                 <tr className="bg-surface-elevated/20 font-black text-xs sm:text-sm">
-                  <td className="sticky left-0 bg-surface z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r border-border/40 text-left align-middle text-rose-400 uppercase tracking-wider font-black text-xs sm:text-sm">
+                  <td className="sticky left-0 bg-background z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r border-border/80 text-left align-middle text-rose-400 uppercase tracking-wider font-black text-xs sm:text-sm">
                     Not Done
                   </td>
                   {displayDays.map(date => {
                     const dateStr = format(date, 'yyyy-MM-dd');
                     const stat = dailyStats.find(s => s.dateStr === dateStr) || { notDoneCount: 0 };
                     return (
-                      <td key={`notdone-${dateStr}`} className="p-0.5 text-center text-rose-400 font-black text-[10px] sm:text-xs border-r border-border/25 last:border-r-0">
+                      <td key={`notdone-${dateStr}`} className="p-0.5 text-center text-rose-400 font-black text-[10px] sm:text-xs border-r border-border/50 last:border-r-0">
                         {stat.notDoneCount}
                       </td>
                     );
@@ -736,6 +784,7 @@ const HabitsMonthlyGridCard: React.FC = () => {
                 </tr>
               </tbody>
             </table>
+          </div>
           </div>
 
           {/* Daily Progress Wave Chart */}

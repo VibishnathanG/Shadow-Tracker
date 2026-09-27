@@ -71,6 +71,22 @@ export const BUILTIN_PROMPTS: PromptTemplateItem[] = [
 
   // 3. Health & Diet
   {
+    id: 'p_health_custom_food_creator',
+    title: 'Custom Food Creator (Interactive Skill)',
+    category: 'Health & Diet',
+    prompt: 'I want to create a new custom food for my library. Please act as the Custom Food Creator skill. Ask me for the food name, category (breakfast, lunch, dinner, snack), serving description, and standard grams. Ask if I know the calories, protein, carbs, and fats. If I don\'t know the exact macros, calculate or estimate them accurately from your nutrition database, ask for my confirmation, and then call create_custom_food to permanently append it to my Food Library!',
+    description: 'Interviews you on dish name and grams, calculates missing macros, and saves to Food Library.',
+    createdAt: '2026-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'p_health_weekly_diet_planner',
+    title: 'AI Weekly Diet Planner (Day-by-Day Skill)',
+    category: 'Health & Diet',
+    prompt: 'Please act as the AI Diet Planner skill. Interview me step-by-step: ask what my goal is (fat loss, muscle gain, maintenance), target daily calories, dietary preferences (veg, non-veg, regional tastes), and walk through Monday to Sunday asking what foods I want or offering balanced suggestions for each meal (breakfast, lunch, dinner, snack). Once we confirm the schedule, call create_diet_plan to save my complete 7-day weekly meal plan!',
+    description: 'Interactive day-by-day meal planning interview asking food choices and generating a 7-day plan.',
+    createdAt: '2026-01-01T00:00:00.000Z',
+  },
+  {
     id: 'p_health_water_log',
     title: 'Log Water Intake & Hydration Pacing',
     category: 'Health & Diet',
@@ -92,6 +108,31 @@ export const BUILTIN_PROMPTS: PromptTemplateItem[] = [
     category: 'Health & Diet',
     prompt: 'Generate an 1800 kcal fat loss diet plan with balanced macros (40% carbs, 30% protein, 30% healthy fats) and satisfying breakfast, lunch, and dinner options using create_diet_plan.',
     description: 'Creates a sustainable caloric deficit meal plan.',
+    createdAt: '2026-01-01T00:00:00.000Z',
+  },
+
+    {
+    id: 'p_health_custom_food_creator',
+    title: 'Custom Food Creator',
+    category: 'Health & Diet',
+    prompt: 'I want to create a new Custom Food for my food library. Ask me for the food name and its macros (calories, protein, carbs, fats). If I do not know the exact macros, I will give you the food name and you can estimate the macros for me based on standard nutritional data. Once we have the data, use the create_custom_food tool to save it.',
+    description: 'Interactive wizard to create and estimate macros for custom foods.',
+    createdAt: '2026-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'p_health_diet_planner',
+    title: 'Interactive Diet Planner',
+    category: 'Health & Diet',
+    prompt: 'Act as my personal Diet Planner. Start by asking me what kind of foods I want to eat for the day (e.g., Monday), or offer suggestions for breakfast, lunch, and dinner. Ask me a few questions to refine my meal preferences. Once we agree on a menu, use the create_diet_plan tool to generate the comprehensive diet plan.',
+    description: 'Conversational assistant to build personalized daily diet plans.',
+    createdAt: '2026-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'p_health_supplement_creation',
+    title: 'Supplement Creator',
+    category: 'Health & Diet',
+    prompt: 'I want to add a new supplement (like a multivitamin or protein powder) to my daily tracker. Ask me the name of the supplement and try to fetch its exact nutritional label (macros and precise micronutrients like vitamins and minerals). Once confirmed, save it so my Vitamin & Mineral profile auto-syncs.',
+    description: 'Wizard to cleanly configure and log exact vitamin and protein supplements.',
     createdAt: '2026-01-01T00:00:00.000Z',
   },
 

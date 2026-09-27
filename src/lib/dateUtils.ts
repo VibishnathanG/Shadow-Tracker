@@ -18,7 +18,7 @@ export function parseDateString(dateStr: string): Date {
   return parseISO(dateStr);
 }
 
-export function calculateNextRecurrence(dateStr: string, pattern: 'daily' | 'weekly' | 'monthly'): string {
+export function calculateNextRecurrence(dateStr: string, pattern: 'daily' | 'weekly' | 'monthly' | 'custom' | string, customDays?: number[]): string {
   const date = parseDateString(dateStr);
   let nextDate: Date;
   switch (pattern) {
@@ -28,9 +28,27 @@ export function calculateNextRecurrence(dateStr: string, pattern: 'daily' | 'wee
     case 'weekly':
       nextDate = addWeeks(date, 1);
       break;
+
     case 'monthly':
       nextDate = addMonths(date, 1);
       break;
+    case 'custom':
+      if (customDays && customDays.length > 0) {
+        nextDate = addDays(date, 1);
+        for (let i = 0; i < 7; i++) {
+          if (customDays.includes(nextDate.getDay())) {
+            break;
+          }
+          nextDate = addDays(nextDate, 1);
+        }
+      } else {
+        nextDate = addDays(date, 1);
+      }
+      break;
+    default:
+      nextDate = addDays(date, 1);
+      break;
+
   }
   return format(nextDate, 'yyyy-MM-dd');
 }

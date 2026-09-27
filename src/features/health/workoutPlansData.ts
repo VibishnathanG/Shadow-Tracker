@@ -5,6 +5,7 @@ export interface WorkoutExercise {
   reps: string;
   notes?: string;
   emoji: string;
+  kcal?: number;
 }
 
 export interface WorkoutDayPlan {
@@ -71,6 +72,37 @@ export function deleteCustomWorkoutPlan(planId: string): WorkoutRoutinePlan[] {
 }
 
 export const WORKOUT_PLANS: WorkoutRoutinePlan[] = [
+  {
+    id: 'wp_cardio_burn',
+    name: 'Cardio & Conditioning',
+    tagline: 'High calorie drain focused on heart health & endurance (Time Bound).',
+    level: 'Beginner',
+    daysPerWeek: 2,
+    badge: 'CARDIO',
+    icon: '💦',
+    colorClass: 'text-rose-400',
+    borderClass: 'border-rose-400/30',
+    days: [
+      {
+        dayName: 'Day 1',
+        focus: 'Full Body HIIT',
+        estimatedMinutes: 30,
+        exercises: [
+          { name: '30 Mins Fullbody (No Machine)', muscle: 'Full Body', sets: '', reps: '', emoji: '💦', notes: 'Continuous movement, burpees, jumping jacks, high knees.', kcal: 350 },
+          { name: 'Treadmill / Running', muscle: 'Cardio', sets: '', reps: '', emoji: '🏃', notes: 'Steady pace or intervals for 30 minutes.', kcal: 400 },
+        ]
+      },
+      {
+        dayName: 'Day 2',
+        focus: 'Endurance',
+        estimatedMinutes: 45,
+        exercises: [
+          { name: 'Cycling / Spin Bike', muscle: 'Cardio', sets: '', reps: '', emoji: '🚴', notes: 'Moderate resistance.', kcal: 450 },
+          { name: 'Rowing Machine', muscle: 'Full Body', sets: '', reps: '', emoji: '🚣', notes: 'Maintain steady strokes per minute.', kcal: 500 }
+        ]
+      }
+    ]
+  },
   {
     id: 'ppl_split',
     name: 'Push • Pull • Legs (PPL)',

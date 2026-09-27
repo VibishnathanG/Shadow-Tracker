@@ -30,7 +30,10 @@ const notifyListeners = (active: boolean) => {
 
   if (typeof document !== 'undefined') {
     if (!active) {
-      document.documentElement.classList.add('is-hidden', 'window-blurred', 'window-inactive');
+      document.documentElement.classList.add('window-blurred', 'window-inactive');
+      if (document.hidden) {
+        document.documentElement.classList.add('is-hidden');
+      }
     } else {
       document.documentElement.classList.remove('is-hidden', 'window-blurred', 'window-inactive');
     }
@@ -47,15 +50,14 @@ const notifyListeners = (active: boolean) => {
 
 /**
  * Initialize global window state event listeners.
- * Freezes CPU and GPU rendering pipelines the exact moment window focus is lost,
- * mouse leaves the screen to another monitor, or the window is minimized/masked.
+ * Pauses background CPU/GPU tasks when minimized or fully hidden,
+ * without disrupting active reading or multi-monitor visibility.
  */
 export const initWindowStateManager = (): (() => void) => {
   if (typeof window === 'undefined') return () => {};
 
-  let leaveTimer: ReturnType<typeof setTimeout> | null = null;
   let idleTimer: ReturnType<typeof setTimeout> | null = null;
-  const IDLE_TIMEOUT_MS = 3500; // 3.5s of zero user activity freezes all ambient CSS animations
+  const IDLE_TIMEOUT_MS = 6000; // 6s of zero user activity pauses ambient animations
   let lastActivityTime = 0;
 
   const setIdle = (idle: boolean) => {
@@ -85,14 +87,13 @@ export const initWindowStateManager = (): (() => void) => {
   };
 
   const handleBlur = () => {
-    if (leaveTimer) clearTimeout(leaveTimer);
     if (idleTimer) clearTimeout(idleTimer);
     setIdle(true);
+    // Notify window blur without completely blacking out
     notifyListeners(false);
   };
 
   const handleFocus = () => {
-    if (leaveTimer) clearTimeout(leaveTimer);
     if (!document.hidden) {
       notifyListeners(true);
       handleUserActivity();
@@ -111,36 +112,11 @@ export const initWindowStateManager = (): (() => void) => {
     }
   };
 
-  // When mouse leaves the window viewport (e.g. moving mouse to a second monitor)
-  const handleMouseLeave = () => {
-    if (leaveTimer) clearTimeout(leaveTimer);
-    leaveTimer = setTimeout(() => {
-      // If document doesn't have focus or mouse left the screen, transition to low-resource state
-      if (!document.hasFocus || !document.hasFocus()) {
-        notifyListeners(false);
-      }
-    }, 600);
-  };
-
-  const handleMouseEnter = () => {
-    if (leaveTimer) {
-      clearTimeout(leaveTimer);
-      leaveTimer = null;
-    }
-    // Only wake up if document is visible
-    if (!document.hidden) {
-      notifyListeners(true);
-      handleUserActivity();
-    }
-  };
-
   window.addEventListener('blur', handleBlur);
   window.addEventListener('focus', handleFocus);
   document.addEventListener('visibilitychange', handleVisibility);
   window.addEventListener('pageshow', handleFocus);
   window.addEventListener('pagehide', handleBlur);
-  document.addEventListener('mouseleave', handleMouseLeave);
-  document.addEventListener('mouseenter', handleMouseEnter);
 
   // Active user interaction listeners to pause ambient CPU load during reading / idle
   window.addEventListener('mousemove', handleUserActivity, { passive: true });
@@ -180,15 +156,12 @@ export const initWindowStateManager = (): (() => void) => {
   }
 
   return () => {
-    if (leaveTimer) clearTimeout(leaveTimer);
     if (idleTimer) clearTimeout(idleTimer);
     window.removeEventListener('blur', handleBlur);
     window.removeEventListener('focus', handleFocus);
     document.removeEventListener('visibilitychange', handleVisibility);
     window.removeEventListener('pageshow', handleFocus);
     window.removeEventListener('pagehide', handleBlur);
-    document.removeEventListener('mouseleave', handleMouseLeave);
-    document.removeEventListener('mouseenter', handleMouseEnter);
     window.removeEventListener('mousemove', handleUserActivity);
     window.removeEventListener('keydown', handleUserActivity);
     window.removeEventListener('scroll', handleUserActivity);

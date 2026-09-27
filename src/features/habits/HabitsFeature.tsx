@@ -4,6 +4,8 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import { useShadowTrackerStore } from '@/store';
+import { isHabitScheduledForDate } from '@/lib/habitUtils';
+
 import { useShallow } from 'zustand/react/shallow';
 import { getTodayDateString, formatDateString, getHabitDateStatus, parseDateString } from '@/lib/dateUtils';
 import EmptyState from '@/components/EmptyState';
@@ -700,6 +702,7 @@ export const HabitsFeature: React.FC = () => {
                 miniHeatmapDays={miniHeatmapDays}
                 onToggle={async (id, date) => {
                   if (activeDateStatus.isFuture || activeDateStatus.isPastGracePeriod) return;
+                  if (!isHabitScheduledForDate(habit, date)) return;
                   const willComplete = !isCompleted && date === activeDateStr;
                   const prevFocus = useShadowTrackerStore.getState().dailyLogs.find(l => l.date === activeDateStr)?.focusScore ?? 0;
 

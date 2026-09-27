@@ -1,3 +1,3 @@
-2b44e35c3129af964dee86965baa487abafd672fd64e131b41c62b467f684972  shadow-tracker-v9.apk
-98d586f57f3c6436852751cb27541e491d8b7b22b09327a32c9d4ed3d184ab24  shadow-tracker-web-v9.tar.gz
-f18bc3e018ea50a70808b3225e23f56afa2cb9c71aa2b6247e6bfe127e6ad745  shadow-tracker-docker-v9.tar
+68f50fe93958082774c8e14f905feb68b741195b5f4d6cfccbe244551f3777b0  shadow-tracker-v11.apk
+ce8cb82d165a7698ed5e6df4d33fde63e7eeb0c732311ae160f776b519160662  shadow-tracker-web-v11.tar.gz
+39071b94a5ce7599c470ed589b20bcc74a6e4fee7afb6924dfebb749696a54b2  shadow-tracker-docker-v11.tar

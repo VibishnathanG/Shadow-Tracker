@@ -143,7 +143,12 @@ export function generateMassiveTwoYearData(): BackupData {
   // 220 historical tasks across 730 days
   for (let i = 1; i <= 220; i++) {
     const daysAgo = Math.floor((730 / 220) * i);
-    const taskDate = new Date(now.getTime() - daysAgo * 86400000).toISOString();
+    
+    const seedDate = new Date(now.getTime() - daysAgo * 86400000);
+    seedDate.setHours(9 + (i % 8)); // distribute hours between 9 AM and 4 PM
+    seedDate.setMinutes(i % 60);
+    const taskDate = seedDate.toISOString();
+        
     tasks.push({
       id: `task-hist-${i}`,
       title: `${milestoneTemplates[i % milestoneTemplates.length]} [M${i}]`,

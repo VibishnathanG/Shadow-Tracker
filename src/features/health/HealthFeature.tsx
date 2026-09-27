@@ -337,6 +337,22 @@ export default function HealthFeature() {
     }));
   };
 
+  const handleAddSupplement = (supplement: LoggedFood) => {
+    updateCurrentHealth(prev => ({
+      ...prev,
+      loggedFoods: [supplement, ...prev.loggedFoods],
+    }));
+    addXp(15);
+    confetti({ particleCount: 30, spread: 50, origin: { y: 0.6 } });
+  };
+
+  const handleRemoveWorkout = (workoutId: string) => {
+    updateCurrentHealth(prev => ({
+      ...prev,
+      workouts: prev.workouts.filter(w => w.id !== workoutId),
+    }));
+  };
+
   // Total active workout minutes today
   const totalWorkoutMinutes = useMemo(() => {
     return currentData.workouts.reduce((acc, w) => acc + w.duration, 0);
@@ -858,6 +874,7 @@ export default function HealthFeature() {
               calorieGoal={currentData.calorieGoal || 2000}
               onUpdateFood={handleUpdateFood}
               onRemoveFood={handleRemoveFood}
+              onAddSupplement={handleAddSupplement}
               onOpenAddModal={(defaultMeal) => {
                 setAddFoodTargetMeal(defaultMeal || 'lunch');
                 setIsAddFoodOpen(true);
@@ -1052,6 +1069,8 @@ export default function HealthFeature() {
         <GymFitnessTab
           currentWeightKg={currentData.weightKg}
           weightUnit={currentData.weightUnit || 'kg'}
+          workouts={currentData.workouts}
+          onRemoveWorkout={handleRemoveWorkout}
           onUpdateWeight={(newW) => updateCurrentHealth(prev => ({ ...prev, weightKg: newW }))}
           onLogWorkoutMinutes={handleLogWorkoutMinutes}
           addXp={addXp}
@@ -1064,10 +1083,13 @@ export default function HealthFeature() {
           healthMap={healthMap}
           currentData={currentData}
           weightUnit={currentData.weightUnit || 'kg'}
-          onNavigateToDate={(d) => {
+          onNavigateToDate={(d, targetTab = 'gym') => {
             setSelectedDate(d);
-            setActiveSubTab('vitality');
+            setActiveSubTab(targetTab);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
+          onAddSupplement={handleAddSupplement}
+          onUpdateWeight={(newW) => updateCurrentHealth(prev => ({ ...prev, weightKg: newW }))}
         />
       )}
 

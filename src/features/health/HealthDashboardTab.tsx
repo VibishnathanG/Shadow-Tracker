@@ -1,17 +1,31 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import { DailyHealthData } from './HealthFeature';
 import { getTodayDateString } from '@/lib/dateUtils';
-import { getUserBiometrics, calculateBMR, calculateTDEE, calculateProjectedDate } from './weightFeasibility';
+import {
+  getUserBiometrics,
+  saveUserBiometrics,
+  calculateBMR,
+  calculateTDEE,
+  calculateProjectedDate,
+} from './weightFeasibility';
+import {
+  calculateDailyMicronutrients,
+  getAgeGroupPreset,
+  NutrientProgress,
+} from './micronutrientData';
+import { LoggedFood } from './NutritionPlateVisualizer';
 
 interface HealthDashboardTabProps {
   healthMap: Record<string, DailyHealthData>;
   currentData: DailyHealthData;
   weightUnit: 'kg' | 'lbs';
-  onNavigateToDate?: (dateStr: string) => void;
+  onNavigateToDate?: (dateStr: string, targetTab?: 'gym' | 'vitality' | 'diet') => void;
+  onAddSupplement?: (supplement: LoggedFood) => void;
+  onUpdateWeight?: (weightKg: number) => void;
 }
 
 export default function HealthDashboardTab({
@@ -19,6 +33,8 @@ export default function HealthDashboardTab({
   currentData,
   weightUnit,
   onNavigateToDate,
+  onAddSupplement,
+  onUpdateWeight,
 }: HealthDashboardTabProps) {
   const todayStr = useMemo(() => getTodayDateString(), []);
 
@@ -32,6 +48,23 @@ export default function HealthDashboardTab({
     return (p[1] || new Date().getMonth() + 1) - 1;
   });
   const [selectedCalDate, setSelectedCalDate] = useState<string>(todayStr);
+  const [macroCardView, setMacroCardView] = useState<'macros' | 'vitamins'>('macros');
+
+  // Today's Weight Input & Edit State
+  const [isEditingWeight, setIsEditingWeight] = useState(false);
+  const [weightInput, setWeightInput] = useState('');
+
+  const handleSaveWeight = () => {
+    const val = parseFloat(weightInput.trim());
+    if (!isNaN(val) && val > 0 && val < 500) {
+      if (onUpdateWeight) {
+        onUpdateWeight(val);
+      }
+      saveUserBiometrics({ currentWeightKg: val });
+      setIsEditingWeight(false);
+      setWeightInput('');
+    }
+  };
 
   const prevCalMonth = () => {
     if (calMonth === 0) {
@@ -119,7 +152,6 @@ export default function HealthDashboardTab({
       const dateStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       const dayData = healthMap[dateStr];
       const isToday = dateStr === todayStr;
-      const isSelected = dateStr === selectedCalDate;
       const workouts = dayData?.workouts || [];
       const totalMinutes = workouts.reduce((s, w) => s + w.duration, 0);
       const totalCal = workouts.reduce((s, w) => s + (w.calories || 0), 0);
@@ -130,7 +162,6 @@ export default function HealthDashboardTab({
         dateStr,
         dayNum: d,
         isToday,
-        isSelected,
         workouts,
         totalMinutes,
         totalCal,
@@ -139,7 +170,7 @@ export default function HealthDashboardTab({
     }
 
     return days;
-  }, [calYear, calMonth, selectedCalDate, todayStr, healthMap]);
+  }, [calYear, calMonth, todayStr, healthMap]);
 
   // Selected Day Drilldown
   const selectedDayInfo = useMemo(() => {
@@ -179,6 +210,7 @@ export default function HealthDashboardTab({
       const workoutMins = dayData?.workouts
         ? dayData.workouts.reduce((sum, w) => sum + w.duration, 0)
         : 0;
+      const weightKg = dayData?.weightKg || 0;
 
       list.push({
         date: str,
@@ -192,6 +224,7 @@ export default function HealthDashboardTab({
         sleepHours,
         energyLevel,
         workoutMins,
+        weightKg,
       });
     }
     return list;
@@ -199,7 +232,7 @@ export default function HealthDashboardTab({
 
   // Overall Aggregate KPIs
   const kpis = useMemo(() => {
-    const validDays = history14Days.filter(d => d.totalCal > 0 || d.waterMl > 0 || d.sleepHours > 0);
+    const validDays = history14Days.filter(d => d.totalCal > 0 || d.waterMl > 0 || d.sleepHours > 0 || d.weightKg > 0);
     const count = Math.max(1, validDays.length);
 
     const avgCalories = Math.round(validDays.reduce((s, d) => s + d.totalCal, 0) / count);
@@ -238,8 +271,53 @@ export default function HealthDashboardTab({
     };
   }, [currentData.loggedFoods]);
 
-  // Personalized Biometrics & Metabolic Profile
-  const biometrics = useMemo(() => getUserBiometrics(), []);
+  // Personalized Biometrics (Reactive to updates across tabs)
+  const [biometrics, setBiometrics] = useState(() => getUserBiometrics());
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setBiometrics(getUserBiometrics());
+    };
+    window.addEventListener('shadow_health_updated', handleUpdate);
+    return () => window.removeEventListener('shadow_health_updated', handleUpdate);
+  }, []);
+
+  // Today's Vitamins & Minerals Micronutrient RDA Profile
+  const todayMicros = useMemo(() => {
+    const bio = biometrics;
+    const sex = bio.sex || 'male';
+    const agePreset = getAgeGroupPreset(bio.age || 28);
+    const list = calculateDailyMicronutrients(currentData.loggedFoods || [], sex, agePreset);
+    
+    const vitamins = list.filter(n => n.nutrient.category === 'vitamin');
+    const minerals = list.filter(n => n.nutrient.category === 'mineral');
+
+    const avgVitaminPct = Math.round(vitamins.reduce((acc, v) => acc + Math.min(100, v.percentage), 0) / (vitamins.length || 1));
+    const avgMineralPct = Math.round(minerals.reduce((acc, m) => acc + Math.min(100, m.percentage), 0) / (minerals.length || 1));
+    const overallCoverage = Math.round(list.reduce((acc, item) => acc + Math.min(100, item.percentage), 0) / (list.length || 1));
+
+    const nutrientMap = new Map(list.map(item => [item.nutrient.id, item]));
+    const topVitamins = ['vit_c', 'vit_d', 'vit_b12', 'vit_a', 'vit_b6']
+      .map(id => nutrientMap.get(id))
+      .filter(Boolean) as NutrientProgress[];
+
+    const topMinerals = ['min_zinc', 'min_magnesium', 'min_iron', 'min_calcium', 'min_potassium']
+      .map(id => nutrientMap.get(id))
+      .filter(Boolean) as NutrientProgress[];
+
+    return {
+      list,
+      vitamins,
+      minerals,
+      avgVitaminPct,
+      avgMineralPct,
+      overallCoverage,
+      topVitamins,
+      topMinerals,
+    };
+  }, [currentData.loggedFoods, biometrics]);
+
+  // Metabolic Profile based on current biometrics and recorded weight
   const metabolicProfile = useMemo(() => {
     const cur = currentData.weightKg || biometrics.currentWeightKg || 75;
     const bmr = calculateBMR(cur, biometrics.heightCm, biometrics.age, biometrics.sex);
@@ -266,43 +344,46 @@ export default function HealthDashboardTab({
 
   return (
     <div className="space-y-6 transform-gpu">
-      {/* Metabolic Baseline & Target Profile Banner */}
-      <div className="p-4 rounded-3xl bg-surface border border-emerald-500/25 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs">
+      {/* Metabolic Baseline & Target Profile Banner - Clean & Responsive */}
+      <div className="p-4 sm:p-5 rounded-3xl bg-surface-elevated/80 border border-emerald-500/25 flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-sm">
         <div className="flex items-center gap-3">
-          <span className="p-2 bg-emerald-500/15 text-emerald-400 rounded-2xl border border-emerald-500/30 text-lg">
+          <span className="p-2.5 bg-emerald-500/15 text-emerald-400 rounded-2xl border border-emerald-500/30 text-xl shrink-0">
             🧬
           </span>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-xs font-black uppercase tracking-wider text-foreground">
+              <span className="text-sm font-black uppercase tracking-wider text-foreground">
                 Personalized Metabolic Baseline
               </span>
               <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
                 Mifflin-St Jeor Validated
               </span>
             </div>
-            <p className="text-[11px] text-muted-foreground font-medium">
-              Profile: {metabolicProfile.age}yo {metabolicProfile.sex} • {metabolicProfile.heightCm}cm • {metabolicProfile.cur} {weightUnit}
+            <p className="text-xs text-muted-foreground font-medium mt-0.5">
+              Profile: {metabolicProfile.age}y {metabolicProfile.sex === 'male' ? '♂ Male' : '♀ Female'} • {metabolicProfile.heightCm} cm • {metabolicProfile.cur} {weightUnit}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3 flex-wrap font-mono text-xs">
-          <div className="px-2.5 py-1 rounded-xl bg-secondary/80 border border-border/60">
-            <span className="text-[9px] uppercase text-muted-foreground block">BMR (Rest)</span>
-            <span className="font-bold text-amber-400">{metabolicProfile.bmr} kcal/d</span>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 font-mono text-xs">
+          <div className="px-3 py-2 rounded-xl bg-secondary/70 border border-border/60">
+            <span className="text-[9px] uppercase font-bold text-muted-foreground block">BMR (Rest)</span>
+            <span className="font-black text-amber-400">{metabolicProfile.bmr}</span>
+            <span className="text-[9px] text-muted-foreground ml-1">kcal/d</span>
           </div>
-          <div className="px-2.5 py-1 rounded-xl bg-secondary/80 border border-border/60">
-            <span className="text-[9px] uppercase text-muted-foreground block">TDEE (Burn)</span>
-            <span className="font-bold text-emerald-400">{metabolicProfile.tdee} kcal/d</span>
+          <div className="px-3 py-2 rounded-xl bg-secondary/70 border border-border/60">
+            <span className="text-[9px] uppercase font-bold text-muted-foreground block">TDEE (Burn)</span>
+            <span className="font-black text-emerald-400">{metabolicProfile.tdee}</span>
+            <span className="text-[9px] text-muted-foreground ml-1">kcal/d</span>
           </div>
-          <div className="px-2.5 py-1 rounded-xl bg-secondary/80 border border-border/60">
-            <span className="text-[9px] uppercase text-muted-foreground block">Chosen Pace</span>
-            <span className="font-bold text-blue-400">{metabolicProfile.weeklyRate} kg/wk</span>
+          <div className="px-3 py-2 rounded-xl bg-secondary/70 border border-border/60">
+            <span className="text-[9px] uppercase font-bold text-muted-foreground block">Chosen Pace</span>
+            <span className="font-black text-blue-400">{metabolicProfile.weeklyRate}</span>
+            <span className="text-[9px] text-muted-foreground ml-1">kg/wk</span>
           </div>
-          <div className="px-2.5 py-1 rounded-xl bg-secondary/80 border border-border/60">
-            <span className="text-[9px] uppercase text-muted-foreground block">Projected Finish</span>
-            <span className="font-bold text-foreground">🎯 {metabolicProfile.finishDate}</span>
+          <div className="px-3 py-2 rounded-xl bg-secondary/70 border border-border/60">
+            <span className="text-[9px] uppercase font-bold text-muted-foreground block">Target Date</span>
+            <span className="font-black text-foreground">🎯 {metabolicProfile.finishDate}</span>
           </div>
         </div>
       </div>
@@ -454,62 +535,244 @@ export default function HealthDashboardTab({
 
       {/* Grid: Macronutrient Distribution & Hydration/Sleep Matrix */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Module A: Macronutrient Balance Breakdown */}
+        {/* Module A: Macronutrient Balance Breakdown & Vitamins RDA Profile Tile */}
         <div className="tile settings-tile p-5 sm:p-6 rounded-3xl space-y-4">
-          <div className="flex items-center justify-between border-b border-border/60 pb-3">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5 border-b border-border/60 pb-3">
+            <div className="flex items-center gap-2.5">
               <span className="p-2 bg-amber-500/15 text-amber-400 rounded-xl">
-                <Lucide.PieChart size={18} />
+                {macroCardView === 'macros' ? <Lucide.PieChart size={18} /> : <Lucide.Sparkles size={18} className="text-emerald-400" />}
               </span>
               <div>
                 <h4 className="text-sm font-black text-foreground uppercase tracking-wider">
-                  Macronutrient Ratio (Today)
+                  {macroCardView === 'macros' ? 'Macronutrient Ratio (Today)' : 'Vitamins & Minerals Daily RDA'}
                 </h4>
-                <p className="text-[11px] text-muted-foreground font-medium">Protein, Carbs, and Fats split</p>
+                <p className="text-[11px] text-muted-foreground font-medium">
+                  {macroCardView === 'macros'
+                    ? 'Protein, Carbs, and Fats split'
+                    : `10 Essential Micronutrients • ${todayMicros.overallCoverage}% Target Met`}
+                </p>
+              </div>
+            </div>
+
+            {/* View Switcher & Supplement Trigger */}
+            <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+              <div className="flex items-center gap-1 bg-secondary/80 p-0.5 rounded-xl border border-border/70 text-[11px] font-bold">
+                <button
+                  type="button"
+                  onClick={() => setMacroCardView('macros')}
+                  className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                    macroCardView === 'macros'
+                      ? 'bg-primary/20 text-primary border border-primary/30 shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Macros
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMacroCardView('vitamins')}
+                  className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+                    macroCardView === 'vitamins'
+                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <span>💊 Vitamins RDA</span>
+                  <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-emerald-500/25 text-emerald-300 font-mono font-bold">
+                    {todayMicros.overallCoverage}%
+                  </span>
+                </button>
               </div>
             </div>
           </div>
 
-          {/* Tri-Color Stacked Bar */}
-          <div className="space-y-3">
-            <div className="h-4 w-full bg-secondary rounded-full overflow-hidden flex border border-border/60 shadow-inner">
-              <div
-                style={{ width: `${todayMacros.proteinPct}%` }}
-                className="h-full bg-sky-400 transition-all"
-                title={`Protein: ${todayMacros.proteinPct}%`}
-              />
-              <div
-                style={{ width: `${todayMacros.carbsPct}%` }}
-                className="h-full bg-amber-400 transition-all"
-                title={`Carbs: ${todayMacros.carbsPct}%`}
-              />
-              <div
-                style={{ width: `${todayMacros.fatsPct}%` }}
-                className="h-full bg-rose-400 transition-all"
-                title={`Fats: ${todayMacros.fatsPct}%`}
-              />
+          {/* Dynamic Content */}
+          {macroCardView === 'macros' ? (
+            <div className="space-y-3">
+              {/* Tri-Color Stacked Bar */}
+              <div className="h-4 w-full bg-secondary rounded-full overflow-hidden flex border border-border/60 shadow-inner">
+                <div
+                  style={{ width: `${todayMacros.proteinPct}%` }}
+                  className="h-full bg-sky-400 transition-all"
+                  title={`Protein: ${todayMacros.proteinPct}%`}
+                />
+                <div
+                  style={{ width: `${todayMacros.carbsPct}%` }}
+                  className="h-full bg-amber-400 transition-all"
+                  title={`Carbs: ${todayMacros.carbsPct}%`}
+                />
+                <div
+                  style={{ width: `${todayMacros.fatsPct}%` }}
+                  className="h-full bg-rose-400 transition-all"
+                  title={`Fats: ${todayMacros.fatsPct}%`}
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-3 pt-1">
+                <div className="bg-secondary/40 p-3 rounded-2xl border border-border/50 text-center">
+                  <span className="text-[10px] font-bold text-sky-400 block">🍗 Protein</span>
+                  <span className="text-sm font-black font-mono text-foreground">{todayMacros.proteinGrams}g</span>
+                  <span className="text-[9px] text-muted-foreground block">({todayMacros.proteinPct}%)</span>
+                </div>
+
+                <div className="bg-secondary/40 p-3 rounded-2xl border border-border/50 text-center">
+                  <span className="text-[10px] font-bold text-amber-400 block">🌾 Carbs</span>
+                  <span className="text-sm font-black font-mono text-foreground">{todayMacros.carbsGrams}g</span>
+                  <span className="text-[9px] text-muted-foreground block">({todayMacros.carbsPct}%)</span>
+                </div>
+
+                <div className="bg-secondary/40 p-3 rounded-2xl border border-border/50 text-center">
+                  <span className="text-[10px] font-bold text-rose-400 block">🥑 Fats</span>
+                  <span className="text-sm font-black font-mono text-foreground">{todayMacros.fatsGrams}g</span>
+                  <span className="text-[9px] text-muted-foreground block">({todayMacros.fatsPct}%)</span>
+                </div>
+              </div>
+
+              {/* Quick teaser button into Vitamins RDA */}
+              <button
+                type="button"
+                onClick={() => setMacroCardView('vitamins')}
+                className="w-full mt-1 p-2.5 bg-secondary/30 hover:bg-secondary/60 rounded-2xl border border-border/60 flex items-center justify-between text-xs transition-colors cursor-pointer group"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-sm p-1 rounded-lg bg-emerald-500/15">💊</span>
+                  <span className="font-bold text-foreground">Vitamins &amp; Minerals Daily RDA</span>
+                  <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-400 font-mono">
+                    {todayMicros.overallCoverage}% Met
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 text-[11px] text-emerald-400 font-bold group-hover:translate-x-0.5 transition-transform">
+                  <span>View Full Profile</span>
+                  <Lucide.ChevronRight size={13} />
+                </div>
+              </button>
             </div>
-
-            <div className="grid grid-cols-3 gap-3 pt-1">
-              <div className="bg-secondary/40 p-3 rounded-2xl border border-border/50 text-center">
-                <span className="text-[10px] font-bold text-sky-400 block">🍗 Protein</span>
-                <span className="text-sm font-black font-mono text-foreground">{todayMacros.proteinGrams}g</span>
-                <span className="text-[9px] text-muted-foreground block">({todayMacros.proteinPct}%)</span>
+          ) : (
+            <div className="space-y-4">
+              {/* Summary KPIs */}
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="bg-secondary/40 p-2.5 rounded-2xl border border-border/50">
+                  <span className="text-[9px] font-bold text-muted-foreground uppercase block">Total RDA Met</span>
+                  <span className={`text-base font-black font-mono ${todayMicros.overallCoverage >= 80 ? 'text-emerald-400' : todayMicros.overallCoverage >= 45 ? 'text-sky-400' : 'text-amber-400'}`}>
+                    {todayMicros.overallCoverage}%
+                  </span>
+                  <span className="text-[8.5px] font-bold text-muted-foreground block mt-0.5">
+                    {todayMicros.overallCoverage >= 80 ? '✨ Optimal' : todayMicros.overallCoverage >= 45 ? '⚡ In Progress' : '🌱 Needs Boost'}
+                  </span>
+                </div>
+                <div className="bg-secondary/40 p-2.5 rounded-2xl border border-border/50">
+                  <span className="text-[9px] font-bold text-muted-foreground uppercase block">🍊 Vitamins Avg</span>
+                  <span className="text-base font-black font-mono text-foreground">
+                    {todayMicros.avgVitaminPct}%
+                  </span>
+                  <span className="text-[8.5px] font-bold text-muted-foreground block mt-0.5">Immunity &amp; Focus</span>
+                </div>
+                <div className="bg-secondary/40 p-2.5 rounded-2xl border border-border/50">
+                  <span className="text-[9px] font-bold text-muted-foreground uppercase block">🛡️ Minerals Avg</span>
+                  <span className="text-base font-black font-mono text-foreground">
+                    {todayMicros.avgMineralPct}%
+                  </span>
+                  <span className="text-[8.5px] font-bold text-muted-foreground block mt-0.5">Bones &amp; Muscle</span>
+                </div>
               </div>
 
-              <div className="bg-secondary/40 p-3 rounded-2xl border border-border/50 text-center">
-                <span className="text-[10px] font-bold text-amber-400 block">🌾 Carbs</span>
-                <span className="text-sm font-black font-mono text-foreground">{todayMacros.carbsGrams}g</span>
-                <span className="text-[9px] text-muted-foreground block">({todayMacros.carbsPct}%)</span>
+              {/* Dual-Column Micronutrient Profile: Left = 5 Vitamins, Right = 5 Minerals */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                {/* Column 1: Essential Vitamins */}
+                <div className="p-3 bg-secondary/30 rounded-2xl border border-border/50 space-y-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                    <span>🍊</span> Essential Vitamins
+                  </span>
+                  <div className="space-y-2">
+                    {todayMicros.topVitamins.map(item => {
+                      const barPct = Math.min(100, item.percentage);
+                      const isOptimal = item.percentage >= 80;
+                      const isModerate = item.percentage >= 45;
+                      const color = isOptimal ? 'from-emerald-500 to-teal-400' : isModerate ? 'from-sky-500 to-cyan-400' : 'from-amber-500 to-yellow-400';
+                      const textCol = isOptimal ? 'text-emerald-400' : isModerate ? 'text-sky-400' : 'text-amber-400';
+
+                      return (
+                        <div key={item.nutrient.id} className="space-y-1">
+                          <div className="flex items-center justify-between text-[11px] font-bold">
+                            <span className="flex items-center gap-1.5 text-foreground truncate max-w-[60%]">
+                              <span>{item.nutrient.icon}</span>
+                              <span className="truncate">{item.nutrient.name.split('(')[0].trim()}</span>
+                            </span>
+                            <div className="flex items-center gap-1.5 font-mono shrink-0">
+                              <span className="text-muted-foreground text-[10px]">
+                                {item.amount}/{item.target}{item.nutrient.unit}
+                              </span>
+                              <span className={`text-[10.5px] font-black ${textCol} min-w-[34px] text-right`}>
+                                {item.percentage}%
+                              </span>
+                            </div>
+                          </div>
+                          <div className="w-full h-1.5 bg-secondary rounded-full overflow-hidden border border-border/40">
+                            <div
+                              style={{ width: `${barPct}%` }}
+                              className={`h-full bg-gradient-to-r ${color} rounded-full transition-all duration-500`}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Column 2: Essential Minerals */}
+                <div className="p-3 bg-secondary/30 rounded-2xl border border-border/50 space-y-2">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                    <span>🛡️</span> Essential Minerals
+                  </span>
+                  <div className="space-y-2">
+                    {todayMicros.topMinerals.map(item => {
+                      const barPct = Math.min(100, item.percentage);
+                      const isOptimal = item.percentage >= 80;
+                      const isModerate = item.percentage >= 45;
+                      const color = isOptimal ? 'from-emerald-500 to-teal-400' : isModerate ? 'from-sky-500 to-cyan-400' : 'from-amber-500 to-yellow-400';
+                      const textCol = isOptimal ? 'text-emerald-400' : isModerate ? 'text-sky-400' : 'text-amber-400';
+
+                      return (
+                        <div key={item.nutrient.id} className="space-y-1">
+                          <div className="flex items-center justify-between text-[11px] font-bold">
+                            <span className="flex items-center gap-1.5 text-foreground truncate max-w-[60%]">
+                              <span>{item.nutrient.icon}</span>
+                              <span className="truncate">{item.nutrient.name.split('(')[0].trim()}</span>
+                            </span>
+                            <div className="flex items-center gap-1.5 font-mono shrink-0">
+                              <span className="text-muted-foreground text-[10px]">
+                                {item.amount}/{item.target}{item.nutrient.unit}
+                              </span>
+                              <span className={`text-[10.5px] font-black ${textCol} min-w-[34px] text-right`}>
+                                {item.percentage}%
+                              </span>
+                            </div>
+                          </div>
+                          <div className="w-full h-1.5 bg-secondary rounded-full overflow-hidden border border-border/40">
+                            <div
+                              style={{ width: `${barPct}%` }}
+                              className={`h-full bg-gradient-to-r ${color} rounded-full transition-all duration-500`}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
 
-              <div className="bg-secondary/40 p-3 rounded-2xl border border-border/50 text-center">
-                <span className="text-[10px] font-bold text-rose-400 block">🥑 Fats</span>
-                <span className="text-sm font-black font-mono text-foreground">{todayMacros.fatsGrams}g</span>
-                <span className="text-[9px] text-muted-foreground block">({todayMacros.fatsPct}%)</span>
+              {/* Action Controls */}
+              <div className="flex items-center justify-end pt-1 border-t border-border/50 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setMacroCardView('macros')}
+                  className="text-muted-foreground hover:text-foreground font-bold cursor-pointer"
+                >
+                  ← Back to Macros Split
+                </button>
               </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Module B: Hydration & Sleep Correlation */}
@@ -568,6 +831,150 @@ export default function HealthDashboardTab({
                 />
               </div>
             </div>
+
+            {/* Today's Weight & Target Goal */}
+            {(!currentData.weightKg || isEditingWeight) ? (
+              <div className="p-3 bg-secondary/40 hover:bg-secondary/60 transition-all rounded-2xl border border-border/70 space-y-2">
+                <div className="flex items-center justify-between text-xs font-bold">
+                  <span className="text-muted-foreground flex items-center gap-1.5">
+                    <Lucide.Scale size={13} className="text-emerald-400" />
+                    <span>Today's Weight</span>
+                  </span>
+                  {biometrics.targetWeightKg ? (
+                    <span className="text-[11px] text-muted-foreground font-medium">
+                      Goal: <span className="font-mono font-bold text-emerald-400">{biometrics.targetWeightKg}</span> {weightUnit}
+                    </span>
+                  ) : null}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="20"
+                      max="350"
+                      value={weightInput}
+                      onChange={(e) => setWeightInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleSaveWeight();
+                        } else if (e.key === 'Escape' && isEditingWeight) {
+                          setIsEditingWeight(false);
+                        }
+                      }}
+                      placeholder={currentData.weightKg ? String(currentData.weightKg) : `Log weight (e.g. 74.5)`}
+                      className="w-full bg-background/80 border border-border/80 focus:border-emerald-500/70 focus:ring-2 focus:ring-emerald-500/20 text-foreground font-mono text-xs px-3 py-2 rounded-xl outline-none transition-all placeholder:text-muted-foreground/50 pr-10"
+                      autoFocus={isEditingWeight}
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-muted-foreground pointer-events-none">
+                      {weightUnit}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleSaveWeight}
+                    disabled={!weightInput || isNaN(parseFloat(weightInput)) || parseFloat(weightInput) <= 0}
+                    className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs shadow-xs hover:shadow-emerald-500/20 transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+                  >
+                    <Lucide.Check size={13} />
+                    <span>Save</span>
+                  </button>
+
+                  {isEditingWeight && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsEditingWeight(false);
+                        setWeightInput('');
+                      }}
+                      className="p-2 rounded-xl bg-secondary/80 hover:bg-secondary text-muted-foreground hover:text-foreground border border-border/60 transition-all cursor-pointer shrink-0"
+                      title="Cancel"
+                    >
+                      <Lucide.X size={13} />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-1.5 p-3 bg-secondary/30 hover:bg-secondary/50 transition-all rounded-2xl border border-border/60 group">
+                <div className="flex items-center justify-between text-xs font-bold">
+                  <span className="text-muted-foreground flex items-center gap-1.5">
+                    <Lucide.Scale size={13} className="text-emerald-400" />
+                    <span>Today's Weight</span>
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono text-foreground font-extrabold text-sm">
+                      {currentData.weightKg} <span className="text-xs font-medium text-muted-foreground">{weightUnit}</span>
+                    </span>
+                    {biometrics.targetWeightKg ? (
+                      <span className="text-[11px] text-muted-foreground font-normal">
+                        / Goal: <span className="font-mono font-bold text-foreground">{biometrics.targetWeightKg}</span> {weightUnit}
+                      </span>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setWeightInput(String(currentData.weightKg));
+                        setIsEditingWeight(true);
+                      }}
+                      className="text-muted-foreground/60 hover:text-foreground hover:bg-secondary/80 p-1 rounded-md transition-colors cursor-pointer ml-1"
+                      title="Edit weight"
+                    >
+                      <Lucide.Edit2 size={12} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Progress bar towards goal */}
+                {biometrics.targetWeightKg ? (() => {
+                  const cur = currentData.weightKg!;
+                  const target = biometrics.targetWeightKg;
+                  const diff = cur - target;
+                  const isAtGoal = Math.abs(diff) < 0.2;
+                  const closenessPct = Math.min(100, Math.max(5, Math.round((Math.min(cur, target) / Math.max(cur, target)) * 100)));
+
+                  return (
+                    <div className="space-y-1 pt-0.5">
+                      <div className="w-full h-2.5 bg-secondary rounded-full overflow-hidden">
+                        <div
+                          style={{ width: `${isAtGoal ? 100 : closenessPct}%` }}
+                          className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500"
+                        />
+                      </div>
+                      <div className="flex items-center justify-between text-[10.5px] text-muted-foreground pt-0.5">
+                        <span className="flex items-center gap-1 font-medium">
+                          {isAtGoal ? (
+                            <span className="text-emerald-400 font-bold flex items-center gap-1">
+                              <Lucide.CheckCircle2 size={11} /> Target Goal Reached!
+                            </span>
+                          ) : diff > 0 ? (
+                            <span>
+                              <span className="font-mono font-bold text-emerald-400">{(diff).toFixed(1)} {weightUnit}</span> to target goal
+                            </span>
+                          ) : (
+                            <span>
+                              <span className="font-mono font-bold text-teal-400">{Math.abs(diff).toFixed(1)} {weightUnit}</span> under target goal
+                            </span>
+                          )}
+                        </span>
+                        <span className="font-mono text-muted-foreground/80 font-bold">
+                          {isAtGoal ? '100%' : `${closenessPct}% match`}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })() : (
+                  <div className="w-full h-2.5 bg-secondary rounded-full overflow-hidden">
+                    <div
+                      style={{ width: '100%' }}
+                      className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Quick Status Pill */}
             <div className="p-3 bg-secondary/30 rounded-2xl border border-border/50 flex items-center justify-between text-xs pt-2">
@@ -701,6 +1108,8 @@ export default function HealthDashboardTab({
                 );
               }
 
+              const isSelected = d.dateStr === selectedCalDate;
+
               return (
                 <button
                   key={d.key}
@@ -709,7 +1118,7 @@ export default function HealthDashboardTab({
                     if (d.dateStr) setSelectedCalDate(d.dateStr);
                   }}
                   className={`min-h-[64px] sm:min-h-[76px] p-2 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between text-left group ${
-                    d.isSelected
+                    isSelected
                       ? 'bg-amber-500/15 border-amber-400 shadow-md ring-1 ring-amber-400/50'
                       : d.isToday
                       ? 'bg-primary/10 border-primary/40'
@@ -767,7 +1176,7 @@ export default function HealthDashboardTab({
             {onNavigateToDate && (
               <button
                 type="button"
-                onClick={() => onNavigateToDate(selectedDayInfo.dateStr)}
+                onClick={() => onNavigateToDate(selectedDayInfo.dateStr, 'gym')}
                 className="text-xs font-bold text-primary hover:underline flex items-center gap-1 self-start sm:self-auto cursor-pointer"
               >
                 <span>Jump to this date in Gym Lab</span>

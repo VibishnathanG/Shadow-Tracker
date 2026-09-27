@@ -5,6 +5,8 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import { useShadowTrackerStore } from '@/store';
+import { isHabitScheduledForDate } from '@/lib/habitUtils';
+
 import { useShallow } from 'zustand/react/shallow';
 import { getTodayDateString, formatDateString, getMonthGridDates, getWeekDates, parseDateString } from '@/lib/dateUtils';
 import { format, addMonths, subMonths, addWeeks, subWeeks, isSameMonth } from 'date-fns';
@@ -144,7 +146,7 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
 
   const isPastDate = selectedDate < todayStr;
   const uncompletedTasksCount = selectedDateTasks.filter(t => !t.isCompleted).length;
-  const uncompletedHabitsCount = habits.filter(h => !h.completedDates.includes(selectedDate)).length;
+  const uncompletedHabitsCount = habits.filter(h => isHabitScheduledForDate(h, selectedDate) && !h.completedDates.includes(selectedDate)).length;
   const totalMissedCount = isPastDate ? (uncompletedTasksCount + uncompletedHabitsCount) : 0;
 
 
@@ -549,12 +551,12 @@ export const CalendarFeature: React.FC<CalendarFeatureProps> = ({
 
           <div className="space-y-3 pt-2">
             <label className="text-xs font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
-              <Lucide.Repeat size={14} className="text-primary" /> Daily Habits ({habits.length})
+              <Lucide.Repeat size={14} className="text-primary" /> Daily Habits ({habits.filter(h => isHabitScheduledForDate(h, selectedDate)).length})
             </label>
             
             <div className="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
-              {habits.length > 0 ? (
-                habits.map(h => {
+              {habits.filter(h => isHabitScheduledForDate(h, selectedDate)).length > 0 ? (
+                habits.filter(h => isHabitScheduledForDate(h, selectedDate)).map(h => {
                   const isCompleted = h.completedDates.includes(selectedDate);
                   return (
                     <motion.div 

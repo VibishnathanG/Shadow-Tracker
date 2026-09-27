@@ -17,6 +17,14 @@ export function generate60DaysSeedData(categories: Category[]): {
   };
   const isoNow = now.toISOString();
 
+  const getIsoWithRandomTime = (dateStr: string, idx: number) => {
+    const d = new Date(dateStr);
+    d.setHours(8 + (Math.abs(idx) % 10)); // 8 AM to 5 PM
+    d.setMinutes(Math.abs(idx) % 60);
+    return d.toISOString();
+  };
+        
+
   // Create Habits
   const habits: Habit[] = [
     {
@@ -95,7 +103,7 @@ export function generate60DaysSeedData(categories: Category[]): {
         categoryId: 'cat-work',
         isRecurring: false,
         recurrencePattern: null,
-        completedAt: i < 0 ? isoNow : undefined,
+        completedAt: i < 0 ? getIsoWithRandomTime(dateStr, i) : undefined,
         createdAt: getOffsetDateStr(-61),
         updatedAt: isoNow,
         isSoftDeleted: false,
@@ -113,7 +121,7 @@ export function generate60DaysSeedData(categories: Category[]): {
         categoryId: 'cat-personal',
         isRecurring: false,
         recurrencePattern: null,
-        completedAt: i < -2 ? isoNow : undefined,
+        completedAt: i < -2 ? getIsoWithRandomTime(dateStr, i) : undefined,
         createdAt: getOffsetDateStr(-61),
         updatedAt: isoNow,
         isSoftDeleted: false,

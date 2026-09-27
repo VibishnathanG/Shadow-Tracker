@@ -43,3 +43,8 @@ next-env.d.ts
 # performance traces & logs
 Trace-*
 *.Zone.Identifier
+
+# root release archives
+/shadow-tracker-*.tar*
+/shadow-tracker-*.apk
+/shadow-tracker-*.exe

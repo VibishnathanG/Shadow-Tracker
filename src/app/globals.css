@@ -93,50 +93,45 @@ html, body, input, textarea, select, button {
 }
 
 /* Core GPU Hardware Acceleration & Dynamic Graphics Killswitch (Zero-GPU Mode) */
-html.no-gpu,
-html.no-gpu *:not(.toggle-handle):not(.toggle-track):not(.keep-glow),
-html.no-gpu *::before,
-html.no-gpu *::after,
-html.gpu-disabled,
-html.gpu-disabled *:not(.toggle-handle):not(.toggle-track):not(.keep-glow),
-html.gpu-disabled *::before,
-html.gpu-disabled *::after {
+html.no-gpu [class*="animate-"],
+html.gpu-disabled [class*="animate-"],
+html.no-gpu [style*="animation"],
+html.gpu-disabled [style*="animation"] {
   animation: none !important;
   animation-duration: 0s !important;
   animation-delay: 0s !important;
   animation-iteration-count: 1 !important;
   animation-play-state: paused !important;
-  transition: none !important;
-  transition-duration: 0s !important;
-  transition-delay: 0s !important;
-  transform: none !important;
+}
+
+html.no-gpu .will-change-transform,
+html.gpu-disabled .will-change-transform {
   will-change: auto !important;
+}
+
+html.no-gpu [class*="backdrop-blur"],
+html.gpu-disabled [class*="backdrop-blur"] {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  box-shadow: none !important;
-  text-shadow: none !important;
-  filter: none !important;
 }
 
 /* Zero-CPU Idle Freeze when Hidden, Inactive, Minimized, Blurred, or Active User Idle */
-html.is-hidden,
-html.is-hidden *,
-html.is-hidden *::before,
-html.is-hidden *::after,
-html.window-blurred,
-html.window-blurred *,
-html.window-blurred *::before,
-html.window-blurred *::after,
-html.window-inactive,
-html.window-inactive *,
-html.window-inactive *::before,
-html.window-inactive *::after,
-html.is-user-idle,
-html.is-user-idle *,
-html.is-user-idle *::before,
-html.is-user-idle *::after {
+/* Target animated elements directly to freeze animations without forcing full-DOM style invalidation or breaking UI transitions */
+html.is-hidden [class*="animate-"]:not(.animate-spin):not([role="status"] *):not([aria-busy="true"] *),
+html.window-blurred [class*="animate-"]:not(.animate-spin):not([role="status"] *):not([aria-busy="true"] *),
+html.window-inactive [class*="animate-"]:not(.animate-spin):not([role="status"] *):not([aria-busy="true"] *),
+html.is-user-idle [class*="animate-"]:not(.animate-spin):not([role="status"] *):not([aria-busy="true"] *),
+html.is-hidden [style*="animation"],
+html.window-blurred [style*="animation"],
+html.window-inactive [style*="animation"],
+html.is-user-idle [style*="animation"] {
   animation-play-state: paused !important;
-  transition: none !important;
+}
+
+html.is-hidden .will-change-transform,
+html.window-blurred .will-change-transform,
+html.window-inactive .will-change-transform,
+html.is-user-idle .will-change-transform {
   will-change: auto !important;
 }
 
@@ -145,11 +140,6 @@ html.is-user-idle .animate-spin,
 html.is-user-idle [role="status"] *,
 html.is-user-idle [aria-busy="true"] * {
   animation-play-state: running !important;
-}
-
-html.no-gpu *:not(.keep-glow),
-html.gpu-disabled *:not(.keep-glow) {
-  animation: none !important;
 }
 
 html.eco-mode .animate-spin,
@@ -204,19 +194,15 @@ html.gpu-disabled .animate-fadeIn {
   transform: none !important;
 }
 
-/* Deep zero-CPU/GPU Idle Freeze when Hidden, Minimized or Blurred in Background */
+/* Zero-CPU animation pause when hidden or blurred without black-screen glitch */
 html.is-hidden,
 html.window-blurred,
 html.window-inactive {
-  content-visibility: auto;
+  /* Never set content-visibility: auto on root html to prevent chromium blank/black screen rendering */
 }
 
-html.is-hidden .theme-ambient-canvas,
-html.window-blurred .theme-ambient-canvas,
-html.window-inactive .theme-ambient-canvas,
-html.is-hidden canvas,
-html.window-blurred canvas,
-html.window-inactive canvas {
+/* Pause heavy HTML5 canvas rendering only when explicitly hidden/minimized */
+html.is-hidden canvas:not(.keep-active) {
   display: none !important;
 }
 

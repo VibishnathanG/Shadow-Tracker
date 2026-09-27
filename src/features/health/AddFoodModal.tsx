@@ -285,7 +285,7 @@ export default function AddFoodModal({
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0, y: 15 }}
           style={{ overscrollBehavior: 'contain', touchAction: 'pan-y' }}
-          className="relative w-full max-w-2xl bg-surface-elevated border border-border/80 rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col overflow-hidden my-auto z-10 cursor-default max-h-[90vh] sm:max-h-[85vh]"
+          className="relative w-full max-w-2xl bg-background border border-border/80 rounded-3xl p-4 sm:p-6 shadow-2xl flex flex-col overflow-hidden my-auto z-10 cursor-default max-h-[90vh] sm:max-h-[85vh]"
         >
           {/* Header */}
           <div className="flex items-center justify-between border-b border-border/60 pb-3 shrink-0">

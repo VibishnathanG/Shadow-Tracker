@@ -4,6 +4,8 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import { useShadowTrackerStore } from '@/store';
+import { isHabitScheduledForDate } from '@/lib/habitUtils';
+
 import { getTodayDateString } from '@/lib/dateUtils';
 import confetti from '@/lib/confetti';
 
@@ -180,7 +182,7 @@ export const DayReviewModal: React.FC<DayReviewModalProps> = ({
     });
 
     // 2. Prepend cleanly formatted markdown reflection to top of journal (no duplicates)
-    const habitsCompletedToday = activeHabits.filter(h => h.completedDates.includes(todayStr)).length;
+    const habitsCompletedToday = activeHabits.filter(h => isHabitScheduledForDate(h, todayStr) && h.completedDates.includes(todayStr)).length;
     const tasksCompletedToday = todayTasks.filter(t => t.isCompleted).length;
 
     const existingNote = notes.find(n => n.id === todayStr || n.date === todayStr);
@@ -192,7 +194,7 @@ export const DayReviewModal: React.FC<DayReviewModalProps> = ({
         biggestWin: biggestWin.trim(),
         gratitude: gratitudeNote.trim(),
         habitsCompletedCount: habitsCompletedToday,
-        habitsTotalCount: activeHabits.length,
+        habitsTotalCount: activeHabits.filter(h => isHabitScheduledForDate(h, todayStr)).length,
         tasksCompletedCount: tasksCompletedToday,
         tasksTotalCount: todayTasks.length,
       }
@@ -427,10 +429,10 @@ export const DayReviewModal: React.FC<DayReviewModalProps> = ({
 
                   {/* Habits list */}
                   <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
-                    {habits.length === 0 ? (
+                    {activeHabits.filter(h => isHabitScheduledForDate(h, todayStr)).length === 0 ? (
                       <p className="text-xs text-muted-foreground italic text-center py-2">No habits configured.</p>
                     ) : (
-                      habits.map(h => {
+                      activeHabits.filter(h => isHabitScheduledForDate(h, todayStr)).map(h => {
                         const isDone = h.completedDates.includes(todayStr);
                         return (
                           <div

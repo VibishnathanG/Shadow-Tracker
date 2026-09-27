@@ -93,8 +93,8 @@ describe('AI Tool Definitions & Autonomous Executors', () => {
     mockSessionStorage.clear();
   });
 
-  it('has 16 defined tools with no delete operations', () => {
-    expect(AI_TOOL_DEFINITIONS.length).toBe(16);
+  it('has 19 defined tools with no delete operations', () => {
+    expect(AI_TOOL_DEFINITIONS.length).toBe(19);
     const names = AI_TOOL_DEFINITIONS.map(t => t.function.name);
     names.forEach(name => {
       expect(name).not.toContain('delete');
@@ -105,6 +105,8 @@ describe('AI Tool Definitions & Autonomous Executors', () => {
     expect(names).toContain('create_todo');
     expect(names).toContain('create_habit');
     expect(names).toContain('create_diet_plan');
+    expect(names).toContain('log_supplement');
+    expect(names).toContain('log_workout');
     expect(names).toContain('log_water_intake');
     expect(names).toContain('update_wealth_transaction');
     expect(names).toContain('create_journal_entry');
@@ -254,7 +256,7 @@ describe('Custom Tools Engine & Dynamic Tool Aggregation', () => {
 
   it('allows adding, listing, executing, and deleting custom tools', async () => {
     const initialTools = getAllActiveToolDefinitions();
-    expect(initialTools.length).toBe(16);
+    expect(initialTools.length).toBe(19);
 
     const saved = saveCustomTool({
       name: 'calculate_daily_deficit',
@@ -278,7 +280,7 @@ describe('Custom Tools Engine & Dynamic Tool Aggregation', () => {
     expect(getCustomTools().length).toBe(1);
 
     const activeTools = getAllActiveToolDefinitions();
-    expect(activeTools.length).toBe(17);
+    expect(activeTools.length).toBe(20);
     expect(activeTools.some(t => t.function.name === 'calculate_daily_deficit')).toBe(true);
 
     const execRes = await executeAiToolCall('calculate_daily_deficit', { tdee: 2500, targetIntake: 2000 });
@@ -287,7 +289,7 @@ describe('Custom Tools Engine & Dynamic Tool Aggregation', () => {
 
     const remaining = deleteCustomTool(saved[0].id);
     expect(remaining.length).toBe(0);
-    expect(getAllActiveToolDefinitions().length).toBe(16);
+    expect(getAllActiveToolDefinitions().length).toBe(19);
   });
 });
 

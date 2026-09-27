@@ -169,9 +169,9 @@ export function buildNextRecurringTaskWithReminders(
     throw new Error('Task is not marked as recurring or missing recurrence pattern');
   }
 
-  const nextDueDate = calculateNextRecurrence(task.dueDate, task.recurrencePattern);
+  const nextDueDate = calculateNextRecurrence(task.dueDate, task.recurrencePattern || 'daily', task.recurrenceCustomDays);
   const nextStartDate = task.startDate 
-    ? calculateNextRecurrence(task.startDate, task.recurrencePattern) 
+    ? calculateNextRecurrence(task.startDate, task.recurrencePattern || 'daily', task.recurrenceCustomDays) 
     : nextDueDate;
   const nextScheduledDate = task.scheduledDate 
     ? calculateNextRecurrence(task.scheduledDate, task.recurrencePattern) 

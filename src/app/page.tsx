@@ -64,6 +64,13 @@ export default function Home() {
     };
   }, [init]);
 
+  // Scroll to top on active tab change to prevent landing mid-scroll on tall layouts
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }
+  }, [activeTab]);
+
   // Server-side / Hydration pass
   if (!mounted) {
     return (

@@ -5,6 +5,8 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import { calculateNutrientsForGrams } from './indianFoodDatabase';
+import MicronutrientSection from './MicronutrientSection';
+import AddSupplementModal from './AddSupplementModal';
 
 export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
@@ -31,6 +33,7 @@ interface NutritionPlateVisualizerProps {
   onUpdateFood: (id: string, updates: Partial<LoggedFood>) => void;
   onRemoveFood: (id: string) => void;
   onOpenAddModal: (defaultMeal?: MealType) => void;
+  onAddSupplement?: (supplement: LoggedFood) => void;
 }
 
 export default function NutritionPlateVisualizer({
@@ -39,6 +42,7 @@ export default function NutritionPlateVisualizer({
   onUpdateFood,
   onRemoveFood,
   onOpenAddModal,
+  onAddSupplement,
 }: NutritionPlateVisualizerProps) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -47,6 +51,7 @@ export default function NutritionPlateVisualizer({
 
   const [editingItem, setEditingItem] = useState<LoggedFood | null>(null);
   const [activeMealTab, setActiveMealTab] = useState<MealType | 'all'>('all');
+  const [showSupplementModal, setShowSupplementModal] = useState(false);
 
   // Single, robust scroll lock & escape listener when editingItem is open
   useEffect(() => {
@@ -392,12 +397,25 @@ export default function NutritionPlateVisualizer({
                 </p>
               </div>
 
-              <button
-                onClick={() => onOpenAddModal()}
-                className="px-4 py-2 bg-primary text-primary-foreground font-black text-xs rounded-xl shadow-md hover:bg-primary/90 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 self-start sm:self-auto"
-              >
-                <Lucide.Plus size={14} /> Add Food to Plate
-              </button>
+              <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                {onAddSupplement && (
+                  <button
+                    type="button"
+                    onClick={() => setShowSupplementModal(true)}
+                    className="px-3.5 py-2 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 font-black text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+                    title="Add multivitamin, protein, creatine, or minerals"
+                  >
+                    <span>💊</span>
+                    <span>+ Add Supplement</span>
+                  </button>
+                )}
+                <button
+                  onClick={() => onOpenAddModal()}
+                  className="px-4 py-2 bg-primary text-primary-foreground font-black text-xs rounded-xl shadow-md hover:bg-primary/90 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+                >
+                  <Lucide.Plus size={14} /> Add Food to Plate
+                </button>
+              </div>
             </div>
 
             {/* Macro Bars (Protein, Carbs, Fats) */}
@@ -510,21 +528,36 @@ export default function NutritionPlateVisualizer({
             </h4>
           </div>
 
-          {/* Filter Tabs */}
-          <div className="flex items-center gap-1 bg-secondary/80 p-1 rounded-xl border border-border/60 text-[10px] font-bold overflow-x-auto no-scrollbar scrollbar-none">
-            {(['all', 'breakfast', 'lunch', 'dinner', 'snack'] as const).map(tab => (
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Filter Tabs */}
+            <div className="flex items-center gap-1 bg-secondary/80 p-1 rounded-xl border border-border/60 text-[10px] font-bold overflow-x-auto no-scrollbar scrollbar-none">
+              {(['all', 'breakfast', 'lunch', 'dinner', 'snack'] as const).map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveMealTab(tab)}
+                  className={`px-3 py-1 rounded-lg capitalize cursor-pointer transition-all ${
+                    activeMealTab === tab
+                      ? 'bg-primary text-primary-foreground shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {tab === 'all' ? 'All Meals' : tab}
+                </button>
+              ))}
+            </div>
+
+            {/* Direct Supplement Logging Button in Daily Nutrition & Plate */}
+            {onAddSupplement && (
               <button
-                key={tab}
-                onClick={() => setActiveMealTab(tab)}
-                className={`px-3 py-1 rounded-lg capitalize cursor-pointer transition-all ${
-                  activeMealTab === tab
-                    ? 'bg-primary text-primary-foreground shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
+                type="button"
+                onClick={() => setShowSupplementModal(true)}
+                className="px-3 py-1 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/35 text-emerald-400 font-black text-xs rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs transition-all active:scale-95 shrink-0"
+                title="Log Vitamin, Mineral, or Workout Supplement"
               >
-                {tab === 'all' ? 'All Meals' : tab}
+                <span>💊</span>
+                <span>+ Add Supplement</span>
               </button>
-            ))}
+            )}
           </div>
         </div>
 
@@ -533,12 +566,26 @@ export default function NutritionPlateVisualizer({
           <div className="text-center py-8 space-y-2">
             <p className="text-3xl">🥗</p>
             <p className="text-xs font-bold text-muted-foreground">No food logged for this meal yet.</p>
-            <button
-              onClick={() => onOpenAddModal(activeMealTab === 'all' ? 'lunch' : activeMealTab)}
-              className="text-xs font-black text-primary hover:underline cursor-pointer"
-            >
-              + Tap here to log your first dish
-            </button>
+            <div className="flex items-center justify-center gap-3 pt-1">
+              <button
+                onClick={() => onOpenAddModal(activeMealTab === 'all' ? 'lunch' : activeMealTab)}
+                className="text-xs font-black text-primary hover:underline cursor-pointer"
+              >
+                + Tap to log dish
+              </button>
+              {onAddSupplement && (
+                <>
+                  <span className="text-muted-foreground/40">•</span>
+                  <button
+                    onClick={() => setShowSupplementModal(true)}
+                    className="text-xs font-black text-emerald-400 hover:underline cursor-pointer flex items-center gap-1"
+                  >
+                    <span>💊</span>
+                    <span>+ Log Supplement</span>
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -603,6 +650,9 @@ export default function NutritionPlateVisualizer({
           </div>
         )}
       </div>
+
+      {/* Vitamins and Mineral Profile from selected foods with preloaded RDA approved levels */}
+      <MicronutrientSection loggedFoods={loggedFoods} />
 
       {/* Interactive Pop-Edit Modal rendered via Portal to escape parent container transforms */}
       {mounted && typeof document !== 'undefined' && createPortal(
@@ -784,6 +834,16 @@ export default function NutritionPlateVisualizer({
           )}
         </AnimatePresence>,
         document.body
+      )}
+
+      {showSupplementModal && onAddSupplement && (
+        <AddSupplementModal
+          onClose={() => setShowSupplementModal(false)}
+          onAdd={(supp) => {
+            onAddSupplement(supp);
+            setShowSupplementModal(false);
+          }}
+        />
       )}
     </div>
   );

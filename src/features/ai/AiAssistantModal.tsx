@@ -66,7 +66,7 @@ export default function AiAssistantModal({ isOpen, onClose }: AiAssistantModalPr
   const [autoRefreshedNotice, setAutoRefreshedNotice] = useState<boolean>(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Lock background body scrolling when modal is open
   useEffect(() => {
@@ -156,7 +156,11 @@ You have native access to execute verified tool actions inside the user's local 
 - create_task, update_task, complete_task
 - create_todo, update_todo, complete_todo
 - create_habit, update_habit, log_habit_completion
-- create_diet_plan, log_water_intake
+- log_supplement (log vitamins, protein, creatine, minerals with precise RDA profiles)
+- create_custom_food (create new foods with calories and macros in library)
+- create_diet_plan (generate extensive 7-day per week personalized meal plans)
+- log_workout (log running, cycling, swimming, jogging, cardio, full body, or lifting)
+- log_water_intake
 - update_wealth_transaction, update_wealth_budget
 - create_journal_entry
 - configure_notification (schedule alarms and alerts across tasks, habits, todos, and general alerts)
@@ -278,7 +282,7 @@ Click **"Day-to-Day Prompts"** or **"Tools & Engine"** above, or type your reque
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 10 }}
           transition={{ duration: 0.2 }}
-          className="w-full max-w-3xl max-h-[92vh] flex flex-col bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden relative"
+          className="w-full max-w-3xl max-h-[92vh] flex flex-col bg-background border border-border rounded-2xl shadow-2xl overflow-hidden relative"
         >
           {/* Modal Top Bar */}
           <div className="flex items-center justify-between px-4 py-2.5 border-b border-border/80 bg-surface-elevated/70 shrink-0">
@@ -756,21 +760,33 @@ Click **"Day-to-Day Prompts"** or **"Tools & Engine"** above, or type your reque
                     e.preventDefault();
                     handleSendMessage();
                   }}
-                  className="flex items-center gap-2"
+                  className="flex items-end gap-2"
                 >
-                  <input
+                  <textarea
                     ref={inputRef}
-                    type="text"
+                    rows={1}
                     value={inputPrompt}
                     onChange={(e) => setInputPrompt(e.target.value)}
-                    placeholder="Ask anything or request actions (e.g. 'Create task', 'Set alarm', 'Log water')..."
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        if (e.shiftKey) {
+                          // Allow Shift + Enter to insert a new line naturally
+                          return;
+                        }
+                        e.preventDefault();
+                        if (inputPrompt.trim() && !isLoading) {
+                          handleSendMessage();
+                        }
+                      }
+                    }}
+                    placeholder="Ask anything or request actions (e.g. 'Create task', 'Log water')... (Shift+Enter for newline)"
                     disabled={isLoading}
-                    className="flex-1 px-4 py-2.5 rounded-xl bg-background border border-border text-foreground text-xs sm:text-sm focus:outline-hidden focus:border-primary disabled:opacity-50"
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-background border border-border text-foreground text-xs sm:text-sm focus:outline-hidden focus:border-primary disabled:opacity-50 resize-none max-h-32 min-h-[42px] leading-relaxed custom-scrollbar"
                   />
                   <button
                     type="submit"
                     disabled={!inputPrompt.trim() || isLoading}
-                    className="p-2.5 sm:px-4 sm:py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs sm:text-sm shadow-md shadow-primary/25 hover:opacity-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                    className="h-[42px] px-3 sm:px-4 rounded-xl bg-primary text-primary-foreground font-bold text-xs sm:text-sm shadow-md shadow-primary/25 hover:opacity-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 shrink-0"
                   >
                     <Lucide.Send size={15} />
                     <span className="hidden sm:inline">Send</span>
