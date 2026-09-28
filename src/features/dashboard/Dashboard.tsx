@@ -18,7 +18,7 @@ import { getMascotStatus, getContextualCoaching, ALL_BADGES, BadgeDefinition, ge
 import ExplorerFeature from '@/features/explorer/ExplorerFeature';
 import { DayReviewModal } from '@/components/DayReviewModal';
 import { renderCritterComponent, CritterType, ALL_CRITTERS, DashboardIdleCrittersOverlay } from '@/components/AmbientCritters';
-import { isWindowActive } from '@/lib/windowState';
+import { isWindowActive, useUserIdle, isUserIdle } from '@/lib/windowState';
 import { calculateDailyMicronutrients, getAgeGroupPreset } from '@/features/health/micronutrientData';
 import { getUserBiometrics } from '@/features/health/weightFeasibility';
 
@@ -170,16 +170,19 @@ const TileArtCompanion = ({ variant = 0, cycleTrigger = 0 }: { variant?: number;
 
 const TileArtBadges = () => {
   const isEco = useIsEco();
+  const isIdle = useUserIdle();
+  if (isEco || isIdle) return null;
   return (
-    <div className={`absolute inset-0 overflow-hidden pointer-events-none ${isEco ? 'opacity-30' : 'opacity-10'}`}>
-      <div className={`keep-glow absolute w-[200%] h-[200%] -top-1/2 -left-1/2 bg-[radial-gradient(circle_at_center,var(--primary)_0%,transparent_60%)] ${isEco ? 'scale-110 opacity-70' : 'animate-pulse-ambient-glow [animation-duration:8s]'}`} />
+    <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
+      <div className="keep-glow absolute w-[200%] h-[200%] -top-1/2 -left-1/2 bg-[radial-gradient(circle_at_center,var(--primary)_0%,transparent_60%)] animate-pulse-ambient-glow [animation-duration:8s]" />
     </div>
   );
 };
 
 const TileArtMission = () => {
   const isEco = useIsEco();
-  if (isEco) return null;
+  const isIdle = useUserIdle();
+  if (isEco || isIdle) return null;
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.15]">
       <svg className="w-full h-full text-primary" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -191,7 +194,8 @@ const TileArtMission = () => {
 
 const TileArtTimeline = () => {
   const isEco = useIsEco();
-  if (isEco) return null;
+  const isIdle = useUserIdle();
+  if (isEco || isIdle) return null;
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.05]">
       <div className="w-full h-full bg-[linear-gradient(currentColor_1px,transparent_1px),linear-gradient(90deg,currentColor_1px,transparent_1px)] bg-[size:20px_20px] text-primary" />
@@ -202,7 +206,8 @@ const TileArtTimeline = () => {
 
 const TileArtAnalytics = () => {
   const isEco = useIsEco();
-  if (isEco) return null;
+  const isIdle = useUserIdle();
+  if (isEco || isIdle) return null;
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
       <svg className="w-full h-full text-emerald-400" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -216,7 +221,8 @@ const TileArtAnalytics = () => {
 
 const TileArtHabits = () => {
   const isEco = useIsEco();
-  if (isEco) return null;
+  const isIdle = useUserIdle();
+  if (isEco || isIdle) return null;
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-10">
       <div className="absolute w-[150%] h-[150%] -top-1/4 -left-1/4 bg-gradient-to-tr from-purple-500/30 to-transparent animate-spin-cw [animation-duration:20s]" />
@@ -376,6 +382,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   useEffect(() => {
     const timer = setInterval(() => {
       if (typeof document !== 'undefined' && document.hidden) return;
+      if (isUserIdle()) return;
       const allLines = getAllWispLines(wispCustomLines);
       if (allLines.length === 0) return;
       setWispSpeechIndex(prev => (prev + 1) % allLines.length);

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useUserIdle } from '@/lib/windowState';
 
 interface AiNeuralLogoProps {
   size?: number;
@@ -13,6 +14,8 @@ export const AiNeuralLogo: React.FC<AiNeuralLogoProps> = ({
   className = '',
   isAnimated = true,
 }) => {
+  const isIdle = useUserIdle();
+  const shouldAnimate = isAnimated && !isIdle;
   return (
     <div
       className={`relative flex items-center justify-center select-none ${className}`}
@@ -66,7 +69,7 @@ export const AiNeuralLogo: React.FC<AiNeuralLogoProps> = ({
 
         {/* 3 & 4. Revolving Orbit Track & Particle (Pure CSS GPU-accelerated rotation — ZERO Framer Motion CPU overhead) */}
         <g 
-          className={isAnimated ? "animate-spin-cw [animation-duration:3.5s]" : ""}
+          className={shouldAnimate ? "animate-spin-cw [animation-duration:3.5s]" : ""}
           style={{ transformOrigin: "50px 50px" }}
         >
           {/* Revolving Orbit Arc */}

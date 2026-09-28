@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useShadowTrackerStore } from '@/store';
-import { useWindowState } from '@/lib/windowState';
+import { useWindowState, useUserIdle } from '@/lib/windowState';
 
 interface ThemeAmbientBackgroundProps {
   theme: string;
@@ -538,6 +538,7 @@ const StaticEternalRings: React.FC<{ theme: string }> = ({ theme }) => {
    ───────────────────────────────────────────────────────────── */
 export const ThemeAmbientBackground: React.FC<ThemeAmbientBackgroundProps> = React.memo(({ theme }) => {
   const isWindowActive = useWindowState();
+  const isUserIdle = useUserIdle();
   const isGpuDisabled = useShadowTrackerStore((s) => Boolean(s.settings.disableGpuAcceleration));
   const isEcoOrLowGpu = useShadowTrackerStore((s) => Boolean(s.settings.ecoMode || s.settings.lowGpuMode));
 
@@ -576,8 +577,8 @@ export const ThemeAmbientBackground: React.FC<ThemeAmbientBackgroundProps> = Rea
   }
 
   const renderThemeAnimation = () => {
-    // If Eco Mode is enabled, render static SVG without any animations!
-    if (isEcoOrLowGpu) {
+    // If Eco Mode or user is idle, render static SVG without any animations!
+    if (isEcoOrLowGpu || isUserIdle) {
       return <StaticEternalRings theme={theme} />;
     }
 

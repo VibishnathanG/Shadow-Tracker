@@ -21,7 +21,7 @@ import CustomDialogOverlay from './CustomDialogOverlay';
 import { DayReviewModal } from './DayReviewModal';
 import { AiNeuralLogo } from './AiNeuralLogo';
 import dynamic from 'next/dynamic';
-import { useWindowState } from '@/lib/windowState';
+import { useWindowState, useUserIdle } from '@/lib/windowState';
 
 const AiAssistantModal = dynamic(() => import('@/features/ai/AiAssistantModal'), { ssr: false });
 
@@ -121,6 +121,7 @@ export const Layout: React.FC<LayoutProps> = ({
   const [dayReviewModal, setDayReviewModal] = useState<'morning' | 'evening' | null>(null);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const isWindowActive = useWindowState();
+  const isUserIdle = useUserIdle();
 
   // OneDrive auto-sync
   useOneDriveAutoSync();
@@ -285,7 +286,8 @@ export const Layout: React.FC<LayoutProps> = ({
   }
 
   const isGpuDisabled = Boolean(settings.disableGpuAcceleration);
-  const isFreezeActive = isGpuDisabled || !isWindowActive;
+  const isEcoOrLowGpu = Boolean(settings.ecoMode || settings.lowGpuMode);
+  const isFreezeActive = isGpuDisabled || isEcoOrLowGpu || !isWindowActive || isUserIdle;
 
   return (
     <MotionConfig

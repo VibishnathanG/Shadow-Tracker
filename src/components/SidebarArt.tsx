@@ -2,12 +2,14 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useShadowTrackerStore } from '@/store';
+import { useUserIdle } from '@/lib/windowState';
 
 export const SidebarArt: React.FC = React.memo(() => {
   const { settings } = useShadowTrackerStore();
   const theme = settings.theme || 'obsidian';
+  const isIdle = useUserIdle();
 
-  if (settings.disableGpuAcceleration) {
+  if (settings.disableGpuAcceleration || isIdle || settings.ecoMode || settings.lowGpuMode) {
     return null;
   }
 

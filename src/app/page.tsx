@@ -11,7 +11,7 @@ import { MotionConfig } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import { useViewPreference } from '@/lib/viewPreferences';
-import { initWindowStateManager, useWindowState } from '@/lib/windowState';
+import { initWindowStateManager, useWindowState, useUserIdle } from '@/lib/windowState';
 
 const PageFallback = () => (
   <div className="min-h-[50vh] flex flex-col items-center justify-center p-8">
@@ -41,6 +41,7 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const isWindowActive = useWindowState();
+  const isUserIdle = useUserIdle();
 
   // Mount/initialize
   useEffect(() => {
@@ -130,11 +131,15 @@ export default function Home() {
     }
   };
 
-  const isEcoOrLowGpu = Boolean(settings.lowGpuMode || settings.ecoMode);
+  const isEcoOrLowGpu = Boolean(settings.lowGpuMode || settings.ecoMode || settings.disableGpuAcceleration);
+  const isFreezeActive = isEcoOrLowGpu || isMobile || !isWindowActive || isUserIdle;
 
   return (
     <ErrorBoundary>
-      <MotionConfig reducedMotion={isEcoOrLowGpu || isMobile || !isWindowActive ? 'always' : 'never'}>
+      <MotionConfig
+        reducedMotion={isFreezeActive ? 'always' : 'never'}
+        transition={isFreezeActive ? { duration: 0 } : undefined}
+      >
         <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
           {renderActiveFeature()}
         </Layout>

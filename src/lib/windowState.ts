@@ -3,8 +3,12 @@ import React from 'react';
 type Listener = (isActive: boolean) => void;
 const listeners = new Set<Listener>();
 
+type IdleListener = (isIdle: boolean) => void;
+const idleListeners = new Set<IdleListener>();
+
 // Initial state: in browser, check !document.hidden && document.hasFocus()
 let isWindowActiveState = true;
+let isUserIdleState = false;
 
 /**
  * Synchronous check whether the app window is currently active and focused.
@@ -15,12 +19,27 @@ export const isWindowActive = (): boolean => {
 };
 
 /**
+ * Synchronous check whether the user is currently idle (no mouse/keyboard input for >=2.5s).
+ */
+export const isUserIdle = (): boolean => isUserIdleState;
+
+/**
  * Subscribe to window active/inactive transitions.
  */
 export const subscribeWindowState = (fn: Listener): (() => void) => {
   listeners.add(fn);
   return () => {
     listeners.delete(fn);
+  };
+};
+
+/**
+ * Subscribe to user idle/active transitions.
+ */
+export const subscribeUserIdle = (fn: IdleListener): (() => void) => {
+  idleListeners.add(fn);
+  return () => {
+    idleListeners.delete(fn);
   };
 };
 
@@ -48,34 +67,50 @@ const notifyListeners = (active: boolean) => {
   });
 };
 
-/**
- * Initialize global window state event listeners.
- * Pauses background CPU/GPU tasks when minimized or fully hidden,
- * without disrupting active reading or multi-monitor visibility.
- */
-export const initWindowStateManager = (): (() => void) => {
-  if (typeof window === 'undefined') return () => {};
+const notifyIdleListeners = (idle: boolean) => {
+  if (isUserIdleState === idle) return;
+  isUserIdleState = idle;
 
-  let idleTimer: ReturnType<typeof setTimeout> | null = null;
-  const IDLE_TIMEOUT_MS = 6000; // 6s of zero user activity pauses ambient animations
-  let lastActivityTime = 0;
-
-  const setIdle = (idle: boolean) => {
-    if (typeof document === 'undefined') return;
+  if (typeof document !== 'undefined') {
     if (idle) {
       document.documentElement.classList.add('is-user-idle');
     } else {
       document.documentElement.classList.remove('is-user-idle');
     }
+  }
+
+  idleListeners.forEach((listener) => {
+    try {
+      listener(idle);
+    } catch {
+      // Ignore listener error
+    }
+  });
+};
+
+/**
+ * Initialize global window state event listeners.
+ * Pauses background CPU/GPU tasks when minimized, fully hidden, or when user is idle (>=2.5s),
+ * maintaining 0% idle CPU utilization without disrupting active reading or visibility.
+ */
+export const initWindowStateManager = (): (() => void) => {
+  if (typeof window === 'undefined') return () => {};
+
+  let idleTimer: ReturnType<typeof setTimeout> | null = null;
+  const IDLE_TIMEOUT_MS = 2500; // 2.5s of zero user activity pauses ambient animations & rAF loops
+  let lastActivityTime = 0;
+
+  const setIdle = (idle: boolean) => {
+    notifyIdleListeners(idle);
   };
 
   const handleUserActivity = () => {
     const now = Date.now();
-    if (typeof document !== 'undefined' && document.documentElement.classList.contains('is-user-idle')) {
+    if (isUserIdleState) {
       setIdle(false);
     }
     // Throttle idle timer reset to avoid overhead on rapid cursor motion
-    if (now - lastActivityTime > 400) {
+    if (now - lastActivityTime > 200) {
       lastActivityTime = now;
       if (idleTimer) clearTimeout(idleTimer);
       if (!document.hidden && (typeof document.hasFocus === 'function' ? document.hasFocus() : true)) {
@@ -89,7 +124,6 @@ export const initWindowStateManager = (): (() => void) => {
   const handleBlur = () => {
     if (idleTimer) clearTimeout(idleTimer);
     setIdle(true);
-    // Notify window blur without completely blacking out
     notifyListeners(false);
   };
 
@@ -130,7 +164,9 @@ export const initWindowStateManager = (): (() => void) => {
     const initialActive = !document.hidden && (typeof document.hasFocus === 'function' ? document.hasFocus() : true);
     notifyListeners(initialActive);
     if (initialActive) {
-      handleUserActivity();
+      idleTimer = setTimeout(() => {
+        setIdle(true);
+      }, IDLE_TIMEOUT_MS);
     }
   }
 
@@ -187,4 +223,19 @@ export const useWindowState = (): boolean => {
   }, []);
 
   return active;
+};
+
+/**
+ * React hook to react to user active vs idle states.
+ */
+export const useUserIdle = (): boolean => {
+  const [idle, setIdle] = React.useState<boolean>(isUserIdleState);
+
+  React.useEffect(() => {
+    return subscribeUserIdle((newIdle) => {
+      setIdle(newIdle);
+    });
+  }, []);
+
+  return idle;
 };
