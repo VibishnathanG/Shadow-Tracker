@@ -1,2 +1,2 @@
-4675e8041ee305ba5318ae8e5d93b461ef2509c054a3e1d435fe23b392e87a62  shadow-tracker-web-v14.tar.gz
-6107321b3516c83efcbf249842cf9673971653108d03aad0280ba963939cff47  shadow-tracker-docker-v14.tar.gz
+fb7d101ecf1dc3ba9b35d6f385c78877401bab4d015f38082efb73db11cd50e3  shadow-tracker-web-v15.tar.gz
+b0389412fd78d61bb6ba01ac010cf3dfe3733a76c9175e1e615fa6a718d12e15  shadow-tracker-docker-v15.tar.gz
