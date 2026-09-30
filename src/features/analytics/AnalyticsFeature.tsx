@@ -680,7 +680,7 @@ const HabitsMonthlyGridCard: React.FC = () => {
               <thead>
                 {/* Row 1: Week Headers */}
                 <tr>
-                  <th className="sticky left-0 bg-[color-mix(in_srgb,var(--surface)_80%,var(--primary)_20%)] backdrop-blur-md z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] text-left text-[11px] sm:text-xs font-black text-foreground uppercase tracking-wider border-b border-border/50 border-r border-primary/25 shadow-xs">
+                  <th className="sticky left-0 habit-matrix-sticky-header backdrop-blur-md z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] text-left text-[11px] sm:text-xs font-black text-foreground uppercase tracking-wider border-b border-border/50 border-r shadow-xs">
                     <div className="flex items-center gap-1.5 truncate">
                       <Lucide.CalendarDays size={13} className="text-primary shrink-0" />
                       <span className="truncate">{matrixViewMode === 'week' ? `WEEK ${weekGroups[selectedWeekIdx]?.weekNumber || 1}` : 'MONTHLY GRID'}</span>
@@ -705,7 +705,7 @@ const HabitsMonthlyGridCard: React.FC = () => {
 
                 {/* Row 2: Day of Week Abbreviation & Day Number */}
                 <tr className="border-b border-border/60">
-                  <th className="sticky left-0 bg-[color-mix(in_srgb,var(--surface)_82%,var(--primary)_18%)] backdrop-blur-md z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] text-[11px] sm:text-xs font-black text-foreground/90 uppercase text-left border-r border-primary/25 shadow-xs">
+                  <th className="sticky left-0 habit-matrix-sticky-header-sub backdrop-blur-md z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] text-[11px] sm:text-xs font-black text-foreground/90 uppercase text-left border-r shadow-xs">
                     <div className="flex items-center gap-1.5 truncate">
                       <Lucide.Repeat size={13} className="text-primary shrink-0" />
                       <span className="truncate">Habits ({activeHabits.length})</span>
@@ -744,7 +744,7 @@ const HabitsMonthlyGridCard: React.FC = () => {
                 {activeHabits.map((habit) => (
                   <tr key={habit.id} className="border-b border-border/60 hover:bg-secondary/20 transition-colors group">
                     {/* Habit Name Column (Sticky Left) */}
-                    <td className="sticky left-0 bg-[color-mix(in_srgb,var(--surface)_85%,var(--primary)_15%)] group-hover:bg-[color-mix(in_srgb,var(--surface)_76%,var(--primary)_24%)] backdrop-blur-md z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r border-primary/25 text-left align-middle transition-colors shadow-xs">
+                    <td className="sticky left-0 habit-matrix-sticky habit-matrix-sticky-row backdrop-blur-md z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r text-left align-middle transition-colors shadow-xs">
                       <div className="flex items-center gap-2 font-bold text-[12px] sm:text-sm text-foreground group-hover:text-primary tracking-wide transition-colors min-w-0">
                         <div 
                           className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs"
@@ -844,7 +844,7 @@ const HabitsMonthlyGridCard: React.FC = () => {
 
                 {/* Summary Row 1: Progress % */}
                 <tr className="border-t-2 border-border/80 bg-surface-elevated/40 font-black text-xs sm:text-sm">
-                  <td className="sticky left-0 bg-[color-mix(in_srgb,var(--surface)_84%,var(--primary)_16%)] backdrop-blur-md z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r border-primary/25 text-left align-middle text-muted-foreground uppercase tracking-wider font-black text-xs sm:text-sm shadow-xs">
+                  <td className="sticky left-0 habit-matrix-sticky-summary backdrop-blur-md z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r text-left align-middle text-muted-foreground uppercase tracking-wider font-black text-xs sm:text-sm shadow-xs">
                     Progress %
                   </td>
                   {displayDays.map(date => {
@@ -860,7 +860,7 @@ const HabitsMonthlyGridCard: React.FC = () => {
 
                 {/* Summary Row 2: Done */}
                 <tr className="bg-surface-elevated/20 font-black text-xs sm:text-sm">
-                  <td className="sticky left-0 bg-[color-mix(in_srgb,var(--surface)_84%,var(--primary)_16%)] backdrop-blur-md z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r border-primary/25 text-left align-middle text-emerald-400 uppercase tracking-wider font-black text-xs sm:text-sm shadow-xs">
+                  <td className="sticky left-0 habit-matrix-sticky-summary backdrop-blur-md z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r text-left align-middle text-emerald-400 uppercase tracking-wider font-black text-xs sm:text-sm shadow-xs">
                     Done
                   </td>
                   {displayDays.map(date => {
@@ -876,7 +876,7 @@ const HabitsMonthlyGridCard: React.FC = () => {
 
                 {/* Summary Row 3: Not Done */}
                 <tr className="bg-surface-elevated/20 font-black text-xs sm:text-sm">
-                  <td className="sticky left-0 bg-[color-mix(in_srgb,var(--surface)_84%,var(--primary)_16%)] backdrop-blur-md z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r border-primary/25 text-left align-middle text-rose-400 uppercase tracking-wider font-black text-xs sm:text-sm shadow-xs">
+                  <td className="sticky left-0 habit-matrix-sticky-summary backdrop-blur-md z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r text-left align-middle text-rose-400 uppercase tracking-wider font-black text-xs sm:text-sm shadow-xs">
                     Not Done
                   </td>
                   {displayDays.map(date => {

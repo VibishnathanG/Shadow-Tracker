@@ -2482,3 +2482,75 @@ body.modal-open {
   will-change: transform;
 }
 
+/* Habit Matrix Sticky Sidebar — Harmonized Base & Theme Specific Overrides */
+.habit-matrix-sticky {
+  background-color: color-mix(in srgb, var(--surface) 85%, var(--primary) 15%);
+  border-right-color: color-mix(in srgb, var(--primary) 25%, transparent);
+}
+.habit-matrix-sticky-header {
+  background-color: color-mix(in srgb, var(--surface) 80%, var(--primary) 20%);
+  border-right-color: color-mix(in srgb, var(--primary) 25%, transparent);
+}
+.habit-matrix-sticky-header-sub {
+  background-color: color-mix(in srgb, var(--surface) 82%, var(--primary) 18%);
+  border-right-color: color-mix(in srgb, var(--primary) 25%, transparent);
+}
+.habit-matrix-sticky-summary {
+  background-color: color-mix(in srgb, var(--surface) 84%, var(--primary) 16%);
+  border-right-color: color-mix(in srgb, var(--primary) 25%, transparent);
+}
+.habit-matrix-sticky-row:hover {
+  background-color: color-mix(in srgb, var(--surface) 76%, var(--primary) 24%);
+}
+
+/* Obsidian, Cyberpunk, and Spectrum: Black-shaded dark grey kind of background */
+html[data-theme="obsidian"] .habit-matrix-sticky,
+html.theme-obsidian .habit-matrix-sticky,
+html[data-theme="cyberpunk"] .habit-matrix-sticky,
+html.theme-cyberpunk .habit-matrix-sticky,
+html[data-theme="spectrum"] .habit-matrix-sticky,
+html.theme-spectrum .habit-matrix-sticky {
+  background-color: #121316 !important;
+  border-right-color: rgba(255, 255, 255, 0.09) !important;
+}
+
+html[data-theme="obsidian"] .habit-matrix-sticky-header,
+html.theme-obsidian .habit-matrix-sticky-header,
+html[data-theme="cyberpunk"] .habit-matrix-sticky-header,
+html.theme-cyberpunk .habit-matrix-sticky-header,
+html[data-theme="spectrum"] .habit-matrix-sticky-header,
+html.theme-spectrum .habit-matrix-sticky-header {
+  background-color: #16181d !important;
+  border-right-color: rgba(255, 255, 255, 0.09) !important;
+}
+
+html[data-theme="obsidian"] .habit-matrix-sticky-header-sub,
+html.theme-obsidian .habit-matrix-sticky-header-sub,
+html[data-theme="cyberpunk"] .habit-matrix-sticky-header-sub,
+html.theme-cyberpunk .habit-matrix-sticky-header-sub,
+html[data-theme="spectrum"] .habit-matrix-sticky-header-sub,
+html.theme-spectrum .habit-matrix-sticky-header-sub {
+  background-color: #14151a !important;
+  border-right-color: rgba(255, 255, 255, 0.09) !important;
+}
+
+html[data-theme="obsidian"] .habit-matrix-sticky-summary,
+html.theme-obsidian .habit-matrix-sticky-summary,
+html[data-theme="cyberpunk"] .habit-matrix-sticky-summary,
+html.theme-cyberpunk .habit-matrix-sticky-summary,
+html[data-theme="spectrum"] .habit-matrix-sticky-summary,
+html.theme-spectrum .habit-matrix-sticky-summary {
+  background-color: #131418 !important;
+  border-right-color: rgba(255, 255, 255, 0.09) !important;
+}
+
+html[data-theme="obsidian"] .habit-matrix-sticky-row:hover,
+html.theme-obsidian .habit-matrix-sticky-row:hover,
+html[data-theme="cyberpunk"] .habit-matrix-sticky-row:hover,
+html.theme-cyberpunk .habit-matrix-sticky-row:hover,
+html[data-theme="spectrum"] .habit-matrix-sticky-row:hover,
+html.theme-spectrum .habit-matrix-sticky-row:hover {
+  background-color: #1c1e24 !important;
+}
+
+

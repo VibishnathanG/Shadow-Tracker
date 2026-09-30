@@ -1117,15 +1117,15 @@ export default function GymFitnessTab({
           </div>
 
           {/* Plan Selector & Custom Actions Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-2.5">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2.5 w-full sm:w-auto">
+            <div className="flex items-center gap-2 w-full sm:w-auto min-w-0">
               <select
                 value={selectedPlanId}
                 onChange={e => {
                   setSelectedPlanId(e.target.value);
                   setSelectedDayIndex(0);
                 }}
-                className="text-xs font-black px-3.5 py-2 bg-secondary text-foreground rounded-xl border border-border/80 outline-none cursor-pointer focus:border-amber-400"
+                className="w-full sm:w-auto max-w-full truncate text-xs font-black px-3 py-2 bg-secondary text-foreground rounded-xl border border-border/80 outline-none cursor-pointer focus:border-amber-400"
               >
                 <optgroup label="⭐ My Custom Routines">
                   {customPlans.map(p => (

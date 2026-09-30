@@ -973,28 +973,30 @@ export default function HealthFeature() {
             </div>
 
             {/* Vitality & Daily Energy Rating */}
-            <div className="tile settings-tile p-5 sm:p-6 rounded-3xl space-y-5 flex flex-col justify-between">
-              <div className="flex items-center justify-between border-b border-border/60 pb-3">
-                <div className="flex items-center gap-2.5">
-                  <span className="p-2 bg-amber-500/15 text-amber-500 rounded-xl">
-                    <Lucide.Sparkles size={18} />
+            <div className="tile settings-tile p-4 sm:p-5 rounded-3xl space-y-4 flex flex-col justify-between">
+              <div className="flex items-center justify-between border-b border-border/60 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 bg-amber-500/15 text-amber-500 rounded-xl">
+                    <Lucide.Sparkles size={16} />
                   </span>
                   <div>
-                    <h3 className="text-sm font-extrabold text-foreground uppercase tracking-wider">Energy Check-in</h3>
-                    <p className="text-[11px] text-muted-foreground font-medium">Daily subjective energy check-in</p>
+                    <h3 className="text-xs sm:text-sm font-extrabold text-foreground uppercase tracking-wider">Energy Check-in</h3>
+                    <p className="text-[10px] text-muted-foreground font-medium">Daily subjective energy &amp; weight log</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1 bg-secondary p-1 rounded-xl border border-border/60 text-[10px] font-bold">
+                <div className="flex items-center gap-1 bg-secondary p-0.5 rounded-xl border border-border/60 text-[10px] font-bold">
                   <button
+                    type="button"
                     onClick={() => updateCurrentHealth(prev => ({ ...prev, weightUnit: 'kg' }))}
-                    className={`px-2 py-0.5 rounded-lg cursor-pointer ${currentData.weightUnit === 'kg' ? 'bg-amber-500 text-white' : 'text-muted-foreground'}`}
+                    className={`px-2 py-0.5 rounded-lg cursor-pointer transition-all ${currentData.weightUnit === 'kg' ? 'bg-amber-500 text-white shadow-2xs font-black' : 'text-muted-foreground hover:text-foreground'}`}
                   >
                     KG
                   </button>
                   <button
+                    type="button"
                     onClick={() => updateCurrentHealth(prev => ({ ...prev, weightUnit: 'lbs' }))}
-                    className={`px-2 py-0.5 rounded-lg cursor-pointer ${currentData.weightUnit === 'lbs' ? 'bg-amber-500 text-white' : 'text-muted-foreground'}`}
+                    className={`px-2 py-0.5 rounded-lg cursor-pointer transition-all ${currentData.weightUnit === 'lbs' ? 'bg-amber-500 text-white shadow-2xs font-black' : 'text-muted-foreground hover:text-foreground'}`}
                   >
                     LBS
                   </button>
@@ -1002,56 +1004,111 @@ export default function HealthFeature() {
               </div>
 
               {/* Energy Level Selector (1-5) */}
-              <div className="space-y-2">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase">Today's Subjective Energy</label>
-                <div className="grid grid-cols-5 gap-2">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Today's Subjective Energy</label>
+                <div className="grid grid-cols-5 gap-1.5">
                   {[1, 2, 3, 4, 5].map((lvl) => {
                     const isSel = (currentData.energyLevel || 3) === lvl;
                     const labels = ['Drained', 'Low', 'Moderate', 'High', 'Peak'];
                     return (
                       <button
                         key={lvl}
+                        type="button"
                         onClick={() => updateCurrentHealth(prev => ({ ...prev, energyLevel: lvl as any }))}
-                        className={`flex flex-col items-center justify-center p-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                        className={`flex flex-col items-center justify-center py-1.5 px-1 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
                           isSel
-                            ? 'bg-amber-500 text-white border-amber-400 shadow-md shadow-amber-500/25'
+                            ? 'bg-amber-500 text-white border-amber-400 shadow-xs shadow-amber-500/25 font-black'
                             : 'bg-secondary/40 text-muted-foreground border-border/60 hover:bg-secondary'
                         }`}
                       >
-                        <span className="text-base font-black font-mono">{lvl}</span>
-                        <span className="text-[9px] mt-0.5 truncate max-w-full">{labels[lvl - 1]}</span>
+                        <span className="text-sm font-black font-mono leading-none">{lvl}</span>
+                        <span className="text-[8.5px] mt-0.5 truncate max-w-full font-medium">{labels[lvl - 1]}</span>
                       </button>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Quick Today's Weight Check-in */}
-              <div className="space-y-2 bg-secondary/30 p-4 rounded-2xl border border-border/50">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase">
-                  Fast Weight Check ({currentData.weightUnit.toUpperCase()})
-                </label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="number"
-                    step="0.1"
-                    placeholder="e.g. 75.0"
-                    value={currentData.weightKg || ''}
-                    onChange={(e) => {
-                      const val = parseFloat(e.target.value);
-                      updateCurrentHealth(prev => ({ ...prev, weightKg: isNaN(val) ? undefined : val }));
-                    }}
-                    className="flex-1 text-base font-black font-mono px-4 py-2 bg-secondary text-foreground rounded-xl border border-border/60 outline-none focus:border-amber-400"
-                  />
-                  <span className="text-sm font-extrabold text-muted-foreground">{currentData.weightUnit}</span>
-                </div>
-              </div>
+              {/* Quick Today's Weight Check-in with 10-150 KG / 22-330 LBS enforcement */}
+              {(() => {
+                const isKg = (currentData.weightUnit || 'kg') === 'kg';
+                const minAllowed = isKg ? 10 : 22;
+                const maxAllowed = isKg ? 150 : 330;
+                const currentWeightVal = currentData.weightKg || '';
+                const isOutOfRange = currentData.weightKg !== undefined && (currentData.weightKg < minAllowed || currentData.weightKg > maxAllowed);
 
-              {/* Advice Card */}
-              <div className="p-3.5 bg-primary/10 border border-primary/20 rounded-2xl flex items-center gap-3 text-xs text-foreground">
-                <Lucide.Sparkles size={16} className="text-primary shrink-0" />
-                <p className="font-medium text-[11px] leading-relaxed">
-                  Drinking 2.5L+ water and adhering to your daily nutrition plate keeps insulin stable and preserves cognitive velocity all day.
+                return (
+                  <div className="space-y-1.5 bg-secondary/30 p-3 rounded-2xl border border-border/50">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1.5">
+                        <Lucide.Scale size={12} className="text-emerald-400" />
+                        <span>Weight Check ({currentData.weightUnit.toUpperCase()})</span>
+                      </label>
+                      <span className={`text-[9.5px] font-mono font-bold ${isOutOfRange ? 'text-rose-400' : 'text-muted-foreground'}`}>
+                        Range: {minAllowed}–{maxAllowed} {currentData.weightUnit}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="relative flex-1">
+                        <input
+                          type="number"
+                          step="0.1"
+                          min={minAllowed}
+                          max={maxAllowed}
+                          placeholder={`e.g. ${isKg ? '74.5' : '164.0'}`}
+                          value={currentWeightVal}
+                          onKeyDown={(e) => {
+                            if (e.key === '-' || e.key === 'e' || e.key === '+') {
+                              e.preventDefault();
+                            }
+                          }}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            if (!raw) {
+                              updateCurrentHealth(prev => ({ ...prev, weightKg: undefined }));
+                              return;
+                            }
+                            const val = parseFloat(raw);
+                            if (isNaN(val)) return;
+                            // Block typing numbers higher than maxAllowed
+                            if (val > maxAllowed) return;
+                            updateCurrentHealth(prev => ({ ...prev, weightKg: val }));
+                          }}
+                          onBlur={(e) => {
+                            const val = parseFloat(e.target.value);
+                            if (!isNaN(val) && val > 0) {
+                              if (val < minAllowed) {
+                                updateCurrentHealth(prev => ({ ...prev, weightKg: minAllowed }));
+                              } else if (val > maxAllowed) {
+                                updateCurrentHealth(prev => ({ ...prev, weightKg: maxAllowed }));
+                              }
+                            }
+                          }}
+                          className={`w-full text-xs font-black font-mono px-3 py-1.5 bg-secondary text-foreground rounded-xl border outline-none transition-all pr-12 ${
+                            isOutOfRange
+                              ? 'border-rose-500/80 focus:border-rose-500'
+                              : 'border-border/60 focus:border-amber-400'
+                          }`}
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-extrabold uppercase text-muted-foreground pointer-events-none">
+                          {currentData.weightUnit}
+                        </span>
+                      </div>
+                    </div>
+                    {isOutOfRange && (
+                      <p className="text-[9.5px] font-bold text-rose-400 animate-fadeIn">
+                        Weight must be between {minAllowed} and {maxAllowed} {currentData.weightUnit}.
+                      </p>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* Advice Card - Slim One-Liner */}
+              <div className="px-3 py-2 bg-primary/10 border border-primary/20 rounded-xl flex items-center gap-2 text-foreground">
+                <Lucide.Sparkles size={13} className="text-primary shrink-0" />
+                <p className="font-medium text-[10px] leading-tight text-muted-foreground truncate">
+                  2.5L+ water and stable nutrition preserves cognitive velocity all day.
                 </p>
               </div>
             </div>

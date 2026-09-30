@@ -114,17 +114,17 @@ export default function MicronutrientSection({ loggedFoods }: MicronutrientSecti
           </div>
         </div>
 
-        {/* Dynamic Personal Preset Controls */}
-        <div className="flex flex-wrap items-center gap-2 bg-surface p-1.5 rounded-full border border-border/80 text-xs">
+        {/* Dynamic Personal Preset Controls (Compact One-Liner, Un-enclosed) */}
+        <div className="flex items-center gap-2 flex-nowrap overflow-x-auto self-start sm:self-auto py-1">
           {/* Sex Switcher */}
-          <div className="flex items-center gap-1 bg-secondary/60 p-0.5 rounded-full border border-border/50">
+          <div className="flex items-center gap-1 shrink-0">
             <button
               type="button"
               onClick={() => setSelectedSex('male')}
-              className={`px-3 py-1 rounded-full font-bold transition-all cursor-pointer ${
+              className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-all cursor-pointer ${
                 selectedSex === 'male'
-                  ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40 shadow-xs'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'bg-blue-500 text-white shadow-xs font-black'
+                  : 'text-muted-foreground hover:text-foreground bg-secondary/50'
               }`}
             >
               ♂ Male
@@ -132,28 +132,30 @@ export default function MicronutrientSection({ loggedFoods }: MicronutrientSecti
             <button
               type="button"
               onClick={() => setSelectedSex('female')}
-              className={`px-3 py-1 rounded-full font-bold transition-all cursor-pointer ${
+              className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-all cursor-pointer ${
                 selectedSex === 'female'
-                  ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40 shadow-xs'
-                  : 'text-muted-foreground hover:text-foreground'
+                  ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-xs font-black'
+                  : 'text-muted-foreground hover:text-foreground bg-secondary/50'
               }`}
             >
               ♀ Female
             </button>
           </div>
 
+          <div className="h-3 w-px bg-border/60 shrink-0" />
+
           {/* Clean Rounded Age Group Selector */}
-          <div className="flex items-center gap-1 bg-secondary/60 p-0.5 rounded-full border border-border/50">
-            <span className="text-[9.5px] font-black text-muted-foreground uppercase tracking-wider pl-2 pr-0.5">Age:</span>
+          <div className="flex items-center gap-1 shrink-0">
+            <span className="text-[9.5px] font-extrabold text-muted-foreground uppercase tracking-wider mr-0.5">Age:</span>
             {(['teen', 'adult', 'senior'] as const).map(preset => (
               <button
                 key={preset}
                 type="button"
                 onClick={() => setSelectedAgePreset(preset)}
-                className={`px-2.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-all cursor-pointer ${
                   selectedAgePreset === preset
-                    ? 'bg-primary text-primary-foreground shadow-xs'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'bg-primary text-primary-foreground shadow-xs font-black'
+                    : 'text-muted-foreground hover:text-foreground bg-secondary/50'
                 }`}
                 title={ageLabels[preset]}
               >

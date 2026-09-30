@@ -397,12 +397,12 @@ export default function NutritionPlateVisualizer({
                 </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+              <div className="flex items-center gap-1.5 sm:gap-2 self-start sm:self-auto flex-nowrap">
                 {onAddSupplement && (
                   <button
                     type="button"
                     onClick={() => setShowSupplementModal(true)}
-                    className="px-3.5 py-2 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 font-black text-xs rounded-xl transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+                    className="px-2.5 sm:px-3.5 py-1.5 sm:py-2 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 border border-emerald-500/30 font-black text-[11px] sm:text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer active:scale-95 whitespace-nowrap"
                     title="Add multivitamin, protein, creatine, or minerals"
                   >
                     <span>💊</span>
@@ -411,9 +411,9 @@ export default function NutritionPlateVisualizer({
                 )}
                 <button
                   onClick={() => onOpenAddModal()}
-                  className="px-4 py-2 bg-primary text-primary-foreground font-black text-xs rounded-xl shadow-md hover:bg-primary/90 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
+                  className="px-3 sm:px-4 py-1.5 sm:py-2 bg-primary text-primary-foreground font-black text-[11px] sm:text-xs rounded-xl shadow-md hover:bg-primary/90 transition-all flex items-center gap-1 cursor-pointer active:scale-95 whitespace-nowrap"
                 >
-                  <Lucide.Plus size={14} /> Add Food to Plate
+                  <Lucide.Plus size={13} /> <span>Add Food to Plate</span>
                 </button>
               </div>
             </div>

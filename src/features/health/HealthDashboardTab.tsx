@@ -830,148 +830,72 @@ export default function HealthDashboardTab({
             </div>
 
             {/* Today's Weight & Target Goal */}
-            {(!currentData.weightKg || isEditingWeight) ? (
-              <div className="p-3 bg-secondary/40 hover:bg-secondary/60 transition-all rounded-2xl border border-border/70 space-y-2">
-                <div className="flex items-center justify-between text-xs font-bold">
-                  <span className="text-muted-foreground flex items-center gap-1.5">
-                    <Lucide.Scale size={13} className="text-emerald-400" />
-                    <span>Today's Weight</span>
-                  </span>
-                  {biometrics.targetWeightKg ? (
-                    <span className="text-[11px] text-muted-foreground font-medium">
-                      Goal: <span className="font-mono font-bold text-emerald-400">{biometrics.targetWeightKg}</span> {weightUnit}
+            <div className="space-y-1.5 p-3 bg-secondary/30 hover:bg-secondary/40 transition-all rounded-2xl border border-border/60">
+              <div className="flex items-center justify-between text-xs font-bold">
+                <span className="text-muted-foreground flex items-center gap-1.5">
+                  <Lucide.Scale size={13} className="text-emerald-400" />
+                  <span>Today's Weight</span>
+                </span>
+                <div className="flex items-center gap-1.5">
+                  {currentData.weightKg ? (
+                    <>
+                      <span className="font-mono text-foreground font-extrabold text-sm">
+                        {currentData.weightKg} <span className="text-xs font-medium text-muted-foreground">{weightUnit}</span>
+                      </span>
+                      {biometrics.targetWeightKg ? (
+                        <span className="text-[11px] text-muted-foreground font-normal">
+                          / Goal: <span className="font-mono font-bold text-foreground">{biometrics.targetWeightKg}</span> {weightUnit}
+                        </span>
+                      ) : null}
+                    </>
+                  ) : (
+                    <span className="text-[11px] text-muted-foreground font-medium italic">
+                      Not logged today {biometrics.targetWeightKg ? `(Goal: ${biometrics.targetWeightKg} ${weightUnit})` : ''}
                     </span>
-                  ) : null}
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <div className="relative flex-1">
-                    <input
-                      type="number"
-                      step="0.1"
-                      min="20"
-                      max="350"
-                      value={weightInput}
-                      onChange={(e) => setWeightInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          handleSaveWeight();
-                        } else if (e.key === 'Escape' && isEditingWeight) {
-                          setIsEditingWeight(false);
-                        }
-                      }}
-                      placeholder={currentData.weightKg ? String(currentData.weightKg) : `Log weight (e.g. 74.5)`}
-                      className="w-full bg-background/80 border border-border/80 focus:border-emerald-500/70 focus:ring-2 focus:ring-emerald-500/20 text-foreground font-mono text-xs px-3 py-2 rounded-xl outline-none transition-all placeholder:text-muted-foreground/50 pr-10"
-                      autoFocus={isEditingWeight}
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-muted-foreground pointer-events-none">
-                      {weightUnit}
-                    </span>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleSaveWeight}
-                    disabled={!weightInput || isNaN(parseFloat(weightInput)) || parseFloat(weightInput) <= 0}
-                    className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-xs shadow-xs hover:shadow-emerald-500/20 transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
-                  >
-                    <Lucide.Check size={13} />
-                    <span>Save</span>
-                  </button>
-
-                  {isEditingWeight && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsEditingWeight(false);
-                        setWeightInput('');
-                      }}
-                      className="p-2 rounded-xl bg-secondary/80 hover:bg-secondary text-muted-foreground hover:text-foreground border border-border/60 transition-all cursor-pointer shrink-0"
-                      title="Cancel"
-                    >
-                      <Lucide.X size={13} />
-                    </button>
                   )}
                 </div>
               </div>
-            ) : (
-              <div className="space-y-1.5 p-3 bg-secondary/30 hover:bg-secondary/50 transition-all rounded-2xl border border-border/60 group">
-                <div className="flex items-center justify-between text-xs font-bold">
-                  <span className="text-muted-foreground flex items-center gap-1.5">
-                    <Lucide.Scale size={13} className="text-emerald-400" />
-                    <span>Today's Weight</span>
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-mono text-foreground font-extrabold text-sm">
-                      {currentData.weightKg} <span className="text-xs font-medium text-muted-foreground">{weightUnit}</span>
-                    </span>
-                    {biometrics.targetWeightKg ? (
-                      <span className="text-[11px] text-muted-foreground font-normal">
-                        / Goal: <span className="font-mono font-bold text-foreground">{biometrics.targetWeightKg}</span> {weightUnit}
-                      </span>
-                    ) : null}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setWeightInput(String(currentData.weightKg));
-                        setIsEditingWeight(true);
-                      }}
-                      className="text-muted-foreground/60 hover:text-foreground hover:bg-secondary/80 p-1 rounded-md transition-colors cursor-pointer ml-1"
-                      title="Edit weight"
-                    >
-                      <Lucide.Edit2 size={12} />
-                    </button>
-                  </div>
-                </div>
 
-                {/* Progress bar towards goal */}
-                {biometrics.targetWeightKg ? (() => {
-                  const cur = currentData.weightKg!;
-                  const target = biometrics.targetWeightKg;
-                  const diff = cur - target;
-                  const isAtGoal = Math.abs(diff) < 0.2;
-                  const closenessPct = Math.min(100, Math.max(5, Math.round((Math.min(cur, target) / Math.max(cur, target)) * 100)));
+              {/* Progress bar towards goal */}
+              {currentData.weightKg && biometrics.targetWeightKg ? (() => {
+                const cur = currentData.weightKg;
+                const target = biometrics.targetWeightKg;
+                const diff = cur - target;
+                const isAtGoal = Math.abs(diff) < 0.2;
+                const closenessPct = Math.min(100, Math.max(5, Math.round((Math.min(cur, target) / Math.max(cur, target)) * 100)));
 
-                  return (
-                    <div className="space-y-1 pt-0.5">
-                      <div className="w-full h-2.5 bg-secondary rounded-full overflow-hidden">
-                        <div
-                          style={{ width: `${isAtGoal ? 100 : closenessPct}%` }}
-                          className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500"
-                        />
-                      </div>
-                      <div className="flex items-center justify-between text-[10.5px] text-muted-foreground pt-0.5">
-                        <span className="flex items-center gap-1 font-medium">
-                          {isAtGoal ? (
-                            <span className="text-emerald-400 font-bold flex items-center gap-1">
-                              <Lucide.CheckCircle2 size={11} /> Target Goal Reached!
-                            </span>
-                          ) : diff > 0 ? (
-                            <span>
-                              <span className="font-mono font-bold text-emerald-400">{(diff).toFixed(1)} {weightUnit}</span> to target goal
-                            </span>
-                          ) : (
-                            <span>
-                              <span className="font-mono font-bold text-teal-400">{Math.abs(diff).toFixed(1)} {weightUnit}</span> under target goal
-                            </span>
-                          )}
-                        </span>
-                        <span className="font-mono text-muted-foreground/80 font-bold">
-                          {isAtGoal ? '100%' : `${closenessPct}% match`}
-                        </span>
-                      </div>
+                return (
+                  <div className="space-y-1 pt-0.5">
+                    <div className="w-full h-2 bg-secondary rounded-full overflow-hidden">
+                      <div
+                        style={{ width: `${isAtGoal ? 100 : closenessPct}%` }}
+                        className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500"
+                      />
                     </div>
-                  );
-                })() : (
-                  <div className="w-full h-2.5 bg-secondary rounded-full overflow-hidden">
-                    <div
-                      style={{ width: '100%' }}
-                      className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full"
-                    />
+                    <div className="flex items-center justify-between text-[10.5px] text-muted-foreground pt-0.5">
+                      <span className="flex items-center gap-1 font-medium">
+                        {isAtGoal ? (
+                          <span className="text-emerald-400 font-bold flex items-center gap-1">
+                            <Lucide.CheckCircle2 size={11} /> Target Goal Reached!
+                          </span>
+                        ) : diff > 0 ? (
+                          <span>
+                            <span className="font-mono font-bold text-emerald-400">{(diff).toFixed(1)} {weightUnit}</span> to target goal
+                          </span>
+                        ) : (
+                          <span>
+                            <span className="font-mono font-bold text-teal-400">{Math.abs(diff).toFixed(1)} {weightUnit}</span> under target goal
+                          </span>
+                        )}
+                      </span>
+                      <span className="font-mono text-muted-foreground/80 font-bold">
+                        {isAtGoal ? '100%' : `${closenessPct}% match`}
+                      </span>
+                    </div>
                   </div>
-                )}
-              </div>
-            )}
+                );
+              })() : null}
+            </div>
 
             {/* Quick Status Pill */}
             <div className="p-3 bg-secondary/30 rounded-2xl border border-border/50 flex items-center justify-between text-xs pt-2">
@@ -1234,6 +1158,189 @@ export default function HealthDashboardTab({
             </div>
           )}
         </div>
+
+        {/* Selected Day Bio, Sleep, Hydration & Nutrition Overview */}
+        {(() => {
+          const selectedDayHealth = healthMap[selectedDayInfo.dateStr] || (selectedDayInfo.dateStr === todayStr ? currentData : null);
+          const selHydration = selectedDayHealth?.waterIntakeMl || 0;
+          const selHydrationGoal = selectedDayHealth?.waterGoalMl || 2500;
+          const selSleep = selectedDayHealth?.sleepHours || 0;
+          const selSleepGoal = selectedDayHealth?.sleepGoalHours || 8;
+          const selSleepQuality = selectedDayHealth?.sleepQuality;
+          const selWeight = selectedDayHealth?.weightKg;
+          const selFoods = selectedDayHealth?.loggedFoods || [];
+          const selCalories = selFoods.reduce((acc, f) => acc + (f.calories || 0), 0);
+          const selCalorieGoal = selectedDayHealth?.calorieGoal || metabolicProfile.tdee || 2000;
+          const selProtein = Math.round(selFoods.reduce((acc, f) => acc + (f.protein || 0), 0));
+          const selCarbs = Math.round(selFoods.reduce((acc, f) => acc + (f.carbs || 0), 0));
+          const selFats = Math.round(selFoods.reduce((acc, f) => acc + (f.fats || 0), 0));
+
+          // Calculate micronutrients / vitamins RDA
+          const selMicros = calculateDailyMicronutrients(selFoods, biometrics.sex || 'male', 'adult');
+          const selRdaPct = selMicros.length > 0 
+            ? Math.round(selMicros.reduce((acc, m) => acc + m.percentage, 0) / selMicros.length)
+            : 0;
+
+          return (
+            <div className="p-4 sm:p-5 bg-secondary/40 rounded-2xl border border-border/70 space-y-4 animate-fadeIn">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-border/60 pb-2.5">
+                <div className="flex items-center gap-2">
+                  <span className="p-1.5 bg-sky-500/15 text-sky-400 rounded-xl">
+                    <Lucide.Activity size={15} />
+                  </span>
+                  <h4 className="text-xs sm:text-sm font-black text-foreground">
+                    Health, Sleep &amp; Nutrition Overview for {new Date(`${selectedDayInfo.dateStr}T12:00:00`).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                  </h4>
+                </div>
+
+                {onNavigateToDate && (
+                  <button
+                    type="button"
+                    onClick={() => onNavigateToDate(selectedDayInfo.dateStr, 'diet')}
+                    className="px-3 py-1.5 rounded-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/25 text-xs font-bold inline-flex items-center gap-1.5 self-start sm:self-auto cursor-pointer transition-all shadow-2xs hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <span>Jump to Nutrition Plate</span>
+                    <Lucide.ChevronRight size={13} />
+                  </button>
+                )}
+              </div>
+
+              {/* 4 Core Pillars: Hydration, Sleep, Weight, Calorie Intake/Limit */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+                {/* 1. Hydration */}
+                <div className="p-3 bg-surface rounded-xl border border-border/60 space-y-1.5 shadow-2xs">
+                  <div className="flex items-center justify-between text-xs font-bold">
+                    <span className="text-muted-foreground flex items-center gap-1 text-[11px]">
+                      <Lucide.Droplets size={12} className="text-sky-400" /> Hydration
+                    </span>
+                    <span className="text-[10px] font-mono font-bold text-sky-400">
+                      {Math.round((selHydration / selHydrationGoal) * 100)}%
+                    </span>
+                  </div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-base sm:text-lg font-black font-mono text-foreground">{selHydration}</span>
+                    <span className="text-[10px] text-muted-foreground font-medium">/ {selHydrationGoal} ml</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
+                    <div
+                      style={{ width: `${Math.min(100, Math.round((selHydration / selHydrationGoal) * 100))}%` }}
+                      className="h-full bg-gradient-to-r from-sky-500 to-cyan-400 rounded-full"
+                    />
+                  </div>
+                </div>
+
+                {/* 2. Sleep */}
+                <div className="p-3 bg-surface rounded-xl border border-border/60 space-y-1.5 shadow-2xs">
+                  <div className="flex items-center justify-between text-xs font-bold">
+                    <span className="text-muted-foreground flex items-center gap-1 text-[11px]">
+                      <Lucide.Moon size={12} className="text-indigo-400" /> Sleep
+                    </span>
+                    {selSleepQuality && (
+                      <span className="text-[9.5px] px-1.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-400 font-bold capitalize">
+                        {selSleepQuality}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-base sm:text-lg font-black font-mono text-foreground">{selSleep}</span>
+                    <span className="text-[10px] text-muted-foreground font-medium">/ {selSleepGoal} hrs</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
+                    <div
+                      style={{ width: `${Math.min(100, Math.round((selSleep / selSleepGoal) * 100))}%` }}
+                      className="h-full bg-gradient-to-r from-indigo-500 to-purple-400 rounded-full"
+                    />
+                  </div>
+                </div>
+
+                {/* 3. Weight */}
+                <div className="p-3 bg-surface rounded-xl border border-border/60 space-y-1.5 shadow-2xs">
+                  <div className="flex items-center justify-between text-xs font-bold">
+                    <span className="text-muted-foreground flex items-center gap-1 text-[11px]">
+                      <Lucide.Scale size={12} className="text-emerald-400" /> Weight
+                    </span>
+                    {biometrics.targetWeightKg && (
+                      <span className="text-[10px] text-muted-foreground font-mono">
+                        Goal: {biometrics.targetWeightKg}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-base sm:text-lg font-black font-mono text-foreground">
+                      {selWeight ? `${selWeight}` : '—'}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground font-medium">
+                      {selWeight ? weightUnit : 'not logged'}
+                    </span>
+                  </div>
+                  <div className="text-[9.5px] text-muted-foreground font-medium truncate">
+                    {selWeight && biometrics.targetWeightKg ? (
+                      selWeight === biometrics.targetWeightKg
+                        ? 'Target achieved 🎯'
+                        : `${Math.abs(selWeight - biometrics.targetWeightKg).toFixed(1)} ${weightUnit} to goal`
+                    ) : (
+                      'Daily checkpoint'
+                    )}
+                  </div>
+                </div>
+
+                {/* 4. Calorie Intake / Limit */}
+                <div className="p-3 bg-surface rounded-xl border border-border/60 space-y-1.5 shadow-2xs">
+                  <div className="flex items-center justify-between text-xs font-bold">
+                    <span className="text-muted-foreground flex items-center gap-1 text-[11px]">
+                      <Lucide.Flame size={12} className="text-amber-400" /> Calories
+                    </span>
+                    <span className="text-[10px] font-mono font-bold text-amber-400">
+                      {Math.round((selCalories / selCalorieGoal) * 100)}%
+                    </span>
+                  </div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-base sm:text-lg font-black font-mono text-foreground">{selCalories}</span>
+                    <span className="text-[10px] text-muted-foreground font-medium">/ {selCalorieGoal} kcal</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-secondary rounded-full overflow-hidden">
+                    <div
+                      style={{ width: `${Math.min(100, Math.round((selCalories / selCalorieGoal) * 100))}%` }}
+                      className={`h-full rounded-full ${
+                        selCalories > selCalorieGoal
+                          ? 'bg-gradient-to-r from-amber-500 to-rose-500'
+                          : 'bg-gradient-to-r from-amber-500 to-emerald-400'
+                      }`}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Macros (Protein, Carbs, Fat) & Vitamin/Micronutrient Overview */}
+              <div className="p-3.5 bg-surface/70 rounded-xl border border-border/60 space-y-2.5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <span className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                    <Lucide.Utensils size={13} className="text-primary" />
+                    <span>Macronutrients &amp; Vitamins Split ({selFoods.length} logged items)</span>
+                  </span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 self-start sm:self-auto">
+                    ✨ {selRdaPct}% Daily Micronutrients RDA Met
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="p-2 bg-secondary/50 rounded-lg border border-border/40">
+                    <span className="text-[9.5px] font-bold text-sky-400 uppercase tracking-tight block">🍗 Protein</span>
+                    <span className="text-xs sm:text-sm font-black font-mono text-foreground">{selProtein}g</span>
+                  </div>
+                  <div className="p-2 bg-secondary/50 rounded-lg border border-border/40">
+                    <span className="text-[9.5px] font-bold text-amber-400 uppercase tracking-tight block">🌾 Carbs</span>
+                    <span className="text-xs sm:text-sm font-black font-mono text-foreground">{selCarbs}g</span>
+                  </div>
+                  <div className="p-2 bg-secondary/50 rounded-lg border border-border/40">
+                    <span className="text-[9.5px] font-bold text-rose-400 uppercase tracking-tight block">🥑 Fats</span>
+                    <span className="text-xs sm:text-sm font-black font-mono text-foreground">{selFats}g</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
