@@ -417,9 +417,9 @@ export default function HealthFeature() {
   const waterPct = Math.min(100, Math.round((currentData.waterIntakeMl / (currentData.waterGoalMl || 2500)) * 100));
 
   return (
-    <div className="space-y-6 pb-16">
+    <div className="space-y-4 sm:space-y-5 pb-16">
       {/* Top Banner & Health Score Hero */}
-      <div className="tile settings-tile p-5 sm:p-7 rounded-3xl relative overflow-hidden">
+      <div className="tile settings-tile p-4 sm:p-5.5 rounded-3xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-80 h-80 bg-rose-500/10 blur-[90px] pointer-events-none rounded-full" />
 
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 relative z-10">
@@ -570,9 +570,10 @@ export default function HealthFeature() {
                           step="100"
                           value={tempWaterGoal}
                           onChange={e => setTempWaterGoal(e.target.value)}
-                          className="w-20 px-2 py-0.5 text-xs bg-surface border border-sky-400 rounded-lg text-foreground font-mono font-black"
+                          className="w-20 px-2.5 py-0.5 text-xs bg-surface border border-sky-400 rounded-full text-foreground font-mono font-black outline-none"
                         />
                         <button
+                          type="button"
                           onClick={() => {
                             const val = parseInt(tempWaterGoal, 10);
                             if (!isNaN(val) && val > 0) {
@@ -580,22 +581,23 @@ export default function HealthFeature() {
                             }
                             setIsEditingWaterGoal(false);
                           }}
-                          className="px-2 py-0.5 bg-sky-500 text-white rounded-lg text-[10px] font-bold"
+                          className="px-2.5 py-0.5 bg-sky-500 hover:bg-sky-600 text-white rounded-full text-[10px] font-bold cursor-pointer transition-all active:scale-95"
                         >
                           Save
                         </button>
                       </div>
                     ) : (
                       <button
+                        type="button"
                         onClick={() => {
                           setTempWaterGoal(String(currentData.waterGoalMl || 2500));
                           setIsEditingWaterGoal(true);
                         }}
-                        className="font-bold text-foreground hover:text-sky-400 flex items-center gap-1 cursor-pointer"
+                        className="px-2.5 py-0.5 rounded-full bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/30 font-bold flex items-center gap-1 cursor-pointer transition-all shadow-2xs text-[10.5px] active:scale-95"
                         title="Click to edit daily water goal"
                       >
                         <span>{currentData.waterGoalMl} ml / day</span>
-                        <Lucide.Edit size={11} />
+                        <Lucide.Edit size={10} className="shrink-0" />
                       </button>
                     )}
                   </div>

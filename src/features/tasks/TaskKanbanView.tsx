@@ -306,9 +306,10 @@ export const TaskKanbanView: React.FC<TaskKanbanViewProps> = ({
                   <button
                     type="button"
                     onClick={() => onOpenAddModal(undefined, 'todo')}
-                    className="mt-1 text-xs font-bold text-sky-400 hover:underline cursor-pointer"
+                    className="mt-2.5 px-3 py-1 bg-sky-500/15 hover:bg-sky-500/25 border border-sky-500/30 text-sky-400 text-xs font-bold rounded-full transition-all cursor-pointer shadow-xs inline-flex items-center gap-1 active:scale-95"
                   >
-                    + Add Task
+                    <Lucide.Plus size={13} />
+                    <span>Add Task</span>
                   </button>
                 </div>
               ) : (

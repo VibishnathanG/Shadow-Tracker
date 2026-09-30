@@ -303,29 +303,24 @@ export const Layout: React.FC<LayoutProps> = ({
       <CustomDialogOverlay />
 
       {/* Desktop Sidebar */}
-      <aside className="hidden md:flex flex-col w-72 h-screen fixed top-0 left-0 bg-surface/80 backdrop-blur-xl border-r border-border/80 pt-7 pb-6 select-none z-30">
+      <aside className="hidden md:flex flex-col w-72 h-screen fixed top-0 left-0 bg-surface/80 backdrop-blur-xl border-r border-border/80 pt-4.5 pb-5 select-none z-30">
         <SidebarArt />
 
         <div className="flex flex-col h-full relative z-10 px-5 overflow-hidden">
-          {/* Logo & AI Assistant Button */}
-          <div className="flex items-center justify-between gap-2 px-1 mb-8 shrink-0 relative">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="w-13 h-13 rounded-2xl bg-primary/10 border border-primary/30 flex items-center justify-center shadow-lg shadow-primary/20 shrink-0 transition-colors">
-                <AppLogo size={32} theme={settings.theme} />
-              </div>
-              <div className="min-w-0">
-                <h1 className="text-sm sm:text-base font-black tracking-tight leading-tight whitespace-nowrap">
-                  <span className="text-primary truncate max-w-[125px] inline-block align-bottom">{settings.alias ? settings.alias.charAt(0).toUpperCase() + settings.alias.slice(1) : 'Shadow'}</span>
-                  <span className="text-white [html[data-theme='white']_&]:text-foreground [html[data-theme='light']_&]:text-foreground"> Tracker</span>
-                </h1>
-                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 mt-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-[10.5px] font-medium text-emerald-400 select-none pointer-events-none w-fit shadow-2xs">
-                  <Lucide.ShieldCheck size={11} className="text-emerald-400 shrink-0" />
-                  <span>Privacy First</span>
-                </span>
-              </div>
+          {/* Logo & AI Assistant Button with Centered Title */}
+          <div className="flex items-center justify-between gap-2 px-1 mb-4 shrink-0 relative">
+            <div className="w-11 h-11 rounded-2xl bg-primary/10 border border-primary/30 flex items-center justify-center shadow-md shadow-primary/15 shrink-0 transition-colors">
+              <AppLogo size={24} theme={settings.theme} />
             </div>
 
-            {/* AI Assistant Button */}
+            <div className="flex-1 text-center min-w-0 px-1">
+              <h1 className="text-[1.05rem] font-black tracking-tight leading-tight whitespace-nowrap">
+                <span className="text-primary truncate max-w-[90px] inline-block align-bottom">{settings.alias ? settings.alias.charAt(0).toUpperCase() + settings.alias.slice(1) : 'Shadow'}</span>
+                <span className="text-white [html[data-theme='white']_&]:text-foreground [html[data-theme='light']_&]:text-foreground"> Tracker</span>
+              </h1>
+            </div>
+
+            {/* AI Assistant Button - Identical Size & Styling to Logo */}
             <button
               onClick={() => setIsAiModalOpen(true)}
               className="w-11 h-11 rounded-2xl bg-primary/10 hover:bg-primary/20 border border-primary/30 hover:border-primary/60 text-primary flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-md shadow-primary/15 relative shrink-0 group"
@@ -456,30 +451,26 @@ export const Layout: React.FC<LayoutProps> = ({
       {/* Main Content */}
       <div className="flex-1 md:pl-72 flex flex-col min-h-screen w-full">
         {/* Mobile Header */}
-        <header className="md:hidden flex items-center justify-between px-5 py-4 bg-surface/98 backdrop-blur-xl border-b border-border sticky top-0 z-40 select-none shadow-sm">
+        <header className="md:hidden flex items-center justify-between px-4 py-2.5 sm:px-5 sm:py-3 bg-surface/98 backdrop-blur-xl border-b border-border sticky top-0 z-40 select-none shadow-sm">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-10 h-10 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center shrink-0">
               <AppLogo size={24} theme={settings.theme} />
             </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-xs sm:text-sm font-black tracking-tight leading-tight whitespace-nowrap">
+            <div className="min-w-0 text-xs sm:text-sm">
+              <span className="text-[1.05em] font-black tracking-tight leading-tight whitespace-nowrap">
                 <span className="text-primary truncate max-w-[95px] inline-block align-bottom">{settings.alias ? settings.alias.charAt(0).toUpperCase() + settings.alias.slice(1) : 'Shadow'}</span>
                 <span className="text-white [html[data-theme='white']_&]:text-foreground [html[data-theme='light']_&]:text-foreground"> Tracker</span>
-              </span>
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 mt-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-[9.5px] font-medium text-emerald-400 select-none pointer-events-none w-fit">
-                <Lucide.ShieldCheck size={9.5} className="text-emerald-400 shrink-0" />
-                <span>Privacy First</span>
               </span>
             </div>
 
             {/* Mobile AI Assistant Button */}
             <button
               onClick={() => setIsAiModalOpen(true)}
-              className="ml-1.5 w-9 h-9 rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/30 hover:border-primary/60 text-primary flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-sm shadow-primary/15 shrink-0 group"
+              className="ml-1 w-10 h-10 rounded-xl bg-primary/10 hover:bg-primary/20 border border-primary/30 hover:border-primary/60 text-primary flex items-center justify-center transition-all cursor-pointer active:scale-95 shadow-sm shadow-primary/15 shrink-0 group"
               title="Shadow AI Assistant"
               aria-label="Open AI Assistant"
             >
-              <AiNeuralLogo size={20} className="group-hover:scale-110 transition-transform" />
+              <AiNeuralLogo size={22} className="group-hover:scale-110 transition-transform" />
             </button>
           </div>
 
@@ -522,7 +513,7 @@ export const Layout: React.FC<LayoutProps> = ({
         </header>
 
         {/* Main Content Area */}
-        <main className="flex-1 flex flex-col p-4 md:p-8 max-w-7xl mx-auto w-full pb-20 md:pb-8 overflow-x-clip relative z-10">
+        <main className="flex-1 flex flex-col px-4 pt-2 pb-20 md:px-8 md:pt-3.5 md:pb-8 max-w-7xl mx-auto w-full overflow-x-clip relative z-10">
           <div className="w-full">
             {children}
           </div>

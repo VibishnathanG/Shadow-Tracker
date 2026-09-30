@@ -388,6 +388,7 @@ export const HabitsFeature: React.FC = () => {
   const [reasonModal, setReasonModal] = useState<{ habit: Habit; dateStr: string } | null>(null);
   const [presetReason, setPresetReason] = useState<string>('');
   const [customReasonText, setCustomReasonText] = useState<string>('');
+  const [isGraphCollapsed, setIsGraphCollapsed] = useState<boolean>(false);
 
   const [formName, setFormName] = useState('');
   const [formDesc, setFormDesc] = useState('');
@@ -593,8 +594,8 @@ export const HabitsFeature: React.FC = () => {
   const categoryMap = useMemo(() => new Map(categories.map(c => [c.id, c])), [categories]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-4 sm:space-y-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h2 className="text-xl md:text-2xl font-black tracking-tight text-foreground">Habit Routines</h2>
         </div>
@@ -610,48 +611,67 @@ export const HabitsFeature: React.FC = () => {
 
       {habits.length > 0 && (
         <div className="tile p-3 sm:p-4 relative overflow-hidden shadow-xs">
-          <div className="flex items-center justify-between mb-2 sm:mb-2.5">
-            <h3 className="text-xs font-black text-secondary uppercase tracking-widest flex items-center gap-1.5">
-              <Lucide.Grid size={14} className="text-primary" /> Matrix Consistency (Last 15 Weeks)
-            </h3>
-            <span className="text-[11px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/30">
-              30d Rate: {overallCompletionRate}%
-            </span>
-          </div>
-
-          <div className="overflow-x-auto no-scrollbar md:custom-scrollbar py-1">
-            <div className="flex gap-1 items-center justify-start min-w-max">
-              {globalHeatmapDays.map((date) => {
-                const dateStr = formatDateString(date);
-                const completions = completionsByDate[dateStr] || 0;
-                const ratio = habits.length > 0 ? completions / habits.length : 0;
-                
-                let bgClass = 'bg-surface-elevated/80 border border-border/80 hover:border-primary/50';
-                if (ratio > 0.75) bgClass = 'bg-primary border-primary/30 shadow-xs';
-                else if (ratio > 0.45) bgClass = 'bg-primary/75 border-primary/25';
-                else if (ratio > 0.15) bgClass = 'bg-primary/45 border-primary/15';
-                else if (ratio > 0) bgClass = 'bg-primary/25 border-primary/10';
-
-                return (
-                  <div
-                    key={dateStr}
-                    className={`w-3 h-3 rounded-[3px] border heatmap-cell ${bgClass}`}
-                    title={`${completions} completions on ${format(date, 'MMM dd, yyyy')}`}
-                  />
-                );
-              })}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <Lucide.Grid size={14} className="text-primary shrink-0" />
+              <h3 className="text-[11px] sm:text-xs font-black text-secondary uppercase tracking-wider sm:tracking-widest truncate">
+                Matrix Consistency (Last 15 Weeks)
+              </h3>
+            </div>
+            
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              <span className="text-[9.5px] sm:text-[11px] font-black text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/30 whitespace-nowrap shrink-0">
+                30d Rate: {overallCompletionRate}%
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsGraphCollapsed(!isGraphCollapsed)}
+                className="p-1 hover:bg-secondary rounded-lg text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+                title={isGraphCollapsed ? "Expand matrix consistency graph" : "Collapse matrix consistency graph"}
+                aria-label={isGraphCollapsed ? "Expand graph" : "Collapse graph"}
+              >
+                {isGraphCollapsed ? <Lucide.ChevronDown size={14} /> : <Lucide.ChevronUp size={14} />}
+              </button>
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-1.5 text-[10px] sm:text-xs text-secondary mt-2 font-bold">
-            <span>Less</span>
-            <div className="w-2.5 h-2.5 bg-surface-elevated/80 border border-border/80 rounded-xs" />
-            <div className="w-2.5 h-2.5 bg-primary/25 border border-primary/10 rounded-xs" />
-            <div className="w-2.5 h-2.5 bg-primary/45 border border-primary/15 rounded-xs" />
-            <div className="w-2.5 h-2.5 bg-primary/75 border border-primary/25 rounded-xs" />
-            <div className="w-2.5 h-2.5 bg-primary border border-primary/30 rounded-xs" />
-            <span>More</span>
-          </div>
+          {!isGraphCollapsed && (
+            <>
+              <div className="overflow-x-auto no-scrollbar md:custom-scrollbar py-1 mt-2 sm:mt-2.5">
+                <div className="flex gap-1 items-center justify-start min-w-max">
+                  {globalHeatmapDays.map((date) => {
+                    const dateStr = formatDateString(date);
+                    const completions = completionsByDate[dateStr] || 0;
+                    const ratio = habits.length > 0 ? completions / habits.length : 0;
+                    
+                    let bgClass = 'bg-surface-elevated/80 border border-border/80 hover:border-primary/50';
+                    if (ratio > 0.75) bgClass = 'bg-primary border-primary/30 shadow-xs';
+                    else if (ratio > 0.45) bgClass = 'bg-primary/75 border-primary/25';
+                    else if (ratio > 0.15) bgClass = 'bg-primary/45 border-primary/15';
+                    else if (ratio > 0) bgClass = 'bg-primary/25 border-primary/10';
+
+                    return (
+                      <div
+                        key={dateStr}
+                        className={`w-3 h-3 rounded-[3px] border heatmap-cell ${bgClass}`}
+                        title={`${completions} completions on ${format(date, 'MMM dd, yyyy')}`}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-1.5 text-[10px] sm:text-xs text-secondary mt-2 font-bold">
+                <span>Less</span>
+                <div className="w-2.5 h-2.5 bg-surface-elevated/80 border border-border/80 rounded-xs" />
+                <div className="w-2.5 h-2.5 bg-primary/25 border border-primary/10 rounded-xs" />
+                <div className="w-2.5 h-2.5 bg-primary/45 border border-primary/15 rounded-xs" />
+                <div className="w-2.5 h-2.5 bg-primary/75 border border-primary/25 rounded-xs" />
+                <div className="w-2.5 h-2.5 bg-primary border border-primary/30 rounded-xs" />
+                <span>More</span>
+              </div>
+            </>
+          )}
         </div>
       )}
 

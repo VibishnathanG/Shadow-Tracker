@@ -543,10 +543,10 @@ export default function GymFitnessTab({
   return (
     <div className="space-y-8">
       {/* MODULE 1: Target Weight & Personalized Biometric Feasibility Engine */}
-      <div className="tile settings-tile p-4 sm:p-6 md:p-8 rounded-3xl space-y-6 relative overflow-hidden">
+      <div className="tile settings-tile p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl space-y-4 sm:space-y-5 relative overflow-hidden">
         {/* Top Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-border/60 pb-5">
-          <div className="flex items-center gap-3.5">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 border-b border-border/60 pb-3.5">
+          <div className="flex items-center gap-3">
             <span className="p-2.5 bg-primary/15 text-primary rounded-2xl border border-primary/30 shrink-0">
               <Lucide.Target size={22} />
             </span>
@@ -555,10 +555,7 @@ export default function GymFitnessTab({
                 <h2 className="text-lg sm:text-xl font-black tracking-tight text-foreground">
                   Weight Goal &amp; Safety
                 </h2>
-                <span className="text-[8.5px] font-bold px-1.5 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 tracking-wider">
-                  Mifflin-St Jeor
-                </span>
-                <span className="text-[8.5px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 tracking-wider">
+                <span className="text-[8.5px] sm:text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 tracking-wider">
                   Safety Matrix
                 </span>
               </div>
@@ -641,261 +638,239 @@ export default function GymFitnessTab({
               className="space-y-6 overflow-hidden pt-1"
             >
               {/* Inputs Grid: Personal Biometric Parameters */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-xs font-extrabold uppercase tracking-wider text-muted-foreground">
-                  <span>1. Biometric Profile &amp; Baseline Metrics</span>
-                  <span className="text-[10px] text-emerald-400 font-bold lowercase">auto-saved to profile</span>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
+                  <span>1. Biometric Profile</span>
+                  <span className="text-[10px] text-emerald-400 font-bold lowercase">auto-saved</span>
                 </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-            {/* Current Weight */}
-            <div className="bg-secondary/40 hover:bg-secondary/60 focus-within:border-primary/70 focus-within:ring-1 focus-within:ring-primary/20 transition-all p-3.5 rounded-2xl border border-border/70 flex flex-col justify-between min-h-[84px] shadow-xs">
-              <div className="flex items-center justify-between text-[10.5px] font-extrabold uppercase tracking-wider text-muted-foreground">
-                <span>Current Wt</span>
-                <button
-                  type="button"
-                  onClick={() => onUpdateWeight(parseFloat(calcCurrentWeight))}
-                  className="text-[9.5px] text-primary hover:text-primary-foreground font-black px-2 py-0.5 rounded-lg bg-primary/15 hover:bg-primary border border-primary/25 transition-all cursor-pointer shadow-2xs"
-                  title="Sync with today's logged weight"
-                >
-                  Sync
-                </button>
-              </div>
-              <div className="flex items-baseline justify-between mt-1">
-                <input
-                  type="number"
-                  step="0.1"
-                  value={calcCurrentWeight}
-                  onChange={e => setCalcCurrentWeight(e.target.value)}
-                  style={{ background: 'transparent', border: 'none', padding: 0, boxShadow: 'none' }}
-                  className="w-full text-lg sm:text-xl font-black font-mono text-foreground outline-none focus:outline-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none placeholder:text-muted-foreground/30"
-                  placeholder="80"
-                />
-                <span className="text-xs font-bold text-muted-foreground font-mono shrink-0 ml-1.5">{weightUnit}</span>
-              </div>
-            </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                  {/* Current Weight */}
+                  <div className="bg-secondary/40 hover:bg-secondary/60 focus-within:border-primary/70 focus-within:ring-1 focus-within:ring-primary/20 transition-all p-2.5 rounded-xl border border-border/70 flex flex-col justify-between shadow-2xs">
+                    <div className="flex items-center justify-between text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
+                      <span>Current Wt</span>
+                      <button
+                        type="button"
+                        onClick={() => onUpdateWeight(parseFloat(calcCurrentWeight))}
+                        className="text-[9.5px] text-primary hover:text-primary-foreground font-black px-1.5 py-0.5 rounded bg-primary/15 hover:bg-primary border border-primary/25 transition-all cursor-pointer shadow-2xs"
+                        title="Sync with today's logged weight"
+                      >
+                        Sync
+                      </button>
+                    </div>
+                    <div className="flex items-baseline justify-between mt-0.5">
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={calcCurrentWeight}
+                        onChange={e => setCalcCurrentWeight(e.target.value)}
+                        style={{ background: 'transparent', border: 'none', padding: 0, boxShadow: 'none' }}
+                        className="w-full text-base sm:text-lg font-black font-mono text-foreground outline-none focus:outline-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none placeholder:text-muted-foreground/30"
+                        placeholder="80"
+                      />
+                      <span className="text-xs font-bold text-muted-foreground font-mono shrink-0 ml-1">{weightUnit}</span>
+                    </div>
+                  </div>
 
-            {/* Target Weight */}
-            <div className="bg-secondary/40 hover:bg-secondary/60 focus-within:border-primary/70 focus-within:ring-1 focus-within:ring-primary/20 transition-all p-3.5 rounded-2xl border border-border/70 flex flex-col justify-between min-h-[84px] shadow-xs">
-              <div className="flex items-center justify-between text-[10.5px] font-extrabold uppercase tracking-wider text-muted-foreground">
-                <span>Target Wt</span>
-                <span className="text-[9.5px] font-black text-emerald-400">Goal</span>
-              </div>
-              <div className="flex items-baseline justify-between mt-1">
-                <input
-                  type="number"
-                  step="0.1"
-                  value={calcTargetWeight}
-                  onChange={e => setCalcTargetWeight(e.target.value)}
-                  style={{ background: 'transparent', border: 'none', padding: 0, boxShadow: 'none' }}
-                  className="w-full text-lg sm:text-xl font-black font-mono text-foreground outline-none focus:outline-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none placeholder:text-muted-foreground/30"
-                  placeholder="72"
-                />
-                <span className="text-xs font-bold text-muted-foreground font-mono shrink-0 ml-1.5">{weightUnit}</span>
-              </div>
-            </div>
+                  {/* Target Weight */}
+                  <div className="bg-secondary/40 hover:bg-secondary/60 focus-within:border-primary/70 focus-within:ring-1 focus-within:ring-primary/20 transition-all p-2.5 rounded-xl border border-border/70 flex flex-col justify-between shadow-2xs">
+                    <div className="flex items-center justify-between text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
+                      <span>Target Wt</span>
+                    </div>
+                    <div className="flex items-baseline justify-between mt-0.5">
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={calcTargetWeight}
+                        onChange={e => setCalcTargetWeight(e.target.value)}
+                        style={{ background: 'transparent', border: 'none', padding: 0, boxShadow: 'none' }}
+                        className="w-full text-base sm:text-lg font-black font-mono text-foreground outline-none focus:outline-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none placeholder:text-muted-foreground/30"
+                        placeholder="72"
+                      />
+                      <span className="text-xs font-bold text-muted-foreground font-mono shrink-0 ml-1">{weightUnit}</span>
+                    </div>
+                  </div>
 
-            {/* Height */}
-            <div className="bg-secondary/40 hover:bg-secondary/60 focus-within:border-primary/70 focus-within:ring-1 focus-within:ring-primary/20 transition-all p-3.5 rounded-2xl border border-border/70 flex flex-col justify-between min-h-[84px] shadow-xs">
-              <div className="flex items-center justify-between text-[10.5px] font-extrabold uppercase tracking-wider text-muted-foreground">
-                <span>Height</span>
-                <span className="text-[9.5px] font-bold text-muted-foreground/70">cm</span>
-              </div>
-              <div className="flex items-baseline justify-between mt-1">
-                <input
-                  type="number"
-                  step="1"
-                  value={heightCm}
-                  onChange={e => setHeightCm(e.target.value)}
-                  style={{ background: 'transparent', border: 'none', padding: 0, boxShadow: 'none' }}
-                  className="w-full text-lg sm:text-xl font-black font-mono text-foreground outline-none focus:outline-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none placeholder:text-muted-foreground/30"
-                  placeholder="175"
-                />
-                <span className="text-xs font-bold text-muted-foreground font-mono shrink-0 ml-1.5">cm</span>
-              </div>
-            </div>
+                  {/* Height */}
+                  <div className="bg-secondary/40 hover:bg-secondary/60 focus-within:border-primary/70 focus-within:ring-1 focus-within:ring-primary/20 transition-all p-2.5 rounded-xl border border-border/70 flex flex-col justify-between shadow-2xs">
+                    <div className="flex items-center justify-between text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
+                      <span>Height</span>
+                    </div>
+                    <div className="flex items-baseline justify-between mt-0.5">
+                      <input
+                        type="number"
+                        step="1"
+                        value={heightCm}
+                        onChange={e => setHeightCm(e.target.value)}
+                        style={{ background: 'transparent', border: 'none', padding: 0, boxShadow: 'none' }}
+                        className="w-full text-base sm:text-lg font-black font-mono text-foreground outline-none focus:outline-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none placeholder:text-muted-foreground/30"
+                        placeholder="175"
+                      />
+                      <span className="text-xs font-bold text-muted-foreground font-mono shrink-0 ml-1">cm</span>
+                    </div>
+                  </div>
 
-            {/* Age */}
-            <div className="bg-secondary/40 hover:bg-secondary/60 focus-within:border-primary/70 focus-within:ring-1 focus-within:ring-primary/20 transition-all p-3.5 rounded-2xl border border-border/70 flex flex-col justify-between min-h-[84px] shadow-xs">
-              <div className="flex items-center justify-between text-[10.5px] font-extrabold uppercase tracking-wider text-muted-foreground">
-                <span>Age</span>
-                <span className="text-[9.5px] font-bold text-muted-foreground/70">Years</span>
-              </div>
-              <div className="flex items-baseline justify-between mt-1">
-                <input
-                  type="number"
-                  step="1"
-                  min="14"
-                  max="100"
-                  value={userAge}
-                  onChange={e => setUserAge(e.target.value)}
-                  style={{ background: 'transparent', border: 'none', padding: 0, boxShadow: 'none' }}
-                  className="w-full text-lg sm:text-xl font-black font-mono text-foreground outline-none focus:outline-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none placeholder:text-muted-foreground/30"
-                  placeholder="28"
-                />
-                <span className="text-xs font-bold text-muted-foreground font-mono shrink-0 ml-1.5">yrs</span>
-              </div>
-            </div>
+                  {/* Age */}
+                  <div className="bg-secondary/40 hover:bg-secondary/60 focus-within:border-primary/70 focus-within:ring-1 focus-within:ring-primary/20 transition-all p-2.5 rounded-xl border border-border/70 flex flex-col justify-between shadow-2xs">
+                    <div className="flex items-center justify-between text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
+                      <span>Age</span>
+                    </div>
+                    <div className="flex items-baseline justify-between mt-0.5">
+                      <input
+                        type="number"
+                        step="1"
+                        min="14"
+                        max="100"
+                        value={userAge}
+                        onChange={e => setUserAge(e.target.value)}
+                        style={{ background: 'transparent', border: 'none', padding: 0, boxShadow: 'none' }}
+                        className="w-full text-base sm:text-lg font-black font-mono text-foreground outline-none focus:outline-none focus:ring-0 [&::-webkit-inner-spin-button]:appearance-none placeholder:text-muted-foreground/30"
+                        placeholder="28"
+                      />
+                      <span className="text-xs font-bold text-muted-foreground font-mono shrink-0 ml-1">yrs</span>
+                    </div>
+                  </div>
 
-            {/* Biological Sex */}
-            <div className="bg-secondary/40 hover:bg-secondary/60 transition-all p-3.5 rounded-2xl border border-border/70 flex flex-col justify-between min-h-[84px] shadow-xs">
-              <div className="flex items-center justify-between text-[10.5px] font-extrabold uppercase tracking-wider text-muted-foreground">
-                <span>Biological Sex</span>
-              </div>
-              <div className="flex items-center gap-1.5 mt-1 bg-surface/70 p-1 rounded-xl border border-border/50">
-                <button
-                  type="button"
-                  onClick={() => setUserSex('male')}
-                  className={`flex-1 py-1 text-xs rounded-lg font-black transition-all cursor-pointer ${
-                    userSex === 'male'
-                      ? 'bg-blue-500 text-white shadow-xs'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  ♂ Male
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setUserSex('female')}
-                  className={`flex-1 py-1 text-xs rounded-lg font-black transition-all cursor-pointer ${
-                    userSex === 'female'
-                      ? 'bg-pink-500 text-white shadow-xs'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  ♀ Female
-                </button>
-              </div>
-            </div>
+                  {/* Biological Sex - Rounded Toggle Button */}
+                  <div className="bg-secondary/40 hover:bg-secondary/60 transition-all p-2.5 rounded-xl border border-border/70 flex flex-col justify-between shadow-2xs">
+                    <div className="flex items-center justify-between text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
+                      <span>Sex</span>
+                      <span className="text-[10px] font-bold text-primary font-mono capitalize">{userSex}</span>
+                    </div>
+                    <div className="grid grid-cols-2 p-0.5 bg-surface/90 border border-border/70 rounded-full h-7 items-center relative shadow-inner gap-0.5">
+                      <button
+                        type="button"
+                        onClick={() => setUserSex('male')}
+                        className={`h-full rounded-full text-[11px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1 leading-none active:scale-95 ${
+                          userSex === 'male'
+                            ? 'bg-blue-500 text-white shadow-xs font-black'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-secondary/40'
+                        }`}
+                      >
+                        ♂ Male
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setUserSex('female')}
+                        className={`h-full rounded-full text-[11px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1 leading-none active:scale-95 ${
+                          userSex === 'female'
+                            ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-xs font-black'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-secondary/40'
+                        }`}
+                      >
+                        ♀ Female
+                      </button>
+                    </div>
+                  </div>
 
-            {/* Daily Activity Level */}
-            <div className="bg-secondary/40 hover:bg-secondary/60 transition-all p-3.5 rounded-2xl border border-border/70 flex flex-col justify-between min-h-[84px] shadow-xs">
-              <div className="flex items-center justify-between text-[10.5px] font-extrabold uppercase tracking-wider text-muted-foreground">
-                <span>Activity Level</span>
+                  {/* Daily Activity Level */}
+                  <div className="bg-secondary/40 hover:bg-secondary/60 transition-all p-2.5 rounded-xl border border-border/70 flex flex-col justify-between shadow-2xs">
+                    <div className="flex items-center justify-between text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">
+                      <span>Activity</span>
+                    </div>
+                    <div className="mt-0.5">
+                      <select
+                        value={activityLevel}
+                        onChange={e => setActivityLevel(e.target.value as any)}
+                        style={{ padding: '4px 6px', border: '1px solid rgba(255,255,255,0.08)' }}
+                        className="w-full text-[11px] font-bold bg-surface/90 text-foreground rounded-lg outline-none cursor-pointer focus:border-primary truncate h-7"
+                      >
+                        <option value="sedentary">Sedentary (1.2x)</option>
+                        <option value="light">Light (1.375x)</option>
+                        <option value="moderate">Moderate (1.55x)</option>
+                        <option value="very_active">Active (1.725x)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="mt-1">
-                <select
-                  value={activityLevel}
-                  onChange={e => setActivityLevel(e.target.value as any)}
-                  style={{ padding: '6px 8px', border: '1px solid rgba(255,255,255,0.08)' }}
-                  className="w-full text-xs font-black bg-surface/90 text-foreground rounded-xl outline-none cursor-pointer focus:border-primary truncate"
-                >
-                  <option value="sedentary">Sedentary (1.2x)</option>
-                  <option value="light">Light (1.375x)</option>
-                  <option value="moderate">Moderate (1.55x)</option>
-                  <option value="very_active">Active (1.725x)</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* INTERACTIVE WEEKLY RATE SELECTOR (Dynamically adapted to Loss vs Gain) */}
-        <div className="p-4 sm:p-5 rounded-2xl bg-surface/80 border border-emerald-500/30 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-border/50 pb-2.5">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-base">{feasibility.direction === 'gain' ? '📈' : '📉'}</span>
-                <h3 className="text-xs sm:text-sm font-extrabold text-foreground uppercase tracking-wider">
-                  {feasibility.direction === 'gain'
-                    ? '2. Weekly Surplus & Muscle Gain Target'
-                    : feasibility.direction === 'loss'
-                    ? '2. Weekly Deficit & Weight Loss Target'
-                    : '2. Energy Maintenance Target'}
-                </h3>
-              </div>
-              <p className="text-[11px] text-muted-foreground">
+        <div className="p-3 sm:p-4 rounded-xl bg-surface/80 border border-emerald-500/25 space-y-2.5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1.5 border-b border-border/50 pb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-sm">{feasibility.direction === 'gain' ? '📈' : '📉'}</span>
+              <h3 className="text-xs sm:text-[13px] font-extrabold text-foreground uppercase tracking-wider">
                 {feasibility.direction === 'gain'
-                  ? 'Choose your lean bulk pace or adjust the slider to test caloric feasibility.'
-                  : 'Choose your comfortable pace or adjust the slider to test feasibility.'}
-              </p>
+                  ? '2. Weekly Surplus & Muscle Gain Target'
+                  : feasibility.direction === 'loss'
+                  ? '2. Weekly Deficit & Weight Loss Target'
+                  : '2. Energy Maintenance Target'}
+              </h3>
             </div>
 
             {/* Dynamic Goal Difference */}
-            <div className="text-right shrink-0">
-              <span className="text-[10px] font-bold text-muted-foreground uppercase block">Total Difference</span>
+            <div className="text-left sm:text-right shrink-0">
               <span className="text-xs font-black font-mono text-foreground">
-                {Math.abs((parseFloat(calcTargetWeight) || 0) - (parseFloat(calcCurrentWeight) || 0)).toFixed(1)} {weightUnit}
+                Total Diff: {Math.abs((parseFloat(calcTargetWeight) || 0) - (parseFloat(calcCurrentWeight) || 0)).toFixed(1)} {weightUnit}
                 {' '}({feasibility.direction === 'gain' ? '+Gain' : feasibility.direction === 'loss' ? '-Cut' : 'Maintain'})
               </span>
             </div>
           </div>
 
           {/* Quick Preset Buttons (Personalized to user's direction & bodyweight) */}
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              Personalized Scientific Paces:
+              Paces:
             </label>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
               <button
                 type="button"
                 onClick={() => handleRateChange(feasibility.gentleKgPerWeek)}
-                className={`p-2.5 rounded-xl text-left border transition-all cursor-pointer ${
+                className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${
                   Math.abs(weeklyLossRate - feasibility.gentleKgPerWeek) < 0.05
                     ? 'bg-sky-500/20 border-sky-500 text-sky-400 font-black shadow-xs'
                     : 'bg-secondary/60 border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
                 }`}
               >
                 <div className="text-[11px] font-bold flex items-center justify-between">
-                  <span>{feasibility.direction === 'gain' ? '🌱 Lean Bulking' : '🟢 Gentle Recomp'}</span>
+                  <span>{feasibility.direction === 'gain' ? '🌱 Lean Bulk' : '🟢 Gentle'}</span>
                   <span className="font-mono text-[10px]">{feasibility.gentleKgPerWeek} kg/wk</span>
-                </div>
-                <div className="text-[9px] text-muted-foreground mt-0.5">
-                  {feasibility.direction === 'gain' ? 'Minimal fat, clean lean gains' : 'Low friction lifestyle shift'}
                 </div>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleRateChange(feasibility.recommendedKgPerWeek)}
-                className={`p-2.5 rounded-xl text-left border transition-all cursor-pointer ${
+                className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${
                   Math.abs(weeklyLossRate - feasibility.recommendedKgPerWeek) < 0.05
                     ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 font-black shadow-xs'
                     : 'bg-secondary/60 border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
                 }`}
               >
                 <div className="text-[11px] font-bold flex items-center justify-between">
-                  <span>{feasibility.direction === 'gain' ? '🌟 Optimal Mass' : '🌟 Optimal Gold'}</span>
+                  <span>{feasibility.direction === 'gain' ? '🌟 Optimal Mass' : '🌟 Optimal'}</span>
                   <span className="font-mono text-[10px] font-black text-emerald-400">{feasibility.recommendedKgPerWeek} kg/wk</span>
-                </div>
-                <div className="text-[9px] text-emerald-400/90 mt-0.5">
-                  {feasibility.direction === 'gain' ? 'Muscle building sweet spot' : 'Recommended Sweet Spot'}
                 </div>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleRateChange(feasibility.athleticKgPerWeek)}
-                className={`p-2.5 rounded-xl text-left border transition-all cursor-pointer ${
+                className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${
                   Math.abs(weeklyLossRate - feasibility.athleticKgPerWeek) < 0.05
                     ? 'bg-yellow-500/20 border-yellow-500 text-yellow-400 font-black shadow-xs'
                     : 'bg-secondary/60 border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
                 }`}
               >
                 <div className="text-[11px] font-bold flex items-center justify-between">
-                  <span>{feasibility.direction === 'gain' ? '⚡ Accelerated Bulk' : '⚡ Athletic Cut'}</span>
+                  <span>{feasibility.direction === 'gain' ? '⚡ Bulk' : '⚡ Athletic'}</span>
                   <span className="font-mono text-[10px]">{feasibility.athleticKgPerWeek} kg/wk</span>
-                </div>
-                <div className="text-[9px] text-muted-foreground mt-0.5">
-                  {feasibility.direction === 'gain' ? 'Hardgainer caloric surplus' : 'Strict disciplined shred'}
                 </div>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleRateChange(feasibility.maxSafeKgPerWeek)}
-                className={`p-2.5 rounded-xl text-left border transition-all cursor-pointer ${
+                className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${
                   Math.abs(weeklyLossRate - feasibility.maxSafeKgPerWeek) < 0.05
                     ? 'bg-amber-500/20 border-amber-500 text-amber-400 font-black shadow-xs'
                     : 'bg-secondary/60 border-border text-muted-foreground hover:text-foreground hover:bg-secondary'
                 }`}
               >
                 <div className="text-[11px] font-bold flex items-center justify-between">
-                  <span>{feasibility.direction === 'gain' ? '🚀 Upper Safe Gain' : '🚀 Max Safe Pace'}</span>
+                  <span>{feasibility.direction === 'gain' ? '🚀 Max Gain' : '🚀 Max Pace'}</span>
                   <span className="font-mono text-[10px]">{feasibility.maxSafeKgPerWeek} kg/wk</span>
-                </div>
-                <div className="text-[9px] text-muted-foreground mt-0.5">
-                  {feasibility.direction === 'gain' ? 'Upper physiological rate' : 'Upper physiological limit'}
                 </div>
               </button>
             </div>
@@ -905,14 +880,14 @@ export default function GymFitnessTab({
           {(() => {
             const maxSliderRate = feasibility.direction === 'gain' ? 1.00 : 1.50;
             return (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1 items-center">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-0.5 items-center">
                 {/* Slider */}
-                <div className="md:col-span-2 space-y-2 bg-secondary/30 p-3.5 rounded-2xl border border-border/50">
+                <div className="md:col-span-2 space-y-1.5 bg-secondary/30 p-2.5 rounded-xl border border-border/50">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-foreground">
                       {feasibility.direction === 'gain' ? 'Weekly Muscle Building Pace:' : 'Custom Weekly Pace Slider:'}
                     </span>
-                    <span className="text-sm font-black font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/30">
+                    <span className="text-xs font-black font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/30">
                       {weeklyLossRate.toFixed(2)} kg / week
                     </span>
                   </div>
@@ -927,7 +902,7 @@ export default function GymFitnessTab({
                     className="w-full accent-emerald-400 cursor-pointer h-2 bg-secondary rounded-lg"
                   />
 
-                  <div className="flex items-center justify-between text-[10px] font-mono text-muted-foreground">
+                  <div className="flex items-center justify-between text-[9.5px] font-mono text-muted-foreground">
                     <span>0.10 kg/wk ({feasibility.direction === 'gain' ? 'Lean Recomp' : 'Gentle Cut'})</span>
                     <span className="text-emerald-400 font-bold">~{feasibility.pctBodyWeightPerWeek}% body wt/wk</span>
                     <span>{maxSliderRate.toFixed(2)} kg/wk ({feasibility.direction === 'gain' ? 'Rapid Bulk' : 'Aggressive Cut'})</span>
@@ -935,15 +910,15 @@ export default function GymFitnessTab({
                 </div>
 
                 {/* Sync Days Input */}
-                <div className="space-y-1.5 bg-secondary/30 p-3.5 rounded-2xl border border-border/50">
+                <div className="space-y-1 bg-secondary/30 p-2.5 rounded-xl border border-border/50">
                   <div className="flex items-center justify-between text-[10px] font-bold uppercase text-muted-foreground">
-                    <span>Days to Achieve</span>
+                    <span>Days to Goal</span>
                     <button
                       type="button"
                       onClick={setOptimalDays}
                       className="text-emerald-400 font-extrabold hover:underline cursor-pointer"
                     >
-                      Auto-Optimal
+                      Optimal
                     </button>
                   </div>
                   <input
@@ -952,10 +927,10 @@ export default function GymFitnessTab({
                     max="730"
                     value={calcDays}
                     onChange={e => handleDaysChange(e.target.value)}
-                    className="w-full text-base font-black font-mono px-3 py-1.5 bg-secondary text-foreground rounded-xl border border-border/60 outline-none focus:border-primary"
+                    className="w-full text-sm font-black font-mono px-2.5 py-1 bg-secondary text-foreground rounded-lg border border-border/60 outline-none focus:border-primary"
                   />
-                  <div className="flex items-center justify-between text-[10px] text-muted-foreground font-mono">
-                    <span>~{(feasibility.days / 7).toFixed(1)} weeks</span>
+                  <div className="flex items-center justify-between text-[9.5px] text-muted-foreground font-mono">
+                    <span>~{(feasibility.days / 7).toFixed(1)} wks</span>
                     <span className="text-emerald-400 font-bold">🎯 {feasibility.projectedDateStr}</span>
                   </div>
                 </div>
@@ -969,7 +944,7 @@ export default function GymFitnessTab({
           key={`${feasibility.level}-${feasibility.days}-${feasibility.kgPerWeek}`}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`p-5 sm:p-6 rounded-3xl border ${feasibility.borderClass} ${feasibility.bgClass} shadow-lg space-y-4`}
+          className={`p-3.5 sm:p-4 rounded-2xl border ${feasibility.borderClass} ${feasibility.bgClass} shadow-md space-y-3`}
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3">
@@ -1203,7 +1178,7 @@ export default function GymFitnessTab({
                 setEditingCustomPlan(null);
                 setIsCustomPlanModalOpen(true);
               }}
-              className="px-3.5 py-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer shadow-xs"
+              className="px-3.5 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-full text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
             >
               <Lucide.Plus size={13} />
               <span>New Custom Plan</span>
@@ -1222,7 +1197,7 @@ export default function GymFitnessTab({
                   {activePlan.level}
                 </span>
                 {activePlan.isCustom && (
-                  <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-primary/15 text-primary border border-primary/30">
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-primary/15 text-primary border border-primary/30">
                     Saved Custom
                   </span>
                 )}
@@ -1238,7 +1213,7 @@ export default function GymFitnessTab({
                 addXp(30);
                 confetti({ particleCount: 40, spread: 60, origin: { y: 0.6 } });
               }}
-              className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-black rounded-xl shadow-md cursor-pointer transition-all active:scale-95 flex items-center justify-center gap-1.5 shrink-0"
+              className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-black rounded-full shadow-md cursor-pointer transition-all active:scale-95 flex items-center justify-center gap-1.5 shrink-0"
             >
               <Lucide.CheckCircle size={14} /> Log This Routine Today (+30 XP)
             </button>
@@ -1250,7 +1225,7 @@ export default function GymFitnessTab({
               <button
                 key={day.dayName}
                 onClick={() => setSelectedDayIndex(idx)}
-                className={`px-3 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer border ${
+                className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer border ${
                   selectedDayIndex === idx
                     ? 'bg-amber-500 text-white border-amber-400 shadow-sm'
                     : 'bg-secondary/60 text-muted-foreground border-border/50 hover:bg-secondary'
@@ -1277,7 +1252,7 @@ export default function GymFitnessTab({
                 <button
                   type="button"
                   onClick={() => setIsAddingExerciseToDay(!isAddingExerciseToDay)}
-                  className="text-[10px] font-bold px-2 py-0.5 bg-secondary hover:bg-surface text-muted-foreground hover:text-amber-400 rounded-lg border border-border/60 transition-colors cursor-pointer flex items-center gap-1"
+                  className="text-[10px] font-bold px-2.5 py-1 bg-secondary hover:bg-surface text-muted-foreground hover:text-amber-400 rounded-full border border-border/60 transition-colors cursor-pointer flex items-center gap-1 shadow-2xs"
                 >
                   <Lucide.Plus size={10} /> Add Movement
                 </button>
@@ -1350,7 +1325,7 @@ export default function GymFitnessTab({
                   />
                   <button
                     type="submit"
-                    className="px-4 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shrink-0"
+                    className="px-4 py-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-full transition-all cursor-pointer shrink-0 shadow-xs"
                   >
                     Save Movement
                   </button>
@@ -1358,7 +1333,7 @@ export default function GymFitnessTab({
               </form>
             )}
 
-            {/* Redesigned Intuitive & Non-Wordy Exercise Grid */}
+            {/* Redesigned Intuitive & Non-Overlapping Exercise Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
               {activeDay.exercises.map((ex, idx) => {
                 const exKey = `${activePlan.id}_${selectedDayIndex}_${idx}`;
@@ -1367,18 +1342,18 @@ export default function GymFitnessTab({
                 return (
                   <div
                     key={idx}
-                    className={`p-4 sm:p-4.5 rounded-2xl border transition-all flex items-center justify-between gap-3.5 shadow-xs group ${
+                    className={`p-3.5 sm:p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-3.5 shadow-xs group ${
                       isDone
                         ? 'bg-emerald-500/10 border-emerald-500/35'
                         : 'bg-surface-elevated/70 border-border/70 hover:border-amber-400/50'
                     }`}
                   >
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto flex-1">
                       {/* Interactive Completion Toggle Checkbox */}
                       <button
                         type="button"
                         onClick={() => handleToggleExerciseComplete(exKey)}
-                        className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer shrink-0 border ${
+                        className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer shrink-0 border ${
                           isDone
                             ? 'bg-emerald-500 text-white border-emerald-400 shadow-xs'
                             : 'bg-secondary hover:bg-surface text-muted-foreground border-border/70 hover:border-amber-400'
@@ -1393,16 +1368,16 @@ export default function GymFitnessTab({
                       </button>
 
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex items-center gap-2 flex-wrap min-w-0">
                           <h4
-                            className={`font-black text-xs truncate ${
+                            className={`font-black text-xs ${
                               isDone ? 'line-through text-muted-foreground' : 'text-foreground'
                             }`}
                           >
                             {ex.name}
                           </h4>
                           <span
-                            className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.2 rounded-md border ${getMuscleBadgeClass(
+                            className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border shrink-0 whitespace-nowrap ${getMuscleBadgeClass(
                               ex.muscle
                             )}`}
                           >
@@ -1417,41 +1392,43 @@ export default function GymFitnessTab({
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto pt-2 sm:pt-0 border-t border-border/40 sm:border-0 shrink-0">
                       {/* Compact Sets x Reps Pill (Hidden for time-bound cardio) */}
                       {(ex.sets || ex.reps) && (
-                        <div className="px-2.5 py-1 bg-secondary/80 rounded-xl border border-border/60 text-right font-mono font-black text-xs text-foreground">
+                        <div className="px-2.5 py-1 bg-secondary/80 rounded-full border border-border/60 text-center font-mono font-black text-xs text-foreground whitespace-nowrap">
                           {ex.sets} {ex.sets && ex.reps && <span className="text-muted-foreground text-[10px] font-sans font-bold">×</span>} {ex.reps}
                         </div>
                       )}
 
                       {/* Generic Kcal Drain */}
                       {ex.kcal && (
-                        <div className="px-2 py-1 bg-rose-500/10 rounded-xl border border-rose-500/20 text-right font-mono font-black text-xs text-rose-400" title="Estimated calories burned">
+                        <div className="px-2 py-1 bg-rose-500/10 rounded-full border border-rose-500/20 text-center font-mono font-black text-xs text-rose-400 whitespace-nowrap" title="Estimated calories burned">
                           🔥 {ex.kcal}
                         </div>
                       )}
 
-                      {/* Log Individual Workout directly */}
-                      <button
-                        type="button"
-                        onClick={() => handleLogIndividualWorkout(ex)}
-                        className="px-2.5 py-1.5 bg-amber-500/15 hover:bg-amber-500 text-amber-400 hover:text-white rounded-xl border border-amber-500/30 text-[10px] font-black flex items-center gap-1 transition-all cursor-pointer shadow-xs active:scale-95"
-                        title="Log this specific movement directly to today's workouts"
-                      >
-                        <Lucide.Plus size={11} className="stroke-[3]" />
-                        <span>Log</span>
-                      </button>
+                      <div className="flex items-center gap-1.5 ml-auto sm:ml-0">
+                        {/* Log Individual Workout directly */}
+                        <button
+                          type="button"
+                          onClick={() => handleLogIndividualWorkout(ex)}
+                          className="px-3 py-1 bg-amber-500/15 hover:bg-amber-500 text-amber-400 hover:text-white rounded-full border border-amber-500/30 text-[10px] font-black flex items-center gap-1 transition-all cursor-pointer shadow-xs active:scale-95 whitespace-nowrap"
+                          title="Log this specific movement directly to today's workouts"
+                        >
+                          <Lucide.Plus size={11} className="stroke-[3]" />
+                          <span>Log</span>
+                        </button>
 
-                      {/* Quick 1-Tap Log into PR Logger */}
-                      <button
-                        type="button"
-                        onClick={() => handleQuickLogToPR(ex)}
-                        className="p-1.5 bg-secondary hover:bg-surface text-muted-foreground hover:text-amber-400 rounded-xl border border-border/70 transition-all cursor-pointer"
-                        title="Quick-fill into Exercise & PR Logger below"
-                      >
-                        <Lucide.Zap size={13} />
-                      </button>
+                        {/* Quick 1-Tap Log into PR Logger */}
+                        <button
+                          type="button"
+                          onClick={() => handleQuickLogToPR(ex)}
+                          className="w-7 h-7 bg-secondary hover:bg-surface text-muted-foreground hover:text-amber-400 rounded-full border border-border/70 transition-all cursor-pointer flex items-center justify-center shadow-2xs"
+                          title="Quick-fill into Exercise & PR Logger below"
+                        >
+                          <Lucide.Zap size={13} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
@@ -1461,16 +1438,16 @@ export default function GymFitnessTab({
             {/* Logged Workouts for Today with Removal */}
             <div className="space-y-3 pt-4 border-t border-border/60">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="p-1.5 bg-amber-500/15 text-amber-500 rounded-lg">
+                <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                  <span className="p-1.5 bg-amber-500/15 text-amber-500 rounded-lg shrink-0">
                     <Lucide.Activity size={15} />
                   </span>
-                  <span className="text-sm font-black text-foreground">Today's Logged Workouts</span>
-                  <span className="text-[10px] font-bold font-mono px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                  <span className="text-xs sm:text-sm font-black text-foreground whitespace-nowrap">Today's Workouts</span>
+                  <span className="text-[9px] sm:text-[10px] font-bold font-mono px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30 shrink-0 whitespace-nowrap">
                     {workouts.length} recorded
                   </span>
                 </div>
-                <span className="text-[11px] text-muted-foreground font-medium">
+                <span className="text-[10.5px] sm:text-[11px] text-muted-foreground font-medium whitespace-nowrap">
                   Total Active: <strong className="text-foreground font-mono">{workouts.reduce((acc, w) => acc + (w.duration || 0), 0)} mins</strong> • <strong className="text-amber-400 font-mono">{workouts.reduce((acc, w) => acc + (w.caloriesBurned || 0), 0)} kcal</strong>
                 </span>
               </div>
@@ -1508,7 +1485,7 @@ export default function GymFitnessTab({
                           <button
                             type="button"
                             onClick={() => onRemoveWorkout(w.id)}
-                            className="p-1.5 hover:bg-rose-500/20 text-muted-foreground hover:text-rose-400 rounded-xl transition-colors cursor-pointer shrink-0"
+                            className="p-1.5 hover:bg-rose-500/20 text-muted-foreground hover:text-rose-400 rounded-full transition-colors cursor-pointer shrink-0"
                             title="Remove this workout from today"
                           >
                             <Lucide.Trash2 size={13} />
@@ -1532,11 +1509,11 @@ export default function GymFitnessTab({
               <Lucide.Trophy size={20} />
             </span>
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-base sm:text-lg font-black tracking-tight text-foreground">
+              <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap min-w-0">
+                <h3 className="text-sm sm:text-lg font-black tracking-tight text-foreground whitespace-nowrap">
                   Adaptive Workout &amp; PR Logger
                 </h3>
-                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                <span className="text-[8.5px] sm:text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shrink-0 whitespace-nowrap">
                   {loggedExercises.length} Logged
                 </span>
               </div>
@@ -1547,14 +1524,14 @@ export default function GymFitnessTab({
           </div>
 
           {/* Dynamic Mode Switcher Pills */}
-          <div className="flex items-center gap-1.5 bg-secondary p-1 rounded-2xl border border-border/70 shrink-0">
+          <div className="flex items-center gap-1.5 bg-secondary p-1 rounded-full border border-border/70 shrink-0">
             <button
               type="button"
               onClick={() => {
                 setLoggerMode('strength');
                 setExerciseName('');
               }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
                 loggerMode === 'strength'
                   ? 'bg-emerald-500 text-white shadow-xs'
                   : 'text-muted-foreground hover:text-foreground'
@@ -1569,7 +1546,7 @@ export default function GymFitnessTab({
                 setLoggerMode('cardio');
                 setExerciseName('');
               }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
                 loggerMode === 'cardio'
                   ? 'bg-sky-500 text-white shadow-xs'
                   : 'text-muted-foreground hover:text-foreground'
@@ -1584,7 +1561,7 @@ export default function GymFitnessTab({
                 setLoggerMode('fullbody');
                 setExerciseName('');
               }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 rounded-full text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
                 loggerMode === 'fullbody'
                   ? 'bg-amber-500 text-white shadow-xs'
                   : 'text-muted-foreground hover:text-foreground'

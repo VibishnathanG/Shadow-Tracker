@@ -55,12 +55,19 @@ export default function AiToolsModal({ isOpen, onClose }: AiToolsModalProps) {
       const origTouchAction = document.body.style.touchAction;
       document.body.style.overflow = 'hidden';
       document.body.style.touchAction = 'none';
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') onClose();
+      };
+      window.addEventListener('keydown', handleKeyDown);
+
       return () => {
+        window.removeEventListener('keydown', handleKeyDown);
         document.body.style.overflow = origOverflow;
         document.body.style.touchAction = origTouchAction;
       };
     }
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   // Combine built-in + custom
   const allTools = useMemo(() => {
@@ -147,12 +154,16 @@ export default function AiToolsModal({ isOpen, onClose }: AiToolsModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-60 bg-background/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 overflow-hidden">
+    <div 
+      onClick={onClose}
+      className="fixed inset-0 z-60 bg-background/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-5 overflow-hidden cursor-pointer"
+    >
       <motion.div
+        onClick={(e) => e.stopPropagation()}
         initial={{ opacity: 0, scale: 0.96, y: 10 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 10 }}
-        className="w-full max-w-3xl max-h-[90vh] flex flex-col bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden relative"
+        className="w-full max-w-3xl max-h-[90vh] flex flex-col bg-surface border border-border rounded-2xl shadow-2xl overflow-hidden relative cursor-default"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-surface-elevated/70 shrink-0">

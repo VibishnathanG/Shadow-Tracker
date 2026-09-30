@@ -355,9 +355,6 @@ export default function HealthDashboardTab({
               <span className="text-sm font-black uppercase tracking-wider text-foreground">
                 Personalized Metabolic Baseline
               </span>
-              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                Mifflin-St Jeor Validated
-              </span>
             </div>
             <p className="text-xs text-muted-foreground font-medium mt-0.5">
               Profile: {metabolicProfile.age}y {metabolicProfile.sex === 'male' ? '♂ Male' : '♀ Female'} • {metabolicProfile.heightCm} cm • {metabolicProfile.cur} {weightUnit}
@@ -996,9 +993,9 @@ export default function HealthDashboardTab({
               <Lucide.Dumbbell size={22} />
             </span>
             <div>
-              <h3 className="text-base sm:text-lg font-black tracking-tight text-foreground flex items-center gap-2">
+              <h3 className="text-sm sm:text-lg font-black tracking-tight text-foreground flex items-center gap-2 flex-wrap sm:flex-nowrap">
                 <span>Exercise &amp; Workout Activity Calendar</span>
-                <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                <span className="text-[10px] sm:text-xs font-bold px-2 sm:px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30 whitespace-nowrap shrink-0">
                   Cadence &amp; Streaks
                 </span>
               </h3>
@@ -1091,19 +1088,19 @@ export default function HealthDashboardTab({
 
         {/* 7-Day Weekday Labels & Monthly Grid */}
         <div className="space-y-1.5">
-          <div className="grid grid-cols-7 gap-1.5 text-center text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider py-1">
+          <div className="grid grid-cols-7 gap-1 sm:gap-1.5 text-center text-[10px] sm:text-[11px] font-extrabold text-muted-foreground uppercase tracking-wider py-1">
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
-              <div key={d}>{d}</div>
+              <div key={d} className="truncate">{d}</div>
             ))}
           </div>
 
-          <div className="grid grid-cols-7 gap-1.5">
+          <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
             {calendarGridDays.map(d => {
               if (d.empty) {
                 return (
                   <div
                     key={d.key}
-                    className="min-h-[64px] sm:min-h-[76px] rounded-2xl bg-secondary/15 border border-transparent"
+                    className="min-h-[52px] sm:min-h-[76px] rounded-xl sm:rounded-2xl bg-secondary/15 border border-transparent"
                   />
                 );
               }
@@ -1117,7 +1114,7 @@ export default function HealthDashboardTab({
                   onClick={() => {
                     if (d.dateStr) setSelectedCalDate(d.dateStr);
                   }}
-                  className={`min-h-[64px] sm:min-h-[76px] p-2 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between text-left group ${
+                  className={`min-h-[52px] sm:min-h-[76px] p-1.5 sm:p-2 rounded-xl sm:rounded-2xl border transition-all cursor-pointer flex flex-col justify-between text-left group overflow-hidden ${
                     isSelected
                       ? 'bg-amber-500/15 border-amber-400 shadow-md ring-1 ring-amber-400/50'
                       : d.isToday
@@ -1127,7 +1124,7 @@ export default function HealthDashboardTab({
                       : 'bg-secondary/30 border-border/40 hover:bg-secondary/50'
                   }`}
                 >
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between w-full">
                     <span
                       className={`text-xs font-mono font-black ${
                         d.isToday ? 'text-primary' : 'text-foreground'
@@ -1136,23 +1133,26 @@ export default function HealthDashboardTab({
                       {d.dayNum}
                     </span>
                     {d.isToday && (
-                      <span className="text-[8.5px] font-black uppercase text-primary tracking-tight">Today</span>
+                      <>
+                        <span className="hidden sm:inline text-[8.5px] font-black uppercase text-primary tracking-tight">Today</span>
+                        <span className="sm:hidden w-1.5 h-1.5 rounded-full bg-primary shrink-0 animate-pulse" title="Today" />
+                      </>
                     )}
                   </div>
 
                   {d.hasWorkout ? (
-                    <div className="space-y-1 pt-1">
-                      <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[9.5px] font-black font-mono truncate shadow-2xs">
-                        <span>🏋️</span>
-                        <span>{d.totalMinutes}m</span>
+                    <div className="space-y-0.5 sm:space-y-1 pt-1 overflow-hidden w-full">
+                      <div className="flex items-center gap-0.5 sm:gap-1 px-1 sm:px-1.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[8.5px] sm:text-[9.5px] font-black font-mono truncate shadow-2xs">
+                        <span className="shrink-0 text-[9px]">🏋️</span>
+                        <span className="truncate">{d.totalMinutes}m</span>
                       </div>
-                      <span className="text-[8.5px] font-medium text-muted-foreground block truncate">
+                      <span className="text-[7.5px] sm:text-[8.5px] font-medium text-muted-foreground block truncate">
                         {d.workouts[0]?.notes ? d.workouts[0].notes.split('-')[0] : `${d.workouts.length} workout`}
                       </span>
                     </div>
                   ) : (
-                    <div className="pt-2">
-                      <span className="text-[9px] text-muted-foreground/50 font-medium block">Rest</span>
+                    <div className="pt-1 sm:pt-2 overflow-hidden w-full">
+                      <span className="text-[8px] sm:text-[9px] text-muted-foreground/50 font-medium block truncate">Rest</span>
                     </div>
                   )}
                 </button>
@@ -1177,7 +1177,7 @@ export default function HealthDashboardTab({
               <button
                 type="button"
                 onClick={() => onNavigateToDate(selectedDayInfo.dateStr, 'gym')}
-                className="text-xs font-bold text-primary hover:underline flex items-center gap-1 self-start sm:self-auto cursor-pointer"
+                className="px-3 py-1.5 rounded-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/25 text-xs font-bold inline-flex items-center gap-1.5 self-start sm:self-auto cursor-pointer transition-all shadow-2xs hover:scale-[1.02] active:scale-[0.98]"
               >
                 <span>Jump to this date in Gym Lab</span>
                 <Lucide.ChevronRight size={13} />

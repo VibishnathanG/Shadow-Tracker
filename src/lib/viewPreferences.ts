@@ -43,6 +43,9 @@ export interface ViewPreferences {
 
   // Explorer Feature
   explorerFilter: 'all' | 'core' | 'lifestyle' | 'intelligence';
+
+  // Settings Feature
+  settingsNotificationsExpanded: boolean;
 }
 
 export const DEFAULT_VIEW_PREFERENCES: ViewPreferences = {
@@ -76,6 +79,8 @@ export const DEFAULT_VIEW_PREFERENCES: ViewPreferences = {
   analyticsMatrixViewMode: 'month',
 
   explorerFilter: 'all',
+
+  settingsNotificationsExpanded: true,
 };
 
 const PREFERENCES_KEY = 'shadow_view_preferences_v1';

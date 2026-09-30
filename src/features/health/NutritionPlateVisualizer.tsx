@@ -551,7 +551,7 @@ export default function NutritionPlateVisualizer({
               <button
                 type="button"
                 onClick={() => setShowSupplementModal(true)}
-                className="px-3 py-1 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/35 text-emerald-400 font-black text-xs rounded-xl flex items-center gap-1.5 cursor-pointer shadow-xs transition-all active:scale-95 shrink-0"
+                className="px-3 py-1 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/35 text-emerald-400 font-bold text-xs rounded-full flex items-center gap-1.5 cursor-pointer shadow-xs transition-all active:scale-95 shrink-0"
                 title="Log Vitamin, Mineral, or Workout Supplement"
               >
                 <span>💊</span>
@@ -566,24 +566,24 @@ export default function NutritionPlateVisualizer({
           <div className="text-center py-8 space-y-2">
             <p className="text-3xl">🥗</p>
             <p className="text-xs font-bold text-muted-foreground">No food logged for this meal yet.</p>
-            <div className="flex items-center justify-center gap-3 pt-1">
+            <div className="flex items-center justify-center gap-2 pt-2 flex-wrap">
               <button
+                type="button"
                 onClick={() => onOpenAddModal(activeMealTab === 'all' ? 'lunch' : activeMealTab)}
-                className="text-xs font-black text-primary hover:underline cursor-pointer"
+                className="px-3 py-1.5 rounded-full bg-primary/15 hover:bg-primary/25 border border-primary/30 text-xs font-bold text-primary transition-all cursor-pointer shadow-xs active:scale-95 inline-flex items-center gap-1.5"
               >
-                + Tap to log dish
+                <Lucide.Plus size={13} />
+                <span>Tap to log dish</span>
               </button>
               {onAddSupplement && (
-                <>
-                  <span className="text-muted-foreground/40">•</span>
-                  <button
-                    onClick={() => setShowSupplementModal(true)}
-                    className="text-xs font-black text-emerald-400 hover:underline cursor-pointer flex items-center gap-1"
-                  >
-                    <span>💊</span>
-                    <span>+ Log Supplement</span>
-                  </button>
-                </>
+                <button
+                  type="button"
+                  onClick={() => setShowSupplementModal(true)}
+                  className="px-3 py-1.5 rounded-full bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-xs font-bold text-emerald-400 transition-all cursor-pointer shadow-xs active:scale-95 inline-flex items-center gap-1.5"
+                >
+                  <span>💊</span>
+                  <span>Log Supplement</span>
+                </button>
               )}
             </div>
           </div>

@@ -133,7 +133,8 @@ const EditableCurrencyInput = ({
       onChange={handleChange}
       onBlur={handleBlur}
       placeholder={placeholder}
-      className={className}
+      className={`!border-0 !shadow-none !bg-transparent !outline-none !ring-0 ${className}`}
+      style={{ border: 'none', outline: 'none', boxShadow: 'none', background: 'transparent' }}
     />
   );
 };
@@ -226,7 +227,17 @@ export default function MoneyFeature() {
       document.documentElement.classList.add('modal-open');
       document.body.style.overflow = 'hidden';
       document.documentElement.style.overflow = 'hidden';
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          if (selectedDay !== null) setSelectedDay(null);
+          if (activeSubModal !== null) setActiveSubModal(null);
+        }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+
       return () => {
+        window.removeEventListener('keydown', handleKeyDown);
         document.body.classList.remove('modal-open');
         document.documentElement.classList.remove('modal-open');
         document.body.style.overflow = prevBodyOverflow;
@@ -671,38 +682,39 @@ export default function MoneyFeature() {
 
   return (
     <>
-      <div className="space-y-6 relative pb-16">
+      <div className="space-y-4 sm:space-y-5 relative pb-16">
         {/* Header Tile */}
-        <div className="tile settings-tile p-3.5 sm:p-5 rounded-3xl flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 relative overflow-hidden">
-          <div className="flex flex-wrap items-center gap-3 sm:gap-4 relative z-10">
-            <div className="flex items-center gap-2.5 shrink-0">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-500 shadow-sm shrink-0">
-                <Lucide.Wallet size={18} />
-              </div>
-              <h1 className="text-base sm:text-lg font-black tracking-tight text-foreground leading-tight">Wealth</h1>
+        <div className="tile settings-tile p-3 sm:p-5 rounded-3xl flex flex-wrap sm:flex-nowrap items-center justify-between gap-2.5 sm:gap-4 relative overflow-hidden">
+          <div className="flex items-center gap-2.5 shrink-0">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-500 shadow-sm shrink-0">
+              <Lucide.Wallet size={16} className="sm:w-[18px] sm:h-[18px]" />
             </div>
+            <h1 className="text-base sm:text-lg font-black tracking-tight text-foreground leading-tight">Wealth</h1>
+          </div>
 
-            {/* Month Switcher Segment - 1 Neat and Clean Outer Rectangle */}
-            <div className="flex items-center gap-1 px-1.5 py-1 bg-surface-elevated/90 border border-border/80 rounded-xl shadow-xs shrink-0">
+          {/* Month Switcher & Subscription Button Alongside Each Other */}
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 relative z-10">
+            {/* Month Switcher Segment - Clean Rounded Pill Matching Subscription Button */}
+            <div className="h-7 sm:h-7.5 flex items-center gap-0.5 px-1 bg-surface-elevated/90 border border-border/80 rounded-full shadow-xs shrink-0">
               <button
                 type="button"
                 onClick={prevMonth}
-                className="w-7 h-7 rounded-lg hover:bg-secondary/70 text-muted-foreground hover:text-foreground flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
+                className="w-5.5 h-5.5 rounded-full hover:bg-secondary/70 text-muted-foreground hover:text-foreground flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0 border-0 outline-none"
                 title="Previous Month"
                 aria-label="Previous Month"
               >
-                <Lucide.ChevronLeft size={14} />
+                <Lucide.ChevronLeft size={11} />
               </button>
 
-              <div className="relative flex items-center px-1.5 py-0.5 cursor-pointer group">
-                <Lucide.Calendar size={13} className="text-primary mr-1.5 shrink-0 pointer-events-none" />
+              <div className="relative flex items-center px-1 py-0.5 cursor-pointer group">
+                <Lucide.Calendar size={11} className="text-primary mr-1 shrink-0 pointer-events-none" />
                 <select
                   value={currentMonthStr}
                   onChange={(e) => {
                     const [y, m] = e.target.value.split('-').map(Number);
                     setCurrentDate(new Date(y, m - 1, 1));
                   }}
-                  className="pr-4 py-0.5 font-mono text-xs font-black uppercase tracking-wider text-foreground cursor-pointer group-hover:text-primary transition-colors appearance-none bg-transparent border-0 outline-none shadow-none ring-0 focus:ring-0 focus:outline-none"
+                  className="pr-3 py-0.5 font-mono text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-foreground cursor-pointer group-hover:text-primary transition-colors appearance-none bg-transparent !border-0 !outline-none !shadow-none !ring-0"
                   style={{ border: 'none', outline: 'none', boxShadow: 'none', background: 'transparent' }}
                   title="Select Month"
                 >
@@ -712,33 +724,31 @@ export default function MoneyFeature() {
                     </option>
                   ))}
                 </select>
-                <Lucide.ChevronDown size={11} className="text-muted-foreground pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 group-hover:text-primary transition-colors" />
+                <Lucide.ChevronDown size={9} className="text-muted-foreground pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 group-hover:text-primary transition-colors" />
               </div>
 
               <button
                 type="button"
                 onClick={nextMonth}
-                className="w-7 h-7 rounded-lg hover:bg-secondary/70 text-muted-foreground hover:text-foreground flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0"
+                className="w-5.5 h-5.5 rounded-full hover:bg-secondary/70 text-muted-foreground hover:text-foreground flex items-center justify-center transition-all cursor-pointer active:scale-95 shrink-0 border-0 outline-none"
                 title="Next Month"
                 aria-label="Next Month"
               >
-                <Lucide.ChevronRight size={14} />
+                <Lucide.ChevronRight size={11} />
               </button>
             </div>
-          </div>
 
-          {/* Unified Subscription button (Mobile & Desktop) */}
-          <div className="flex items-center gap-2 relative z-10 shrink-0">
+            {/* Unified Subscription button alongside the month selector */}
             <button 
               type="button"
               onClick={() => setActiveSubModal('subscriptions')}
-              className="px-3 py-1.5 bg-purple-500/15 hover:bg-purple-500/25 border border-purple-500/30 text-purple-400 text-xs font-bold rounded-xl transition-all flex items-center gap-1.5 cursor-pointer shrink-0 shadow-xs"
+              className="h-7 sm:h-7.5 px-2.5 sm:px-3 bg-purple-500/15 hover:bg-purple-500/25 border border-purple-500/30 text-purple-400 text-[10.5px] sm:text-[11px] font-bold rounded-full transition-all flex items-center gap-1.5 cursor-pointer shrink-0 shadow-xs whitespace-nowrap"
               title="Subscription"
             >
-              <Lucide.Repeat size={13} className="shrink-0" />
+              <Lucide.Repeat size={11} className="shrink-0" />
               <span>Subscription</span>
               {(stats.subscriptions || []).length > 0 && (
-                <span className="bg-purple-500 text-white px-1.5 py-0.2 text-[9px] font-mono rounded-full shrink-0">
+                <span className="bg-purple-500 text-white px-1.5 py-0.2 text-[8px] sm:text-[8.5px] font-mono rounded-full shrink-0">
                   {(stats.subscriptions || []).length}
                 </span>
               )}

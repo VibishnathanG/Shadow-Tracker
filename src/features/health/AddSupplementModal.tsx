@@ -297,11 +297,11 @@ export default function AddSupplementModal({ onClose, onAdd }: AddSupplementModa
 
   return createPortal(
     <div
-      onClick={(e) => e.stopPropagation()}
+      onClick={onClose}
       onTouchMove={(e) => { e.preventDefault(); e.stopPropagation(); }}
       onWheel={(e) => e.stopPropagation()}
       style={{ touchAction: 'none' }}
-      className="fixed inset-0 z-[100000] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-sm animate-fadeIn cursor-default"
+      className="fixed inset-0 z-[100000] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-sm animate-fadeIn cursor-pointer"
     >
       <motion.div
         onClick={(e) => e.stopPropagation()}

@@ -43,9 +43,18 @@ export default function MicronutrientSection({ loggedFoods }: MicronutrientSecti
     if (biometrics.age) setSelectedAgePreset(getAgeGroupPreset(biometrics.age));
   }, [biometrics.sex, biometrics.age]);
 
-  // 3. Tab filter: 'all' | 'vitamin' | 'mineral'
   const [categoryFilter, setCategoryFilter] = useState<'all' | 'vitamin' | 'mineral'>('all');
   const [selectedNutrientDetail, setSelectedNutrientDetail] = useState<NutrientProgress | null>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && selectedNutrientDetail) {
+        setSelectedNutrientDetail(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedNutrientDetail]);
 
   // 4. Calculate progress for all nutrients
   const nutrientProgressList = useMemo(() => {
@@ -87,11 +96,14 @@ export default function MicronutrientSection({ loggedFoods }: MicronutrientSecti
               🧪
             </span>
             <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-base sm:text-lg font-black text-foreground tracking-tight">
+              <div className="flex items-center gap-2 flex-wrap text-base sm:text-lg">
+                <h3 className="text-[1em] font-black text-foreground tracking-tight">
                   Vitamins &amp; Minerals Profile
                 </h3>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                <span 
+                  style={{ fontSize: '0.45em', lineHeight: 1 }}
+                  className="inline-flex items-center font-bold tracking-wider uppercase px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 whitespace-nowrap shrink-0 shadow-2xs origin-left scale-90 sm:scale-100"
+                >
                   RDA Standards Preloaded
                 </span>
               </div>
@@ -103,13 +115,13 @@ export default function MicronutrientSection({ loggedFoods }: MicronutrientSecti
         </div>
 
         {/* Dynamic Personal Preset Controls */}
-        <div className="flex flex-wrap items-center gap-2 bg-surface p-1.5 rounded-2xl border border-border/80 text-xs">
+        <div className="flex flex-wrap items-center gap-2 bg-surface p-1.5 rounded-full border border-border/80 text-xs">
           {/* Sex Switcher */}
-          <div className="flex items-center gap-1 bg-secondary/60 p-0.5 rounded-xl border border-border/50">
+          <div className="flex items-center gap-1 bg-secondary/60 p-0.5 rounded-full border border-border/50">
             <button
               type="button"
               onClick={() => setSelectedSex('male')}
-              className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+              className={`px-3 py-1 rounded-full font-bold transition-all cursor-pointer ${
                 selectedSex === 'male'
                   ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40 shadow-xs'
                   : 'text-muted-foreground hover:text-foreground'
@@ -120,9 +132,9 @@ export default function MicronutrientSection({ loggedFoods }: MicronutrientSecti
             <button
               type="button"
               onClick={() => setSelectedSex('female')}
-              className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
+              className={`px-3 py-1 rounded-full font-bold transition-all cursor-pointer ${
                 selectedSex === 'female'
-                  ? 'bg-pink-500/20 text-pink-400 border border-pink-500/40 shadow-xs'
+                  ? 'bg-blue-500/20 text-blue-400 border border-blue-500/40 shadow-xs'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
@@ -130,28 +142,25 @@ export default function MicronutrientSection({ loggedFoods }: MicronutrientSecti
             </button>
           </div>
 
-          {/* Age Preset Dropdown */}
-          <div className="flex items-center gap-1 bg-secondary/60 px-2 py-1 rounded-xl border border-border/50">
-            <span className="text-[10px] font-bold text-muted-foreground uppercase">Age Group:</span>
-            <select
-              value={selectedAgePreset}
-              onChange={(e) => setSelectedAgePreset(e.target.value as AgeGroupPreset)}
-              className="bg-transparent text-xs font-bold text-foreground outline-none cursor-pointer"
-            >
-              <option value="teen">{ageLabels.teen}</option>
-              <option value="adult">{ageLabels.adult}</option>
-              <option value="senior">{ageLabels.senior}</option>
-            </select>
+          {/* Clean Rounded Age Group Selector */}
+          <div className="flex items-center gap-1 bg-secondary/60 p-0.5 rounded-full border border-border/50">
+            <span className="text-[9.5px] font-black text-muted-foreground uppercase tracking-wider pl-2 pr-0.5">Age:</span>
+            {(['teen', 'adult', 'senior'] as const).map(preset => (
+              <button
+                key={preset}
+                type="button"
+                onClick={() => setSelectedAgePreset(preset)}
+                className={`px-2.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                  selectedAgePreset === preset
+                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title={ageLabels[preset]}
+              >
+                {preset === 'teen' ? '14-18' : preset === 'adult' ? '19-50' : '51+'}
+              </button>
+            ))}
           </div>
-
-          {/* Profile Auto-Sync Indicator */}
-          <span
-            className="text-[10px] font-bold text-emerald-400 px-2 py-1 bg-emerald-500/10 rounded-xl border border-emerald-500/20 flex items-center gap-1"
-            title={`Bio synced: ${biometrics.age}yo ${biometrics.sex}`}
-          >
-            <Lucide.CheckCircle2 size={11} />
-            <span>Profile Synced</span>
-          </span>
         </div>
       </div>
 
@@ -204,11 +213,11 @@ export default function MicronutrientSection({ loggedFoods }: MicronutrientSecti
 
       {/* Filter Tabs: All vs Vitamins vs Minerals */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-1.5 bg-surface p-1 rounded-xl border border-border/70 text-xs font-bold">
+        <div className="flex items-center gap-1.5 bg-surface p-1 rounded-full border border-border/70 text-xs font-bold">
           <button
             type="button"
             onClick={() => setCategoryFilter('all')}
-            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+            className={`px-3 py-1.5 rounded-full transition-all cursor-pointer ${
               categoryFilter === 'all'
                 ? 'bg-primary text-primary-foreground shadow-xs'
                 : 'text-muted-foreground hover:text-foreground'
@@ -219,7 +228,7 @@ export default function MicronutrientSection({ loggedFoods }: MicronutrientSecti
           <button
             type="button"
             onClick={() => setCategoryFilter('vitamin')}
-            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
               categoryFilter === 'vitamin'
                 ? 'bg-amber-500/25 text-amber-300 border border-amber-500/40 shadow-xs'
                 : 'text-muted-foreground hover:text-foreground'
@@ -233,13 +242,13 @@ export default function MicronutrientSection({ loggedFoods }: MicronutrientSecti
           <button
             type="button"
             onClick={() => setCategoryFilter('mineral')}
-            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-full transition-all cursor-pointer flex items-center gap-1.5 ${
               categoryFilter === 'mineral'
                 ? 'bg-sky-500/25 text-sky-300 border border-sky-500/40 shadow-xs'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            <span>⚡ Minerals</span>
+            <span>💎 Minerals</span>
             <span className="text-[10px] opacity-75 font-mono">
               ({nutrientProgressList.filter(n => n.nutrient.category === 'mineral').length})
             </span>
@@ -437,7 +446,7 @@ export default function MicronutrientSection({ loggedFoods }: MicronutrientSecti
               <button
                 type="button"
                 onClick={() => setSelectedNutrientDetail(null)}
-                className="w-full py-2 bg-secondary hover:bg-surface text-foreground font-bold text-xs rounded-xl border border-border transition-all cursor-pointer"
+                className="w-full py-2 bg-secondary hover:bg-surface text-foreground font-bold text-xs rounded-full border border-border transition-all cursor-pointer shadow-xs active:scale-95"
               >
                 Close
               </button>

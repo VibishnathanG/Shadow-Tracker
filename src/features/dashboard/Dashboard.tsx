@@ -557,12 +557,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
   }
 
   return (
-    <div className="space-y-8 select-none font-sans relative">
+    <div className="space-y-5 sm:space-y-6 select-none font-sans relative">
       {/* Global Idle Wanderer Overlay: Crawls across other tiles when the screen is idle */}
       <DashboardIdleCrittersOverlay />
 
       {/* 1. Refined Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-border pb-6">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 border-b border-border pb-4">
         <div className="space-y-1.5">
           <motion.span 
             initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }}
@@ -594,21 +594,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <Lucide.ChevronRight size={13} className="text-secondary shrink-0 hidden sm:inline" />
           </button>
 
-          <div className="flex items-center gap-2 sm:gap-3 px-3 py-1.5 rounded-full bg-secondary border border-border/80 shadow-sm shrink-0">
-            <div className="flex items-center gap-1.5" title="Tasks Completed / Total Today">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-secondary border border-border/80 shadow-sm shrink-0 text-xs sm:text-sm">
+            <div className="flex items-center gap-1 sm:gap-1.5" title="Tasks Completed / Total Today">
               <Lucide.CheckSquare size={13} className="text-blue-400 shrink-0" />
-              <span className="text-xs sm:text-sm font-bold text-foreground">{completedTasksCount}/{todayTasks.length}</span>
+              <span className="font-bold text-foreground whitespace-nowrap">{completedTasksCount}/{todayTasks.length}</span>
             </div>
             <div className="w-[1px] h-3.5 bg-border shrink-0" />
-            <div className="flex items-center gap-1.5" title="Habits Completed / Total Active">
+            <div className="flex items-center gap-1 sm:gap-1.5" title="Habits Completed / Total Active">
               <Lucide.Repeat size={13} className="text-emerald-400 shrink-0" />
-              <span className="text-xs sm:text-sm font-bold text-foreground">{completedHabitsToday}/{activeHabitsCount}</span>
+              <span className="font-bold text-foreground whitespace-nowrap">{completedHabitsToday}/{activeHabitsCount}</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 px-3 py-1.5 bg-secondary border border-border rounded-full text-xs sm:text-sm font-medium shadow-sm shrink-0">
+          <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-secondary border border-border rounded-full text-xs sm:text-sm font-medium shadow-sm shrink-0 whitespace-nowrap">
             <Lucide.Flame className="text-orange-400 shrink-0" size={14} />
-            <span className="text-foreground whitespace-nowrap">{highestStreak} day streak</span>
+            <span className="text-foreground">{highestStreak}d streak</span>
           </div>
         </motion.div>
       </div>
@@ -984,12 +984,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-50 pointer-events-none" />
 
             <div className="relative z-10 space-y-2.5">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-base font-medium">
-                <span className="flex items-center gap-2 text-foreground uppercase text-sm tracking-wide font-semibold">
-                  <Lucide.Target size={16} className="text-primary" /> Today&apos;s Objective
+              <div className="flex items-center justify-between gap-2 text-base font-medium">
+                <span className="flex items-center gap-1.5 text-foreground uppercase text-xs sm:text-sm tracking-wide font-semibold shrink-0">
+                  <Lucide.Target size={15} className="text-primary shrink-0" /> Today&apos;s Objective
                 </span>
-                <div className="flex items-center gap-2">
-                  <span className="text-foreground bg-foreground/5 border border-border px-2 py-1 rounded-md shadow-inner text-sm font-mono">
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-foreground bg-foreground/5 border border-border px-2 py-0.5 rounded-md shadow-inner text-xs sm:text-sm font-mono whitespace-nowrap">
                     {completedPercent}% completed
                   </span>
                 </div>
@@ -1181,11 +1181,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div className="absolute top-0 right-0 bg-gradient-to-bl from-primary/5 to-transparent w-64 h-64 pointer-events-none" />
             
             <div className="relative z-10 flex-1 flex flex-col min-h-0">
-              <div className="flex items-center justify-between border-b border-border pb-3 mb-5">
-                <span className="text-sm uppercase tracking-wide font-bold text-foreground flex items-center gap-2">
-                  <Lucide.GitCommit size={16} className="text-primary" /> Timeline
+              <div className="flex items-center justify-between gap-2 border-b border-border pb-3 mb-5 min-w-0">
+                <span className="text-xs sm:text-sm uppercase tracking-wide font-bold text-foreground flex items-center gap-1.5 shrink-0">
+                  <Lucide.GitCommit size={16} className="text-primary shrink-0" /> Timeline
                 </span>
-                <span className="text-sm font-medium text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded-full">
+                <span className="text-[10px] sm:text-xs font-semibold text-primary bg-primary/10 border border-primary/20 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full whitespace-nowrap shrink-0">
                   {completedTasksCount} / {todayTasks.length} nodes resolved
                 </span>
               </div>
@@ -1311,15 +1311,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 )}
               </div>
               
-              <div className="border-t border-border pt-4 mt-4 flex justify-between items-center text-sm font-medium text-muted-foreground">
-                <span className="flex items-center gap-1.5"><Lucide.Zap size={14} className="text-amber-400/80" /> Flow State: {completedPercent || 0}%</span>
+              <div className="border-t border-border pt-4 mt-4 flex justify-between items-center text-xs sm:text-sm font-medium text-muted-foreground gap-2">
+                <span className="flex items-center gap-1.5 whitespace-nowrap text-xs sm:text-sm"><Lucide.Zap size={14} className="text-amber-400/80" /> Flow State: {completedPercent || 0}%</span>
                 <motion.button 
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => onNavigate('tasks')} 
-                  className="text-primary hover:text-primary transition-colors inline-flex items-center gap-1"
+                  className="px-3 py-1.5 rounded-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/25 font-bold text-xs inline-flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer shrink-0 whitespace-nowrap"
                 >
-                  Full board <Lucide.ArrowRight size={14} />
+                  <span>Full board</span>
+                  <Lucide.ArrowRight size={13} />
                 </motion.button>
               </div>
             </div>

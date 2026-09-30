@@ -248,6 +248,10 @@ export const NotificationScheduler = () => {
     // Skip on Capacitor — Android uses pre-scheduled alarms (effect #2)
     if (isCapacitorEnv()) return;
 
+    // CPU optimization: skip 15s interval polling entirely when no reminders are enabled
+    const activeReminders = reminders.filter((r) => r.isEnabled);
+    if (activeReminders.length === 0) return;
+
     const checkReminders = () => {
       const now = new Date();
       const hours = String(now.getHours()).padStart(2, '0');
@@ -256,7 +260,7 @@ export const NotificationScheduler = () => {
       const todayStr = getTodayDateString();
       const currentDayOfWeek = now.getDay();
 
-      reminders.forEach((reminder) => {
+      activeReminders.forEach((reminder) => {
         if (!reminder.isEnabled) return;
         if (reminder.time !== currentHHmm) return;
         if (reminder.date && reminder.date !== todayStr) return;

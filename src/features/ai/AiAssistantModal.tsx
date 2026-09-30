@@ -200,21 +200,11 @@ OPERATIONAL CONSTRAINTS:
       {
         id: 'ai_welcome_' + Date.now(),
         role: 'assistant',
-        content: `Greetings! I'm your **Shadow AI Assistant**. ${
+        content: `**Shadow AI Ready.** ${
           withContext && compiledContext
-            ? `Active tracker context loaded for **${compiledContext.window.toUpperCase()}** (~${compiledContext.tokenEstimate} tokens). Max session context ceiling is set to **${maxContextTokens.toLocaleString()} tokens**.`
-            : `Operating in **zero-context mode**.`
-        }\n\nI can autonomously manage your system:
-• ⚡ **Tasks & ToDos**: Create, prioritize, and check off items
-• 🔄 **Routines & Habits**: Add habits, log completions, boost streaks
-• 🔔 **Alarms & Notifications**: Configure alerts for tasks, habits, and todos
-• 🥗 **Diet & Hydration**: Log water, design custom meal plans
-• 💎 **Wealth & Budget**: Track expenses and manage budgets
-• 📖 **Journal**: Capture reflections and brain dumps
-• 🌐 **Knowledge & Web**: Query productivity and health science
-• 🛠️ **Custom Tools**: Extend capabilities with custom integrations
-
-Click **"Day-to-Day Prompts"** or **"Tools & Engine"** above, or type your request below!`,
+            ? `Context: **${compiledContext.window.toUpperCase()}** (~${compiledContext.tokenEstimate} tokens).`
+            : `Operating in zero-context mode.`
+        }\n\nAsk questions or command actions (tasks, habits, meals, expenses, alarms).`,
         timestamp: Date.now(),
       },
     ];
@@ -272,17 +262,33 @@ Click **"Day-to-Day Prompts"** or **"Tools & Engine"** above, or type your reque
     }, 100);
   };
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-background/80 backdrop-blur-md overflow-hidden">
+      <div 
+        onClick={onClose}
+        className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-background/80 backdrop-blur-md overflow-hidden cursor-pointer"
+      >
         <motion.div
+          onClick={(e) => e.stopPropagation()}
           initial={{ opacity: 0, scale: 0.96, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.96, y: 10 }}
           transition={{ duration: 0.2 }}
-          className="w-full max-w-3xl max-h-[92vh] flex flex-col bg-background border border-border rounded-2xl shadow-2xl overflow-hidden relative"
+          className="w-full max-w-3xl max-h-[92vh] flex flex-col bg-background border border-border rounded-2xl shadow-2xl overflow-hidden relative cursor-default"
         >
           {/* Modal Top Bar */}
           <div className="flex items-center justify-between px-4 py-2.5 border-b border-border/80 bg-surface-elevated/70 shrink-0">
@@ -294,14 +300,14 @@ Click **"Day-to-Day Prompts"** or **"Tools & Engine"** above, or type your reque
                 <h2 className="text-sm font-extrabold text-foreground flex items-center gap-1.5">
                   <span>Shadow AI</span>
                   <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-                    Autonomous Engine
+                    Copilot
                   </span>
                 </h2>
                 <p className="text-[10px] text-muted-foreground">
                   {stage === 'config'
-                    ? 'Configure Context Timeframe & Settings'
+                    ? 'Context & Endpoint Setup'
                     : withContext
-                    ? `Context: ${selectedWindow.toUpperCase()} (~${compiledContext?.tokenEstimate || 0} tokens) • Limit: ${maxContextTokens.toLocaleString()}`
+                    ? `Context: ${selectedWindow.toUpperCase()} (~${compiledContext?.tokenEstimate || 0} tokens) • Cap: ${maxContextTokens.toLocaleString()}`
                     : 'Zero-Context Session'}
                 </p>
               </div>
@@ -360,7 +366,7 @@ Click **"Day-to-Day Prompts"** or **"Tools & Engine"** above, or type your reque
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                   <Lucide.BrainCircuit size={14} className="text-primary" />
-                  1. Context Feeding Preference
+                  Context Feeding
                 </label>
 
                 <div className="grid grid-cols-2 gap-2">
@@ -376,12 +382,12 @@ Click **"Day-to-Day Prompts"** or **"Tools & Engine"** above, or type your reque
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs font-bold flex items-center gap-1.5">
                         <Lucide.FileText size={14} className={withContext ? 'text-primary' : ''} />
-                        With Historical Context
+                        With Context
                       </span>
                       {withContext && <Lucide.CheckCircle2 size={15} className="text-primary" />}
                     </div>
                     <p className="text-[11px] text-muted-foreground leading-relaxed">
-                      Feeds tasks, habits, water, wealth, and logs for personalized coaching and autonomous updates.
+                      Feeds recent tasks, habits, nutrition, and tracker state.
                     </p>
                   </button>
 
@@ -397,12 +403,12 @@ Click **"Day-to-Day Prompts"** or **"Tools & Engine"** above, or type your reque
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs font-bold flex items-center gap-1.5">
                         <Lucide.ZapOff size={14} className={!withContext ? 'text-primary' : ''} />
-                        Without Context (Blank)
+                        Without Context
                       </span>
                       {!withContext && <Lucide.CheckCircle2 size={15} className="text-primary" />}
                     </div>
                     <p className="text-[11px] text-muted-foreground leading-relaxed">
-                      Zero token context overhead. AI can still execute tools (create tasks, todos, logs) on command.
+                      Zero overhead. Still executes tracker tools on command.
                     </p>
                   </button>
                 </div>
@@ -414,11 +420,11 @@ Click **"Day-to-Day Prompts"** or **"Tools & Engine"** above, or type your reque
                   <div className="flex items-center justify-between">
                     <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                       <Lucide.CalendarRange size={14} className="text-primary" />
-                      Time Window Selection
+                      Time Window
                     </label>
                     {compiledContext && (
                       <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20">
-                        Est. ~{compiledContext.tokenEstimate} tokens
+                        ~{compiledContext.tokenEstimate} tokens
                       </span>
                     )}
                   </div>
@@ -431,20 +437,20 @@ Click **"Day-to-Day Prompts"** or **"Tools & Engine"** above, or type your reque
                           key={opt.id}
                           type="button"
                           onClick={() => setSelectedWindow(opt.id)}
-                          className={`px-3 py-2.5 rounded-xl border text-xs font-bold transition-all text-center flex flex-col items-center justify-center gap-0.5 ${
+                          className={`px-2.5 py-1.5 rounded-xl border text-[11px] font-bold transition-all text-center flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
                             isSelected
-                              ? 'bg-primary text-primary-foreground border-primary shadow-md shadow-primary/25'
+                              ? 'bg-primary text-primary-foreground border-primary shadow-sm shadow-primary/25'
                               : opt.isWarnCost
                               ? 'bg-surface text-amber-500/90 border-amber-500/30 hover:border-amber-500/60'
                               : 'bg-surface text-secondary hover:text-foreground border-border hover:border-primary/40'
                           }`}
                         >
-                          <span>{opt.label.replace(' (Recommended)', '')}</span>
+                          <span className="leading-tight">{opt.label.replace(' (Recommended)', '')}</span>
                           {opt.isWarnCost && (
-                            <span className="text-[9px] opacity-80 uppercase tracking-tighter">High Token Cost</span>
+                            <span className="text-[8px] opacity-80 uppercase tracking-tight">High Cost</span>
                           )}
                           {opt.id === '1w' && (
-                            <span className={`text-[9px] uppercase tracking-tighter ${isSelected ? 'text-primary-foreground/90' : 'text-emerald-400'}`}>
+                            <span className={`text-[8px] uppercase tracking-tight ${isSelected ? 'text-primary-foreground/90' : 'text-emerald-400'}`}>
                               Optimal
                             </span>
                           )}
@@ -458,33 +464,32 @@ Click **"Day-to-Day Prompts"** or **"Tools & Engine"** above, or type your reque
                     <motion.div
                       initial={{ opacity: 0, y: -4 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs flex items-start gap-2.5"
+                      className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs flex items-center gap-2"
                     >
-                      <Lucide.AlertTriangle size={16} className="shrink-0 mt-0.5" />
-                      <div className="leading-relaxed">
-                        <span className="font-bold">Token Cost Advisory:</span> Selecting{' '}
-                        <strong>{selectedWindow === '6m' ? '6 Months' : '1 Year (Max)'}</strong> generates a large context payload (~{compiledContext?.tokenEstimate} tokens). We strongly advise sticking with <strong>1 Week</strong> or <strong>1 Month</strong> to avoid high token consumption and network latency.
-                      </div>
+                      <Lucide.AlertTriangle size={15} className="shrink-0" />
+                      <span>
+                        High token payload (~{compiledContext?.tokenEstimate} tokens). 1 Week or 1 Month recommended.
+                      </span>
                     </motion.div>
                   )}
 
                   {/* Context JSON Preview & Copy Option */}
                   {compiledContext && (
                     <div className="pt-2 border-t border-border/60 space-y-2">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2">
                         <button
                           type="button"
                           onClick={() => setShowRawJson(!showRawJson)}
-                          className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
+                          className="px-3 py-1.5 rounded-full bg-primary/10 hover:bg-primary/20 text-xs font-bold text-primary border border-primary/25 transition-all flex items-center gap-1.5 shadow-2xs active:scale-95 cursor-pointer"
                         >
                           <Lucide.Code2 size={13} />
-                          {showRawJson ? 'Hide Context JSON Structure' : 'Inspect Context JSON Structure'}
+                          <span>{showRawJson ? 'Hide JSON Context' : 'Inspect JSON Context'}</span>
                         </button>
 
                         <button
                           type="button"
                           onClick={handleCopyJson}
-                          className="px-2.5 py-1.5 rounded-lg bg-surface border border-border text-xs font-bold text-foreground hover:bg-foreground/5 transition-all flex items-center gap-1.5 shadow-2xs"
+                          className="px-3 py-1.5 rounded-full bg-surface-elevated hover:bg-secondary border border-border/80 text-xs font-bold text-foreground transition-all flex items-center gap-1.5 shadow-2xs active:scale-95 cursor-pointer"
                         >
                           {copiedContext ? (
                             <>
@@ -494,7 +499,7 @@ Click **"Day-to-Day Prompts"** or **"Tools & Engine"** above, or type your reque
                           ) : (
                             <>
                               <Lucide.Copy size={13} />
-                              <span>Copy JSON Context</span>
+                              <span>Copy JSON</span>
                             </>
                           )}
                         </button>
@@ -518,7 +523,7 @@ Click **"Day-to-Day Prompts"** or **"Tools & Engine"** above, or type your reque
               <div className="space-y-3.5 p-4 rounded-xl bg-surface-elevated/50 border border-border">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                   <Lucide.Cpu size={14} className="text-primary" />
-                  Endpoint &amp; API Key (OpenAI-Compatible)
+                  Endpoint &amp; API Key
                 </label>
 
                 {/* Endpoint Preset Buttons */}
@@ -587,7 +592,7 @@ Click **"Day-to-Day Prompts"** or **"Tools & Engine"** above, or type your reque
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-[11px] font-bold text-muted-foreground flex items-center gap-1">
                       <Lucide.Key size={12} />
-                      API Key (Stored in sessionStorage only)
+                      API Key (Session Only)
                     </span>
                     {hasStoredKey && (
                       <button
@@ -596,7 +601,7 @@ Click **"Day-to-Day Prompts"** or **"Tools & Engine"** above, or type your reque
                         className="text-[11px] font-bold text-rose-400 hover:text-rose-300 hover:underline flex items-center gap-1 cursor-pointer"
                       >
                         <Lucide.Trash2 size={11} />
-                        Discard API Key
+                        Discard Key
                       </button>
                     )}
                   </div>
@@ -615,7 +620,7 @@ Click **"Day-to-Day Prompts"** or **"Tools & Engine"** above, or type your reque
                     />
                   </div>
                   <p className="text-[10.5px] text-muted-foreground mt-1">
-                    * For security, your key is strictly stored in memory/sessionStorage and wiped automatically when the session terminates.
+                    * In-memory session only; cleared on tab close.
                   </p>
                 </div>
 
@@ -779,7 +784,7 @@ Click **"Day-to-Day Prompts"** or **"Tools & Engine"** above, or type your reque
                         }
                       }
                     }}
-                    placeholder="Ask anything or request actions (e.g. 'Create task', 'Log water')... (Shift+Enter for newline)"
+                    placeholder="Ask or command actions (e.g. 'Add task', 'Log water')... (Shift+Enter newline)"
                     disabled={isLoading}
                     className="flex-1 px-4 py-2.5 rounded-xl bg-background border border-border text-foreground text-xs sm:text-sm focus:outline-hidden focus:border-primary disabled:opacity-50 resize-none max-h-32 min-h-[42px] leading-relaxed custom-scrollbar"
                   />

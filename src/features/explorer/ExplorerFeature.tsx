@@ -276,9 +276,9 @@ export default function ExplorerFeature({ onNavigate, onBackToDashboard }: Explo
   });
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-3 duration-500 pb-20 select-none font-sans">
+    <div className="w-full max-w-7xl mx-auto space-y-6 sm:space-y-8 animate-in fade-in slide-in-from-bottom-3 duration-500 pb-20 select-none font-sans">
       {/* Hero Header */}
-      <header className="space-y-4">
+      <header className="space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center border border-primary/20 shadow-md">

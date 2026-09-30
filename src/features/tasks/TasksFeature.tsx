@@ -374,7 +374,7 @@ export const TasksFeature: React.FC = () => {
   const categoryMap = useMemo(() => new Map(categories.map(c => [c.id, c])), [categories]);
 
   return (
-    <div className="space-y-6 relative min-h-[600px]">
+    <div className="space-y-4 sm:space-y-5 relative min-h-[600px]">
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 opacity-[0.05] flex items-center justify-center">
         <svg
           viewBox="0 0 800 800"
@@ -418,25 +418,39 @@ export const TasksFeature: React.FC = () => {
         <div>
           <h2 className="text-xl md:text-2xl font-bold tracking-tight text-foreground">Tasks Workspace</h2>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap">
           <motion.button
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.96 }}
             onClick={() => setIsAssigneeModalOpen(true)}
-            className="btn-glass-pill text-xs font-black py-2 px-3.5 shadow-md flex items-center gap-1.5 cursor-pointer border border-border/70 hover:border-primary/50 text-foreground"
+            className="btn-glass-pill text-xs font-black py-2 px-3 sm:px-3.5 shadow-md flex items-center gap-1.5 cursor-pointer border border-border/70 hover:border-primary/50 text-foreground"
             title="Manage Assignees & Default User"
           >
-            <Lucide.Users size={16} className="text-primary" />
-            <span>Assignees</span>
+            <Lucide.Users size={15} className="text-primary" />
+            <span className="hidden xs:inline">Assignees</span>
           </motion.button>
           <motion.button
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.96 }}
             onClick={() => openAddModal()}
-            className="btn-glass-pill active text-xs font-black py-2 px-4 shadow-md flex items-center gap-1.5 cursor-pointer"
+            className="btn-glass-pill active text-xs font-black py-2 px-3 sm:px-4 shadow-md flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
           >
-            <Lucide.Plus size={16} />
+            <Lucide.Plus size={15} />
             <span>Create Task</span>
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.96 }}
+            onClick={() => setWorkspaceView(workspaceView === 'simple' ? 'list' : 'simple')}
+            className={`btn-glass-pill text-xs font-black py-2 px-3 sm:px-3.5 shadow-md flex items-center gap-1.5 cursor-pointer border transition-all whitespace-nowrap ${
+              workspaceView === 'simple'
+                ? 'active bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+                : 'border-border/70 hover:border-emerald-500/50 text-foreground'
+            }`}
+            title="Toggle Simple Task View"
+          >
+            <Lucide.Zap size={14} className={workspaceView === 'simple' ? 'text-white' : 'text-emerald-400'} />
+            <span>Simple Task</span>
           </motion.button>
         </div>
       </div>
@@ -470,14 +484,6 @@ export const TasksFeature: React.FC = () => {
             <Lucide.Kanban size={14} className={workspaceView === 'kanban' ? 'text-white shrink-0' : 'text-purple-400 shrink-0'} />
             <span className="font-bold truncate">Kanban</span>
           </button>
-          <button
-            type="button"
-            onClick={() => setWorkspaceView('simple')}
-            className={`filter-pill w-full sm:w-auto justify-center sm:justify-start gap-1.5 sm:gap-2.5 !py-2 !px-2 sm:!px-4 text-xs ${workspaceView === 'simple' ? 'active' : ''}`}
-          >
-            <Lucide.Zap size={14} className={workspaceView === 'simple' ? 'text-white shrink-0' : 'text-emerald-400 shrink-0'} />
-            <span className="font-bold truncate">Simple</span>
-          </button>
         </div>
       </div>
 
@@ -489,47 +495,47 @@ export const TasksFeature: React.FC = () => {
         <TaskSimpleView />
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 bg-surface border border-border/60 p-3 rounded-xl shadow-sm hover:shadow-md transition-shadow relative z-10">
-            <div className="sm:col-span-2 relative group">
-              <Lucide.Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-hover:text-primary transition-colors pointer-events-none z-10" size={17} />
+          <div className="grid grid-cols-12 gap-1.5 sm:grid-cols-4 sm:gap-3 bg-surface border border-border/60 p-2 sm:p-3 rounded-xl shadow-sm hover:shadow-md transition-shadow relative z-10">
+            <div className="col-span-6 sm:col-span-2 relative group">
+              <Lucide.Search className="absolute left-2.5 sm:left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground group-hover:text-primary transition-colors pointer-events-none z-10" size={14} />
               <input
-            type="text"
-            maxLength={80}
-            placeholder="Search tasks..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full text-sm !pl-11 pr-4 py-2 bg-surface-elevated rounded-xl border border-transparent focus:border-border hover:bg-surface-elevated/80 focus:bg-surface-elevated text-foreground outline-none transition-all focus:ring-2 focus:ring-primary/20"
-          />
-        </div>
+                type="text"
+                maxLength={80}
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full text-xs sm:text-sm !pl-8 sm:!pl-11 pr-2 sm:pr-4 py-1.5 sm:py-2 bg-surface-elevated rounded-xl border border-transparent focus:border-border hover:bg-surface-elevated/80 focus:bg-surface-elevated text-foreground outline-none transition-all focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
 
-        <div className="relative group">
-          <select
-            value={priorityFilter}
-            onChange={(e) => setPriorityFilter(e.target.value)}
-            className="w-full text-sm pl-4 pr-9 py-2 bg-surface-elevated rounded-xl border border-transparent text-secondary focus:text-foreground hover:bg-surface-elevated/80 cursor-pointer outline-none transition-all focus:ring-2 focus:ring-primary/20 appearance-none font-bold"
-          >
-            <option value="all">All Priorities</option>
-            <option value="high">High Priority</option>
-            <option value="medium">Medium Priority</option>
-            <option value="low">Low Priority</option>
-          </select>
-          <Lucide.ChevronDown className="absolute right-3.5 top-3 text-secondary pointer-events-none group-hover:text-foreground transition-colors" size={16} />
-        </div>
+            <div className="col-span-3 sm:col-span-1 relative group">
+              <select
+                value={priorityFilter}
+                onChange={(e) => setPriorityFilter(e.target.value)}
+                className="w-full text-[11px] sm:text-sm pl-2 sm:pl-4 pr-5 sm:pr-9 py-1.5 sm:py-2 bg-surface-elevated rounded-xl border border-transparent text-secondary focus:text-foreground hover:bg-surface-elevated/80 cursor-pointer outline-none transition-all focus:ring-2 focus:ring-primary/20 appearance-none font-bold truncate"
+              >
+                <option value="all">Priorities</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+              <Lucide.ChevronDown className="absolute right-1.5 sm:right-3.5 top-1/2 -translate-y-1/2 text-secondary pointer-events-none group-hover:text-foreground transition-colors" size={14} />
+            </div>
 
-        <div className="relative group">
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className="w-full text-sm pl-4 pr-9 py-2 bg-surface-elevated rounded-xl border border-transparent text-secondary focus:text-foreground hover:bg-surface-elevated/80 cursor-pointer outline-none transition-all focus:ring-2 focus:ring-primary/20 appearance-none font-bold"
-          >
-            <option value="all">All Categories</option>
-            {categories.map(c => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
-          <Lucide.ChevronDown className="absolute right-3.5 top-3 text-secondary pointer-events-none group-hover:text-foreground transition-colors" size={16} />
-        </div>
-      </div>
+            <div className="col-span-3 sm:col-span-1 relative group">
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="w-full text-[11px] sm:text-sm pl-2 sm:pl-4 pr-5 sm:pr-9 py-1.5 sm:py-2 bg-surface-elevated rounded-xl border border-transparent text-secondary focus:text-foreground hover:bg-surface-elevated/80 cursor-pointer outline-none transition-all focus:ring-2 focus:ring-primary/20 appearance-none font-bold truncate"
+              >
+                <option value="all">Categories</option>
+                {categories.map(c => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+              <Lucide.ChevronDown className="absolute right-1.5 sm:right-3.5 top-1/2 -translate-y-1/2 text-secondary pointer-events-none group-hover:text-foreground transition-colors" size={14} />
+            </div>
+          </div>
 
       {/* Consolidated Single-Line Filter Toolbar (Status + Date Filters + View Mode) */}
       <div className="flex flex-wrap items-center justify-between gap-2 pb-1 relative z-10">

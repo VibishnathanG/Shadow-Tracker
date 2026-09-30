@@ -41,7 +41,7 @@ import { LocalNotifications } from '@capacitor/local-notifications';
 import { sendNativeNotification, isTauriEnv } from '@/lib/nativeNotification';
 import { NiceTimePicker } from '@/components/NiceTimePicker';
 import { ScheduleSelector } from '@/components/ScheduleSelector';
-import { resetAllViewPreferences } from '@/lib/viewPreferences';
+import { resetAllViewPreferences, useViewPreference } from '@/lib/viewPreferences';
 import { fireConfetti } from '@/lib/confetti';
 
 const TileArtDisplaySettings = () => (
@@ -201,7 +201,10 @@ const OneDriveSyncTile: React.FC<OneDriveSyncTileProps> = ({ onDiagnosticError }
             OneDrive / Local File Sync
           </h3>
           {settings.oneDriveSyncEnabled && (
-            <span className="px-2.5 py-1 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/40 text-[10px] font-black uppercase tracking-wider">
+            <span 
+              style={{ fontSize: '8px', lineHeight: 1 }}
+              className="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/40 font-bold uppercase tracking-wider shrink-0 whitespace-nowrap"
+            >
               ACTIVE REALTIME SYNC
             </span>
           )}
@@ -435,6 +438,7 @@ export const SettingsFeature: React.FC = () => {
 
   // Custom Notifications State & Logic
   const [notifPermission, setNotifPermission] = useState<string>('default');
+  const [isNotificationsExpanded, setIsNotificationsExpanded] = useViewPreference('settingsNotificationsExpanded') as [boolean, (v: boolean) => void];
 
   React.useEffect(() => {
     const checkPerm = async () => {
@@ -1110,7 +1114,7 @@ export const SettingsFeature: React.FC = () => {
       initial="hidden"
       animate="show"
       variants={containerVariants}
-      className="relative space-y-8 w-full max-w-[1700px] mx-auto pb-12 overflow-hidden"
+      className="relative space-y-5 sm:space-y-6 w-full max-w-[1700px] mx-auto pb-12 overflow-hidden"
     >
       <div className="absolute inset-0 pointer-events-none select-none opacity-[0.05]" aria-hidden="true">
         <svg
@@ -1392,61 +1396,86 @@ export const SettingsFeature: React.FC = () => {
           <motion.div 
             variants={itemVariants}
             transition={{ type: "spring" as const, stiffness: 300 }}
-            className="lg:col-span-2 space-y-6"
+            className="tile settings-tile p-5 sm:p-7 space-y-5 flex flex-col relative overflow-hidden lg:col-span-2"
           >
-            {/* Permission Status Header */}
-            <div className="tile settings-tile p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            {/* Notification Configuration Frame Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="p-3 rounded-2xl bg-primary/10 text-primary">
-                  <Lucide.BellRing size={22} />
-                </div>
+                <span className="p-2 rounded-xl bg-primary/10 text-primary shrink-0">
+                  <Lucide.BellRing size={18} />
+                </span>
                 <div>
-                  <h3 className="text-base font-extrabold text-foreground">Device Notification Engine</h3>
-                  <p className="text-xs text-muted-foreground font-medium">Works on Windows (.exe), Android (PWA), Linux & Mac without automated spam.</p>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-base font-bold text-foreground uppercase tracking-[0.2em]">
+                      Device Notification Engine
+                    </h3>
+                    {notifPermission === 'granted' ? (
+                      <span 
+                        style={{ fontSize: '8px', lineHeight: 1 }}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 whitespace-nowrap"
+                      >
+                        <Lucide.CheckCircle size={9} /> Granted
+                      </span>
+                    ) : (
+                      <span 
+                        style={{ fontSize: '8px', lineHeight: 1 }}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-bold bg-amber-500/15 text-amber-400 border border-amber-500/30 whitespace-nowrap"
+                      >
+                        <Lucide.AlertCircle size={9} /> {notifPermission === 'denied' ? 'In-App Active' : 'Pending'}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground font-medium mt-0.5">
+                    Works on Windows (.exe), Android (PWA), Linux & Mac without automated spam.
+                  </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0">
-                {notifPermission === 'granted' ? (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/15 text-emerald-500 border border-emerald-500/30 whitespace-nowrap">
-                    <Lucide.CheckCircle size={14} /> Permission Granted
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-500/15 text-amber-400 border border-amber-500/30 whitespace-nowrap">
-                    <Lucide.AlertCircle size={14} /> {notifPermission === 'denied' ? 'In-App Active' : 'Pending Enable'}
-                  </span>
-                )}
-
+              {/* Action Buttons & Expand/Collapse Toggle Aligned in Frame Header */}
+              <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap justify-between sm:justify-end w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={handleTestNativeNotification}
-                  className="px-3.5 py-1.5 bg-secondary hover:bg-secondary/80 text-foreground text-xs font-semibold rounded-xl border border-border/80 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 whitespace-nowrap shadow-2xs"
+                  className="px-3 py-1.5 bg-secondary hover:bg-secondary/80 text-foreground text-xs font-semibold rounded-full border border-border/80 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs whitespace-nowrap"
                   title="Test native OS notification toast"
                 >
-                  <Lucide.BellRing size={14} className="text-primary" /> Test Notification
+                  <Lucide.BellRing size={13} className="text-primary" /> Test
                 </button>
 
                 <button
                   type="button"
                   onClick={handleRequestPermission}
-                  className="px-3.5 py-1.5 bg-primary text-primary-foreground text-xs font-semibold rounded-xl shadow-2xs hover:bg-primary/90 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 whitespace-nowrap"
+                  className="px-3 py-1.5 bg-primary text-primary-foreground text-xs font-semibold rounded-full shadow-2xs hover:bg-primary/90 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 whitespace-nowrap"
                 >
-                  <Lucide.ShieldAlert size={14} /> {notifPermission === 'granted' ? 'Re-test' : 'Enable'}
+                  <Lucide.ShieldAlert size={13} /> {notifPermission === 'granted' ? 'Re-test' : 'Enable'}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsNotificationsExpanded(!isNotificationsExpanded)}
+                  className="px-3.5 py-1.5 bg-surface-elevated hover:bg-secondary text-foreground text-xs font-bold rounded-full border border-border/80 transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs active:scale-95 whitespace-nowrap"
+                  title={isNotificationsExpanded ? "Collapse notification configuration" : "Expand notification configuration"}
+                  aria-label={isNotificationsExpanded ? "Collapse notification configuration" : "Expand notification configuration"}
+                >
+                  <span>{isNotificationsExpanded ? 'Collapse' : 'Expand'}</span>
+                  {isNotificationsExpanded ? <Lucide.ChevronUp size={14} /> : <Lucide.ChevronDown size={14} />}
                 </button>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Block 1: Task Notifications */}
-              <div className="tile settings-tile p-6 space-y-5">
-                <div className="flex items-center justify-between border-b border-border/60 pb-3">
-                  <h4 className="text-sm font-extrabold text-foreground uppercase tracking-wider flex items-center gap-2">
-                    <Lucide.CheckSquare size={16} className="text-primary" /> Task Notifications
-                  </h4>
-                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary">
-                    {taskReminders.length} Active
-                  </span>
-                </div>
+            {isNotificationsExpanded && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-3 border-t border-border/50">
+                {/* Block 1: Task Notifications */}
+                <div className="bg-surface/50 border border-border/60 rounded-2xl p-4 sm:p-5 space-y-4">
+                  <div className="flex items-center justify-between border-b border-border/60 pb-3 gap-2">
+                    <h4 className="text-xs sm:text-sm font-extrabold text-foreground uppercase tracking-wider flex items-center gap-2 min-w-0 truncate">
+                      <Lucide.CheckSquare size={16} className="text-primary shrink-0" />
+                      <span className="truncate">Task Notifications</span>
+                    </h4>
+                    <span className="text-[10.5px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary shrink-0 whitespace-nowrap">
+                      {taskReminders.length} Active
+                    </span>
+                  </div>
 
                 {/* Form */}
                 <div className="space-y-4 bg-surface-elevated/40 backdrop-blur-xl p-4 rounded-2xl border border-border/60 shadow-xs">
@@ -1540,12 +1569,13 @@ export const SettingsFeature: React.FC = () => {
               </div>
 
               {/* Block 2: Habit Notifications */}
-              <div className="tile settings-tile p-6 space-y-5">
-                <div className="flex items-center justify-between border-b border-border/60 pb-3">
-                  <h4 className="text-sm font-extrabold text-foreground uppercase tracking-wider flex items-center gap-2">
-                    <Lucide.Repeat size={16} className="text-primary" /> Habit Notifications
+              <div className="bg-surface/50 border border-border/60 rounded-2xl p-4 sm:p-5 space-y-4">
+                <div className="flex items-center justify-between border-b border-border/60 pb-3 gap-2">
+                  <h4 className="text-xs sm:text-sm font-extrabold text-foreground uppercase tracking-wider flex items-center gap-2 min-w-0 truncate">
+                    <Lucide.Repeat size={16} className="text-primary shrink-0" />
+                    <span className="truncate">Habit Notifications</span>
                   </h4>
-                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary">
+                  <span className="text-[10.5px] sm:text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-primary/10 text-primary shrink-0 whitespace-nowrap">
                     {habitReminders.length} Active
                   </span>
                 </div>
@@ -1641,6 +1671,7 @@ export const SettingsFeature: React.FC = () => {
                 </div>
               </div>
             </div>
+            )}
           </motion.div>
 
         </div>

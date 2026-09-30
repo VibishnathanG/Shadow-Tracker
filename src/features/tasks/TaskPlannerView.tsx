@@ -304,10 +304,10 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
                     <button
                       type="button"
                       onClick={() => onOpenAddModal(dateStr)}
-                      className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-surface transition-colors cursor-pointer"
+                      className="w-6 h-6 rounded-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 flex items-center justify-center transition-all cursor-pointer shadow-2xs hover:scale-110 active:scale-95"
                       title={`Add task for ${format(date, 'EEE, d MMM')}`}
                     >
-                      <Lucide.Plus size={15} />
+                      <Lucide.Plus size={13} />
                     </button>
                   </div>
 
@@ -319,9 +319,10 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
                         <button
                           type="button"
                           onClick={() => onOpenAddModal(dateStr)}
-                          className="mt-0.5 text-[10px] font-bold text-primary hover:underline cursor-pointer"
+                          className="mt-1 px-2.5 py-0.5 rounded-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/25 font-bold text-[10px] inline-flex items-center gap-1 transition-all shadow-2xs hover:scale-105 active:scale-95 cursor-pointer"
                         >
-                          + Add
+                          <Lucide.Plus size={10} />
+                          <span>Add</span>
                         </button>
                       </div>
                     ) : (
@@ -524,10 +525,10 @@ export const TaskPlannerView: React.FC<TaskPlannerViewProps> = ({
                     <button
                       type="button"
                       onClick={() => onOpenAddModal(dateStr)}
-                      className="opacity-0 hover:opacity-100 group-hover:opacity-100 p-1 text-muted-foreground hover:text-foreground rounded transition-opacity cursor-pointer"
+                      className="opacity-0 hover:opacity-100 group-hover:opacity-100 w-5 h-5 rounded-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 flex items-center justify-center transition-all cursor-pointer"
                       title={`Add task for ${dateStr}`}
                     >
-                      <Lucide.Plus size={12} />
+                      <Lucide.Plus size={11} />
                     </button>
                   </div>
 

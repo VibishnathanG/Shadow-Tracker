@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lucide } from '@/components/icons';
 import Modal from '@/components/Modal';
@@ -89,13 +89,82 @@ const HabitsMonthlyGridCard: React.FC = () => {
   const [matrixViewMode, setMatrixViewMode] = useViewPreference('analyticsMatrixViewMode') as ['month' | 'week', (v: 'month' | 'week') => void];
 
   const matrixScrollRef = React.useRef<HTMLDivElement>(null);
+  const trackRef = React.useRef<HTMLDivElement>(null);
+  const isDraggingScrollRef = React.useRef<boolean>(false);
+  const [scrollProgress, setScrollProgress] = useState<number>(0);
+  const [thumbRatio, setThumbRatio] = useState<number>(0.25);
 
-  const scrollMatrix = (direction: 'left' | 'right') => {
-    if (matrixScrollRef.current) {
-      const scrollAmount = direction === 'left' ? -300 : 300;
-      matrixScrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+  const handleTableScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollLeft, scrollWidth, clientWidth } = e.currentTarget;
+    const maxScroll = scrollWidth - clientWidth;
+    if (maxScroll > 0) {
+      setScrollProgress(Math.max(0, Math.min(1, scrollLeft / maxScroll)));
+      setThumbRatio(Math.max(0.12, Math.min(0.65, clientWidth / scrollWidth)));
     }
   };
+
+  const scrollMatrixFast = (direction: 'left' | 'right') => {
+    if (matrixScrollRef.current) {
+      const step = Math.max(480, Math.round(matrixScrollRef.current.clientWidth * 0.75));
+      matrixScrollRef.current.scrollBy({ left: direction === 'left' ? -step : step, behavior: 'smooth' });
+    }
+  };
+
+  const jumpToTrackRatio = useCallback((ratio: number, smooth = false) => {
+    if (!matrixScrollRef.current) return;
+    const { scrollWidth, clientWidth } = matrixScrollRef.current;
+    const maxScroll = scrollWidth - clientWidth;
+    if (maxScroll <= 0) return;
+    const clampedRatio = Math.max(0, Math.min(1, ratio));
+    const targetLeft = clampedRatio * maxScroll;
+    if (smooth) {
+      matrixScrollRef.current.scrollTo({ left: targetLeft, behavior: 'smooth' });
+    } else {
+      matrixScrollRef.current.scrollLeft = targetLeft;
+    }
+  }, []);
+
+  const handlePointerDownTrack = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!trackRef.current) return;
+    isDraggingScrollRef.current = true;
+    trackRef.current.setPointerCapture(e.pointerId);
+    const rect = trackRef.current.getBoundingClientRect();
+    const ratio = (e.clientX - rect.left) / rect.width;
+    jumpToTrackRatio(ratio, false);
+  };
+
+  const handlePointerMoveTrack = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDraggingScrollRef.current || !trackRef.current) return;
+    const rect = trackRef.current.getBoundingClientRect();
+    const ratio = (e.clientX - rect.left) / rect.width;
+    jumpToTrackRatio(ratio, false);
+  };
+
+  const handlePointerUpTrack = (e: React.PointerEvent<HTMLDivElement>) => {
+    isDraggingScrollRef.current = false;
+    if (trackRef.current && trackRef.current.hasPointerCapture(e.pointerId)) {
+      trackRef.current.releasePointerCapture(e.pointerId);
+    }
+  };
+
+  useEffect(() => {
+    const updateMetrics = () => {
+      if (matrixScrollRef.current) {
+        const { scrollLeft, scrollWidth, clientWidth } = matrixScrollRef.current;
+        const maxScroll = scrollWidth - clientWidth;
+        if (maxScroll > 0) {
+          setScrollProgress(Math.max(0, Math.min(1, scrollLeft / maxScroll)));
+          setThumbRatio(Math.max(0.12, Math.min(0.65, clientWidth / scrollWidth)));
+        } else {
+          setScrollProgress(0);
+          setThumbRatio(1);
+        }
+      }
+    };
+    updateMetrics();
+    window.addEventListener('resize', updateMetrics);
+    return () => window.removeEventListener('resize', updateMetrics);
+  }, [currentMonthDate, matrixViewMode]);
 
   const [selectedWeekIdx, setSelectedWeekIdx] = useState<number>(0);
   const [reasonModal, setReasonModal] = useState<{ habit: typeof habits[0]; dateStr: string } | null>(null);
@@ -419,113 +488,98 @@ const HabitsMonthlyGridCard: React.FC = () => {
   return (
     <div className="tile p-4 sm:p-6 relative overflow-hidden space-y-6">
       {/* Month Header & Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
-        <div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <Lucide.CalendarCheck className="text-primary" size={18} />
-            <h3 className="text-base font-bold tracking-tight text-foreground">Monthly Habit Matrix</h3>
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-800 dark:text-amber-400 font-semibold border border-amber-500/20 text-[10px]">
-              <Lucide.FileEdit size={10} /> Tap 📝 to journal
-            </span>
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 border-b border-border/60 pb-4">
+        {/* Line 1: Header + 📝 Journal */}
+        <div className="flex items-center justify-between sm:justify-start gap-2.5">
+          <div className="flex items-center gap-2">
+            <Lucide.CalendarCheck className="text-primary shrink-0" size={18} />
+            <h3 className="text-base font-bold tracking-tight text-foreground whitespace-nowrap">Monthly Habit Matrix</h3>
           </div>
-          
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-800 dark:text-amber-400 font-bold border border-amber-500/20 text-[9px] sm:text-[10px] whitespace-nowrap shrink-0">
+            📝 Journal
+          </span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 shrink-0">
-          {/* View Mode Toggle: Month vs Week View */}
-          <div className="flex items-center bg-surface-elevated border border-border/80 rounded-xl p-1 shadow-sm">
-            <button
-              onClick={() => setMatrixViewMode('month')}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
-                matrixViewMode === 'month' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Full Month
-            </button>
-            <button
-              onClick={() => setMatrixViewMode('week')}
-              className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
-                matrixViewMode === 'week' ? 'bg-primary text-white shadow-sm' : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              Week View
-            </button>
-          </div>
-
-          {/* Matrix Scroll Controls */}
-          {matrixViewMode === 'month' && (
-            <div className="flex items-center gap-1 bg-surface-elevated border border-border/80 rounded-xl p-1 shadow-sm shrink-0">
+        {/* Lines 2 & 3 on mobile / Side-by-side on desktop */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 lg:gap-3">
+          {/* Line 2 on mobile: View mode and Days selector */}
+          <div className="flex items-center justify-between sm:justify-start gap-2 shrink-0">
+            {/* View Mode Toggle: Month vs Week View */}
+            <div className="h-7.5 flex items-center bg-surface-elevated border border-border/80 rounded-full p-0.5 shadow-xs shrink-0">
               <button
                 type="button"
-                onClick={() => scrollMatrix('left')}
-                className="p-1 hover:bg-secondary text-muted-foreground hover:text-foreground rounded-lg transition-all cursor-pointer border-0 outline-none ring-0 focus:outline-none"
-                title="Scroll Matrix Left"
+                onClick={() => setMatrixViewMode('month')}
+                className={`h-full px-2.5 rounded-full text-[11px] font-bold transition-all cursor-pointer flex items-center justify-center ${
+                  matrixViewMode === 'month' ? 'bg-primary text-white shadow-xs' : 'text-muted-foreground hover:text-foreground'
+                }`}
               >
-                <Lucide.ChevronLeft size={16} />
+                Full Month
               </button>
               <button
                 type="button"
-                onClick={() => scrollMatrix('right')}
-                className="p-1 hover:bg-secondary text-muted-foreground hover:text-foreground rounded-lg transition-all cursor-pointer border-0 outline-none ring-0 focus:outline-none"
-                title="Scroll Matrix Right"
+                onClick={() => setMatrixViewMode('week')}
+                className={`h-full px-2.5 rounded-full text-[11px] font-bold transition-all cursor-pointer flex items-center justify-center ${
+                  matrixViewMode === 'week' ? 'bg-primary text-white shadow-xs' : 'text-muted-foreground hover:text-foreground'
+                }`}
               >
-                <Lucide.ChevronRight size={16} />
+                Week View
               </button>
             </div>
-          )}
-          
-          {/* Past Habit Lock-in Window Setting */}
-          <div 
-            className="flex items-center gap-1 bg-surface-elevated border border-border/80 rounded-xl px-2 py-1 text-xs shadow-sm"
-            title="Days allowed to retroactively fill/update past habits (1-10 days, default 3)"
-          >
-            <Lucide.Clock size={13} className="text-primary shrink-0" />
             
-            <select
-              value={graceDays}
-              onChange={(e) => {
-                const days = Math.min(10, Math.max(1, parseInt(e.target.value, 10) || 3));
-                updateSettings({ habitGracePeriodDays: days });
-                setToastNotice(`Past lock-in window set to ${days} ${days === 1 ? 'day' : 'days'}`);
-                setTimeout(() => setToastNotice(null), 3000);
-              }}
-              className="bg-transparent font-bold text-foreground text-xs appearance-none border-0 outline-none ring-0 shadow-none cursor-pointer pr-1"
+            {/* Past Habit Lock-in Window Setting - Sleek, neat & clean */}
+            <div 
+              className="h-7.5 flex items-center gap-1 bg-surface-elevated border border-border/80 rounded-full px-2 text-[11px] font-bold shadow-xs shrink-0"
+              title="Days allowed to retroactively fill/update past habits (1-10 days, default 3)"
             >
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(d => (
-                <option key={d} value={d} className="bg-surface text-foreground font-semibold">
-                  {d} {d === 1 ? 'day' : 'days'}
-                </option>
-              ))}
-            </select>
+              <Lucide.Clock size={11} className="text-primary shrink-0" />
+              <select
+                value={graceDays}
+                onChange={(e) => {
+                  const days = Math.min(10, Math.max(1, parseInt(e.target.value, 10) || 3));
+                  updateSettings({ habitGracePeriodDays: days });
+                  setToastNotice(`Past lock-in window set to ${days} ${days === 1 ? 'day' : 'days'}`);
+                  setTimeout(() => setToastNotice(null), 3000);
+                }}
+                className="bg-transparent font-bold text-foreground text-[11px] appearance-none !border-0 !outline-none !ring-0 !shadow-none cursor-pointer pr-0.5"
+                style={{ border: 'none', outline: 'none', boxShadow: 'none', background: 'transparent' }}
+              >
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(d => (
+                  <option key={d} value={d} className="bg-surface text-foreground font-semibold">
+                    {d}d
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          <div className="flex items-center gap-1 bg-surface-elevated/90 border border-border/80 rounded-2xl p-1 shadow-xs shrink-0">
+          {/* Line 3 on mobile: Month Navigator */}
+          <div className="h-7.5 flex items-center justify-between sm:justify-start gap-1 bg-surface-elevated/90 border border-border/80 rounded-full p-0.5 shadow-xs shrink-0 w-full sm:w-auto">
             <button
               type="button"
               onClick={prevMonth}
-              className="p-1.5 hover:bg-secondary text-muted-foreground hover:text-foreground rounded-full transition-all cursor-pointer border-0 outline-none ring-0 focus:outline-none"
+              className="w-6 h-6 hover:bg-secondary text-muted-foreground hover:text-foreground rounded-full transition-all cursor-pointer border-0 outline-none flex items-center justify-center shrink-0"
               title="Previous Month"
             >
-              <Lucide.ChevronLeft size={15} />
+              <Lucide.ChevronLeft size={13} />
             </button>
             <button
               type="button"
               onClick={resetToToday}
-              className="filter-pill text-xs py-1 px-3.5 rounded-full font-bold uppercase cursor-pointer"
+              className="h-full px-2.5 rounded-full text-[11px] font-bold uppercase transition-all cursor-pointer bg-primary/10 text-primary hover:bg-primary/20 flex items-center justify-center"
               title="Jump to Today"
             >
               Today
             </button>
-            <span className="text-xs font-extrabold px-2.5 text-foreground tracking-wider uppercase border-l border-border/60">
+            <span className="text-[11px] font-extrabold px-2 text-foreground tracking-wider uppercase border-l border-border/60 text-center flex-1 sm:flex-initial">
               {format(currentMonthDate, 'MMMM yyyy')}
             </span>
             <button
               type="button"
               onClick={nextMonth}
-              className="p-1.5 hover:bg-secondary text-muted-foreground hover:text-foreground rounded-full transition-all cursor-pointer border-0 outline-none ring-0 focus:outline-none"
+              className="w-6 h-6 hover:bg-secondary text-muted-foreground hover:text-foreground rounded-full transition-all cursor-pointer border-0 outline-none flex items-center justify-center shrink-0"
               title="Next Month"
             >
-              <Lucide.ChevronRight size={15} />
+              <Lucide.ChevronRight size={13} />
             </button>
           </div>
         </div>
@@ -558,11 +612,64 @@ const HabitsMonthlyGridCard: React.FC = () => {
           description="Create your first habit in the Habits tab to populate the monthly tracking grid."
         />
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-2.5">
           {/* Scrollable Monthly Grid */}
           <div className="relative group/matrix">
+            {/* Sleek Interactive Horizontal Scroll Track with Fast Left/Right Controls */}
+            {matrixViewMode === 'month' && (
+              <div className="flex items-center gap-2 w-full mb-2 select-none">
+                <button
+                  type="button"
+                  onClick={() => scrollMatrixFast('left')}
+                  className="w-6 h-6 rounded-full bg-surface-elevated hover:bg-secondary text-muted-foreground hover:text-foreground border border-border/80 flex items-center justify-center shrink-0 transition-all cursor-pointer shadow-xs active:scale-90"
+                  title="Scroll fast left"
+                  aria-label="Scroll habit matrix fast left"
+                >
+                  <Lucide.ChevronLeft size={13} />
+                </button>
+
+                {/* Custom Interactive Scroll Track */}
+                <div
+                  ref={trackRef}
+                  onPointerDown={handlePointerDownTrack}
+                  onPointerMove={handlePointerMoveTrack}
+                  onPointerUp={handlePointerUpTrack}
+                  onPointerCancel={handlePointerUpTrack}
+                  className="flex-1 relative h-3 bg-surface-elevated/70 border border-border/80 rounded-full shadow-inner cursor-pointer group/track touch-none overflow-hidden"
+                  title="Click or drag to quickly scroll the month"
+                >
+                  {/* Subtle progress highlight */}
+                  <div
+                    className="absolute top-0.5 bottom-0.5 left-0.5 rounded-full bg-primary/10 pointer-events-none"
+                    style={{ width: `${Math.max(0, Math.min(100, scrollProgress * 100))}%` }}
+                  />
+                  {/* Active Draggable Thumb Pill */}
+                  <div
+                    className="absolute top-0.5 bottom-0.5 rounded-full bg-gradient-to-r from-primary to-purple-500 shadow-sm border border-primary/50 transition-colors group-hover/track:brightness-125 pointer-events-none"
+                    style={{
+                      width: `${thumbRatio * 100}%`,
+                      left: `${scrollProgress * (1 - thumbRatio) * 100}%`,
+                    }}
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => scrollMatrixFast('right')}
+                  className="w-6 h-6 rounded-full bg-surface-elevated hover:bg-secondary text-muted-foreground hover:text-foreground border border-border/80 flex items-center justify-center shrink-0 transition-all cursor-pointer shadow-xs active:scale-90"
+                  title="Scroll fast right"
+                  aria-label="Scroll habit matrix fast right"
+                >
+                  <Lucide.ChevronRight size={13} />
+                </button>
+              </div>
+            )}
             
-            <div ref={matrixScrollRef} className="overflow-x-auto no-scrollbar md:custom-scrollbar rounded-2xl border border-border bg-surface-elevated/30 overflow-hidden">
+            <div 
+              ref={matrixScrollRef} 
+              onScroll={handleTableScroll}
+              className="overflow-x-auto custom-scrollbar rounded-2xl border border-border bg-surface-elevated/30 overflow-hidden"
+            >
             <table className="w-full border-collapse select-none min-w-0 table-fixed">
               <colgroup>
                 <col className="w-36 sm:w-52" />
@@ -573,7 +680,7 @@ const HabitsMonthlyGridCard: React.FC = () => {
               <thead>
                 {/* Row 1: Week Headers */}
                 <tr>
-                  <th className="sticky left-0 bg-background z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] text-left text-[10px] sm:text-xs font-black text-foreground uppercase tracking-wider border-b border-border/50 border-r border-border/80">
+                  <th className="sticky left-0 bg-[color-mix(in_srgb,var(--surface)_80%,var(--primary)_20%)] backdrop-blur-md z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] text-left text-[11px] sm:text-xs font-black text-foreground uppercase tracking-wider border-b border-border/50 border-r border-primary/25 shadow-xs">
                     <div className="flex items-center gap-1.5 truncate">
                       <Lucide.CalendarDays size={13} className="text-primary shrink-0" />
                       <span className="truncate">{matrixViewMode === 'week' ? `WEEK ${weekGroups[selectedWeekIdx]?.weekNumber || 1}` : 'MONTHLY GRID'}</span>
@@ -598,9 +705,9 @@ const HabitsMonthlyGridCard: React.FC = () => {
 
                 {/* Row 2: Day of Week Abbreviation & Day Number */}
                 <tr className="border-b border-border/60">
-                  <th className="sticky left-0 bg-background z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] text-[10px] sm:text-xs font-bold text-muted-foreground uppercase text-left border-r border-border/80">
+                  <th className="sticky left-0 bg-[color-mix(in_srgb,var(--surface)_82%,var(--primary)_18%)] backdrop-blur-md z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] text-[11px] sm:text-xs font-black text-foreground/90 uppercase text-left border-r border-primary/25 shadow-xs">
                     <div className="flex items-center gap-1.5 truncate">
-                      <Lucide.Repeat size={13} className="text-muted-foreground shrink-0" />
+                      <Lucide.Repeat size={13} className="text-primary shrink-0" />
                       <span className="truncate">Habits ({activeHabits.length})</span>
                     </div>
                   </th>
@@ -637,17 +744,17 @@ const HabitsMonthlyGridCard: React.FC = () => {
                 {activeHabits.map((habit) => (
                   <tr key={habit.id} className="border-b border-border/60 hover:bg-secondary/20 transition-colors group">
                     {/* Habit Name Column (Sticky Left) */}
-                    <td className="sticky left-0 bg-background z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r border-border/80 text-left align-middle">
-                      <div className="flex items-center gap-2 font-bold text-[11px] sm:text-sm text-foreground group-hover:text-primary tracking-wide transition-colors min-w-0">
+                    <td className="sticky left-0 bg-[color-mix(in_srgb,var(--surface)_85%,var(--primary)_15%)] group-hover:bg-[color-mix(in_srgb,var(--surface)_76%,var(--primary)_24%)] backdrop-blur-md z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r border-primary/25 text-left align-middle transition-colors shadow-xs">
+                      <div className="flex items-center gap-2 font-bold text-[12px] sm:text-sm text-foreground group-hover:text-primary tracking-wide transition-colors min-w-0">
                         <div 
-                          className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full shrink-0 shadow-xs"
+                          className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs"
                           style={{ backgroundColor: getCategoryColor(habit.categoryId) }}
                         />
                         <div className="flex flex-col min-w-0 flex-1">
-                          <span className="truncate" title={habit.name}>
+                          <span className="truncate font-black text-[12px] sm:text-[13.5px] leading-tight" title={habit.name}>
                             {habit.name}
                           </span>
-                          <span className="text-[8px] sm:text-[9px] text-muted-foreground font-semibold uppercase tracking-tight truncate">
+                          <span className="text-[9.5px] sm:text-[10.5px] text-muted-foreground/90 font-bold uppercase tracking-tight truncate leading-tight mt-0.5">
                             {habit.frequency === 'custom' ? 'Custom' : habit.frequency === 'weekly' ? '1x/Wk' : 'Daily'}
                           </span>
                         </div>
@@ -737,7 +844,7 @@ const HabitsMonthlyGridCard: React.FC = () => {
 
                 {/* Summary Row 1: Progress % */}
                 <tr className="border-t-2 border-border/80 bg-surface-elevated/40 font-black text-xs sm:text-sm">
-                  <td className="sticky left-0 bg-background z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r border-border/80 text-left align-middle text-muted-foreground uppercase tracking-wider font-black text-xs sm:text-sm">
+                  <td className="sticky left-0 bg-[color-mix(in_srgb,var(--surface)_84%,var(--primary)_16%)] backdrop-blur-md z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r border-primary/25 text-left align-middle text-muted-foreground uppercase tracking-wider font-black text-xs sm:text-sm shadow-xs">
                     Progress %
                   </td>
                   {displayDays.map(date => {
@@ -753,7 +860,7 @@ const HabitsMonthlyGridCard: React.FC = () => {
 
                 {/* Summary Row 2: Done */}
                 <tr className="bg-surface-elevated/20 font-black text-xs sm:text-sm">
-                  <td className="sticky left-0 bg-background z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r border-border/80 text-left align-middle text-emerald-400 uppercase tracking-wider font-black text-xs sm:text-sm">
+                  <td className="sticky left-0 bg-[color-mix(in_srgb,var(--surface)_84%,var(--primary)_16%)] backdrop-blur-md z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r border-primary/25 text-left align-middle text-emerald-400 uppercase tracking-wider font-black text-xs sm:text-sm shadow-xs">
                     Done
                   </td>
                   {displayDays.map(date => {
@@ -769,7 +876,7 @@ const HabitsMonthlyGridCard: React.FC = () => {
 
                 {/* Summary Row 3: Not Done */}
                 <tr className="bg-surface-elevated/20 font-black text-xs sm:text-sm">
-                  <td className="sticky left-0 bg-background z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r border-border/80 text-left align-middle text-rose-400 uppercase tracking-wider font-black text-xs sm:text-sm">
+                  <td className="sticky left-0 bg-[color-mix(in_srgb,var(--surface)_84%,var(--primary)_16%)] backdrop-blur-md z-20 px-3 py-2 sm:px-4 sm:py-2.5 w-36 sm:w-52 min-w-[140px] sm:min-w-[200px] max-w-[140px] sm:max-w-[200px] border-r border-primary/25 text-left align-middle text-rose-400 uppercase tracking-wider font-black text-xs sm:text-sm shadow-xs">
                     Not Done
                   </td>
                   {displayDays.map(date => {
@@ -1126,7 +1233,7 @@ export const AnalyticsFeature = () => {
   } = stats;
 
   return (
-    <div className="space-y-6 pb-16 relative">
+    <div className="space-y-4 sm:space-y-5 pb-16 relative">
       <BackgroundDecorations />
       
       {/* Header */}
@@ -1135,8 +1242,8 @@ export const AnalyticsFeature = () => {
           <h2 className="text-3xl md:text-4xl font-black tracking-tighter bg-gradient-to-br from-foreground to-foreground/50 bg-clip-text text-transparent">
             Command Center
           </h2>
-          <p className="text-xs text-primary font-bold uppercase tracking-[0.2em] mt-2 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_var(--primary)] animate-pulse" /> Live Telemetry Active
+          <p className="text-[10px] sm:text-[11px] text-primary font-bold uppercase tracking-[0.16em] mt-1.5 flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_6px_var(--primary)] animate-pulse" /> Live Telemetry Active
           </p>
         </div>
         <div>
