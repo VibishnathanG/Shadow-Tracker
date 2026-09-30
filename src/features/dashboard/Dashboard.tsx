@@ -662,7 +662,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <div className="flex items-center gap-1.5">
                 <span className="text-xs font-black text-foreground block truncate">Health Hub</span>
                 {healthRdaCoverage > 0 && (
-                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hidden xs:inline">
+                  <span className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hidden sm:inline">
                     {healthRdaCoverage}% RDA
                   </span>
                 )}
@@ -935,9 +935,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
             className="tile p-3 space-y-2 flex flex-col justify-center shrink-0 h-full"
           >
             <TileArtAnalytics />
-            <div className="relative z-10 flex items-center justify-between">
-              <span className="text-sm uppercase font-bold text-muted-foreground tracking-wide block">Analytics Snapshot</span>
-              <Lucide.BarChart2 size={16} className="text-emerald-400/80" />
+            <div className="relative z-10 flex items-center justify-between gap-1.5 min-w-0">
+              <span className="text-xs sm:text-sm uppercase font-bold text-muted-foreground tracking-wide block truncate min-w-0">Analytics Snapshot</span>
+              <Lucide.BarChart2 size={16} className="text-emerald-400/80 shrink-0" />
             </div>
             
             <div className="relative z-10 space-y-2">
@@ -984,13 +984,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-50 pointer-events-none" />
 
             <div className="relative z-10 space-y-2.5">
-              <div className="flex items-center justify-between gap-2 text-base font-medium">
-                <span className="flex items-center gap-1.5 text-foreground uppercase text-xs sm:text-sm tracking-wide font-semibold shrink-0">
-                  <Lucide.Target size={15} className="text-primary shrink-0" /> Today&apos;s Objective
+              <div className="flex items-center justify-between gap-1.5 min-w-0 text-base font-medium">
+                <span className="flex items-center gap-1.5 text-foreground uppercase text-xs sm:text-sm tracking-wide font-semibold min-w-0 truncate">
+                  <Lucide.Target size={15} className="text-primary shrink-0" />
+                  <span className="truncate">Today&apos;s Objective</span>
                 </span>
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-foreground bg-foreground/5 border border-border px-2 py-0.5 rounded-md shadow-inner text-xs sm:text-sm font-mono whitespace-nowrap">
-                    {completedPercent}% completed
+                <div className="flex items-center gap-1 shrink-0">
+                  <span className="text-foreground bg-foreground/5 border border-border px-1.5 sm:px-2 py-0.5 rounded-md shadow-inner text-[11px] sm:text-xs font-mono whitespace-nowrap">
+                    <span className="hidden sm:inline lg:hidden 2xl:inline">{completedPercent}% completed</span>
+                    <span className="inline sm:hidden lg:inline 2xl:hidden">{completedPercent}%</span>
                   </span>
                 </div>
               </div>
@@ -1009,7 +1011,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <motion.div whileHover={{ scale: 1.02, transition: { type: "spring" as const, stiffness: 300 } }} className="flex items-start gap-2.5 bg-foreground/5 border border-border p-2.5 rounded-xl text-xs font-medium text-foreground leading-relaxed shadow-sm relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 <Lucide.Lightbulb size={16} className="text-yellow-400 shrink-0 mt-0.5" />
-                <p className="relative z-10">{renderWithAliasHighlight(coachingText)}</p>
+                <p className="relative z-10 min-w-0 break-words">{renderWithAliasHighlight(coachingText)}</p>
               </motion.div>
             </div>
           </motion.div>
@@ -1025,10 +1027,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 whileHover={{ scale: 1.05, y: -4, boxShadow: "0 15px 35px -10px rgba(59, 130, 246, 0.4)", transition: { type: "spring" as const, stiffness: 400, damping: 20 } }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => { setQuickAddType('task'); setShowQuickAddModal(true); }}
-                className="group flex flex-col items-center justify-center gap-2 p-3 bg-foreground/5 hover:bg-surface-elevated border border-border hover:border-blue-400/50 rounded-xl text-sm font-semibold transition-all text-foreground hover:text-foreground shadow-sm"
+                className="group flex flex-col items-center justify-center gap-1.5 p-2 sm:p-2.5 bg-foreground/5 hover:bg-surface-elevated border border-border hover:border-blue-400/50 rounded-xl text-xs sm:text-sm font-semibold transition-all text-foreground hover:text-foreground shadow-sm"
               >
                 <div className="p-2 rounded-lg bg-blue-400/10 text-blue-400 group-hover:scale-110 transition-transform shadow-inner">
-                  <Lucide.PlusSquare size={18} />
+                  <Lucide.PlusSquare size={17} />
                 </div>
                 <span>New Task</span>
               </motion.button>
@@ -1036,10 +1038,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 whileHover={{ scale: 1.05, y: -4, boxShadow: "0 15px 35px -10px rgba(168, 85, 247, 0.4)", transition: { type: "spring" as const, stiffness: 400, damping: 20 } }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => onNavigate('habits')}
-                className="group flex flex-col items-center justify-center gap-2 p-3 bg-foreground/5 hover:bg-surface-elevated border border-border hover:border-purple-400/50 rounded-xl text-sm font-semibold transition-all text-foreground hover:text-foreground shadow-sm"
+                className="group flex flex-col items-center justify-center gap-1.5 p-2 sm:p-2.5 bg-foreground/5 hover:bg-surface-elevated border border-border hover:border-purple-400/50 rounded-xl text-xs sm:text-sm font-semibold transition-all text-foreground hover:text-foreground shadow-sm"
               >
                 <div className="p-2 rounded-lg bg-purple-400/10 text-purple-400 group-hover:scale-110 transition-transform shadow-inner">
-                  <Lucide.Repeat size={18} />
+                  <Lucide.Repeat size={17} />
                 </div>
                 <span>Habit</span>
               </motion.button>
@@ -1047,10 +1049,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 whileHover={{ scale: 1.05, y: -4, boxShadow: "0 15px 35px -10px rgba(251, 113, 133, 0.4)", transition: { type: "spring" as const, stiffness: 400, damping: 20 } }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => onNavigate('notes')}
-                className="group flex flex-col items-center justify-center gap-2 p-3 bg-foreground/5 hover:bg-surface-elevated border border-border hover:border-rose-400/50 rounded-xl text-sm font-semibold transition-all text-foreground hover:text-foreground shadow-sm"
+                className="group flex flex-col items-center justify-center gap-1.5 p-2 sm:p-2.5 bg-foreground/5 hover:bg-surface-elevated border border-border hover:border-rose-400/50 rounded-xl text-xs sm:text-sm font-semibold transition-all text-foreground hover:text-foreground shadow-sm"
               >
                 <div className="p-2 rounded-lg bg-rose-400/10 text-rose-400 group-hover:scale-110 transition-transform shadow-inner">
-                  <Lucide.BookOpen size={18} />
+                  <Lucide.BookOpen size={17} />
                 </div>
                 <span>Journal</span>
               </motion.button>
@@ -1058,10 +1060,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 whileHover={{ scale: 1.05, y: -4, boxShadow: "0 15px 35px -10px rgba(52, 211, 153, 0.4)", transition: { type: "spring" as const, stiffness: 400, damping: 20 } }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => onNavigate('analytics')}
-                className="group flex flex-col items-center justify-center gap-2 p-3 bg-foreground/5 hover:bg-surface-elevated border border-border hover:border-emerald-400/50 rounded-xl text-sm font-semibold transition-all text-foreground hover:text-foreground shadow-sm"
+                className="group flex flex-col items-center justify-center gap-1.5 p-2 sm:p-2.5 bg-foreground/5 hover:bg-surface-elevated border border-border hover:border-emerald-400/50 rounded-xl text-xs sm:text-sm font-semibold transition-all text-foreground hover:text-foreground shadow-sm"
               >
                 <div className="p-2 rounded-lg bg-emerald-400/10 text-emerald-400 group-hover:scale-110 transition-transform shadow-inner">
-                  <Lucide.LineChart size={18} />
+                  <Lucide.LineChart size={17} />
                 </div>
                 <span>Stats</span>
               </motion.button>
@@ -1186,7 +1188,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   <Lucide.GitCommit size={16} className="text-primary shrink-0" /> Timeline
                 </span>
                 <span className="text-[10px] sm:text-xs font-semibold text-primary bg-primary/10 border border-primary/20 px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full whitespace-nowrap shrink-0">
-                  {completedTasksCount} / {todayTasks.length} nodes resolved
+                  <span>{completedTasksCount} / {todayTasks.length}</span>
+                  <span className="hidden sm:inline"> nodes resolved</span>
+                  <span className="inline sm:hidden"> resolved</span>
                 </span>
               </div>
 
@@ -1311,8 +1315,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 )}
               </div>
               
-              <div className="border-t border-border pt-4 mt-4 flex justify-between items-center text-xs sm:text-sm font-medium text-muted-foreground gap-2">
-                <span className="flex items-center gap-1.5 whitespace-nowrap text-xs sm:text-sm"><Lucide.Zap size={14} className="text-amber-400/80" /> Flow State: {completedPercent || 0}%</span>
+              <div className="border-t border-border pt-4 mt-4 flex justify-between items-center text-xs sm:text-sm font-medium text-muted-foreground gap-2 min-w-0">
+                <span className="flex items-center gap-1.5 truncate text-xs sm:text-sm min-w-0">
+                  <Lucide.Zap size={14} className="text-amber-400/80 shrink-0" /> 
+                  <span className="truncate">Flow State: {completedPercent || 0}%</span>
+                </span>
                 <motion.button 
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
