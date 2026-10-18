@@ -16,14 +16,6 @@ export const NotificationScheduler = () => {
   const isHiddenRef = useRef(false); // tracks when EXE window is hidden/minimised
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // ── Eagerly request browser Notification permission on mount ──────────────
-  useEffect(() => {
-    if (!isTauriEnv() && typeof window !== 'undefined' && 'Notification' in window) {
-      if (Notification.permission === 'default') {
-        Notification.requestPermission().catch(() => {});
-      }
-    }
-  }, []);
 
   // ── Track eco-mode / hidden state for CPU optimisation (EXE only) ─────────
   useEffect(() => {

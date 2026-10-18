@@ -339,13 +339,13 @@ export default function ExplorerFeature({ onNavigate, onBackToDashboard }: Explo
 
         {/* Search input */}
         <div className="relative min-w-[220px]">
-          <Lucide.Search className="absolute left-3.5 top-3 text-muted-foreground" size={15} />
+          <Lucide.Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" size={15} />
           <input
             type="text"
             placeholder="Search features..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full text-xs pl-9 pr-4 py-2.5 bg-surface-elevated/70 border border-border/70 rounded-xl text-foreground placeholder:text-muted-foreground outline-none focus:border-primary transition-all"
+            className="w-full text-xs !pl-10 pr-4 py-2.5 bg-surface-elevated/70 border border-border/70 rounded-xl text-foreground placeholder:text-muted-foreground outline-none focus:border-primary transition-all"
           />
         </div>
       </div>

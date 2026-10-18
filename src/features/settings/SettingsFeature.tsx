@@ -34,6 +34,8 @@ import {
   readFromFile,
   disconnectSyncFile,
   isFileSyncSupported,
+  hasDirectDiskAccess,
+  triggerJsonDownload,
   performFullBidirectionalSync,
 } from '@/lib/oneDriveSync';
 
@@ -95,7 +97,7 @@ interface OneDriveSyncTileProps {
 const OneDriveSyncTile: React.FC<OneDriveSyncTileProps> = ({ onDiagnosticError }) => {
   const { settings, updateSettings, importBackup } = useShadowTrackerStore();
   const [isSyncing, setIsSyncing] = useState(false);
-  const [syncSupported] = useState(() => isFileSyncSupported());
+  const [isDirectAccess] = useState(() => hasDirectDiskAccess());
 
   const handleStartNewSync = async () => {
     try {
@@ -161,6 +163,10 @@ const OneDriveSyncTile: React.FC<OneDriveSyncTileProps> = ({ onDiagnosticError }
       const syncedBackup = await performFullBidirectionalSync(state.settings);
       if (syncedBackup) {
         updateSettings({ lastOneDriveSyncTimestamp: Date.now() });
+        // In universal mode (Zen / Brave / Firefox), also trigger download of the updated sync file
+        if (!hasDirectDiskAccess() && settings.oneDriveSyncFile) {
+          triggerJsonDownload(settings.oneDriveSyncFile, syncedBackup);
+        }
       }
       alert('✅ Sync completed successfully!\n\nRecorded current state of app with all data and updated the sync file.');
     } catch (e: any) {
@@ -200,14 +206,33 @@ const OneDriveSyncTile: React.FC<OneDriveSyncTileProps> = ({ onDiagnosticError }
             </span>
             OneDrive / Local File Sync
           </h3>
-          {settings.oneDriveSyncEnabled && (
-            <span 
-              style={{ fontSize: '8px', lineHeight: 1 }}
-              className="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/40 font-bold uppercase tracking-wider shrink-0 whitespace-nowrap"
-            >
-              ACTIVE REALTIME SYNC
-            </span>
-          )}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {isDirectAccess ? (
+              <span 
+                style={{ fontSize: '8px', lineHeight: 1 }}
+                className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-bold uppercase tracking-wider shrink-0 whitespace-nowrap"
+                title="Direct background file handle write active (Edge / Chrome / Desktop)"
+              >
+                DIRECT DISK
+              </span>
+            ) : (
+              <span 
+                style={{ fontSize: '8px', lineHeight: 1 }}
+                className="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/40 font-bold uppercase tracking-wider shrink-0 whitespace-nowrap"
+                title="Universal file sync compatibility active (Zen, Brave, Firefox & Safari)"
+              >
+                UNIVERSAL SYNC
+              </span>
+            )}
+            {settings.oneDriveSyncEnabled && (
+              <span 
+                style={{ fontSize: '8px', lineHeight: 1 }}
+                className="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/40 font-bold uppercase tracking-wider shrink-0 whitespace-nowrap"
+              >
+                ACTIVE
+              </span>
+            )}
+          </div>
         </div>
 
         <p className="text-sm font-medium text-foreground mt-3 leading-relaxed">
@@ -245,62 +270,60 @@ const OneDriveSyncTile: React.FC<OneDriveSyncTileProps> = ({ onDiagnosticError }
         )}
       </div>
 
-      {syncSupported && (
-        <div className="flex flex-col gap-2.5 relative z-10 pt-2">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={handleStartNewSync}
-              disabled={isSyncing}
-              className="filter-pill active flex items-center justify-center gap-2 !px-3.5 !py-3 font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer"
-            >
-              <Lucide.PlusCircle size={15} />
-              Start New Sync File
-            </motion.button>
+      <div className="flex flex-col gap-2.5 relative z-10 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleStartNewSync}
+            disabled={isSyncing}
+            className="filter-pill active flex items-center justify-center gap-2 !px-3.5 !py-3 font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+          >
+            <Lucide.PlusCircle size={15} />
+            Start New Sync File
+          </motion.button>
 
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handlePickExistingSync}
+            disabled={isSyncing}
+            className="filter-pill flex items-center justify-center gap-2 !px-3.5 !py-3 font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+          >
+            <Lucide.FolderOpen size={15} />
+            Pick Existing Sync File
+          </motion.button>
+        </div>
+
+        {settings.oneDriveSyncFile && (
+          <div className="grid grid-cols-2 gap-2">
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.95 }}
-              onClick={handlePickExistingSync}
+              onClick={handleSyncNow}
               disabled={isSyncing}
-              className="filter-pill flex items-center justify-center gap-2 !px-3.5 !py-3 font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+              className="filter-pill flex items-center justify-center gap-2 !px-4 !py-2.5 font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer"
             >
-              <Lucide.FolderOpen size={15} />
-              Pick Existing Sync File
+              <Lucide.RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />
+              Sync Now
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleDisconnect}
+              disabled={isSyncing}
+              className="filter-pill flex items-center justify-center gap-2 !px-4 !py-2.5 text-rose-400 border-rose-500/30 hover:border-rose-500/60 font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+            >
+              <Lucide.XCircle size={14} />
+              Disconnect
             </motion.button>
           </div>
+        )}
 
-          {settings.oneDriveSyncFile && (
-            <div className="grid grid-cols-2 gap-2">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleSyncNow}
-                disabled={isSyncing}
-                className="filter-pill flex items-center justify-center gap-2 !px-4 !py-2.5 font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer"
-              >
-                <Lucide.RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />
-                Sync Now
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleDisconnect}
-                disabled={isSyncing}
-                className="filter-pill flex items-center justify-center gap-2 !px-4 !py-2.5 text-rose-400 border-rose-500/30 hover:border-rose-500/60 font-bold text-xs rounded-xl shadow-sm transition-all disabled:opacity-50 cursor-pointer"
-              >
-                <Lucide.XCircle size={14} />
-                Disconnect
-              </motion.button>
-            </div>
-          )}
-
-          {isSyncing && (
-            <p className="text-center text-xs text-sky-400 animate-pulse font-bold">Processing sync...</p>
-          )}
-        </div>
-      )}
+        {isSyncing && (
+          <p className="text-center text-xs text-sky-400 animate-pulse font-bold">Processing sync...</p>
+        )}
+      </div>
     </motion.div>
   );
 };

@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Shadow Tracker",
-  "version": "15.0.0",
+  "version": "16.0.0",
   "identifier": "com.shadowtracker.app",
   "build": {
     "frontendDist": "../out",
@@ -20,7 +20,8 @@
         "theme": "Dark",
         "backgroundColor": "#030603",
         "visible": false,
-        "decorations": true
+        "decorations": true,
+        "additionalBrowserArgs": "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection"
       }
     ],
     "security": {

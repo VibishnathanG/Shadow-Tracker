@@ -12,6 +12,8 @@ export const isCapacitorEnv = (): boolean =>
 
 export const playNotificationChime = (): void => {
   try {
+    // Prevent AudioContext initialization while document is in background/hidden (prevents audio renderer crashes)
+    if (typeof document !== 'undefined' && document.hidden) return;
     const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
     if (!AudioCtx) return;
     const ctx = new AudioCtx();
@@ -131,19 +133,6 @@ export const sendNativeNotification = async (
         n.onclick = () => window.focus();
         if (soundEnabled) playNotificationChime();
         return true;
-      } else if (Notification.permission !== 'denied') {
-        const perm = await Notification.requestPermission();
-        if (perm === 'granted') {
-          const n = new Notification(title, {
-            body,
-            icon: '/app_logo_master.png',
-            requireInteraction: stickyEnabled,
-            silent: !soundEnabled,
-          });
-          n.onclick = () => window.focus();
-          if (soundEnabled) playNotificationChime();
-          return true;
-        }
       }
     } catch (e) {
       console.warn('Web Notification error:', e);

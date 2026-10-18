@@ -132,11 +132,23 @@ html.is-user-idle svg *:not([role="status"] *):not([aria-busy="true"] *) {
   animation-play-state: paused !important;
 }
 
-/* Suppress CSS transitions during idle state to eliminate thousands of continuous EventDispatch transitionrun/start events */
-html.is-user-idle *:not([role="status"] *):not([aria-busy="true"] *),
-html.is-hidden *:not([role="status"] *):not([aria-busy="true"] *),
-html.window-blurred *:not([role="status"] *):not([aria-busy="true"] *),
-html.window-inactive *:not([role="status"] *):not([aria-busy="true"] *) {
+/* Suppress CSS transitions during idle state without triggering full-DOM style invalidations */
+html.is-user-idle [class*="transition"],
+html.is-hidden [class*="transition"],
+html.window-blurred [class*="transition"],
+html.window-inactive [class*="transition"],
+html.is-user-idle button,
+html.is-hidden button,
+html.window-blurred button,
+html.window-inactive button,
+html.is-user-idle a,
+html.is-hidden a,
+html.window-blurred a,
+html.window-inactive a,
+html.is-user-idle input,
+html.is-hidden input,
+html.window-blurred input,
+html.window-inactive input {
   transition-duration: 0s !important;
   transition-delay: 0s !important;
 }
@@ -1626,41 +1638,43 @@ html.theme-cyberpunk button.active:not(.nav-item) {
 }
 
 /* 2. Form Controls, Inputs, Selects, and Switch Toggles */
-:where(input[type="text"]:not(.command-input),
-input[type="password"],
-input[type="number"],
-input[type="search"]:not(.command-input),
-input[type="email"],
-select,
-textarea,
-.input-field) {
-  background-color: color-mix(in srgb, var(--bg-surface-elevated) 45%, transparent);
-  backdrop-filter: blur(12px) saturate(130%);
-  -webkit-backdrop-filter: blur(12px) saturate(130%);
-  border: 1px solid color-mix(in srgb, var(--border) 75%, rgba(255, 255, 255, 0.12));
-  border-radius: var(--radius-md);
-  padding-top: 9px;
-  padding-bottom: 9px;
-  padding-left: 13px;
-  padding-right: 13px;
-  font-size: 14px;
-  color: var(--text-primary);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
-}
-:where(input[type="text"]:not(.command-input):focus,
-input[type="password"]:focus,
-input[type="number"]:focus,
-input[type="search"]:not(.command-input):focus,
-input[type="email"]:focus,
-select:focus,
-textarea:focus,
-.input-field:focus) {
-  outline: none;
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--border-focus) 25%, transparent),
-              inset 0 1px 2px rgba(0, 0, 0, 0.15),
-              inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+@layer base {
+  :where(input[type="text"]:not(.command-input),
+  input[type="password"],
+  input[type="number"],
+  input[type="search"]:not(.command-input),
+  input[type="email"],
+  select,
+  textarea,
+  .input-field) {
+    background-color: color-mix(in srgb, var(--bg-surface-elevated) 45%, transparent);
+    backdrop-filter: blur(12px) saturate(130%);
+    -webkit-backdrop-filter: blur(12px) saturate(130%);
+    border: 1px solid color-mix(in srgb, var(--border) 75%, rgba(255, 255, 255, 0.12));
+    border-radius: var(--radius-md);
+    padding-top: 9px;
+    padding-bottom: 9px;
+    padding-left: 13px;
+    padding-right: 13px;
+    font-size: 14px;
+    color: var(--text-primary);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  }
+  :where(input[type="text"]:not(.command-input):focus,
+  input[type="password"]:focus,
+  input[type="number"]:focus,
+  input[type="search"]:not(.command-input):focus,
+  input[type="email"]:focus,
+  select:focus,
+  textarea:focus,
+  .input-field:focus) {
+    outline: none;
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--border-focus) 25%, transparent),
+                inset 0 1px 2px rgba(0, 0, 0, 0.15),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  }
 }
 
 /* CommandBar Normalized Search Bar Input Reset */

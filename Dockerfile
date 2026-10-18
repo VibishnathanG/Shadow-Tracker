@@ -24,12 +24,16 @@ RUN printf 'server {\n\
   index index.html;\n\
   gzip on;\n\
   gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;\n\
-  add_header X-Frame-Options SAMEORIGIN;\n\
-  add_header X-Content-Type-Options nosniff;\n\
-  add_header Cache-Control "no-cache" always;\n\
-  location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff2)$ {\n\
+  add_header X-Frame-Options SAMEORIGIN always;\n\
+  add_header X-Content-Type-Options nosniff always;\n\
+  add_header Cache-Control "no-cache, no-store, must-revalidate" always;\n\
+  location /_next/static/ {\n\
     expires 1y;\n\
     add_header Cache-Control "public, immutable";\n\
+  }\n\
+  location ~* \.(png|jpg|jpeg|gif|ico|svg|woff2)$ {\n\
+    expires 7d;\n\
+    add_header Cache-Control "public, must-revalidate";\n\
   }\n\
   location /health {\n\
     return 200 "OK";\n\

@@ -235,13 +235,13 @@ export default function EmojiPickerModal({
 
         {/* Search Bar */}
         <div className="relative shrink-0">
-            <Lucide.Search className="absolute left-3 top-2.5 text-muted-foreground" size={14} />
+            <Lucide.Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" size={14} />
             <input
               type="text"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search icons (e.g. keerai, chicken, egg, rice, dosa, tea)..."
-              className="w-full bg-secondary border border-border/70 rounded-xl pl-9 pr-3 py-2 text-xs font-bold text-foreground outline-none focus:border-primary"
+              className="w-full bg-secondary border border-border/70 rounded-xl !pl-10 pr-3 py-2 text-xs font-bold text-foreground outline-none focus:border-primary"
             />
           </div>
 

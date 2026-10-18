@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # =============================================================================
-# Shadow Tracker — v14.0.0 Release Script
-# Builds web, Android APK, Windows executables, Docker image, commits, tags, pushes,
-# and publishes the GitHub Release.
+# Shadow Tracker — v16.0.0 Release Script
+# Builds web, Android APK, Windows executables, Docker image, archives,
+# and generates checksums.
 # =============================================================================
 set -euo pipefail
 
-VERSION="14.0.0"
+VERSION="16.0.0"
 TAG="v${VERSION}"
 
 echo "========================================="
@@ -21,6 +21,7 @@ echo "  Quality gates passed."
 
 echo ""
 echo "▶ Building Next.js production app…"
+rm -rf .next out
 npm run build
 
 echo ""
@@ -29,7 +30,8 @@ npx cap copy android
 (cd android && ./gradlew assembleRelease)
 
 mkdir -p release
-cp android/app/build/outputs/apk/release/app-release.apk release/ShadowTracker-v14.apk
+rm -f release/ShadowTracker-v15.apk
+cp android/app/build/outputs/apk/release/app-release.apk release/ShadowTracker-v16.apk
 cp android/app/build/outputs/apk/release/app-release.apk release/Shadow-Tracker-Release.apk
 echo "  Android APK built."
 
@@ -38,7 +40,7 @@ echo "▶ Building Windows Executables…"
 export PATH="/root/.cargo/bin:$PATH"
 npm run build:tauri
 cp src-tauri/target/x86_64-pc-windows-gnu/release/shadow-tracker.exe release/Shadow-Tracker-Portable.exe
-cp "src-tauri/target/x86_64-pc-windows-gnu/release/bundle/nsis/Shadow Tracker_14.0.0_x64-setup.exe" release/Shadow-Tracker-Setup.exe
+cp "src-tauri/target/x86_64-pc-windows-gnu/release/bundle/nsis/Shadow Tracker_16.0.0_x64-setup.exe" release/Shadow-Tracker-Setup.exe
 echo "  Windows binaries copied."
 
 echo ""
@@ -46,27 +48,25 @@ echo "▶ Building Docker image…"
 docker build \
   -t "vibishnathang/shadow-tracker:latest" \
   -t "vibishnathang/shadow-tracker:${TAG}" \
-  -t "vibishnathang/shadow-tracker:v14" \
+  -t "vibishnathang/shadow-tracker:v16" \
   .
 echo "  Docker image built."
 
 echo ""
 echo "▶ Packaging archives and generating checksums…"
-tar -czf "shadow-tracker-web-v14.tar.gz" -C out .
-cp shadow-tracker-web-v14.tar.gz release/shadow-tracker-web-export.tar.gz
-docker save "vibishnathang/shadow-tracker:${TAG}" | gzip > shadow-tracker-docker-v14.tar.gz
-cp shadow-tracker-docker-v14.tar.gz release/shadow-tracker-container.tar.gz
+tar -czf release/shadow-tracker-web-export.tar.gz -C out .
+docker save "vibishnathang/shadow-tracker:${TAG}" | gzip > release/shadow-tracker-container.tar.gz
 
 (cd release && sha256sum \
   Shadow-Tracker-Release.apk \
-  ShadowTracker-v14.apk \
+  ShadowTracker-v16.apk \
   Shadow-Tracker-Portable.exe \
   Shadow-Tracker-Setup.exe \
   shadow-tracker-web-export.tar.gz \
   shadow-tracker-container.tar.gz \
   > SHA256SUMS.txt)
 
-sha256sum shadow-tracker-web-v14.tar.gz shadow-tracker-docker-v14.tar.gz > SHA256SUMS.txt
+cp release/SHA256SUMS.txt SHA256SUMS.txt
 echo "  Checksums updated."
 
 echo ""

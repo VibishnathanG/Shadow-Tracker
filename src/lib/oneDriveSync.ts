@@ -36,11 +36,39 @@ function isAndroidCapacitor(): boolean {
 }
 
 function hasFileSystemAccessAPI(): boolean {
-  return (
-    typeof window !== 'undefined' &&
-    'showSaveFilePicker' in window &&
-    'showOpenFilePicker' in window
-  );
+  try {
+    return (
+      typeof window !== 'undefined' &&
+      'showSaveFilePicker' in window &&
+      'showOpenFilePicker' in window &&
+      typeof (window as any).showSaveFilePicker === 'function' &&
+      typeof (window as any).showOpenFilePicker === 'function'
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Trigger an instant browser file download of a JSON object.
+ * Works seamlessly across Zen, Brave, Firefox, Safari, and Chrome/Edge.
+ */
+export function triggerJsonDownload(fileName: string, data: object): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const jsonStr = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2500);
+  } catch (err) {
+    console.warn('[OneDriveSync] JSON download error:', err);
+  }
 }
 
 // ---------- IndexedDB handle persistence (Desktop only) ----------
@@ -92,19 +120,23 @@ async function clearHandleFromDB(): Promise<void> {
   } catch {}
 }
 
-// ---------- File System Access API check ----------
+/**
+ * Returns true if the current environment supports direct background disk file writes
+ * via the File System Access API (Edge, Chrome, or Chromium with permissions).
+ */
+export function hasDirectDiskAccess(): boolean {
+  return hasFileSystemAccessAPI();
+}
 
 /**
  * Returns true if file sync is supported on this platform.
- * Desktop: File System Access API available
- * Android: Always supported via localStorage fallback
+ * Fully universal: supported across ALL platforms and browsers!
+ * - Edge/Chrome/Desktop: Direct disk file handle writes
+ * - Zen/Brave/Firefox/Safari: Universal File Pick/Export bidirectional sync
+ * - Android/Mobile: Capacitor Filesystem & localStorage sync
  */
 export function isFileSyncSupported(): boolean {
-  if (typeof window === 'undefined') return false;
-  // Android always supported via localStorage fallback
-  if (isAndroidCapacitor()) return true;
-  // Desktop: check for File System Access API
-  return hasFileSystemAccessAPI();
+  return typeof window !== 'undefined';
 }
 
 // ---------- Permission re-verification (Desktop only) ----------
@@ -120,18 +152,77 @@ async function verifyPermission(handle: FileSystemFileHandle, mode: 'read' | 're
   }
 }
 
+// ---------- HTML5 File Input Fallback (Universal for Zen / Brave / Firefox / Safari / Mobile) ----------
+
+function pickFileViaHtmlInput(): Promise<{ fileName: string; data: any } | null> {
+  if (typeof document === 'undefined') return Promise.resolve(null);
+  return new Promise((resolve) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json,application/json';
+    input.style.display = 'none';
+    document.body.appendChild(input);
+
+    let resolved = false;
+    const cleanup = () => {
+      if (input.parentNode) {
+        document.body.removeChild(input);
+      }
+    };
+
+    input.onchange = async (e) => {
+      resolved = true;
+      const file = (e.target as HTMLInputElement).files?.[0];
+      cleanup();
+      if (!file) return resolve(null);
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        const name = file.name || 'shadow-tracker-sync.json';
+        localStorage.setItem(ANDROID_SYNC_FILE_KEY, name);
+        localStorage.setItem(ANDROID_SYNC_KEY, JSON.stringify(parsed));
+        resolve({ fileName: name, data: parsed });
+      } catch (err) {
+        console.warn('[OneDriveSync] Universal file read error:', err);
+        resolve(null);
+      }
+    };
+
+    // Fallback cleanup if user cancels file dialog
+    window.addEventListener(
+      'focus',
+      () => {
+        setTimeout(() => {
+          if (!resolved) {
+            cleanup();
+            resolve(null);
+          }
+        }, 1500);
+      },
+      { once: true }
+    );
+
+    input.onerror = () => {
+      cleanup();
+      resolve(null);
+    };
+
+    input.click();
+  });
+}
+
 // ---------- Public API ----------
 
 /**
  * Create a new sync file (Create & Start Sync).
- * Desktop: Opens native save file picker for OneDrive/Documents and initializes data.
- * Android: Prompts filename or sets up local storage handle.
+ * Edge/Chrome: Uses File System Access API showSaveFilePicker for direct disk write.
+ * Zen/Brave/Firefox/Safari: Exports data as downloadable JSON for user's OneDrive/local folder and caches state.
+ * Android: Sets up local storage & Filesystem sync.
  */
 export async function createNewSyncFile(initialData?: object): Promise<string | null> {
-  if (!isFileSyncSupported()) return null;
+  const fileName = 'shadow-tracker-sync.json';
 
   if (isAndroidCapacitor()) {
-    const fileName = 'shadow-tracker-sync.json';
     localStorage.setItem(ANDROID_SYNC_FILE_KEY, fileName);
     if (initialData) {
       localStorage.setItem(ANDROID_SYNC_KEY, JSON.stringify(initialData));
@@ -139,81 +230,78 @@ export async function createNewSyncFile(initialData?: object): Promise<string | 
     return fileName;
   }
 
-  try {
-    const handle = await (window as any).showSaveFilePicker({
-      suggestedName: 'shadow-tracker-sync.json',
-      types: [{ description: 'Shadow Tracker Sync File', accept: { 'application/json': ['.json'] } }],
-      startIn: 'documents',
-    });
-    await saveHandleToDB(handle);
+  if (hasFileSystemAccessAPI()) {
+    try {
+      const handle = await (window as any).showSaveFilePicker({
+        suggestedName: fileName,
+        types: [{ description: 'Shadow Tracker Sync File', accept: { 'application/json': ['.json'] } }],
+        startIn: 'documents',
+      });
+      await saveHandleToDB(handle);
 
-    if (initialData) {
-      const writable = await (handle as any).createWritable();
-      await writable.write(JSON.stringify(initialData, null, 2));
-      await writable.close();
+      if (initialData) {
+        const writable = await (handle as any).createWritable();
+        await writable.write(JSON.stringify(initialData, null, 2));
+        await writable.close();
+      }
+
+      localStorage.setItem(ANDROID_SYNC_FILE_KEY, handle.name as string);
+      if (initialData) {
+        localStorage.setItem(ANDROID_SYNC_KEY, JSON.stringify(initialData));
+      }
+      return handle.name as string;
+    } catch (err: any) {
+      if (err?.name === 'AbortError') return null;
+      console.warn('[OneDriveSync] Native save picker failed, falling back to universal mode:', err);
+      // Fall through to universal download
     }
-
-    return handle.name as string;
-  } catch (err: any) {
-    if (err?.name === 'AbortError') return null;
-    throw err;
   }
+
+  // Universal fallback: trigger browser download of sync JSON and persist file info
+  localStorage.setItem(ANDROID_SYNC_FILE_KEY, fileName);
+  if (initialData) {
+    localStorage.setItem(ANDROID_SYNC_KEY, JSON.stringify(initialData));
+    triggerJsonDownload(fileName, initialData);
+  }
+  return fileName;
 }
 
 /**
  * Pick an existing sync file (Link & Import Sync).
- * Desktop: Opens native open file picker for existing sync file, reads & links it.
- * Android: Prompts HTML5 file picker to select existing sync file.
+ * Edge/Chrome: Uses native showOpenFilePicker for direct disk link.
+ * Zen/Brave/Firefox/Safari/Android: Uses HTML5 file picker to link & import data.
  */
 export async function pickExistingSyncFile(): Promise<{ fileName: string; data: any } | null> {
-  if (!isFileSyncSupported()) return null;
-
   if (isAndroidCapacitor()) {
-    return new Promise((resolve) => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = '.json,application/json';
-      input.onchange = async (e) => {
-        const file = (e.target as HTMLInputElement).files?.[0];
-        if (!file) return resolve(null);
-        try {
-          const text = await file.text();
-          const parsed = JSON.parse(text);
-          localStorage.setItem(ANDROID_SYNC_FILE_KEY, file.name || 'shadow-tracker-sync.json');
-          localStorage.setItem(ANDROID_SYNC_KEY, JSON.stringify(parsed));
-          resolve({ fileName: file.name || 'shadow-tracker-sync.json', data: parsed });
-        } catch (err) {
-          console.warn('[OneDriveSync] Mobile file read error:', err);
-          resolve(null);
-        }
-      };
-      input.onerror = () => resolve(null);
-      input.click();
-    });
+    return pickFileViaHtmlInput();
   }
 
-  try {
-    const [handle] = await (window as any).showOpenFilePicker({
-      types: [{ description: 'Shadow Tracker Sync File', accept: { 'application/json': ['.json'] } }],
-      multiple: false,
-    });
-    if (!handle) return null;
+  if (hasFileSystemAccessAPI()) {
+    try {
+      const [handle] = await (window as any).showOpenFilePicker({
+        types: [{ description: 'Shadow Tracker Sync File', accept: { 'application/json': ['.json'] } }],
+        multiple: false,
+      });
+      if (!handle) return null;
 
-    const hasPermission = await verifyPermission(handle, 'readwrite');
-    if (!hasPermission) return null;
-
-    await saveHandleToDB(handle);
-
-    const file: File = await (handle as any).getFile();
-    const text = await file.text();
-    const parsedData = JSON.parse(text);
-
-    return { fileName: handle.name as string, data: parsedData };
-  } catch (err: any) {
-    if (err?.name === 'AbortError') return null;
-    console.warn('[OneDriveSync] Pick existing file failed:', err);
-    return null;
+      const hasPermission = await verifyPermission(handle, 'readwrite');
+      if (hasPermission) {
+        await saveHandleToDB(handle);
+        const file: File = await (handle as any).getFile();
+        const text = await file.text();
+        const parsedData = JSON.parse(text);
+        localStorage.setItem(ANDROID_SYNC_FILE_KEY, handle.name as string);
+        localStorage.setItem(ANDROID_SYNC_KEY, JSON.stringify(parsedData));
+        return { fileName: handle.name as string, data: parsedData };
+      }
+    } catch (err: any) {
+      if (err?.name === 'AbortError') return null;
+      console.warn('[OneDriveSync] Native open file picker failed, falling back to HTML input:', err);
+    }
   }
+
+  // Universal HTML5 fallback
+  return pickFileViaHtmlInput();
 }
 
 /**
@@ -227,48 +315,42 @@ export async function pickSyncFile(): Promise<string | null> {
  * Get the currently configured sync file name (if any).
  */
 export async function getSyncFileName(): Promise<string | null> {
-  if (isAndroidCapacitor()) {
-    try {
-      return localStorage.getItem(ANDROID_SYNC_FILE_KEY) || null;
-    } catch {
-      return null;
-    }
-  }
+  try {
+    const cachedName = localStorage.getItem(ANDROID_SYNC_FILE_KEY);
+    if (cachedName) return cachedName;
+  } catch {}
+
   try {
     const handle = await loadHandleFromDB();
-    return handle?.name || null;
-  } catch {
-    return null;
-  }
+    if (handle?.name) return handle.name;
+  } catch {}
+
+  return null;
 }
 
 /**
  * Write data to the configured sync file.
- * Desktop: Writes to the native file system handle.
- * Android: Writes to localStorage and prepares downloadable blob.
- * Silently no-ops if no file is configured.
+ * Desktop: Writes to native file system handle if available, and keeps localStorage/IndexedDB updated.
+ * Android: Writes to localStorage and Capacitor Filesystem.
  */
 export async function syncToFile(data: object): Promise<void> {
+  const jsonStr = JSON.stringify(data, null, 2);
+  try {
+    localStorage.setItem(ANDROID_SYNC_KEY, jsonStr);
+  } catch {}
+
   if (isAndroidCapacitor()) {
     try {
       const fileName = localStorage.getItem(ANDROID_SYNC_FILE_KEY) || 'shadow-tracker-sync.json';
-      const jsonStr = JSON.stringify(data, null, 2);
-      localStorage.setItem(ANDROID_SYNC_KEY, jsonStr);
-
-      // Write directly to Android Documents / Storage via Capacitor Filesystem
-      try {
-        const { Filesystem, Directory, Encoding } = await import('@capacitor/filesystem');
-        await Filesystem.writeFile({
-          path: fileName,
-          data: jsonStr,
-          directory: Directory.Documents,
-          encoding: Encoding.UTF8,
-        });
-      } catch (fsErr) {
-        console.warn('[OneDriveSync] Native Filesystem write fallback:', fsErr);
-      }
-    } catch (err) {
-      console.warn('[OneDriveSync] Android write failed:', err);
+      const { Filesystem, Directory, Encoding } = await import('@capacitor/filesystem');
+      await Filesystem.writeFile({
+        path: fileName,
+        data: jsonStr,
+        directory: Directory.Documents,
+        encoding: Encoding.UTF8,
+      });
+    } catch (fsErr) {
+      console.warn('[OneDriveSync] Native Filesystem write fallback:', fsErr);
     }
     return;
   }
@@ -281,18 +363,17 @@ export async function syncToFile(data: object): Promise<void> {
     if (!hasPermission) return;
 
     const writable = await (handle as any).createWritable();
-    await writable.write(JSON.stringify(data, null, 2));
+    await writable.write(jsonStr);
     await writable.close();
   } catch (err) {
-    console.warn('[OneDriveSync] Write failed:', err);
+    console.warn('[OneDriveSync] Handle write failed, saved to local cache:', err);
   }
 }
 
 /**
  * Read data from the configured sync file.
- * Desktop: Reads from the native file system handle.
- * Android: Reads from localStorage or prompts file selector.
- * Returns null if no file is configured or reading fails.
+ * Desktop: Reads from native file system handle if available, falls back to local cache.
+ * Android: Reads from Capacitor Filesystem or localStorage.
  */
 export async function readFromFile(): Promise<any | null> {
   if (isAndroidCapacitor()) {
@@ -311,41 +392,45 @@ export async function readFromFile(): Promise<any | null> {
           return parsed;
         }
       } catch (fsErr) {}
-
-      const raw = localStorage.getItem(ANDROID_SYNC_KEY);
-      if (raw) return JSON.parse(raw);
     } catch (err) {
       console.warn('[OneDriveSync] Android read failed:', err);
     }
   }
 
+  // Try native handle first if available
   try {
     const handle = await loadHandleFromDB();
-    if (!handle) return null;
-
-    const hasPermission = await verifyPermission(handle, 'read');
-    if (!hasPermission) return null;
-
-    const file: File = await (handle as any).getFile();
-    const text = await file.text();
-    return JSON.parse(text);
+    if (handle) {
+      const hasPermission = await verifyPermission(handle, 'read');
+      if (hasPermission) {
+        const file: File = await (handle as any).getFile();
+        const text = await file.text();
+        return JSON.parse(text);
+      }
+    }
   } catch (err) {
-    console.warn('[OneDriveSync] Read failed:', err);
-    return null;
+    console.warn('[OneDriveSync] Handle read failed, trying cache:', err);
   }
+
+  // Fallback to cached sync data
+  try {
+    const raw = localStorage.getItem(ANDROID_SYNC_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (err) {
+    console.warn('[OneDriveSync] Cache read failed:', err);
+  }
+
+  return null;
 }
 
 /**
  * Remove the saved file handle (disconnect sync).
  */
 export async function disconnectSyncFile(): Promise<void> {
-  if (isAndroidCapacitor()) {
-    try {
-      localStorage.removeItem(ANDROID_SYNC_FILE_KEY);
-      localStorage.removeItem(ANDROID_SYNC_KEY);
-    } catch {}
-    return;
-  }
+  try {
+    localStorage.removeItem(ANDROID_SYNC_FILE_KEY);
+    localStorage.removeItem(ANDROID_SYNC_KEY);
+  } catch {}
   await clearHandleFromDB();
 }
 
@@ -395,10 +480,11 @@ export async function performFullBidirectionalSync(currentSettings: any): Promis
       await dbService.importAllData(mergedData);
 
       if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('shadow_data_imported'));
-        window.dispatchEvent(new CustomEvent('shadow_health_updated'));
-        window.dispatchEvent(new CustomEvent('shadow_money_updated'));
-        window.dispatchEvent(new CustomEvent('shadow_rpg_updated'));
+        const syncDetail = { detail: { source: 'onedrive_sync' } };
+        window.dispatchEvent(new CustomEvent('shadow_data_imported', syncDetail));
+        window.dispatchEvent(new CustomEvent('shadow_health_updated', syncDetail));
+        window.dispatchEvent(new CustomEvent('shadow_money_updated', syncDetail));
+        window.dispatchEvent(new CustomEvent('shadow_rpg_updated', syncDetail));
       }
 
       await syncToFile(mergedData);

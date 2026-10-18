@@ -409,14 +409,14 @@ export default function AddFoodModal({
             <div className="space-y-3">
               {/* Search Bar */}
               <div className="relative">
-                <Lucide.Search className="absolute left-3 top-3 text-muted-foreground" size={15} />
+                <Lucide.Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" size={15} />
                 <input
                   type="text"
                   maxLength={80}
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
                   placeholder="Search foods (e.g. keerai, roti, dosa, chicken, egg, oats, salmon)..."
-                  className="w-full bg-secondary border border-border/70 rounded-xl pl-9 pr-3 py-2.5 text-xs font-bold text-foreground outline-none focus:border-emerald-400 placeholder:font-normal"
+                  className="w-full bg-secondary border border-border/70 rounded-xl !pl-10 pr-3 py-2.5 text-xs font-bold text-foreground outline-none focus:border-emerald-400 placeholder:font-normal"
                 />
               </div>
 

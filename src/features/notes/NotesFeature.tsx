@@ -257,7 +257,7 @@ export const NotesFeature: React.FC = () => {
           transition={{ delay: 0.25 }}
           className="relative group"
         >
-          <Lucide.Search className="absolute left-3.5 top-3 text-muted-foreground transition-colors group-focus-within:text-primary" size={16} />
+          <Lucide.Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-primary pointer-events-none" size={16} />
           <motion.input
             whileFocus={{ scale: 1.01 }}
             type="text"
@@ -265,7 +265,7 @@ export const NotesFeature: React.FC = () => {
             placeholder="Search reflections..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full text-sm pl-10 pr-4 py-2.5 bg-secondary/40 border border-border/60 rounded-2xl text-foreground placeholder:text-muted-foreground outline-none transition-all focus:bg-background focus:ring-2 focus:ring-primary/30 focus:border-primary backdrop-blur-md"
+            className="w-full text-sm !pl-10 pr-4 py-2.5 bg-secondary/40 border border-border/60 rounded-2xl text-foreground placeholder:text-muted-foreground outline-none transition-all focus:bg-background focus:ring-2 focus:ring-primary/30 focus:border-primary backdrop-blur-md"
           />
         </motion.div>
 
