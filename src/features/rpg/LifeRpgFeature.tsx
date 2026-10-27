@@ -351,7 +351,7 @@ export default function LifeRpgFeature() {
           </div>
 
           {/* XP Progress Card */}
-          <div className="w-full lg:w-96 space-y-3 bg-surface-elevated/80 backdrop-blur-md p-5 rounded-2xl border border-border/80 shadow-md">
+          <div className="w-full lg:w-96 space-y-3 bg-surface-elevated/80 backdrop-blur-md p-5 rounded-2xl border-0 shadow-md">
             <div className="flex justify-between items-center text-xs font-black">
               <span className="text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                 <Lucide.Zap size={14} className="text-amber-400" />
@@ -362,7 +362,7 @@ export default function LifeRpgFeature() {
               </span>
             </div>
 
-            <div className="w-full h-3.5 bg-secondary/80 rounded-full overflow-hidden border border-border/70 p-0.5 relative">
+            <div className="w-full h-3.5 bg-secondary/80 rounded-full overflow-hidden border-0 p-0.5 relative">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${xpPct}%` }}

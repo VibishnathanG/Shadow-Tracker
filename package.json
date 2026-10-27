@@ -1,6 +1,6 @@
 {
   "name": "shadow-tracker",
-  "version": "16.0.0",
+  "version": "17.0.0",
   "private": true,
   "description": "Sovereign, local-first, privacy-first personal operating system and gamified productivity system.",
   "license": "GPL-3.0",
@@ -60,6 +60,9 @@
   },
   "dependencies": {
     "@capacitor/filesystem": "^8.1.2",
-    "@tauri-apps/plugin-notification": "^2.3.3"
+    "@tauri-apps/plugin-notification": "^2.3.3",
+    "@types/jszip": "^3.4.0",
+    "fflate": "^0.8.3",
+    "jszip": "^3.10.2"
   }
 }

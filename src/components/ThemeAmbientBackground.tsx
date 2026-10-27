@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { useShadowTrackerStore } from '@/store';
-import { useWindowState, useUserIdle } from '@/lib/windowState';
 
 interface ThemeAmbientBackgroundProps {
   theme: string;
@@ -537,8 +536,6 @@ const StaticEternalRings: React.FC<{ theme: string }> = ({ theme }) => {
    MAIN AMBIENT WRAPPER WITH ZERO-CPU WINDOW STATE MONITORING
    ───────────────────────────────────────────────────────────── */
 export const ThemeAmbientBackground: React.FC<ThemeAmbientBackgroundProps> = React.memo(({ theme }) => {
-  const isWindowActive = useWindowState();
-  const isUserIdle = useUserIdle();
   const isGpuDisabled = useShadowTrackerStore((s) => Boolean(s.settings.disableGpuAcceleration));
   const isEcoOrLowGpu = useShadowTrackerStore((s) => Boolean(s.settings.ecoMode || s.settings.lowGpuMode));
 
@@ -565,8 +562,8 @@ export const ThemeAmbientBackground: React.FC<ThemeAmbientBackgroundProps> = Rea
     }
   };
 
-  // When GPU hardware acceleration is disabled or window is hidden/minimized/inactive on other monitor, render static color only (0% GPU/CPU)
-  if (isGpuDisabled || !isWindowActive) {
+  // When GPU hardware acceleration is explicitly disabled in settings, render static color only
+  if (isGpuDisabled) {
     return (
       <div
         className="theme-ambient-canvas fixed inset-0 z-0 pointer-events-none overflow-hidden"
@@ -577,8 +574,8 @@ export const ThemeAmbientBackground: React.FC<ThemeAmbientBackgroundProps> = Rea
   }
 
   const renderThemeAnimation = () => {
-    // If Eco Mode or user is idle, render static SVG without any animations!
-    if (isEcoOrLowGpu || isUserIdle) {
+    // Only drop to static SVG if Eco Mode or Low GPU mode is explicitly enabled in settings
+    if (isEcoOrLowGpu) {
       return <StaticEternalRings theme={theme} />;
     }
 
@@ -604,7 +601,12 @@ export const ThemeAmbientBackground: React.FC<ThemeAmbientBackgroundProps> = Rea
   return (
     <div
       className="theme-ambient-canvas fixed inset-0 z-0 pointer-events-none overflow-hidden transition-colors duration-300"
-      style={{ backgroundColor: getBgColor() }}
+      style={{
+        backgroundColor: getBgColor(),
+        transform: 'translateZ(0)',
+        willChange: 'transform',
+        contain: 'strict',
+      }}
       aria-hidden="true"
     >
       {renderThemeAnimation()}

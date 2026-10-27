@@ -45,6 +45,7 @@ import { NiceTimePicker } from '@/components/NiceTimePicker';
 import { ScheduleSelector } from '@/components/ScheduleSelector';
 import { resetAllViewPreferences, useViewPreference } from '@/lib/viewPreferences';
 import { fireConfetti } from '@/lib/confetti';
+import { AppIntegrationsTile } from './AppIntegrationsTile';
 
 const TileArtDisplaySettings = () => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-[0.1] select-none z-0">
@@ -1252,7 +1253,7 @@ export const SettingsFeature: React.FC = () => {
                       updateSettings({ alias: trimmed || 'Shadow' });
                     }}
                     placeholder="Shadow"
-                    className="input-field font-medium"
+                    className="input-field font-medium !rounded-2xl px-4 py-2.5"
                   />
                   <p className="text-[11px] text-muted-foreground">Used across dashboard telemetry as <span className="text-primary font-bold">{settings.alias || 'Shadow'}</span> (max 10 chars).</p>
                 </div>
@@ -1267,7 +1268,7 @@ export const SettingsFeature: React.FC = () => {
                         value={settings.savingsTarget || ''} 
                         onChange={(e) => updateSettings({ savingsTarget: parseFloat(e.target.value) || 0 })}
                         placeholder="e.g. 25000"
-                        className="input-field font-mono font-bold"
+                        className="input-field font-mono font-bold !rounded-2xl px-4 py-2.5"
                       />
                     </div>
                     <div className="flex flex-col gap-1">
@@ -1277,7 +1278,7 @@ export const SettingsFeature: React.FC = () => {
                         value={settings.investmentsTarget || ''} 
                         onChange={(e) => updateSettings({ investmentsTarget: parseFloat(e.target.value) || 0 })}
                         placeholder="e.g. 15000"
-                        className="input-field font-mono font-bold"
+                        className="input-field font-mono font-bold !rounded-2xl px-4 py-2.5"
                       />
                     </div>
                   </div>
@@ -2017,6 +2018,15 @@ export const SettingsFeature: React.FC = () => {
 
           {/* OneDrive / Local File Auto-Sync Tile (Right 1x1) */}
           <OneDriveSyncTile onDiagnosticError={(err, fname) => { setCorruptedFileName(fname); setJsonDiagnosticError(err); }} />
+
+          {/* External App Integrations Tile (Streak & GymMane) */}
+          <motion.div
+            variants={itemVariants}
+            transition={{ type: "spring" as const, stiffness: 300 }}
+            className="lg:col-span-2"
+          >
+            <AppIntegrationsTile />
+          </motion.div>
 
           {/* Mascot Carousel Tile (Full width 2-column expansion) */}
           <motion.div 

@@ -97,7 +97,7 @@ export const initWindowStateManager = (): (() => void) => {
   if (typeof window === 'undefined') return () => {};
 
   let idleTimer: ReturnType<typeof setTimeout> | null = null;
-  const IDLE_TIMEOUT_MS = 2500; // 2.5s of zero user activity pauses ambient animations & rAF loops
+  const IDLE_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes of zero user activity before idle mode (keeps background graphics alive)
   let lastActivityTime = 0;
 
   const setIdle = (idle: boolean) => {
@@ -113,7 +113,7 @@ export const initWindowStateManager = (): (() => void) => {
     if (now - lastActivityTime > 200) {
       lastActivityTime = now;
       if (idleTimer) clearTimeout(idleTimer);
-      if (!document.hidden && (typeof document.hasFocus === 'function' ? document.hasFocus() : true)) {
+      if (!document.hidden) {
         idleTimer = setTimeout(() => {
           setIdle(true);
         }, IDLE_TIMEOUT_MS);
@@ -122,9 +122,18 @@ export const initWindowStateManager = (): (() => void) => {
   };
 
   const handleBlur = () => {
-    if (idleTimer) clearTimeout(idleTimer);
-    setIdle(true);
-    notifyListeners(false);
+    // Only pause if document is actually hidden (e.g. minimized or switched tab).
+    // If the window is still visible (multitasking, reading, dual monitor), keep background graphics running!
+    if (document.hidden) {
+      if (idleTimer) clearTimeout(idleTimer);
+      setIdle(true);
+      notifyListeners(false);
+    } else {
+      if (idleTimer) clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => {
+        setIdle(true);
+      }, IDLE_TIMEOUT_MS);
+    }
   };
 
   const handleFocus = () => {

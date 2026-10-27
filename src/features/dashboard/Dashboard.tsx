@@ -740,8 +740,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   : { opacity: 0, scale: 0.1, x: animData.dealX, y: animData.dealY, rotate: animData.dealRotate };
 
                 const animateTarget = isMobile
-                  ? { opacity: isUnlocked ? 1 : 0.7, scale: 1 }
-                  : { opacity: isUnlocked ? 1 : 0.7, scale: 1, x: 0, y: 0, rotate: 0 };
+                  ? { opacity: isUnlocked ? 1 : (isWhiteTheme ? 0.95 : 0.7), scale: 1 }
+                  : { opacity: isUnlocked ? 1 : (isWhiteTheme ? 0.95 : 0.7), scale: 1, x: 0, y: 0, rotate: 0 };
 
                 const animTransition = isMobile
                   ? { duration: 0.2, delay: i * 0.02 }
@@ -765,18 +765,26 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       className={`keep-glow w-full min-h-[82px] sm:min-h-[98px] lg:min-h-[104px] p-1.5 sm:p-2.5 lg:p-3 relative rounded-2xl border flex flex-col items-center justify-center gap-1 sm:gap-1.5 text-center transition-all duration-200 ease-out group ${
                         isUnlocked 
                           ? `${b.color} cursor-pointer shadow-[0_0_12px_currentColor] hover:-translate-y-1 hover:scale-[1.04] hover:shadow-[0_0_20px_currentColor] hover:z-20 ${
-                              (settings.theme === 'light' || settings.theme === 'white' || settings.theme === 'midnight' || settings.theme === 'pine' || settings.theme === 'purple')
-                                ? 'bg-slate-900 text-white border-cyan-500/50' 
-                                : 'bg-gradient-to-b from-cyan-950/40 via-surface/90 to-surface border-cyan-500/30'
+                              isWhiteTheme
+                                ? ''
+                                : (settings.theme === 'midnight' || settings.theme === 'pine' || settings.theme === 'purple')
+                                  ? 'bg-slate-900 text-white border-cyan-500/50' 
+                                  : 'bg-gradient-to-b from-cyan-950/40 via-surface/90 to-surface border-cyan-500/30'
                             }` 
-                          : (settings.theme === 'light' || settings.theme === 'white' || settings.theme === 'midnight' || settings.theme === 'pine' || settings.theme === 'purple')
-                            ? 'bg-slate-900/80 border-slate-700 text-slate-300 grayscale shadow-sm hover:scale-[1.02]'
-                            : 'bg-surface/40 border-border/70 text-muted-foreground opacity-50 grayscale shadow-sm hover:scale-[1.02]'
+                          : isWhiteTheme
+                            ? 'bg-slate-900/90 border-slate-700 text-slate-200 grayscale shadow-sm hover:scale-[1.02]'
+                            : (settings.theme === 'midnight' || settings.theme === 'pine' || settings.theme === 'purple')
+                              ? 'bg-slate-900/80 border-slate-700 text-slate-300 grayscale shadow-sm hover:scale-[1.02]'
+                              : 'bg-surface/40 border-border/70 text-muted-foreground opacity-50 grayscale shadow-sm hover:scale-[1.02]'
                       }`}
                     >
                       {isUnlocked && (
                         <div
-                          className="keep-glow absolute inset-0 rounded-2xl pointer-events-none border border-cyan-400/50 bg-cyan-500/5 shadow-[0_0_10px_currentColor,inset_0_0_6px_currentColor]"
+                          className={`keep-glow absolute inset-0 rounded-2xl pointer-events-none shadow-[0_0_10px_currentColor,inset_0_0_6px_currentColor] ${
+                            isWhiteTheme
+                              ? 'border border-current/30 bg-current/5'
+                              : 'border border-cyan-400/50 bg-cyan-500/5'
+                          }`}
                         />
                       )}
 
@@ -785,10 +793,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         {isUnlocked && (
                           <div className="absolute -inset-1 rounded-xl border border-dashed border-current/50 pointer-events-none hidden sm:block animate-spin-slow" />
                         )}
-                        <IconComponent className={`w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-4.5 lg:h-4.5 transition-transform duration-700 ${isUnlocked ? 'group-hover:rotate-[360deg] text-current' : 'opacity-70'}`} />
+                        <IconComponent className={`w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-4.5 lg:h-4.5 transition-transform duration-700 ${isUnlocked ? 'group-hover:rotate-[360deg] text-current' : (isWhiteTheme ? 'text-slate-200 opacity-90' : 'opacity-70')}`} />
                         
                         {!isUnlocked && (
-                          <div className="absolute -top-1 -right-1 p-0.5 rounded-full bg-slate-950 border border-slate-700 text-slate-400">
+                          <div className={`absolute -top-1 -right-1 p-0.5 rounded-full ${isWhiteTheme ? 'bg-slate-950 border border-slate-600 text-slate-200' : 'bg-slate-950 border border-slate-700 text-slate-400'}`}>
                             <Lucide.Lock size={8} />
                           </div>
                         )}
@@ -797,16 +805,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       {/* High-Contrast Title & Subtitle */}
                       <div className="w-full flex flex-col items-center justify-center gap-0.5 select-none relative z-10">
                         <strong className={`block text-[10px] sm:text-[12.5px] lg:text-sm leading-tight font-bold tracking-tight text-center truncate max-w-full px-0.5 ${
-                          (settings.theme === 'light' || settings.theme === 'white' || settings.theme === 'midnight' || settings.theme === 'pine' || settings.theme === 'purple')
+                          isWhiteTheme
+                            ? (isUnlocked ? '!text-slate-950 font-black' : '!text-slate-100 font-bold')
+                            : (settings.theme === 'midnight' || settings.theme === 'pine' || settings.theme === 'purple')
                               ? 'text-white' 
                               : 'text-foreground'
                         }`}>
                           {b.name}
                         </strong>
                         <span className={`block text-[8px] sm:text-[9.5px] lg:text-[10px] font-medium leading-tight text-center truncate max-w-full px-0.5 ${
-                          isUnlocked 
+                          isWhiteTheme
+                            ? (isUnlocked ? '!text-slate-800 font-bold' : '!text-slate-200 font-medium')
+                            : isUnlocked 
                               ? 'text-cyan-300' 
-                              : (settings.theme === 'light' || settings.theme === 'white' || settings.theme === 'midnight' || settings.theme === 'pine' || settings.theme === 'purple')
+                              : (settings.theme === 'midnight' || settings.theme === 'pine' || settings.theme === 'purple')
                                 ? 'text-slate-300' 
                                 : 'text-muted-foreground'
                         }`}>

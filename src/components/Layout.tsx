@@ -16,6 +16,7 @@ import { ThemeAmbientBackground } from './ThemeAmbientBackground';
 import { NotificationScheduler } from './NotificationScheduler';
 import { InAppNotificationOverlay } from './InAppNotificationOverlay';
 import { useOneDriveAutoSync } from '@/lib/useOneDriveAutoSync';
+import { useIntegrationAutoSync } from '@/lib/useIntegrationAutoSync';
 import { GitHubDailySync } from './GitHubDailySync';
 import CustomDialogOverlay from './CustomDialogOverlay';
 import { DayReviewModal } from './DayReviewModal';
@@ -125,6 +126,9 @@ export const Layout: React.FC<LayoutProps> = ({
 
   // OneDrive auto-sync
   useOneDriveAutoSync();
+
+  // External integration (Streak & GymMane) one-way auto-sync
+  useIntegrationAutoSync();
 
   const cycleTheme = () => {
     const themes = ['light', 'obsidian', 'onedark', 'cyberpunk', 'midnight'] as const;

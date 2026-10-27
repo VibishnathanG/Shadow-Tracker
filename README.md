@@ -52,7 +52,7 @@ Everything stays on your own computer. Data is saved directly in your browser wi
 - **Money & Budget**: Track expenses, monthly spending envelopes, and savings goals.
 - **Progress & Leveling**: Earn XP as you complete daily routines to stay consistent.
 - **Focus Companions**: Lightweight animations (maglev, ninja, dragon) with an Eco Mode toggle to save battery.
-- **Data Backups**: Export or restore your data anytime as a backup file.
+- **Data Backups & Third-Party App Integrations**: Export or restore your data anytime as a backup file. Seamlessly ingest mobile backups from third-party ecosystems (Streak & GymMane) with non-destructive smart append and instant unified backup re-export. See the [Third-Party Integrations Guide](src/lib/integrations/README.md).
 
 ---
 

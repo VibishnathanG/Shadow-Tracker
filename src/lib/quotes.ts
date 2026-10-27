@@ -297,7 +297,7 @@ export function getMascotStatus(
         .wb0 { animation: wispBlink0 4.2s infinite; transform-origin: 43px 46px; }
         .wbr0 { animation: wispBlink0 4.2s infinite; transform-origin: 57px 46px; }
         .wa0 { animation: wispAura0 2.8s ease-in-out infinite; transform-origin: 50px 50px; will-change: transform, opacity; }
-        html.is-user-idle svg *, html.window-blurred svg *, html.window-inactive svg *, html.eco-mode svg *, html.low-gpu-mode svg * { animation: none !important; }
+        html.eco-mode .wisp-container svg *, html.low-gpu-mode .wisp-container svg * { animation: none !important; }
       </style>
       <g class="wf0">
         <circle cx="50" cy="50" r="24" fill="var(--primary)" class="wa0" filter="blur(6px)" />
@@ -326,7 +326,7 @@ export function getMascotStatus(
         .woA { animation: wispOrbitA 8s linear infinite; transform-origin: 50px 50px; }
         .woB { animation: wispOrbitB 11s linear infinite; transform-origin: 50px 50px; }
         .wpc { animation: wispPulseCore 2.5s ease-in-out infinite; transform-origin: 50px 50px; }
-        html.is-user-idle svg *, html.window-blurred svg *, html.window-inactive svg *, html.eco-mode svg *, html.low-gpu-mode svg * { animation: none !important; }
+        html.eco-mode .wisp-container svg *, html.low-gpu-mode .wisp-container svg * { animation: none !important; }
       </style>
       <g class="wf1">
         <circle cx="50" cy="50" r="32" stroke="var(--primary)" stroke-width="1.2" stroke-dasharray="6 6" opacity="0.4" class="woA" />
@@ -349,7 +349,7 @@ export function getMascotStatus(
         .wf2 { animation: wispFloat2 4s ease-in-out infinite; transform-origin: center; will-change: transform; }
         .ws2 { animation: wispScan2 2.4s ease-in-out infinite; }
         .wpg { animation: wispPrismGlow 3s ease-in-out infinite; }
-        html.is-user-idle svg *, html.window-blurred svg *, html.window-inactive svg *, html.eco-mode svg *, html.low-gpu-mode svg * { animation: none !important; }
+        html.eco-mode .wisp-container svg *, html.low-gpu-mode .wisp-container svg * { animation: none !important; }
       </style>
       <g class="wf2">
         <polygon points="50,18 76,34 76,66 50,82 24,66 24,34" fill="var(--background)" stroke="var(--primary)" stroke-width="2" />
@@ -369,7 +369,7 @@ export function getMascotStatus(
         .wf3 { animation: wispFloat3 3.6s ease-in-out infinite; transform-origin: center; will-change: transform; }
         .wr3 { animation: wispRotate3 14s linear infinite; transform-origin: 50px 50px; }
         .wtw { animation: wispTwinkle 2s ease-in-out infinite; transform-origin: center; }
-        html.is-user-idle svg *, html.window-blurred svg *, html.window-inactive svg *, html.eco-mode svg *, html.low-gpu-mode svg * { animation: none !important; }
+        html.eco-mode .wisp-container svg *, html.low-gpu-mode .wisp-container svg * { animation: none !important; }
       </style>
       <g class="wf3">
         <g class="wr3">
@@ -403,7 +403,7 @@ export function getMascotStatus(
         .t4a0 { animation: t4Aura0 2.8s ease-in-out infinite; transform-origin: 50px 50px; }
         .t4e0 { animation: t4Blink0 4.5s infinite; transform-origin: 50px 50px; }
         .t4w0 { animation: t4Wing0 3.2s ease-in-out infinite; transform-origin: center; }
-        html.is-user-idle svg *, html.window-blurred svg *, html.window-inactive svg *, html.eco-mode svg *, html.low-gpu-mode svg * { animation: none !important; }
+        html.eco-mode .wisp-container svg *, html.low-gpu-mode .wisp-container svg * { animation: none !important; }
       </style>
       <g class="t4f0">
         <circle cx="50" cy="50" r="38" fill="var(--primary)" opacity="0.15" filter="blur(6px)" class="t4a0" />
@@ -430,7 +430,7 @@ export function getMascotStatus(
         .t4sb { animation: t4SpinB 6s linear infinite; transform-origin: 50px 50px; }
         .t4sc { animation: t4SpinC 12s linear infinite; transform-origin: 50px 50px; }
         .t4pc { animation: t4PulseCore 2.2s ease-in-out infinite; transform-origin: 50px 50px; }
-        html.is-user-idle svg *, html.window-blurred svg *, html.window-inactive svg *, html.eco-mode svg *, html.low-gpu-mode svg * { animation: none !important; }
+        html.eco-mode .wisp-container svg *, html.low-gpu-mode .wisp-container svg * { animation: none !important; }
       </style>
       <g>
         <circle cx="50" cy="50" r="44" stroke="var(--primary)" stroke-width="1.2" stroke-dasharray="14 8 3 8" class="t4sa" opacity="0.55" />
@@ -454,7 +454,7 @@ export function getMascotStatus(
         .t4f2 { animation: t4Float2 4.5s ease-in-out infinite; transform-origin: center; will-change: transform; }
         .t4sc2 { animation: t4Scanner2 2.2s ease-in-out infinite; }
         .t4ref2 { animation: t4Refract2 3.5s ease-in-out infinite; transform-origin: 50px 50px; }
-        html.is-user-idle svg *, html.window-blurred svg *, html.window-inactive svg *, html.eco-mode svg *, html.low-gpu-mode svg * { animation: none !important; }
+        html.eco-mode .wisp-container svg *, html.low-gpu-mode .wisp-container svg * { animation: none !important; }
       </style>
       <g class="t4f2">
         <polygon points="50,12 80,30 80,70 50,88 20,70 20,30" fill="var(--background)" stroke="var(--primary)" stroke-width="2" />
@@ -477,7 +477,7 @@ export function getMascotStatus(
         .t4f3 { animation: t4Float3 3.8s ease-in-out infinite; transform-origin: center; will-change: transform; }
         .t4n3 { animation: t4Nova3 6s ease-in-out infinite; transform-origin: 50px 50px; }
         .t4st { animation: t4StarTwinkle 1.8s ease-in-out infinite; transform-origin: center; }
-        html.is-user-idle svg *, html.window-blurred svg *, html.window-inactive svg *, html.eco-mode svg *, html.low-gpu-mode svg * { animation: none !important; }
+        html.eco-mode .wisp-container svg *, html.low-gpu-mode .wisp-container svg * { animation: none !important; }
       </style>
       <g class="t4f3">
         <path d="M 50 10 L 53 47 L 90 50 L 53 53 L 50 90 L 47 53 L 10 50 L 47 47 Z" fill="var(--primary)" class="t4n3" />

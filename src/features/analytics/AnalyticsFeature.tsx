@@ -500,60 +500,61 @@ const HabitsMonthlyGridCard: React.FC = () => {
           </span>
         </div>
 
-        {/* Lines 2 & 3 on mobile / Side-by-side on desktop */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 lg:gap-3">
-          {/* Line 2 on mobile: View mode and Days selector */}
-          <div className="flex items-center justify-between sm:justify-start gap-2 shrink-0">
-            {/* View Mode Toggle: Month vs Week View */}
-            <div className="h-7.5 flex items-center bg-surface-elevated border border-border/80 rounded-full p-0.5 shadow-xs shrink-0">
-              <button
-                type="button"
-                onClick={() => setMatrixViewMode('month')}
-                className={`h-full px-2.5 rounded-full text-[11px] font-bold transition-all cursor-pointer flex items-center justify-center ${
-                  matrixViewMode === 'month' ? 'bg-primary text-white shadow-xs' : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                Full Month
-              </button>
-              <button
-                type="button"
-                onClick={() => setMatrixViewMode('week')}
-                className={`h-full px-2.5 rounded-full text-[11px] font-bold transition-all cursor-pointer flex items-center justify-center ${
-                  matrixViewMode === 'week' ? 'bg-primary text-white shadow-xs' : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                Week View
-              </button>
-            </div>
-            
-            {/* Past Habit Lock-in Window Setting - Sleek, neat & clean */}
-            <div 
-              className="h-7.5 flex items-center gap-1 bg-surface-elevated border border-border/80 rounded-full px-2 text-[11px] font-bold shadow-xs shrink-0"
-              title="Days allowed to retroactively fill/update past habits (1-10 days, default 3)"
+        {/* Unified Compact Rounded Control Bar */}
+        <div className="flex items-center gap-1 sm:gap-1.5 bg-surface-elevated/90 border border-border/70 rounded-full p-1 shadow-xs overflow-x-auto scrollbar-none max-w-full">
+          {/* View Mode Toggle: Month vs Week View */}
+          <div className="flex items-center bg-secondary/50 rounded-full p-0.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => setMatrixViewMode('month')}
+              className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-all cursor-pointer flex items-center justify-center ${
+                matrixViewMode === 'month' ? 'bg-primary text-white shadow-xs' : 'text-muted-foreground hover:text-foreground'
+              }`}
             >
-              <Lucide.Clock size={11} className="text-primary shrink-0" />
-              <select
-                value={graceDays}
-                onChange={(e) => {
-                  const days = Math.min(10, Math.max(1, parseInt(e.target.value, 10) || 3));
-                  updateSettings({ habitGracePeriodDays: days });
-                  setToastNotice(`Past lock-in window set to ${days} ${days === 1 ? 'day' : 'days'}`);
-                  setTimeout(() => setToastNotice(null), 3000);
-                }}
-                className="bg-transparent font-bold text-foreground text-[11px] appearance-none !border-0 !outline-none !ring-0 !shadow-none cursor-pointer pr-0.5"
-                style={{ border: 'none', outline: 'none', boxShadow: 'none', background: 'transparent' }}
-              >
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(d => (
-                  <option key={d} value={d} className="bg-surface text-foreground font-semibold">
-                    {d}d
-                  </option>
-                ))}
-              </select>
-            </div>
+              Full Month
+            </button>
+            <button
+              type="button"
+              onClick={() => setMatrixViewMode('week')}
+              className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-all cursor-pointer flex items-center justify-center ${
+                matrixViewMode === 'week' ? 'bg-primary text-white shadow-xs' : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Week View
+            </button>
           </div>
 
-          {/* Line 3 on mobile: Month Navigator */}
-          <div className="h-7.5 flex items-center justify-between sm:justify-start gap-1 bg-surface-elevated/90 border border-border/80 rounded-full p-0.5 shadow-xs shrink-0 w-full sm:w-auto">
+          <div className="h-4 w-px bg-border/70 shrink-0" />
+
+          {/* Past Habit Lock-in Window Setting */}
+          <div 
+            className="flex items-center gap-1 px-2 py-0.5 rounded-full hover:bg-secondary/60 transition-colors text-[11px] font-bold text-foreground shrink-0 cursor-pointer"
+            title="Past habits lock-in window (1-10 days, default 3)"
+          >
+            <Lucide.Clock size={12} className="text-primary shrink-0" />
+            <select
+              value={graceDays}
+              onChange={(e) => {
+                const days = Math.min(10, Math.max(1, parseInt(e.target.value, 10) || 3));
+                updateSettings({ habitGracePeriodDays: days });
+                setToastNotice(`Past lock-in window set to ${days} ${days === 1 ? 'day' : 'days'}`);
+                setTimeout(() => setToastNotice(null), 3000);
+              }}
+              className="clean-select bg-transparent font-bold text-foreground text-[11px] appearance-none !border-0 !outline-none !ring-0 !shadow-none cursor-pointer pr-0.5 !p-0"
+              style={{ border: 'none', outline: 'none', boxShadow: 'none', background: 'transparent' }}
+            >
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(d => (
+                <option key={d} value={d} className="bg-surface text-foreground font-semibold">
+                  {d}d
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="h-4 w-px bg-border/70 shrink-0" />
+
+          {/* Month Navigator */}
+          <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
             <button
               type="button"
               onClick={prevMonth}
@@ -565,12 +566,12 @@ const HabitsMonthlyGridCard: React.FC = () => {
             <button
               type="button"
               onClick={resetToToday}
-              className="h-full px-2.5 rounded-full text-[11px] font-bold uppercase transition-all cursor-pointer bg-primary/10 text-primary hover:bg-primary/20 flex items-center justify-center"
+              className="px-2.5 py-1 rounded-full text-[10.5px] font-bold uppercase transition-all cursor-pointer bg-primary/10 text-primary hover:bg-primary/20 flex items-center justify-center shrink-0"
               title="Jump to Today"
             >
               Today
             </button>
-            <span className="text-[11px] font-extrabold px-2 text-foreground tracking-wider uppercase border-l border-border/60 text-center flex-1 sm:flex-initial">
+            <span className="text-[11px] font-extrabold px-1.5 text-foreground tracking-wider uppercase whitespace-nowrap shrink-0">
               {format(currentMonthDate, 'MMMM yyyy')}
             </span>
             <button

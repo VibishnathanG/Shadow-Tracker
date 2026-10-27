@@ -695,7 +695,7 @@ export default function MoneyFeature() {
           {/* Month Switcher & Subscription Button Alongside Each Other */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 relative z-10">
             {/* Month Switcher Segment - Clean Rounded Pill Matching Subscription Button */}
-            <div className="h-7 sm:h-7.5 flex items-center gap-0.5 px-1 bg-surface-elevated/90 border border-border/80 rounded-full shadow-xs shrink-0">
+            <div className="h-7 sm:h-7.5 flex items-center gap-0.5 px-1 bg-surface-elevated/90 border-0 rounded-full shadow-xs shrink-0">
               <button
                 type="button"
                 onClick={prevMonth}

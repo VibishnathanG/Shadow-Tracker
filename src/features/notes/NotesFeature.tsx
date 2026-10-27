@@ -416,7 +416,7 @@ export const NotesFeature: React.FC = () => {
             {/* Segmented View / Edit Mode Capsule & Save Controls */}
             <div className="flex items-center gap-3">
               {/* View / Edit Mode Switcher Capsule */}
-              <div className="flex items-center p-1 bg-secondary/50 border border-border/60 rounded-xl backdrop-blur-md">
+              <div className="flex items-center p-1 bg-secondary/50 border-0 rounded-xl backdrop-blur-md shadow-xs">
                 <button
                   type="button"
                   onClick={() => setIsEditing(false)}

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # =============================================================================
-# Shadow Tracker — v16.0.0 Release Script
+# Shadow Tracker — v17.0.0 Release Script
 # Builds web, Android APK, Windows executables, Docker image, archives,
 # and generates checksums.
 # =============================================================================
 set -euo pipefail
 
-VERSION="16.0.0"
+VERSION="17.0.0"
 TAG="v${VERSION}"
 
 echo "========================================="
@@ -30,8 +30,8 @@ npx cap copy android
 (cd android && ./gradlew assembleRelease)
 
 mkdir -p release
-rm -f release/ShadowTracker-v15.apk
-cp android/app/build/outputs/apk/release/app-release.apk release/ShadowTracker-v16.apk
+rm -f release/ShadowTracker-v16.apk
+cp android/app/build/outputs/apk/release/app-release.apk release/ShadowTracker-v17.apk
 cp android/app/build/outputs/apk/release/app-release.apk release/Shadow-Tracker-Release.apk
 echo "  Android APK built."
 
@@ -40,7 +40,7 @@ echo "▶ Building Windows Executables…"
 export PATH="/root/.cargo/bin:$PATH"
 npm run build:tauri
 cp src-tauri/target/x86_64-pc-windows-gnu/release/shadow-tracker.exe release/Shadow-Tracker-Portable.exe
-cp "src-tauri/target/x86_64-pc-windows-gnu/release/bundle/nsis/Shadow Tracker_16.0.0_x64-setup.exe" release/Shadow-Tracker-Setup.exe
+cp "src-tauri/target/x86_64-pc-windows-gnu/release/bundle/nsis/Shadow Tracker_17.0.0_x64-setup.exe" release/Shadow-Tracker-Setup.exe
 echo "  Windows binaries copied."
 
 echo ""
@@ -48,7 +48,7 @@ echo "▶ Building Docker image…"
 docker build \
   -t "vibishnathang/shadow-tracker:latest" \
   -t "vibishnathang/shadow-tracker:${TAG}" \
-  -t "vibishnathang/shadow-tracker:v16" \
+  -t "vibishnathang/shadow-tracker:v17" \
   .
 echo "  Docker image built."
 
@@ -59,7 +59,7 @@ docker save "vibishnathang/shadow-tracker:${TAG}" | gzip > release/shadow-tracke
 
 (cd release && sha256sum \
   Shadow-Tracker-Release.apk \
-  ShadowTracker-v16.apk \
+  ShadowTracker-v17.apk \
   Shadow-Tracker-Portable.exe \
   Shadow-Tracker-Setup.exe \
   shadow-tracker-web-export.tar.gz \

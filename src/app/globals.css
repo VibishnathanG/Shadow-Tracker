@@ -117,19 +117,30 @@ html.gpu-disabled [class*="backdrop-blur"] {
 
 /* Zero-CPU Idle Freeze when Hidden, Inactive, Minimized, Blurred, or Active User Idle */
 /* Target animated elements directly to freeze animations without forcing full-DOM style invalidation or breaking UI transitions */
-html.is-hidden [class*="animate-"]:not(.animate-spin):not([role="status"] *):not([aria-busy="true"] *),
-html.window-blurred [class*="animate-"]:not(.animate-spin):not([role="status"] *):not([aria-busy="true"] *),
-html.window-inactive [class*="animate-"]:not(.animate-spin):not([role="status"] *):not([aria-busy="true"] *),
-html.is-user-idle [class*="animate-"]:not(.animate-spin):not([role="status"] *):not([aria-busy="true"] *),
-html.is-hidden [style*="animation"],
-html.window-blurred [style*="animation"],
-html.window-inactive [style*="animation"],
-html.is-user-idle [style*="animation"],
-html.is-hidden svg *:not([role="status"] *):not([aria-busy="true"] *),
-html.window-blurred svg *:not([role="status"] *):not([aria-busy="true"] *),
-html.window-inactive svg *:not([role="status"] *):not([aria-busy="true"] *),
-html.is-user-idle svg *:not([role="status"] *):not([aria-busy="true"] *) {
+html.is-hidden [class*="animate-"]:not(.animate-spin):not([role="status"] *):not([aria-busy="true"] *):not(.theme-ambient-canvas *),
+html.window-blurred [class*="animate-"]:not(.animate-spin):not([role="status"] *):not([aria-busy="true"] *):not(.theme-ambient-canvas *),
+html.window-inactive [class*="animate-"]:not(.animate-spin):not([role="status"] *):not([aria-busy="true"] *):not(.theme-ambient-canvas *),
+html.is-user-idle [class*="animate-"]:not(.animate-spin):not([role="status"] *):not([aria-busy="true"] *):not(.theme-ambient-canvas *),
+html.is-hidden [style*="animation"]:not(.theme-ambient-canvas *),
+html.window-blurred [style*="animation"]:not(.theme-ambient-canvas *),
+html.window-inactive [style*="animation"]:not(.theme-ambient-canvas *),
+html.is-user-idle [style*="animation"]:not(.theme-ambient-canvas *),
+html.is-hidden svg *:not([role="status"] *):not([aria-busy="true"] *):not(.theme-ambient-canvas *),
+html.window-blurred svg *:not([role="status"] *):not([aria-busy="true"] *):not(.theme-ambient-canvas *),
+html.window-inactive svg *:not([role="status"] *):not([aria-busy="true"] *):not(.theme-ambient-canvas *),
+html.is-user-idle svg *:not([role="status"] *):not([aria-busy="true"] *):not(.theme-ambient-canvas *) {
   animation-play-state: paused !important;
+}
+
+/* Ensure ambient background graphic animations continue running smoothly without freezing */
+.theme-ambient-canvas,
+.theme-ambient-canvas *,
+.theme-ambient-canvas svg,
+.theme-ambient-canvas svg *,
+html.is-user-idle .theme-ambient-canvas svg *,
+html.window-blurred .theme-ambient-canvas svg *,
+html.window-inactive .theme-ambient-canvas svg * {
+  animation-play-state: running !important;
 }
 
 /* Suppress CSS transitions during idle state without triggering full-DOM style invalidations */
@@ -790,9 +801,16 @@ button.bg-sky-500:hover,
   background-color: color-mix(in srgb, var(--bg-surface-elevated) 45%, transparent) !important;
   backdrop-filter: blur(12px) saturate(130%);
   -webkit-backdrop-filter: blur(12px) saturate(130%);
-  border: 1px solid color-mix(in srgb, var(--border) 75%, rgba(255, 255, 255, 0.10)) !important;
+  border: 1px solid color-mix(in srgb, var(--border) 75%, rgba(255, 255, 255, 0.10));
   box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.08), 0 2px 8px -1px rgba(0, 0, 0, 0.18);
   transition: border-color 0.22s ease, box-shadow 0.22s ease, background-color 0.22s ease, transform 0.22s ease;
+}
+
+.border-0,
+.\!border-0,
+.border-none {
+  border: none !important;
+  border-width: 0 !important;
 }
 
 .tile .bg-secondary:hover,
@@ -1976,6 +1994,51 @@ html.theme-white .text-orange-500 {
   color: #9a3412 !important; /* orange-800: deep dark burnt orange */
 }
 
+html[data-theme="white"] .text-indigo-300,
+html[data-theme="white"] .text-indigo-400,
+html[data-theme="white"] .text-indigo-500,
+html.theme-white .text-indigo-300,
+html.theme-white .text-indigo-400,
+html.theme-white .text-indigo-500 {
+  color: #3730a3 !important; /* indigo-800 */
+}
+
+html[data-theme="white"] .text-yellow-300,
+html[data-theme="white"] .text-yellow-400,
+html[data-theme="white"] .text-yellow-500,
+html.theme-white .text-yellow-300,
+html.theme-white .text-yellow-400,
+html.theme-white .text-yellow-500 {
+  color: #854d0e !important; /* yellow-800 */
+}
+
+html[data-theme="white"] .text-fuchsia-300,
+html[data-theme="white"] .text-fuchsia-400,
+html[data-theme="white"] .text-fuchsia-500,
+html.theme-white .text-fuchsia-300,
+html.theme-white .text-fuchsia-400,
+html.theme-white .text-fuchsia-500 {
+  color: #86198f !important; /* fuchsia-800 */
+}
+
+html[data-theme="white"] .text-pink-300,
+html[data-theme="white"] .text-pink-400,
+html[data-theme="white"] .text-pink-500,
+html.theme-white .text-pink-300,
+html.theme-white .text-pink-400,
+html.theme-white .text-pink-500 {
+  color: #9d174d !important; /* pink-800 */
+}
+
+html[data-theme="white"] .text-teal-300,
+html[data-theme="white"] .text-teal-400,
+html[data-theme="white"] .text-teal-500,
+html.theme-white .text-teal-300,
+html.theme-white .text-teal-400,
+html.theme-white .text-teal-500 {
+  color: #115e59 !important; /* teal-800 */
+}
+
 html[data-theme="white"] .text-slate-300,
 html[data-theme="white"] .text-slate-400,
 html.theme-white .text-slate-300,
@@ -2084,6 +2147,78 @@ html.theme-white .bg-purple-500\/20 {
   color: #6b21a8 !important; /* purple-800 */
 }
 
+/* Atomic Habit: Indigo milestone */
+html[data-theme="white"] .bg-indigo-500\/10,
+html[data-theme="white"] .bg-indigo-500\/15,
+html[data-theme="white"] .bg-indigo-500\/20,
+html.theme-white .bg-indigo-500\/10,
+html.theme-white .bg-indigo-500\/15,
+html.theme-white .bg-indigo-500\/20 {
+  background-color: #e0e7ff !important; /* indigo-100: crisp solid pastel lavender indigo */
+  border-color: #a5b4fc !important; /* indigo-300: glowing visible border */
+  color: #3730a3 !important; /* indigo-800: deep rich ink */
+}
+
+/* Monthly Core: Orange milestone */
+html[data-theme="white"] .bg-orange-500\/10,
+html[data-theme="white"] .bg-orange-500\/15,
+html[data-theme="white"] .bg-orange-500\/20,
+html.theme-white .bg-orange-500\/10,
+html.theme-white .bg-orange-500\/15,
+html.theme-white .bg-orange-500\/20 {
+  background-color: #ffedd5 !important; /* orange-100: crisp solid pastel peach */
+  border-color: #fdba74 !important; /* orange-300: glowing visible border */
+  color: #9a3412 !important; /* orange-800: deep rich burnt orange ink */
+}
+
+/* Deep Harmony: Yellow milestone */
+html[data-theme="white"] .bg-yellow-500\/10,
+html[data-theme="white"] .bg-yellow-500\/15,
+html[data-theme="white"] .bg-yellow-500\/20,
+html.theme-white .bg-yellow-500\/10,
+html.theme-white .bg-yellow-500\/15,
+html.theme-white .bg-yellow-500\/20 {
+  background-color: #fef9c3 !important; /* yellow-100: crisp solid pastel sunshine yellow */
+  border-color: #fde047 !important; /* yellow-300: glowing visible border */
+  color: #854d0e !important; /* yellow-800: deep rich amber/gold ink */
+}
+
+/* Quarter Zenith: Fuchsia milestone */
+html[data-theme="white"] .bg-fuchsia-500\/10,
+html[data-theme="white"] .bg-fuchsia-500\/15,
+html[data-theme="white"] .bg-fuchsia-500\/20,
+html.theme-white .bg-fuchsia-500\/10,
+html.theme-white .bg-fuchsia-500\/15,
+html.theme-white .bg-fuchsia-500\/20 {
+  background-color: #fae8ff !important; /* fuchsia-100: crisp solid pastel orchid */
+  border-color: #f0abfc !important; /* fuchsia-300: glowing visible border */
+  color: #86198f !important; /* fuchsia-800: deep rich fuchsia ink */
+}
+
+/* Century Master: Pink milestone */
+html[data-theme="white"] .bg-pink-500\/10,
+html[data-theme="white"] .bg-pink-500\/15,
+html[data-theme="white"] .bg-pink-500\/20,
+html.theme-white .bg-pink-500\/10,
+html.theme-white .bg-pink-500\/15,
+html.theme-white .bg-pink-500\/20 {
+  background-color: #fce7f3 !important; /* pink-100: crisp solid pastel rose pink */
+  border-color: #f9a8d4 !important; /* pink-300: glowing visible border */
+  color: #9d174d !important; /* pink-800: deep rich magenta ink */
+}
+
+/* Wealth Master: Teal milestone */
+html[data-theme="white"] .bg-teal-500\/10,
+html[data-theme="white"] .bg-teal-500\/15,
+html[data-theme="white"] .bg-teal-500\/20,
+html.theme-white .bg-teal-500\/10,
+html.theme-white .bg-teal-500\/15,
+html.theme-white .bg-teal-500\/20 {
+  background-color: #ccfbf1 !important; /* teal-100: crisp solid pastel seafoam teal */
+  border-color: #5eead4 !important; /* teal-300: glowing visible border */
+  color: #115e59 !important; /* teal-800: deep rich teal ink */
+}
+
 html[data-theme="white"] .bg-slate-500\/10,
 html[data-theme="white"] .bg-slate-500\/15,
 html[data-theme="white"] .bg-muted-foreground\/10,
@@ -2104,25 +2239,37 @@ html.theme-white .bg-primary\/10 {
 
 /* White Theme Crisp Modern Inputs, Textareas, and Search Bars */
 html[data-theme="white"] input:not(.command-input),
-html[data-theme="white"] select,
+html[data-theme="white"] select:not(.clean-select),
 html[data-theme="white"] textarea,
 html.theme-white input:not(.command-input),
-html.theme-white select,
+html.theme-white select:not(.clean-select),
 html.theme-white textarea {
   background: #ffffff !important;
   background-color: #ffffff !important;
   border: 1px solid #cbd5e1 !important;
   color: #0f172a !important;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+  border-radius: 0.75rem;
 }
 html[data-theme="white"] input:not(.command-input):focus,
-html[data-theme="white"] select:focus,
+html[data-theme="white"] select:not(.clean-select):focus,
 html[data-theme="white"] textarea:focus,
 html.theme-white input:not(.command-input):focus,
-html.theme-white select:focus,
+html.theme-white select:not(.clean-select):focus,
 html.theme-white textarea:focus {
   border-color: #2563eb !important;
   box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
+}
+
+/* Explicit clean transparent selects without white box artifacts */
+html[data-theme="white"] select.clean-select,
+html.theme-white select.clean-select,
+select.clean-select {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
 }
 
 /* White Theme Sidebar Action Buttons & Search Command Button */

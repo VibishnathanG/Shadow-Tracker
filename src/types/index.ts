@@ -168,6 +168,15 @@ export interface Settings {
   customSubscriptionPresets?: Array<{ name: string; amount: number; cycle?: 'monthly' | 'yearly'; emoji?: string }>;
   customInvestmentPresets?: Array<{ name: string; amount: number; emoji?: string }>;
   customBigExpensePresets?: Array<{ name: string; amount: number; emoji?: string }>;
+  // External Integration Auto-Sync (Streak & GymMane)
+  streakAutoSyncEnabled?: boolean;
+  streakAutoSyncFileName?: string;
+  streakLastSyncTimestamp?: number;
+  streakLastModified?: number;
+  gymmaneAutoSyncEnabled?: boolean;
+  gymmaneAutoSyncFileName?: string;
+  gymmaneLastSyncTimestamp?: number;
+  gymmaneLastModified?: number;
 }
 
 export interface BackupData {

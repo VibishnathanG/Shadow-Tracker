@@ -509,10 +509,11 @@ export default function TodoFeature() {
     <div className="space-y-4 pb-12 relative">
       {/* Minimal One-Liner Header */}
       <div className="flex items-center justify-between gap-1.5 sm:gap-3 py-1 px-0.5 overflow-x-auto scrollbar-none">
-        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+        {/* Unified Progress & Metrics Enclosure */}
+        <div className="flex items-center gap-2 sm:gap-2.5 bg-surface-elevated/80 border border-border/70 px-2.5 sm:px-3 py-1 rounded-full shadow-2xs shrink-0">
           {/* Micro Progress Bar & Percentage */}
-          <div className="flex items-center gap-1.5 sm:gap-2 bg-surface-elevated/80 border border-border/70 px-2 sm:px-2.5 py-1 rounded-xl shadow-2xs shrink-0">
-            <div className="w-10 sm:w-20 h-1.5 bg-secondary rounded-full overflow-hidden border border-border/60">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <div className="w-10 sm:w-16 h-1.5 bg-secondary rounded-full overflow-hidden border-0">
               <motion.div
                 initial={{ width: 0 }}
                 animate={{ width: `${completionPercent}%` }}
@@ -523,7 +524,9 @@ export default function TodoFeature() {
             <span className="text-[11px] sm:text-xs font-black text-foreground">{completionPercent}%</span>
           </div>
 
-          {/* Minimal One-Liner Metrics */}
+          <div className="h-3 w-px bg-border/70 shrink-0" />
+
+          {/* Minimal Metrics */}
           <div className="flex items-center gap-1 sm:gap-2 text-[10.5px] sm:text-xs font-semibold text-muted-foreground whitespace-nowrap shrink-0">
             <span>Total: <strong className="text-foreground font-bold">{totalCount}</strong></span>
             <span className="opacity-40">•</span>
@@ -655,7 +658,7 @@ export default function TodoFeature() {
       </AnimatePresence>
 
       {/* Microsoft To Do Style Persistent Inline Task Creator */}
-      <div className="bg-surface/90 border border-emerald-500/30 hover:border-emerald-500/60 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 rounded-2xl p-2.5 sm:p-3 shadow-md transition-all relative z-20">
+      <div className="bg-surface/90 border-0 focus-within:ring-2 focus-within:ring-emerald-500/20 rounded-2xl p-2.5 sm:p-3 shadow-md transition-all relative z-20">
         <form onSubmit={handleInlineSubmit} className="space-y-2">
           {/* Primary Input Line */}
           <div className="flex items-center gap-2">
@@ -668,7 +671,7 @@ export default function TodoFeature() {
                   inlineInputRef.current.focus();
                 }
               }}
-              className="w-8 h-8 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-700 dark:text-emerald-400 shrink-0 transition-all cursor-pointer"
+              className="w-8 h-8 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border-0 flex items-center justify-center text-emerald-700 dark:text-emerald-400 shrink-0 transition-all cursor-pointer"
               title="Add ToDo"
             >
               <Lucide.Plus size={17} className="stroke-[2.5]" />
@@ -681,7 +684,7 @@ export default function TodoFeature() {
               placeholder="Add a ToDo..."
               value={inlineTitle}
               onChange={e => setInlineTitle(e.target.value)}
-              className="flex-1 bg-transparent text-sm sm:text-base font-semibold text-foreground placeholder-muted-foreground/60 outline-none px-1.5 py-1 min-w-0"
+              className="flex-1 bg-surface-elevated/40 text-sm sm:text-base font-semibold text-foreground placeholder-muted-foreground/60 outline-none px-3.5 py-1.5 min-w-0 !rounded-xl border border-border/40 focus:border-emerald-500/70 transition-all shadow-xs"
             />
 
             {/* Quick Action Buttons */}
@@ -693,12 +696,12 @@ export default function TodoFeature() {
                   const nextPriority = inlinePriority === 'medium' ? 'high' : inlinePriority === 'high' ? 'low' : 'medium';
                   setInlinePriority(nextPriority);
                 }}
-                className={`hidden sm:flex px-2 py-1 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+                className={`hidden sm:flex px-2 py-1 rounded-xl border-0 text-xs font-bold transition-all cursor-pointer ${
                   inlinePriority === 'high'
-                    ? 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/35'
+                    ? 'bg-rose-500/15 text-rose-700 dark:text-rose-400'
                     : inlinePriority === 'medium'
-                    ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/35'
-                    : 'bg-slate-500/15 text-slate-700 dark:text-slate-300 border-slate-500/35'
+                    ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300'
+                    : 'bg-slate-500/15 text-slate-700 dark:text-slate-300'
                 }`}
                 title={`Priority: ${inlinePriority.toUpperCase()} (Click to cycle)`}
               >
@@ -709,12 +712,12 @@ export default function TodoFeature() {
               <button
                 type="button"
                 onClick={() => setIsInlineOptionsOpen(prev => !prev)}
-                className={`p-1.5 rounded-xl border transition-all cursor-pointer relative ${
+                className={`p-1.5 rounded-xl border-0 transition-all cursor-pointer relative ${
                   isInlineOptionsOpen
-                    ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/40'
+                    ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400'
                     : (inlineDueDate || inlineEnableReminder || inlinePriority !== 'low')
-                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
-                    : 'text-muted-foreground hover:text-foreground border-border/60 hover:bg-surface-elevated'
+                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-surface-elevated'
                 }`}
                 title={isInlineOptionsOpen ? 'Collapse options' : 'More task options'}
               >
@@ -1019,7 +1022,7 @@ export default function TodoFeature() {
       </div>
 
       {/* Unified Compact Toolbar */}
-      <div className="tile p-2.5 rounded-2xl">
+      <div className="bg-surface/80 p-2.5 rounded-2xl shadow-xs border-0">
         <div className="flex flex-col xl:flex-row xl:items-center gap-2">
           {/* Status Filter Pills */}
           <div className="pill-group overflow-x-auto scrollbar-none flex-nowrap shrink-0">
@@ -1047,7 +1050,7 @@ export default function TodoFeature() {
               placeholder="Search ToDos..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full text-xs !pl-7 !pr-6 py-2 bg-surface-elevated rounded-xl border border-border/60 text-foreground placeholder-muted-foreground focus:border-emerald-500 focus:outline-none transition-all"
+              className="w-full text-xs !pl-7 !pr-6 py-2 bg-surface-elevated rounded-xl border-0 text-foreground placeholder-muted-foreground focus:ring-1 focus:ring-emerald-500 focus:outline-none transition-all"
             />
             {searchQuery && (
               <button
@@ -1065,7 +1068,7 @@ export default function TodoFeature() {
               <select
                 value={priorityFilter}
                 onChange={e => setPriorityFilter(e.target.value as TodoFilterPriority)}
-                className="w-full text-xs pl-2.5 pr-6 py-2 bg-surface-elevated rounded-xl border border-border/60 text-foreground outline-none appearance-none cursor-pointer focus:border-emerald-500 transition-all font-medium"
+                className="w-full text-xs pl-2.5 pr-6 py-2 bg-surface-elevated rounded-xl border-0 text-foreground outline-none appearance-none cursor-pointer focus:ring-1 focus:ring-emerald-500 transition-all font-medium"
               >
                 <option value="all">All Priorities</option>
                 <option value="high">High (🔥)</option>
@@ -1080,7 +1083,7 @@ export default function TodoFeature() {
               <select
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value as TodoSortOption)}
-                className="w-full text-xs pl-2.5 pr-6 py-2 bg-surface-elevated rounded-xl border border-border/60 text-foreground outline-none appearance-none cursor-pointer focus:border-emerald-500 transition-all font-medium"
+                className="w-full text-xs pl-2.5 pr-6 py-2 bg-surface-elevated rounded-xl border-0 text-foreground outline-none appearance-none cursor-pointer focus:ring-1 focus:ring-emerald-500 transition-all font-medium"
               >
                 <option value="createdAt_desc">Sort: Newest</option>
                 <option value="createdAt_asc">Sort: Oldest</option>
@@ -1171,12 +1174,12 @@ export default function TodoFeature() {
 
                       <div className="flex items-center gap-1.5 shrink-0">
                         <span
-                          className={`px-1.5 py-0.5 rounded-md text-[10.5px] font-medium shrink-0 ${
+                          className={`px-1.5 py-0.5 rounded-md text-[10.5px] font-medium shrink-0 border-0 ${
                             todo.priority === 'high'
-                              ? 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/25'
+                              ? 'bg-rose-500/15 text-rose-700 dark:text-rose-400'
                               : todo.priority === 'medium'
-                              ? 'bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/25'
-                              : 'bg-slate-500/10 text-slate-700 dark:text-slate-300 border border-slate-500/25'
+                              ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300'
+                              : 'bg-slate-500/15 text-slate-700 dark:text-slate-300'
                           }`}
                         >
                           {todo.priority === 'high' ? '🔥 High' : todo.priority === 'medium' ? '⚡ Med' : '☕ Low'}
@@ -1363,12 +1366,12 @@ export default function TodoFeature() {
                       <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-xs">
                         {/* Priority Badge */}
                         <span
-                          className={`px-1.5 py-0.5 rounded-md text-[10.5px] font-medium shrink-0 ${
+                          className={`px-1.5 py-0.5 rounded-md text-[10.5px] font-medium shrink-0 border-0 ${
                             todo.priority === 'high'
-                              ? 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border border-rose-500/25'
+                              ? 'bg-rose-500/15 text-rose-700 dark:text-rose-400'
                               : todo.priority === 'medium'
-                              ? 'bg-amber-500/10 text-amber-800 dark:text-amber-300 border border-amber-500/25'
-                              : 'bg-slate-500/10 text-slate-700 dark:text-slate-300 border border-slate-500/25'
+                              ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300'
+                              : 'bg-slate-500/15 text-slate-700 dark:text-slate-300'
                           }`}
                         >
                           {todo.priority === 'high' ? '🔥 High' : todo.priority === 'medium' ? '⚡ Med' : '☕ Low'}
@@ -1376,7 +1379,7 @@ export default function TodoFeature() {
 
                         {/* Due Date & Time */}
                         {(todo.dueDate || todo.dueTime) && (
-                          <span className="flex items-center gap-1 text-[9.5px] font-medium text-muted-foreground bg-surface-elevated/70 px-1.5 py-0.5 rounded-md border border-border/40 shrink-0">
+                          <span className="flex items-center gap-1 text-[9.5px] font-medium text-muted-foreground bg-surface-elevated/70 px-1.5 py-0.5 rounded-md border-0 shrink-0">
                             <Lucide.Calendar size={10} className="text-emerald-400 shrink-0" />
                             {todo.dueDate} {todo.dueTime}
                           </span>
@@ -1384,7 +1387,7 @@ export default function TodoFeature() {
 
                         {/* Alarm Indicator */}
                         {todo.reminderTime && (
-                          <span className="flex items-center gap-1 text-[9.5px] font-medium text-cyan-400 bg-cyan-950/40 px-1.5 py-0.5 rounded-md border border-cyan-500/30 shrink-0" title={`Alarm: ${todo.reminderTime}`}>
+                          <span className="flex items-center gap-1 text-[9.5px] font-medium text-cyan-400 bg-cyan-950/40 px-1.5 py-0.5 rounded-md border-0 shrink-0" title={`Alarm: ${todo.reminderTime}`}>
                             <Lucide.Bell size={10} className="animate-pulse" />
                             <span>Alarm</span>
                           </span>
@@ -1392,7 +1395,7 @@ export default function TodoFeature() {
 
                         {/* Recurrence Indicator */}
                         {todo.isRecurring && (
-                          <span className="flex items-center gap-1 text-[9.5px] font-medium text-emerald-400 bg-emerald-950/40 px-1.5 py-0.5 rounded-md border border-emerald-500/30 shrink-0">
+                          <span className="flex items-center gap-1 text-[9.5px] font-medium text-emerald-400 bg-emerald-950/40 px-1.5 py-0.5 rounded-md border-0 shrink-0">
                             <Lucide.Repeat size={10} />
                             <span className="capitalize">{todo.recurrencePattern || 'recurring'}</span>
                           </span>
